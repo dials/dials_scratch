@@ -28,7 +28,8 @@ def GetBitmap_from_np_array(data2d):
   for xpos in range(xmax):
     for ypos in range(ymax):
       f_num = data2d[xpos,ypos]
-      g = float("{0:.2f}".format(f_num))
+      g = float("{0:.2f}".format(float(f_num)))
+
       txt_dat = str(g)
       if( g < vl_mid_low ):
         clr_chr = 'yellow'
