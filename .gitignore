@@ -1,0 +1,11 @@
+# Ignored Mathematica files shall be prefixed by _
+_*.nb
+*.fdb_latexmk
+*.gz
+*.pdf
+*.pyc
+.DS_Store
+*~
+*.swp
+.git-notifier*
+.gitversion
