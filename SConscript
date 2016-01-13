@@ -26,3 +26,4 @@ if (not env_etc.no_boost_python and hasattr(env_etc, "boost_adaptbx_include")):
                 "scitbx_boost_python",
                 "boost_python",
                 "cctbx"])
+    env.SConscript('idy/algorithms/spot_prediction/SConscript', exports={ 'env' : env })

@@ -15,7 +15,7 @@
 #include <dxtbx/model/detector.h>
 #include <dials/algorithms/spot_prediction/reeke_index_generator.h>
 #include <dials/algorithms/spot_prediction/ray_predictor.h>
-#include <dials/scratch/idy/algorithms/spot_prediction/stills_ray_predictor.h>
+#include <dials_scratch/idy/algorithms/spot_prediction/stills_ray_predictor.h>
 #include <dials/algorithms/spot_prediction/reflection_predictor.h>
 
 namespace dials { namespace algorithms {

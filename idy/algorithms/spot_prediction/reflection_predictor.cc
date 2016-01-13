@@ -10,7 +10,7 @@
  */
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
-#include <dials/scratch/idy/algorithms/spot_prediction/reflection_predictor.h>
+#include <dials_scratch/idy/algorithms/spot_prediction/reflection_predictor.h>
 
 namespace dials { namespace algorithms { namespace boost_python {
 
