@@ -138,6 +138,9 @@ class Script(object):
     bg_stats = flex.mean_and_variance(bottom_gaps)
     an_stats = flex.mean_and_variance(angles)
     sa_stats = flex.mean_and_variance(sensor_angles)
+    for x in xrange(len(pixel_gaps)):
+      print "%2d. Px gap: %5.3f  vertical: %6.3f  asic_angle: %6.3f  sensor_angle: %6.3f"%(x,pixel_gaps[x],bottom_gaps[x],angles[x],sensor_angles[x])
+
 
     print "Sensor stats (means and standard deviations)"
     print "3 pixel gap                        : %f, %f"%(pg_stats.mean(), pg_stats.unweighted_sample_standard_deviation())
