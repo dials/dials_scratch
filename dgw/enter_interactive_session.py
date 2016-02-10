@@ -62,9 +62,6 @@ from dials.algorithms.refinement.target import \
 
 from dials.algorithms.refinement.reflection_manager import ReflectionManager
 
-# Import helper functions
-from dials.algorithms.refinement.refinement_helpers import print_model_geometry
-
 #############################
 # Setup experimental models #
 #############################
@@ -168,7 +165,9 @@ xluc_param.set_param_vals(X)
 #############################
 
 print "Reflections will be generated with the following geometry:"
-print_model_geometry(mybeam, mydetector, mycrystal)
+print mybeam
+print mydetector
+print mycrystal
 print "Target values of parameters are"
 msg = "Parameters: " + "%.5f " * len(pred_param)
 print msg % tuple(pred_param.get_param_vals())
@@ -249,7 +248,9 @@ refiner = setup_minimiser.Extract(master_phil,
                                   cmdline_args = args).refiner
 
 print "Prior to refinement the experimental model is:"
-print_model_geometry(mybeam, mydetector, mycrystal)
+print mybeam
+print mydetector
+print mycrystal
 
 # get a CS-PAD detector for testing
 import os
@@ -303,6 +304,3 @@ cspad_param = DetectorParameterisationHierarchical(cspad,level=2)
 from dials.util.command_line import interactive_console; interactive_console()
 #refiner.run()
 
-#print
-#print "Refinement has completed with the following geometry:"
-#print_model_geometry(mybeam, mydetector, mycrystal)
