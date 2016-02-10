@@ -8,6 +8,8 @@ from scitbx import matrix
 import random
 from math import pi
 from libtbx.test_utils import approx_equal
+from libtbx.development.timers import Timer
+from dials.algorithms.refinement.refinement_helpers import dR_from_axis_and_angle
 
 trials = []
 
@@ -15,9 +17,6 @@ for i in range(10000):
   # generate random axis and angle
   trials.append((matrix.col.random(3, -1, 1).normalize(),
                  random.uniform(0, 2*pi)))
-
-from libtbx.development.timers import Timer
-from dials.algorithms.refinement.refinement_helpers import dR_from_axis_and_angle
 
 t = Timer('dR_from_axis_and_angle')
 dR_1 = []
