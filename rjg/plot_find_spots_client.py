@@ -41,9 +41,11 @@ def run(args):
   n_spots = flex.double()
   n_lattices = flex.double()
   crystals = []
+  image_names = flex.std_string()
 
   for r in results:
     n_spots.append(r['n_spots_total'])
+    image_names.append(str(r['image']))
     if 'n_indexed' in r:
       n_indexed.append(r['n_indexed'])
       fraction_indexed.append(r['fraction_indexed'])
