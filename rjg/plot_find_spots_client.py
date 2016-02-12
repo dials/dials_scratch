@@ -155,6 +155,7 @@ def run(args):
 
       from dials.command_line.stereographic_projection import plot_projections
       plot_projections(projections, filename='projections_%s.png' %('hkl'[i]))
+      pyplot.clf()
 
   def plot_grid(values, grid, file_name, cmap=pyplot.cm.Reds,
                 vmin=None, vmax=None):
@@ -166,14 +167,20 @@ def run(args):
     else:
       values.reshape(flex.grid(grid))
 
-    fig = pyplot.figure()
-    pyplot.pcolormesh(
+    Z = values.as_numpy_array()
+
+    f, (ax1, ax2) = pyplot.subplots(2)
+
+    mesh1 = ax1.pcolormesh(
       values.as_numpy_array(), cmap=cmap, vmin=vmin, vmax=vmax)
-    pyplot.xlim(0, grid[1])
-    pyplot.ylim(0, grid[0])
-    pyplot.gca().invert_yaxis()
-    pyplot.axes().set_aspect('equal')
-    pyplot.colorbar()
+    mesh2 = ax2.contour(Z, cmap=cmap, vmin=vmin, vmax=vmax)
+    mesh2 = ax2.contourf(Z, cmap=cmap, vmin=vmin, vmax=vmax)
+    ax1.set_aspect('equal')
+    ax1.invert_yaxis()
+    ax2.set_aspect('equal')
+    ax2.invert_yaxis()
+    pyplot.colorbar(mesh1, ax=ax1)
+    pyplot.colorbar(mesh2, ax=ax2)
     pyplot.savefig(file_name)
     pyplot.clf()
 
