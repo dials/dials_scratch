@@ -133,27 +133,28 @@ def run(args):
       d_spacings = d_spacings.generate_bijvoet_mates()
       miller_indices = d_spacings.indices()
 
-      ref_crystal = crystals[0]
-      A = ref_crystal.get_A()
-      U = ref_crystal.get_U()
-      B = ref_crystal.get_B()
-      R = matrix.identity(3)
-
-      #s0 = (0,0,1)
-      #rotation_axis = (1,0,0)
       # plane normal
       d0 = matrix.col(s0).normalize()
       d1 = d0.cross(matrix.col(rotation_axis)).normalize()
       d2 = d1.cross(d0).normalize()
       reference_poles = (d0, d1, d2)
 
-      reciprocal_space_points = list(R * U * B) * miller_indices.as_vec3_double()
       from dials.command_line.stereographic_projection import stereographic_projection
-      projections = stereographic_projection(reciprocal_space_points, reference_poles)
+      projections = []
+
+      for cryst in crystals:
+        reciprocal_space_points = list(cryst.get_U() * cryst.get_B()) * miller_indices.as_vec3_double()
+        projections.append(stereographic_projection(
+          reciprocal_space_points, reference_poles))
+
+        #from dials.algorithms.indexing.compare_orientation_matrices import \
+        #  difference_rotation_matrix_and_euler_angles
+        #R_ij, euler_angles, cb_op = difference_rotation_matrix_and_euler_angles(
+        #  crystals[0], cryst)
+        #print max(euler_angles)
 
       from dials.command_line.stereographic_projection import plot_projections
-      plot_projections([projections], filename='projections_%s.png' %('hkl'[i]))
-
+      plot_projections(projections, filename='projections_%s.png' %('hkl'[i]))
 
   def plot_grid(values, grid, file_name, cmap=pyplot.cm.Reds,
                 vmin=None, vmax=None):
