@@ -92,7 +92,8 @@ def run(args):
     n_spots_no_ice.append(d['n_spots_no_ice'])
     total_intensity.append(d['total_intensity'])
 
-  stats = group_args(n_spots_total=n_spots_total,
+  stats = group_args(image=image_names,
+                     n_spots_total=n_spots_total,
                      n_spots_no_ice=n_spots_no_ice,
                      n_spots_4A=None,
                      total_intensity=total_intensity,
@@ -106,6 +107,12 @@ def run(args):
     plot_stats(stats)
   if table:
     print_table(stats)
+
+  n_rows = 10
+  n_rows = min(n_rows, len(n_spots_total))
+  perm_n_spots_total = flex.sort_permutation(n_spots_total, reverse=True)
+  print 'Top %i images sorted by number of spots:' %n_rows
+  print_table(stats, perm=perm_n_spots_total, n_rows=n_rows)
 
   if params.stereographic_projections and len(crystals):
     from dxtbx.datablock import DataBlockFactory
