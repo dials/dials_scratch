@@ -8,6 +8,8 @@ help_message = '''
 phil_scope = iotbx.phil.parse("""\
 grid = None
   .type = ints(size=2, value_min=1)
+stereographic_projections = False
+  .type = bool
 """, process_includes=True)
 
 
@@ -38,6 +40,7 @@ def run(args):
   fraction_indexed = flex.double()
   n_spots = flex.double()
   n_lattices = flex.double()
+  crystals = []
 
   for r in results:
     n_spots.append(r['n_spots_total'])
@@ -45,6 +48,9 @@ def run(args):
       n_indexed.append(r['n_indexed'])
       fraction_indexed.append(r['fraction_indexed'])
       n_lattices.append(len(r['lattices']))
+      for d in r['lattices']:
+        from dxtbx.serialize.crystal import from_dict
+        crystals.append(from_dict(d['crystal']))
     else:
       n_indexed.append(0)
       fraction_indexed.append(0)
@@ -98,6 +104,54 @@ def run(args):
     plot_stats(stats)
   if table:
     print_table(stats)
+
+  if params.stereographic_projections and len(crystals):
+    from dxtbx.datablock import DataBlockFactory
+    datablocks = DataBlockFactory.from_filenames(
+      [image_names[0]], verbose=False)
+    assert len(datablocks) == 1
+    imageset = datablocks[0].extract_imagesets()[0]
+    s0 = imageset.get_beam().get_s0()
+    # XXX what if no goniometer?
+    rotation_axis = imageset.get_goniometer().get_rotation_axis()
+
+    indices = ((1,0,0), (0,1,0), (0,0,1))
+    for i, index in enumerate(indices):
+
+      from cctbx import crystal, miller
+      from cctbx.array_family import flex
+      from scitbx import matrix
+      miller_indices = flex.miller_index([index])
+      symmetry = crystal.symmetry(
+        unit_cell=crystals[0].get_unit_cell(),
+        space_group=crystals[0].get_space_group())
+      miller_set = miller.set(symmetry, miller_indices)
+      d_spacings = miller_set.d_spacings()
+      d_spacings = d_spacings.as_non_anomalous_array().expand_to_p1()
+      d_spacings = d_spacings.generate_bijvoet_mates()
+      miller_indices = d_spacings.indices()
+
+      ref_crystal = crystals[0]
+      A = ref_crystal.get_A()
+      U = ref_crystal.get_U()
+      B = ref_crystal.get_B()
+      R = matrix.identity(3)
+
+      #s0 = (0,0,1)
+      #rotation_axis = (1,0,0)
+      # plane normal
+      d0 = matrix.col(s0).normalize()
+      d1 = d0.cross(matrix.col(rotation_axis)).normalize()
+      d2 = d1.cross(d0).normalize()
+      reference_poles = (d0, d1, d2)
+
+      reciprocal_space_points = list(R * U * B) * miller_indices.as_vec3_double()
+      from dials.command_line.stereographic_projection import stereographic_projection
+      projections = stereographic_projection(reciprocal_space_points, reference_poles)
+
+      from dials.command_line.stereographic_projection import plot_projections
+      plot_projections([projections], filename='projections_%s.png' %('hkl'[i]))
+
 
   def plot_grid(values, grid, file_name, cmap=pyplot.cm.Reds,
                 vmin=None, vmax=None):
