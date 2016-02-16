@@ -11,6 +11,12 @@ grid = None
   .type = ints(size=2, value_min=1)
 stereographic_projections = False
   .type = bool
+positions = None
+  .type = path
+cmap = YlOrRd
+  .type = str
+invalid = white
+  .type = str
 """, process_includes=True)
 
 
@@ -28,6 +34,16 @@ def run(args):
 
   params, options, args = parser.parse_args(
     show_diff_phil=True, return_unhandled=True)
+
+  positions = None
+  if params.positions is not None:
+    with open(params.positions, 'rb') as f:
+      positions = flex.vec2_double()
+      for line in f.readlines():
+        line = line.replace('(', ' ').replace(')', '').replace(',', ' ').strip().split()
+        assert len(line) == 3
+        i, x, y = [float(l) for l in line]
+        positions.append((x, y))
 
   assert len(args) == 1
   json_file = args[0]
@@ -184,7 +200,7 @@ def run(args):
       pyplot.clf()
 
   def plot_grid(values, grid, file_name, cmap=pyplot.cm.Reds,
-                vmin=None, vmax=None):
+                vmin=None, vmax=None, invalid='white'):
     values = values.as_double()
     # At DLS, fast direction appears to be largest direction
     if grid[0] > grid[1]:
@@ -195,29 +211,75 @@ def run(args):
 
     Z = values.as_numpy_array()
 
-    f, (ax1, ax2) = pyplot.subplots(2)
+    #f, (ax1, ax2) = pyplot.subplots(2)
+    f, ax1 = pyplot.subplots(1)
 
     mesh1 = ax1.pcolormesh(
       values.as_numpy_array(), cmap=cmap, vmin=vmin, vmax=vmax)
-    mesh2 = ax2.contour(Z, cmap=cmap, vmin=vmin, vmax=vmax)
-    mesh2 = ax2.contourf(Z, cmap=cmap, vmin=vmin, vmax=vmax)
+    mesh1.cmap.set_under(color=invalid, alpha=None)
+    mesh1.cmap.set_over(color=invalid, alpha=None)
+    #mesh2 = ax2.contour(Z, cmap=cmap, vmin=vmin, vmax=vmax)
+    #mesh2 = ax2.contourf(Z, cmap=cmap, vmin=vmin, vmax=vmax)
     ax1.set_aspect('equal')
     ax1.invert_yaxis()
-    ax2.set_aspect('equal')
-    ax2.invert_yaxis()
+    #ax2.set_aspect('equal')
+    #ax2.invert_yaxis()
     pyplot.colorbar(mesh1, ax=ax1)
-    pyplot.colorbar(mesh2, ax=ax2)
-    pyplot.savefig(file_name)
+    #pyplot.colorbar(mesh2, ax=ax2)
+    pyplot.savefig(file_name, dpi=600)
     pyplot.clf()
 
-  if grid is not None:
-    grid = tuple(reversed(grid))
-    plot_grid(n_spots_total, grid, 'grid_spot_count_total.png')
-    plot_grid(n_spots_no_ice, grid, 'grid_spot_count_no_ice.png')
-    plot_grid(total_intensity, grid, 'grid_total_intensity.png')
+  def plot_positions(values, positions, file_name, cmap=pyplot.cm.Reds,
+                     vmin=None, vmax=None, invalid='white'):
+    values = values.as_double()
+    assert positions.size() >= values.size()
+    positions = positions[:values.size()]
+
+    if vmin is None:
+      vmin = flex.min(values)
+    if vmax is None:
+      vmax = flex.max(values)
+
+    x, y = positions.parts()
+    dx = flex.abs(x[1:] - x[:-1])
+    dy = flex.abs(y[1:] - y[:-1])
+    dx = dx.select(dx > 0)
+    dy = dy.select(dy > 0)
+
+    scale = 1/flex.min(dx)
+    #print scale
+    x = (x * scale).iround()
+    y = (y * scale).iround()
+
+    from libtbx.math_utils import iceil
+    z = flex.double(flex.grid(iceil(flex.max(y))+1, iceil(flex.max(x))+1), -2)
+    #print z.all()
+    for x_, y_, z_ in zip(x, y, values):
+      z[y_, x_] = z_
+
+    plot_grid(z.as_1d(), z.all(), file_name, cmap=cmap, vmin=vmin, vmax=vmax,
+              invalid=invalid)
+    return
+
+  if grid is not None or positions is not None:
+    if grid is not None:
+      positions = tuple(reversed(grid))
+      plotter = plot_grid
+    else:
+      plotter = plot_positions
+
+    cmap = pyplot.get_cmap(params.cmap)
+    plotter(n_spots_total, positions, 'grid_spot_count_total.png', cmap=cmap,
+            invalid=params.invalid)
+    plotter(n_spots_no_ice, positions, 'grid_spot_count_no_ice.png', cmap=cmap,
+            invalid=params.invalid)
+    plotter(total_intensity, positions, 'grid_total_intensity.png', cmap=cmap,
+            invalid=params.invalid)
     if flex.max(n_indexed) > 0:
-      plot_grid(n_indexed, grid, 'grid_n_indexed.png')
-      plot_grid(fraction_indexed, grid, 'grid_fraction_indexed.png')
+      plotter(n_indexed, positions, 'grid_n_indexed.png', cmap=cmap,
+              invalid=params.invalid)
+      plotter(fraction_indexed, positions, 'grid_fraction_indexed.png',
+              cmap=cmap, vmin=0, vmax=1, invalid=params.invalid)
 
     for i, d_min in enumerate((estimated_d_min, d_min_distl_method_1, d_min_distl_method_2)):
       from cctbx import uctbx
@@ -228,14 +290,16 @@ def run(args):
 
       vmin = flex.min(d_min.select(d_min > 0))
       vmax = flex.max(d_min)
-      cmap = pyplot.cm.Reds_r
+      cmap = pyplot.get_cmap('%s_r' %params.cmap)
       d_min.set_selected(d_min <= 0, vmax)
 
       if i == 0:
-        plot_grid(d_min, grid, 'grid_d_min.png', cmap=cmap, vmin=vmin, vmax=vmax)
+        plotter(d_min, positions, 'grid_d_min.png', cmap=cmap, vmin=vmin,
+                vmax=vmax, invalid=params.invalid)
       else:
-        plot_grid(
-          d_min, grid, 'grid_d_min_method_%i.png' %i, cmap=cmap, vmin=vmin, vmax=vmax)
+        plotter(
+          d_min, positions, 'grid_d_min_method_%i.png' %i, cmap=cmap,
+          vmin=vmin, vmax=vmax, invalid=params.invalid)
 
   if flex.max(n_indexed) > 0:
     pyplot.hexbin(
