@@ -129,15 +129,38 @@ class Script(object):
 
     # Iiterate through the detectors, computing the congruence statistics
     normal_angles = {}
+    z_angles = {}
+    xy_deltas = {}
+    z_deltas = {}
     for pg1, pg2 in zip(iterate_detector_at_level(detectors[0].hierarchy(), 0, params.hierarchy_level),
                         iterate_detector_at_level(detectors[1].hierarchy(), 0, params.hierarchy_level)):
-      angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
+      norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
+      z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
+      if hasattr(pg1, 'children'):
+        v1 = col(pg1.get_origin())
+        v2 = col(pg2.get_origin())
+      else:
+        s = pg1.get_image_size()
+        assert s == pg2.get_image_size()
+        v1 = col(pg1.get_pixel_lab_coord((s[0]/2, s[1]/2)))
+        v2 = col(pg2.get_pixel_lab_coord((s[0]/2, s[1]/2)))
+
+      delta = v1 - v2
+      xyd = col(delta[0:2]).length()
+      zd = abs(delta[2])
+
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
         assert p1.get_name() == p2.get_name()
-        normal_angles[p1.get_name()] = angle
+        normal_angles[p1.get_name()] = norm_angle
+        z_angles[p1.get_name()] = z_angle
+        xy_deltas[p1.get_name()] = xyd
+        z_deltas[p1.get_name()] = zd
 
     # Plot the results
     self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
+    self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
+    self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (mm)", u"%.2fmm")
+    self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (mm)", u"%.2fmm")
 
   def detector_plot(self, detector, data, title, units_str):
     """
