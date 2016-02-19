@@ -159,14 +159,14 @@ class Script(object):
         v2 = col(pg2.get_pixel_lab_coord((s[0]/2, s[1]/2)))
 
       delta = v1 - v2
-      xyd = col(delta[0:2]).length()
-      zd = abs(delta[2])
+      xyd = col(delta[0:2]).length()*1000
+      zd = abs(delta[2])*1000
 
       all_normal_angles.append(norm_angle)
       all_z_angles.append(z_angle)
       all_xy_deltas.append(xyd)
       all_z_deltas.append(zd)
-      table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%.4f"%xyd, "%.4f"%zd])
+      table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd])
 
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
         assert p1.get_name() == p2.get_name()
@@ -177,21 +177,22 @@ class Script(object):
 
     table_data.append(["Mean", "%.4f"%flex.mean(all_normal_angles),
                                "%.4f"%flex.mean(all_z_angles),
-                               "%.4f"%flex.mean(all_xy_deltas),
-                               "%.4f"%flex.mean(all_z_deltas)])
+                               "%4.1f"%flex.mean(all_xy_deltas),
+                               "%4.1f"%flex.mean(all_z_deltas)])
     table_data.append(["Stddev", "%.4f"%flex.mean_and_variance(all_normal_angles).unweighted_sample_standard_deviation(),
                                  "%.4f"%flex.mean_and_variance(all_z_angles).unweighted_sample_standard_deviation(),
-                                 "%.4f"%flex.mean_and_variance(all_xy_deltas).unweighted_sample_standard_deviation(),
-                                 "%.4f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation()])
+                                 "%4.1f"%flex.mean_and_variance(all_xy_deltas).unweighted_sample_standard_deviation(),
+                                 "%4.1f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation()])
     from libtbx import table_utils
+    print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
     if params.show_plots:
       # Plot the results
       self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
       self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
-      self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (mm)", u"%.2fmm")
-      self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (mm)", u"%.2fmm")
+      self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (microns)", u"%4.1f")
+      self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (microns)", u"%4.1f")
 
   def detector_plot(self, detector, data, title, units_str):
     """
