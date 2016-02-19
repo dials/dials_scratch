@@ -38,6 +38,9 @@ colormap=RdYlGn_r
   .type=str
   .help=matplotlib color map. See e.g.: \
         http://matplotlib.org/examples/color/colormaps_reference.html
+show_plots=True
+  .type=bool
+  .help=Whether to show congruence plots
 ''')
 
 def iterate_detector_at_level(item, depth = 0, level = 0):
@@ -183,11 +186,12 @@ class Script(object):
     from libtbx import table_utils
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
-    # Plot the results
-    self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
-    self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
-    self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (mm)", u"%.2fmm")
-    self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (mm)", u"%.2fmm")
+    if params.show_plots:
+      # Plot the results
+      self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
+      self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
+      self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (mm)", u"%.2fmm")
+      self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (mm)", u"%.2fmm")
 
   def detector_plot(self, detector, data, title, units_str):
     """
