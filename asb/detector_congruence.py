@@ -10,11 +10,13 @@
 #  included in the root directory of this package.
 #
 from __future__ import division
+from scitbx.array_family import flex
 from scitbx.matrix import col
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.colors import Normalize
 from matplotlib import cm
+import numpy as np
 
 help_message = '''
 
@@ -109,11 +111,13 @@ class Script(object):
         assert p1.get_name() == p2.get_name()
         angles[p1.get_name()] = angle
 
-    self.detector_plot(detectors[0], angles)
+    self.detector_plot(detectors[0], angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
 
-  def detector_plot(self, detector, data):
-    norm = Normalize(vmin=min(data.values()), vmax=max(data.values()))
+  def detector_plot(self, detector, data, title, units_str):
+    values = flex.double(data.values())
+    norm = Normalize(vmin=flex.min(values), vmax=flex.max(values))
     sm = cm.ScalarMappable(norm=norm, cmap=cm.RdYlGn_r)
+    sm.set_array(np.arange(flex.min(values), flex.max(values), (flex.max(values)-flex.min(values))/20)) # needed for colorbar
 
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
@@ -130,7 +134,7 @@ class Script(object):
       vcen = ((v2/2) + (v1/2)) + p0
 
       ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(data[panel.get_name()]), fill=True))
-      ax.annotate("%d %.2f"%(panel_id, data[panel.get_name()]), vcen[0:2], ha='center')
+      ax.annotate("%d %s"%(panel_id, units_str%data[panel.get_name()]), vcen[0:2], ha='center')
 
       for p in [p0, p1, p2, p3]:
         for c in p[0:2]:
@@ -138,6 +142,10 @@ class Script(object):
             max_dim = abs(c)
     ax.set_xlim((-max_dim,max_dim))
     ax.set_ylim((-max_dim,max_dim))
+    ax.set_xlabel("mm")
+    ax.set_ylabel("mm")
+    fig.colorbar(sm)
+    plt.title(title)
     plt.show()
 
 
