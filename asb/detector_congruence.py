@@ -109,13 +109,16 @@ class Script(object):
         assert p1.get_name() == p2.get_name()
         angles[p1.get_name()] = angle
 
-    norm = Normalize(vmin=min(angles.values()), vmax=max(angles.values()))
+    self.detector_plot(detectors[0], angles)
+
+  def detector_plot(self, detector, data):
+    norm = Normalize(vmin=min(data.values()), vmax=max(data.values()))
     sm = cm.ScalarMappable(norm=norm, cmap=cm.RdYlGn_r)
 
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
     max_dim = 0
-    for panel_id, panel in enumerate(detectors[0]):
+    for panel_id, panel in enumerate(detector):
       size = panel.get_image_size()
       p0 = col(panel.get_pixel_lab_coord((0,0)))
       p1 = col(panel.get_pixel_lab_coord((size[0]-1,0)))
@@ -126,9 +129,8 @@ class Script(object):
       v2 = p3-p0
       vcen = ((v2/2) + (v1/2)) + p0
 
-      ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(angles[panel.get_name()]), fill=True))
-      #ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(angles[panel.get_name()]), fill=False, hatch='/'))
-      ax.annotate("%d %.2f"%(panel_id, angles[panel.get_name()]), vcen[0:2])
+      ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(data[panel.get_name()]), fill=True))
+      ax.annotate("%d %.2f"%(panel_id, data[panel.get_name()]), vcen[0:2], ha='center')
 
       for p in [p0, p1, p2, p3]:
         for c in p[0:2]:
