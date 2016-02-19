@@ -132,8 +132,18 @@ class Script(object):
     z_angles = {}
     xy_deltas = {}
     z_deltas = {}
-    for pg1, pg2 in zip(iterate_detector_at_level(detectors[0].hierarchy(), 0, params.hierarchy_level),
-                        iterate_detector_at_level(detectors[1].hierarchy(), 0, params.hierarchy_level)):
+    all_normal_angles = flex.double()
+    all_z_angles = flex.double()
+    all_xy_deltas = flex.double()
+    all_z_deltas = flex.double()
+    table_header = ["PanelG","Normal","Z rot","Delta","Delta"]
+    table_header2 = ["Id","Angle","Angle","XY","Z"]
+    table_data = []
+    table_data.append(table_header)
+    table_data.append(table_header2)
+
+    for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(detectors[0].hierarchy(), 0, params.hierarchy_level),
+                                           iterate_detector_at_level(detectors[1].hierarchy(), 0, params.hierarchy_level))):
       norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
       z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
       if hasattr(pg1, 'children'):
@@ -149,12 +159,29 @@ class Script(object):
       xyd = col(delta[0:2]).length()
       zd = abs(delta[2])
 
+      all_normal_angles.append(norm_angle)
+      all_z_angles.append(z_angle)
+      all_xy_deltas.append(xyd)
+      all_z_deltas.append(zd)
+      table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%.4f"%xyd, "%.4f"%zd])
+
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
         assert p1.get_name() == p2.get_name()
         normal_angles[p1.get_name()] = norm_angle
         z_angles[p1.get_name()] = z_angle
         xy_deltas[p1.get_name()] = xyd
         z_deltas[p1.get_name()] = zd
+
+    table_data.append(["Mean", "%.4f"%flex.mean(all_normal_angles),
+                               "%.4f"%flex.mean(all_z_angles),
+                               "%.4f"%flex.mean(all_xy_deltas),
+                               "%.4f"%flex.mean(all_z_deltas)])
+    table_data.append(["Stddev", "%.4f"%flex.mean_and_variance(all_normal_angles).unweighted_sample_standard_deviation(),
+                                 "%.4f"%flex.mean_and_variance(all_z_angles).unweighted_sample_standard_deviation(),
+                                 "%.4f"%flex.mean_and_variance(all_xy_deltas).unweighted_sample_standard_deviation(),
+                                 "%.4f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation()])
+    from libtbx import table_utils
+    print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
     # Plot the results
     self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
