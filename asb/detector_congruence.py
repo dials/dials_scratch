@@ -73,6 +73,14 @@ def iterate_panels(panelgroup):
   else:
     yield panelgroup
 
+def id_from_name(detector, name):
+  """ Jiffy function to get the id of a panel using its name
+  @param detector detector object
+  @param name panel name
+  @return index of panel in detector
+  """
+  return [p.get_name() for p in detector].index(name)
+
 class Script(object):
   ''' Class to parse the command line options. '''
 
@@ -89,16 +97,18 @@ class Script(object):
       phil=phil_scope,
       read_experiments=True,
       read_datablocks=True,
+      read_reflections=True,
       epilog=help_message)
 
   def run(self):
     ''' Parse the options. '''
-    from dials.util.options import flatten_experiments, flatten_datablocks
+    from dials.util.options import flatten_experiments, flatten_datablocks, flatten_reflections
     # Parse the command line arguments
     params, options = self.parser.parse_args(show_diff_phil=True)
     self.params = params
     experiments = flatten_experiments(params.input.experiments)
     datablocks = flatten_datablocks(params.input.datablock)
+    reflections = flatten_reflections(params.input.reflections)
 
     # Find all detector objects
     detectors = []
@@ -135,10 +145,12 @@ class Script(object):
     z_angles = {}
     xy_deltas = {}
     z_deltas = {}
+    refl_counts = {}
     all_normal_angles = flex.double()
     all_z_angles = flex.double()
     all_xy_deltas = flex.double()
     all_z_deltas = flex.double()
+    all_refls_count = flex.int()
     table_header = ["PanelG","Normal","Z rot","Delta","Delta"]
     table_header2 = ["Id","Angle","Angle","XY","Z"]
     table_data = []
@@ -166,29 +178,39 @@ class Script(object):
       all_z_angles.append(z_angle)
       all_xy_deltas.append(xyd)
       all_z_deltas.append(zd)
-      table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd])
 
+      total_refls = 0
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
         assert p1.get_name() == p2.get_name()
         normal_angles[p1.get_name()] = norm_angle
         z_angles[p1.get_name()] = z_angle
         xy_deltas[p1.get_name()] = xyd
         z_deltas[p1.get_name()] = zd
+        r1 = len(reflections[0].select(reflections[0]['panel'] == id_from_name(detectors[0], p1.get_name())))
+        r2 = len(reflections[1].select(reflections[1]['panel'] == id_from_name(detectors[1], p2.get_name())))
+        total_refls += r1 + r2
+        refl_counts[p1.get_name()] = r1 + r2
+
+      all_refls_count.append(total_refls)
+      table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
     table_data.append(["Mean", "%.4f"%flex.mean(all_normal_angles),
                                "%.4f"%flex.mean(all_z_angles),
                                "%4.1f"%flex.mean(all_xy_deltas),
-                               "%4.1f"%flex.mean(all_z_deltas)])
+                               "%4.1f"%flex.mean(all_z_deltas),
+                               "%6.1f"%flex.mean(all_refls_count.as_double())])
     table_data.append(["Stddev", "%.4f"%flex.mean_and_variance(all_normal_angles).unweighted_sample_standard_deviation(),
                                  "%.4f"%flex.mean_and_variance(all_z_angles).unweighted_sample_standard_deviation(),
                                  "%4.1f"%flex.mean_and_variance(all_xy_deltas).unweighted_sample_standard_deviation(),
-                                 "%4.1f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation()])
+                                 "%4.1f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation(),
+                                 "%6.1f"%flex.mean_and_variance(all_refls_count.as_double()).unweighted_sample_standard_deviation()])
     from libtbx import table_utils
     print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
     if params.show_plots:
       # Plot the results
+      self.detector_plot(detectors[0], refl_counts, u"N reflections", u"%6d")
       self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
       self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
       self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (microns)", u"%4.1f")
