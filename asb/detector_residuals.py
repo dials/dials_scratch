@@ -186,6 +186,24 @@ class Script(DCScript):
 
     return sm, color_vals
 
+  def plot_unitcells(self, experiments):
+    all_a = flex.double()
+    all_b = flex.double()
+    all_c = flex.double()
+    for crystal in experiments.crystals():
+      a, b, c = crystal.get_unit_cell().parameters()[0:3]
+      all_a.append(a); all_b.append(b); all_c.append(c)
+
+    fig, axes = plt.subplots(nrows=3, ncols=1)
+    for ax, axis, data in zip(axes, ['A', 'B', 'C'], [all_a, all_b, all_c]):
+      h = flex.histogram(data,n_slots=50)
+      ax.plot(h.slot_centers().as_numpy_array(),h.slots().as_numpy_array(),'-')
+      ax.set_title("%s axis histogram. Mean: %7.2f Stddev: %7.2f"%(axis,
+                                                                 flex.mean(data),
+                                                                 flex.mean_and_variance(data).unweighted_sample_standard_deviation()))
+      ax.set_ylabel("N lattices")
+      ax.set_xlabel(r"$\AA$")
+    plt.tight_layout()
 
   def plot_histograms(self, reflections, panel = None, ax = None, bounds = None):
     data = reflections['difference_vector_norms']
@@ -428,6 +446,8 @@ class Script(DCScript):
       self.detector_plot_dict(detector, refl_counts, u"%s N reflections"%t, u"%6d", show=False)
       self.detector_plot_dict(detector, rmsds, "%s Positional RMSDs (microns)"%t, u"%4.1f", show=False)
 
+      self.plot_unitcells(experiments)
+
       plt.show()
 
   def histogram(self, reflections, title):
@@ -449,8 +469,8 @@ class Script(DCScript):
     print "Overall median:", median
     mean2 = math.sqrt(math.pi/2)*sigma
     rmsd2 = math.sqrt(2)*sigma
-    print "Mean2", mean2
-    print "RMSD2", rmsd2
+    print "Rayleigh Mean", mean2
+    print "Rayleigh RMSD", rmsd2
 
 
     fig = plt.figure()
