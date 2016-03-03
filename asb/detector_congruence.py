@@ -31,6 +31,9 @@ Example:
 
 # Create the phil parameters
 phil_scope = parse('''
+tag = None
+  .type = str
+  .help = Used in the plot titles
 hierarchy_level=0
   .type=int
   .help=Provide congruence statistics for detector modules at the given hierarchy level.
@@ -208,15 +211,20 @@ class Script(object):
     print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
+    if params.tag is None:
+      tag = ""
+    else:
+      tag = "%s "%params.tag
+
     if params.show_plots:
       # Plot the results
-      self.detector_plot(detectors[0], refl_counts, u"N reflections", u"%6d")
-      self.detector_plot(detectors[0], normal_angles, u"Angle between normal vectors (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
-      self.detector_plot(detectors[0], z_angles, u"Z rotation angle between panels (\N{DEGREE SIGN})", u"%.2f\N{DEGREE SIGN}")
-      self.detector_plot(detectors[0], xy_deltas, u"XY displacements between panels (microns)", u"%4.1f")
-      self.detector_plot(detectors[0], z_deltas, u"Z displacements between panels (microns)", u"%4.1f")
+      self.detector_plot_dict(detectors[0], refl_counts, u"%sN reflections"%tag, u"%6d")
+      self.detector_plot_dict(detectors[0], normal_angles, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}")
+      self.detector_plot_dict(detectors[0], z_angles, u"%sZ rotation angle between panels (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}")
+      self.detector_plot_dict(detectors[0], xy_deltas, u"%sXY displacements between panels (microns)"%tag, u"%4.1f")
+      self.detector_plot_dict(detectors[0], z_deltas, u"%sZ displacements between panels (microns)"%tag, u"%4.1f")
 
-  def detector_plot(self, detector, data, title, units_str):
+  def detector_plot_dict(self, detector, data, title, units_str, show=True, reverse_colormap=False):
     """
     Use matplotlib to plot a detector, color coding panels according to data
     @param detector detector reference detector object
@@ -227,7 +235,10 @@ class Script(object):
     # initialize the color map
     values = flex.double(data.values())
     norm = Normalize(vmin=flex.min(values), vmax=flex.max(values))
-    cmap = plt.cm.get_cmap(self.params.colormap)
+    if reverse_colormap:
+      cmap = plt.cm.get_cmap(self.params.colormap + "_r")
+    else:
+      cmap = plt.cm.get_cmap(self.params.colormap)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array(np.arange(flex.min(values), flex.max(values), (flex.max(values)-flex.min(values))/20)) # needed for colorbar
 
@@ -263,7 +274,8 @@ class Script(object):
     ax.set_ylabel("mm")
     fig.colorbar(sm)
     plt.title(title)
-    plt.show()
+    if show:
+      plt.show()
 
 if __name__ == '__main__':
   from dials.util import halraiser
