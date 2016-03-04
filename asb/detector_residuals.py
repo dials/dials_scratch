@@ -144,7 +144,7 @@ class Script(DCScript):
 
     data = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
     norm, cmap, color_vals, sm = self.get_normalized_colors(data)
-    deltas = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value'])*100
+    deltas = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value'])*self.delta_scalar
 
     x, y = panel.get_image_size_mm()
     offset = col((x, y, 0))/2
@@ -173,7 +173,7 @@ class Script(DCScript):
     assert panel is not None and ax is not None and bounds is not None
     data = reflections['delpsical.rad'] * (180/math.pi)
     norm, cmap, color_vals, sm = self.get_normalized_colors(data, vmin=-0.1, vmax=0.1)
-    deltas = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value'])*100
+    deltas = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value'])*self.delta_scalar
 
     x, y = panel.get_image_size_mm()
     offset = col((x, y, 0))/2
@@ -327,6 +327,10 @@ class Script(DCScript):
     data_scale_x = data_max_x - data_min_x
     data_scale_y = data_max_y - data_min_y
 
+    if data_scale_x == 0 or data_scale_y == 0:
+      print "WARNING bad scale"
+      return data
+
     return flex.vec2_double(data.parts()[0] * (scale/abs(data_scale_x)),
                             data.parts()[1] * (scale/abs(data_scale_y))) + origin
 
@@ -373,6 +377,13 @@ class Script(DCScript):
     #reflections = reflections.select(self.identify_outliers(reflections, plots=True).get_cache_status())
 
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
+    #print "About to filter images, n reflections:", len(reflections), "n images:", len(set(reflections['id']))
+    #s = flex.sort_permutation(reflections['difference_vector_norms'])
+    #subset = reflections.select(s)[-1000:]
+    #for i in set(subset['id']):
+    #  reflections = reflections.select(reflections['id'] != i)
+    #print "Filtered images, n reflections:", len(reflections), "n images:", len(set(reflections['id']))
+
     n = len(reflections)
     rmsd = math.sqrt((reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).sum_sq()/n)
     print "Dataset RMSD", rmsd
@@ -382,11 +393,13 @@ class Script(DCScript):
     else:
       tag = '%s '%params.tag
 
+    self.delta_scalar = 50
+
     self.params.colormap += "_r"
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*100'%tag, show=False, plot_callback=self.plot_deltas)
+    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
 
@@ -410,6 +423,13 @@ class Script(DCScript):
       for p in iterate_panels(pg):
         panel_refls = reflections.select(reflections['panel'] == id_from_name(detector, p.get_name()))
         n = len(panel_refls)
+        pg_refls += n
+        refl_counts[p.get_name()] = n
+        n_panels += 1
+
+        if n == 0:
+          rmsds[p.get_name()] = -1
+          continue
 
         delta_x = panel_refls['xyzcal.mm'].parts()[0] - panel_refls['xyzobs.mm.value'].parts()[0]
         delta_y = panel_refls['xyzcal.mm'].parts()[1] - panel_refls['xyzobs.mm.value'].parts()[1]
@@ -418,9 +438,6 @@ class Script(DCScript):
         rmsds[p.get_name()] = math.sqrt(tmp/n) * 1000
         pg_msd_sum += tmp
 
-        pg_refls += n
-        refl_counts[p.get_name()] = n
-        n_panels += 1
 
       pg_rmsd = math.sqrt(pg_msd_sum/n_panels) * 1000
       pg_rmsds.append(pg_rmsd)
@@ -522,7 +539,16 @@ class Script(DCScript):
       if self.params.panel_numbers:
         ax.annotate("%d"%(panel_id), vcen[0:2], ha='center')
 
+      # find the plot maximum dimensions
+      for p in [p0, p1, p2, p3]:
+        for c in p[0:2]:
+          if abs(c) > max_dim:
+            max_dim = abs(c)
+
       panel_refls = reflections.select(reflections['panel'] == panel_id)
+      if len(panel_refls) == 0:
+        sm = color_vals = None
+        continue
 
       if plot_callback is None:
         sm = color_vals = None
@@ -532,12 +558,6 @@ class Script(DCScript):
           sm, color_vals = result
         else:
           sm = color_vals = None
-
-      # find the plot maximum dimensions
-      for p in [p0, p1, p2, p3]:
-        for c in p[0:2]:
-          if abs(c) > max_dim:
-            max_dim = abs(c)
 
     # plot the results
     ax.set_xlim((-max_dim,max_dim))
