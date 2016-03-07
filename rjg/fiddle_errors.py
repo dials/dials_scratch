@@ -57,7 +57,8 @@ def run(args):
   merging_external = intensities.merge_equivalents(use_internal_variance=False)
   multiplicities = merging_external.redundancies().data()
   external_sigmas = merging_external.array().sigmas()
-  external_sigmas /= flex.sqrt(multiplicities.as_double())
+  # sigmas should be bigger not smaller
+  external_sigmas *= flex.sqrt(multiplicities.as_double())
 
   # set the sigmas to 1, and calculate the mean intensities and internal variances
   intensities_copy = intensities.customized_copy(
@@ -65,7 +66,8 @@ def run(args):
   merging_internal = intensities_copy.merge_equivalents()
   merged_intensities = merging_internal.array()
   internal_sigmas = merging_internal.array().sigmas()
-  internal_sigmas /= flex.sqrt(multiplicities.as_double())
+  # sigmas should be bigger not smaller
+  internal_sigmas *= flex.sqrt(multiplicities.as_double())
 
   # select only those reflections with sufficient repeat observations
   sel = (multiplicities > 3)
