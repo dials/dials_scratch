@@ -360,8 +360,8 @@ class Script(DCScript):
     detector = detectors[0]
     reflections = reflections[0]
 
-    from dials.algorithms.refinement.prediction import ExperimentsPredictor
-    ref_predictor = ExperimentsPredictor(experiments, force_stills=experiments.all_stills())
+    #from dials.algorithms.refinement.prediction import ExperimentsPredictor
+    #ref_predictor = ExperimentsPredictor(experiments, force_stills=experiments.all_stills())
 
     #filtered_refls = flex.reflection_table()
     #reflections = ref_predictor.predict(reflections)
@@ -392,6 +392,19 @@ class Script(DCScript):
       tag = ''
     else:
       tag = '%s '%params.tag
+
+    p = flex.int()
+    n = flex.int()
+    for i in set(reflections['id']):
+      exprefls = reflections.select(reflections['id']==i)
+      p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
+      n.append(len(exprefls.select(exprefls['delpsical.rad']<0)))
+    plt.hist2d(p, n, bins=30)
+    cb = plt.colorbar()
+    cb.set_label("N images")
+    plt.title(r"%s2D histogram of pos vs. neg $\Delta\Psi$ per image"%tag)
+    plt.xlabel(r"N reflections with $\Delta\Psi$ > 0")
+    plt.ylabel(r"N reflections with $\Delta\Psi$ < 0")
 
     self.delta_scalar = 50
 
