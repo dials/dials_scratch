@@ -187,6 +187,8 @@ class Script(DCScript):
     return sm, color_vals
 
   def plot_unitcells(self, experiments):
+    if len(experiments) == 1:
+      return
     all_a = flex.double()
     all_b = flex.double()
     all_c = flex.double()
@@ -336,29 +338,29 @@ class Script(DCScript):
 
   def run(self):
     ''' Parse the options. '''
-    from dials.util.options import flatten_experiments, flatten_datablocks, flatten_reflections
+    from dials.util.options import flatten_experiments, flatten_reflections
     # Parse the command line arguments
     params, options = self.parser.parse_args(show_diff_phil=True)
     self.params = params
     experiments = flatten_experiments(params.input.experiments)
-    datablocks = flatten_datablocks(params.input.datablock)
-    reflections = flatten_reflections(params.input.reflections)
 
     # Find all detector objects
-    detectors = []
-    detectors.extend(experiments.detectors())
-    dbs = []
-    for datablock in datablocks:
-      dbs.extend(datablock.unique_detectors())
-    detectors.extend(dbs)
+    detectors = experiments.detectors()
 
     # Verify inputs
-    if len(detectors) != 1 or len(reflections) != 1:
-      print "Please provide a set of reflections and an experiment list with one detector model"
-      return
+    if len(detectors) == len(params.input.reflections) == 1:
+      # case for passing in combined experiments and reflections
+      reflections = flatten_reflections(params.input.reflections)[0]
+    else:
+      # case for passing in multiple images on the command line
+      assert len(params.input.reflections) == len(detectors)
+      reflections = flex.reflection_table()
+      for expt_id in xrange(len(detectors)):
+        subset = params.input.reflections[expt_id].data
+        subset['id'] = flex.int(len(subset), expt_id)
+        reflections.extend(subset)
 
     detector = detectors[0]
-    reflections = reflections[0]
 
     #from dials.algorithms.refinement.prediction import ExperimentsPredictor
     #ref_predictor = ExperimentsPredictor(experiments, force_stills=experiments.all_stills())
@@ -393,8 +395,9 @@ class Script(DCScript):
     else:
       tag = '%s '%params.tag
 
-    p = flex.int()
-    n = flex.int()
+    # set up delta-psi ratio heatmap
+    p = flex.int() # positive
+    n = flex.int() # negative
     for i in set(reflections['id']):
       exprefls = reflections.select(reflections['id']==i)
       p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
@@ -408,6 +411,7 @@ class Script(DCScript):
 
     self.delta_scalar = 50
 
+    # plots! these are plots with callbacks to draw on individual panels
     self.params.colormap += "_r"
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
@@ -416,10 +420,12 @@ class Script(DCScript):
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
 
-    # Iterate through the detectors, computing detector statistics
-    # per panel dictionaries
+    # Iterate through the detectors, computing detector statistics at the per-panel level (IE one statistic per panel)
+    # Per panel dictionaries
     rmsds = {}
     refl_counts = {}
+    transverse_rmsds = {}
+    radial_rmsds = {}
     # per panelgroup flex arrays
     pg_rmsds = flex.double()
     pg_refls_count = flex.int()
@@ -429,12 +435,46 @@ class Script(DCScript):
     table_data.append(table_header)
     table_data.append(table_header2)
 
+    # Compute a set of radial and transverse vectors for each panel for each experiment. Use a dictionary of dictionaries.
+    vectors = {}
+    for expt_id in set(reflections['id']):
+      beam = experiments[expt_id].beam
+      vectors[expt_id] = {}
+      for panel_id, panel in enumerate(detector):
+        # Compute the vector offset_lab which points from the origin of space to the center of the panel
+        x, y = panel.get_image_size_mm()
+        offset = col((x, y, 0))/2
+        offset_lab = col(panel.get_lab_coord(offset[0:2]))
+        # The radial vector points from the center of the asic to the beam center
+        radial_vector = (offset_lab - col(panel.get_beam_centre_lab(beam.get_s0()))).normalize()
+        # The transverse vector is orthogonal to the radial vector and the beam vector
+        transverse_vector = radial_vector.cross(col(panel.get_beam_centre_lab(beam.get_s0()))).normalize()
+        vectors[expt_id][panel_id] = {
+          'radial_vector': radial_vector,
+          'transverse_vector': transverse_vector
+        }
+    # For each reflection, compute its delta in lab coordinates
+    tmp = flex.reflection_table()
+    for panel_id, panel in enumerate(detector):
+      panel_refls = reflections.select(reflections['panel'] == panel_id)
+      x, y = panel.get_image_size_mm()
+      offset = col((x, y, 0))/2
+      offset_lab = col(panel.get_lab_coord(offset[0:2]))
+      # Delta + offset is a vector pointing from the corner of the panel to a point near the panel center, minus the delta
+      x, y, _ = (panel_refls['xyzcal.mm'] - panel_refls['xyzobs.mm.value'] + offset).parts()
+      # Convert to lab coordinates and subtract off offset_lab to create a delta vector relative to the radial and transverse vectors
+      panel_refls['delta_lab_coords'] = panel.get_lab_coord(flex.vec2_double(x,y)) - offset_lab
+      tmp.extend(panel_refls)
+    reflections = tmp
+
+    # Iterate through the detector at the specified hierarchy level
     for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level)):
       pg_msd_sum = 0
       pg_refls = 0
       n_panels = 0
       for p in iterate_panels(pg):
-        panel_refls = reflections.select(reflections['panel'] == id_from_name(detector, p.get_name()))
+        panel_id = id_from_name(detector, p.get_name())
+        panel_refls = reflections.select(reflections['panel'] == panel_id)
         n = len(panel_refls)
         pg_refls += n
         refl_counts[p.get_name()] = n
@@ -442,6 +482,8 @@ class Script(DCScript):
 
         if n == 0:
           rmsds[p.get_name()] = -1
+          radial_rmsds[p.get_name()] = -1
+          transverse_rmsds[p.get_name()] = -1
           continue
 
         delta_x = panel_refls['xyzcal.mm'].parts()[0] - panel_refls['xyzobs.mm.value'].parts()[0]
@@ -451,6 +493,15 @@ class Script(DCScript):
         rmsds[p.get_name()] = math.sqrt(tmp/n) * 1000
         pg_msd_sum += tmp
 
+        r = flex.double() # radial
+        t = flex.double() # transverse
+        for expt_id in set(panel_refls['id']):
+          subset = panel_refls.select(panel_refls['id'] == expt_id)
+          r.extend(subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['radial_vector']))
+          t.extend(subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['transverse_vector']))
+
+        radial_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
+        transverse_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(t)/len(t)) * 1000
 
       pg_rmsd = math.sqrt(pg_msd_sum/n_panels) * 1000
       pg_rmsds.append(pg_rmsd)
@@ -475,6 +526,8 @@ class Script(DCScript):
         t = "%s "%self.params.tag
       self.detector_plot_dict(detector, refl_counts, u"%s N reflections"%t, u"%6d", show=False)
       self.detector_plot_dict(detector, rmsds, "%s Positional RMSDs (microns)"%t, u"%4.1f", show=False)
+      self.detector_plot_dict(detector, radial_rmsds, "%s Radial RMSDs (microns)"%t, u"%4.1f", show=False)
+      self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
 
       self.plot_unitcells(experiments)
 
