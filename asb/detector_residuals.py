@@ -198,11 +198,8 @@ class Script(DCScript):
 
     x, y = panel.get_image_size_mm()
     offset = col((x, y))/2
-    #fake_coords += offset
-    #mm_panel_coords = flex.vec2_double(fake_coords.parts()[0], fake_coords.parts()[1])
 
     lab_coords = fake_coords + panel.get_lab_coord(offset)[0:2]
-    #lab_coords = panel.get_lab_coord(mm_panel_coords)
 
     ax.scatter(lab_coords.parts()[0], lab_coords.parts()[1], c = data, norm=norm, cmap = cmap, linewidths=0, s=self.params.dot_size)
 
@@ -537,7 +534,7 @@ class Script(DCScript):
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
+    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
 
     if params.show_plots:
       # Plot the results
