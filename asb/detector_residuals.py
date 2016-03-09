@@ -453,7 +453,7 @@ class Script(DCScript):
           'radial_vector': radial_vector,
           'transverse_vector': transverse_vector
         }
-    # For each reflection, compute its delta in lab coordinates
+    # For each reflection, compute its delta in lab coordinates and the radial and transverse components of those deltas
     tmp = flex.reflection_table()
     for panel_id, panel in enumerate(detector):
       panel_refls = reflections.select(reflections['panel'] == panel_id)
@@ -464,7 +464,13 @@ class Script(DCScript):
       x, y, _ = (panel_refls['xyzcal.mm'] - panel_refls['xyzobs.mm.value'] + offset).parts()
       # Convert to lab coordinates and subtract off offset_lab to create a delta vector relative to the radial and transverse vectors
       panel_refls['delta_lab_coords'] = panel.get_lab_coord(flex.vec2_double(x,y)) - offset_lab
-      tmp.extend(panel_refls)
+
+      # Compute the radial and transverse components of the deltas
+      for expt_id in set(panel_refls['id']):
+        subset = panel_refls.select(panel_refls['id'] == expt_id)
+        subset['radial_displacements']     = subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['radial_vector'])
+        subset['transverse_displacements'] = subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['transverse_vector'])
+        tmp.extend(subset)
     reflections = tmp
 
     # Iterate through the detector at the specified hierarchy level
@@ -493,14 +499,9 @@ class Script(DCScript):
         rmsds[p.get_name()] = math.sqrt(tmp/n) * 1000
         pg_msd_sum += tmp
 
-        r = flex.double() # radial
-        t = flex.double() # transverse
-        for expt_id in set(panel_refls['id']):
-          subset = panel_refls.select(panel_refls['id'] == expt_id)
-          r.extend(subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['radial_vector']))
-          t.extend(subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['transverse_vector']))
-
-        radial_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
+        r = panel_refls['radial_displacements']
+        t = panel_refls['transverse_displacements']
+        radial_rmsds[p.get_name()]     = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
         transverse_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(t)/len(t)) * 1000
 
       pg_rmsd = math.sqrt(pg_msd_sum/n_panels) * 1000
