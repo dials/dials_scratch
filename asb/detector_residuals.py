@@ -388,7 +388,7 @@ class Script(DCScript):
 
     n = len(reflections)
     rmsd = math.sqrt((reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).sum_sq()/n)
-    print "Dataset RMSD", rmsd
+    print "Dataset RMSD", rmsd * 1000
 
     if params.tag is None:
       tag = ''
@@ -413,7 +413,6 @@ class Script(DCScript):
 
     # plots! these are plots with callbacks to draw on individual panels
     self.params.colormap += "_r"
-    self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
@@ -519,6 +518,8 @@ class Script(DCScript):
     print "Detector statistics.  Angles in degrees, RMSDs in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
+    self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
+
     if params.show_plots:
       # Plot the results
       if self.params.tag is None:
@@ -547,15 +548,19 @@ class Script(DCScript):
     sigma = mode = h.slot_centers()[list(h.slots()).index(flex.max(h.slots()))]
     mean = flex.mean(data)
     median = flex.median(data)
-    print "RMSD", rmsd
-    print "Histogram mode:", mode
-    print "Overall mean:", mean
-    print "Overall median:", median
+    print "RMSD", rmsd * 1000
+    print "Histogram mode:", mode * 1000
+    print "Overall mean:", mean * 1000
+    print "Overall median:", median * 1000
     mean2 = math.sqrt(math.pi/2)*sigma
     rmsd2 = math.sqrt(2)*sigma
-    print "Rayleigh Mean", mean2
-    print "Rayleigh RMSD", rmsd2
+    print "Rayleigh Mean", mean2 * 1000
+    print "Rayleigh RMSD", rmsd2 * 1000
 
+    r = reflections['radial_displacements']
+    t = reflections['transverse_displacements']
+    print "Overall radial RMSD", math.sqrt(flex.sum_sq(r)/len(r)) * 1000
+    print "Overall transverse RMSD", math.sqrt(flex.sum_sq(t)/len(t)) * 1000
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
