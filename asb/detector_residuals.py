@@ -186,6 +186,28 @@ class Script(DCScript):
 
     return sm, color_vals
 
+  def plot_radial_displacements_vs_deltapsi(self, reflections, panel = None, ax = None, bounds = None):
+    assert panel is not None and ax is not None and bounds is not None
+    data = reflections['difference_vector_norms']
+    norm, cmap, color_vals, sm = self.get_normalized_colors(data)
+
+    a = reflections['delpsical.rad']*180/math.pi
+    b = reflections['radial_displacements']
+
+    fake_coords = flex.vec2_double(a, b) * self.delta_scalar
+
+    x, y = panel.get_image_size_mm()
+    offset = col((x, y))/2
+    #fake_coords += offset
+    #mm_panel_coords = flex.vec2_double(fake_coords.parts()[0], fake_coords.parts()[1])
+
+    lab_coords = fake_coords + panel.get_lab_coord(offset)[0:2]
+    #lab_coords = panel.get_lab_coord(mm_panel_coords)
+
+    ax.scatter(lab_coords.parts()[0], lab_coords.parts()[1], c = data, norm=norm, cmap = cmap, linewidths=0, s=self.params.dot_size)
+
+    return sm, color_vals
+
   def plot_unitcells(self, experiments):
     if len(experiments) == 1:
       return
@@ -348,10 +370,7 @@ class Script(DCScript):
     detectors = experiments.detectors()
 
     # Verify inputs
-    if len(detectors) == len(params.input.reflections) == 1:
-      # case for passing in combined experiments and reflections
-      reflections = flatten_reflections(params.input.reflections)[0]
-    else:
+    if len(params.input.reflections) == len(detectors) and len(detectors) > 1:
       # case for passing in multiple images on the command line
       assert len(params.input.reflections) == len(detectors)
       reflections = flex.reflection_table()
@@ -359,6 +378,9 @@ class Script(DCScript):
         subset = params.input.reflections[expt_id].data
         subset['id'] = flex.int(len(subset), expt_id)
         reflections.extend(subset)
+    else:
+      # case for passing in combined experiments and reflections
+      reflections = flatten_reflections(params.input.reflections)[0]
 
     detector = detectors[0]
 
@@ -434,43 +456,39 @@ class Script(DCScript):
     table_data.append(table_header)
     table_data.append(table_header2)
 
-    # Compute a set of radial and transverse vectors for each panel for each experiment. Use a dictionary of dictionaries.
-    vectors = {}
-    for expt_id in set(reflections['id']):
-      beam = experiments[expt_id].beam
-      vectors[expt_id] = {}
-      for panel_id, panel in enumerate(detector):
-        # Compute the vector offset_lab which points from the origin of space to the center of the panel
-        x, y = panel.get_image_size_mm()
-        offset = col((x, y, 0))/2
-        offset_lab = col(panel.get_lab_coord(offset[0:2]))
-        # The radial vector points from the center of the asic to the beam center
-        radial_vector = (offset_lab - col(panel.get_beam_centre_lab(beam.get_s0()))).normalize()
-        # The transverse vector is orthogonal to the radial vector and the beam vector
-        transverse_vector = radial_vector.cross(col(panel.get_beam_centre_lab(beam.get_s0()))).normalize()
-        vectors[expt_id][panel_id] = {
-          'radial_vector': radial_vector,
-          'transverse_vector': transverse_vector
-        }
-    # For each reflection, compute its delta in lab coordinates and the radial and transverse components of those deltas
+    # Compute a set of radial and transverse displacements for each reflection
+    print "Setting up stats..."
     tmp = flex.reflection_table()
+    # Need to construct a variety of vectors
     for panel_id, panel in enumerate(detector):
       panel_refls = reflections.select(reflections['panel'] == panel_id)
-      x, y = panel.get_image_size_mm()
-      offset = col((x, y, 0))/2
-      offset_lab = col(panel.get_lab_coord(offset[0:2]))
-      # Delta + offset is a vector pointing from the corner of the panel to a point near the panel center, minus the delta
-      x, y, _ = (panel_refls['xyzcal.mm'] - panel_refls['xyzobs.mm.value'] + offset).parts()
-      # Convert to lab coordinates and subtract off offset_lab to create a delta vector relative to the radial and transverse vectors
-      panel_refls['delta_lab_coords'] = panel.get_lab_coord(flex.vec2_double(x,y)) - offset_lab
-
-      # Compute the radial and transverse components of the deltas
+      bcl = flex.vec3_double()
+      # Compute the beam center in lab space (a vector pointing from the origin to where the beam would intersect
+      # the panel, if it did intersect the panel)
       for expt_id in set(panel_refls['id']):
-        subset = panel_refls.select(panel_refls['id'] == expt_id)
-        subset['radial_displacements']     = subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['radial_vector'])
-        subset['transverse_displacements'] = subset['delta_lab_coords'].dot(vectors[expt_id][panel_id]['transverse_vector'])
-        tmp.extend(subset)
+        beam = experiments[expt_id].beam
+        s0 = beam.get_s0()
+        expt_refls = panel_refls.select(panel_refls['id'] == expt_id)
+        beam_centre = panel.get_beam_centre_lab(s0)
+        bcl.extend(flex.vec3_double(len(expt_refls), beam_centre))
+      panel_refls['beam_centre_lab'] = bcl
+      # Compute obs in lab space
+      x, y, _ = panel_refls['xyzobs.mm.value'].parts()
+      c = flex.vec2_double(x, y)
+      panel_refls['obs_lab_coords'] = panel.get_lab_coord(c)
+      # Compute deltaXY in panel space. This vector is relative to the panel origin
+      x, y, _ = (panel_refls['xyzcal.mm'] - panel_refls['xyzobs.mm.value']).parts()
+      # Convert deltaXY to lab space, subtracting off of the panel origin
+      panel_refls['delta_lab_coords'] = panel.get_lab_coord(flex.vec2_double(x,y)) - panel.get_origin()
+      tmp.extend(panel_refls)
     reflections = tmp
+    # The radial vector points from the center of the reflection to the beam center
+    radial_vectors = (reflections['obs_lab_coords'] - reflections['beam_centre_lab']).each_normalize()
+    # The transverse vector is orthogonal to the radial vector and the beam vector
+    transverse_vectors = radial_vectors.cross(reflections['beam_centre_lab']).each_normalize()
+    # Compute the raidal and transverse components of each deltaXY
+    reflections['radial_displacements']     = reflections['delta_lab_coords'].dot(radial_vectors)
+    reflections['transverse_displacements'] = reflections['delta_lab_coords'].dot(transverse_vectors)
 
     # Iterate through the detector at the specified hierarchy level
     for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level)):
@@ -519,6 +537,7 @@ class Script(DCScript):
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
+    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
 
     if params.show_plots:
       # Plot the results
