@@ -22,7 +22,7 @@ def run(file_name):
     t0 = time.time()
     easy_pickle.dump('tmp.pickle', v)
     t1 = time.time()
-    print "Column %s: %.3f" %(k, t1-t0)
+    print "Column %s (%s): %.3f" %(k, type(v), t1-t0)
 
 if __name__ == '__main__':
   import sys
