@@ -70,7 +70,7 @@ def run(args):
   assert abs(h.get_distance() - href.get_distance()) < params.max_delta_distance
 
   for panel, panel_ref in zip(h.children(), href.children()):
-    panel.set_local_frame(
+    panel.set_frame(
       panel_ref.get_fast_axis(),
       panel_ref.get_slow_axis(),
       panel_ref.get_origin()
