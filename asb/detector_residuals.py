@@ -519,14 +519,12 @@ class Script(DCScript):
     for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level)):
       pg_msd_sum = 0
       pg_refls = 0
-      n_panels = 0
       for p in iterate_panels(pg):
         panel_id = id_from_name(detector, p.get_name())
         panel_refls = reflections.select(reflections['panel'] == panel_id)
         n = len(panel_refls)
         pg_refls += n
         refl_counts[p.get_name()] = n
-        n_panels += 1
 
         if n == 0:
           rmsds[p.get_name()] = -1
@@ -552,7 +550,7 @@ class Script(DCScript):
         ttdpcorr[p.get_name()] = lc.coefficient()
 
 
-      pg_rmsd = math.sqrt(pg_msd_sum/n_panels) * 1000
+      pg_rmsd = math.sqrt(pg_msd_sum/pg_refls) * 1000
       pg_rmsds.append(pg_rmsd)
       pg_refls_count.append(pg_refls)
       table_data.append(["%d"%pg_id, "%.4f"%pg_rmsd, "%6d"%pg_refls])
