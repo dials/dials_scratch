@@ -194,6 +194,25 @@ class Script(DCScript):
     a = reflections['delpsical.rad']*180/math.pi
     b = reflections['radial_displacements']
 
+    fake_coords = flex.vec2_double(a, b) * 10#self.delta_scalar
+
+    x, y = panel.get_image_size_mm()
+    offset = col((x, y))/2
+
+    lab_coords = fake_coords + panel.get_lab_coord(offset)[0:2]
+
+    ax.scatter(lab_coords.parts()[0], lab_coords.parts()[1], c = data, norm=norm, cmap = cmap, linewidths=0, s=self.params.dot_size)
+
+    return sm, color_vals
+
+  def plot_delta2theta_vs_deltapsi(self, reflections, panel = None, ax = None, bounds = None):
+    assert panel is not None and ax is not None and bounds is not None
+    data = reflections['difference_vector_norms']
+    norm, cmap, color_vals, sm = self.get_normalized_colors(data)
+
+    a = reflections['delpsical.rad']*180/math.pi
+    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
+
     fake_coords = flex.vec2_double(a, b) * self.delta_scalar
 
     x, y = panel.get_image_size_mm()
@@ -444,6 +463,7 @@ class Script(DCScript):
     refl_counts = {}
     transverse_rmsds = {}
     radial_rmsds = {}
+    ttdpcorr = {}
     # per panelgroup flex arrays
     pg_rmsds = flex.double()
     pg_refls_count = flex.int()
@@ -460,6 +480,8 @@ class Script(DCScript):
     for panel_id, panel in enumerate(detector):
       panel_refls = reflections.select(reflections['panel'] == panel_id)
       bcl = flex.vec3_double()
+      tto = flex.double()
+      ttc = flex.double()
       # Compute the beam center in lab space (a vector pointing from the origin to where the beam would intersect
       # the panel, if it did intersect the panel)
       for expt_id in set(panel_refls['id']):
@@ -468,7 +490,13 @@ class Script(DCScript):
         expt_refls = panel_refls.select(panel_refls['id'] == expt_id)
         beam_centre = panel.get_beam_centre_lab(s0)
         bcl.extend(flex.vec3_double(len(expt_refls), beam_centre))
+        obs_x, obs_y, _ = expt_refls['xyzobs.px.value'].parts()
+        cal_x, cal_y, _ = expt_refls['xyzcal.px'].parts()
+        tto.extend(flex.double([panel.get_two_theta_at_pixel(s0, (obs_x[i], obs_y[i])) for i in xrange(len(expt_refls))]))
+        ttc.extend(flex.double([panel.get_two_theta_at_pixel(s0, (cal_x[i], cal_y[i])) for i in xrange(len(expt_refls))]))
       panel_refls['beam_centre_lab'] = bcl
+      panel_refls['two_theta_obs'] = tto
+      panel_refls['two_theta_cal'] = ttc #+ (0.5*panel_refls['delpsical.rad']*panel_refls['two_theta_obs'])
       # Compute obs in lab space
       x, y, _ = panel_refls['xyzobs.mm.value'].parts()
       c = flex.vec2_double(x, y)
@@ -518,6 +546,12 @@ class Script(DCScript):
         radial_rmsds[p.get_name()]     = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
         transverse_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(t)/len(t)) * 1000
 
+        a = panel_refls['delpsical.rad']*180/math.pi
+        b = panel_refls['two_theta_obs'] - panel_refls['two_theta_cal']
+        lc = flex.linear_correlation(a, b)
+        ttdpcorr[p.get_name()] = lc.coefficient()
+
+
       pg_rmsd = math.sqrt(pg_msd_sum/n_panels) * 1000
       pg_rmsds.append(pg_rmsd)
       pg_refls_count.append(pg_refls)
@@ -535,6 +569,46 @@ class Script(DCScript):
 
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
+    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta2\Theta$ vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_delta2theta_vs_deltapsi)
+
+    # Plot intensity vs. radial_displacement
+    fig = plt.figure()
+    panel_id = 15
+    panel_refls = reflections.select(reflections['panel'] == panel_id)
+    a = panel_refls['radial_displacements']
+    b = panel_refls['intensity.sum.value']
+    sel = (a > -0.2) & (a < 0.2) & (b < 50000)
+    plt.hist2d(a.select(sel), b.select(sel), bins=100)
+    plt.title("%s2D histogram of intensity vs. radial displacement for panel %d"%(tag, panel_id))
+    plt.xlabel("Radial displacement (mm)")
+    plt.ylabel("Intensity")
+    ax = plt.colorbar()
+    ax.set_label("Counts")
+
+    # plot delta 2theta vs. deltapsi
+    a = reflections['delpsical.rad']*180/math.pi
+    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
+    fig = plt.figure()
+    sel = (a > -0.2) & (a < 0.2) & (b > -0.002) & (b < 0.002)
+    plt.hist2d(a.select(sel), b.select(sel), bins=50)
+    cb = plt.colorbar()
+    cb.set_label("N reflections")
+    plt.title(r'%s$\Delta2\Theta$ vs. $\Delta\Psi$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
+    plt.xlabel(r'$\Delta\Psi \circ$')
+    plt.ylabel(r'$\Delta2\Theta \circ$')
+
+    # plot delta 2theta vs. 2theta
+    a = reflections['two_theta_obs']
+    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
+    fig = plt.figure()
+    sel = (b > -0.002) & (b < 0.002)
+    plt.hist2d(a.select(sel), b.select(sel), bins=100)
+    cb = plt.colorbar()
+    cb.set_label("N reflections")
+    plt.title(r'%s$\Delta2\Theta$ vs. 2$\Theta$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
+    plt.xlabel(r'2$\Theta \circ$')
+    plt.ylabel(r'$\Delta2\Theta \circ$')
+
 
     if params.show_plots:
       # Plot the results
@@ -546,6 +620,7 @@ class Script(DCScript):
       self.detector_plot_dict(detector, rmsds, "%s Positional RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, radial_rmsds, "%s Radial RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
+      self.detector_plot_dict(detector, ttdpcorr, r"%s $\Delta2\Theta$ vs. $\Delta\Psi$ CC"%t, u"%5.3f", show=False)
 
       self.plot_unitcells(experiments)
 
