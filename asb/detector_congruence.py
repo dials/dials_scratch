@@ -154,8 +154,9 @@ class Script(object):
     all_xy_deltas = flex.double()
     all_z_deltas = flex.double()
     all_refls_count = flex.int()
-    table_header = ["PanelG","Normal","Z rot","Delta","Delta"]
-    table_header2 = ["Id","Angle","Angle","XY","Z"]
+
+    table_header = ["PanelG","Normal","Z rot","Delta","Delta","N"]
+    table_header2 = ["Id","Angle","Angle","XY","Z","Refls"]
     table_data = []
     table_data.append(table_header)
     table_data.append(table_header2)
@@ -197,16 +198,13 @@ class Script(object):
       all_refls_count.append(total_refls)
       table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
-    table_data.append(["Mean", "%.4f"%flex.mean(all_normal_angles),
-                               "%.4f"%flex.mean(all_z_angles),
-                               "%4.1f"%flex.mean(all_xy_deltas),
-                               "%4.1f"%flex.mean(all_z_deltas),
-                               "%6.1f"%flex.mean(all_refls_count.as_double())])
-    table_data.append(["Stddev", "%.4f"%flex.mean_and_variance(all_normal_angles).unweighted_sample_standard_deviation(),
-                                 "%.4f"%flex.mean_and_variance(all_z_angles).unweighted_sample_standard_deviation(),
-                                 "%4.1f"%flex.mean_and_variance(all_xy_deltas).unweighted_sample_standard_deviation(),
-                                 "%4.1f"%flex.mean_and_variance(all_z_deltas).unweighted_sample_standard_deviation(),
-                                 "%6.1f"%flex.mean_and_variance(all_refls_count.as_double()).unweighted_sample_standard_deviation()])
+    table_data.append(["Weighted mean", "%.4f"%flex.mean_weighted(all_normal_angles, all_refls_count.as_double()),
+                                        "%.4f"%flex.mean_weighted(all_z_angles, all_refls_count.as_double()),
+                                        "%4.1f"%flex.mean_weighted(all_xy_deltas, all_refls_count.as_double()),
+                                        "%4.1f"%flex.mean_weighted(all_z_deltas, all_refls_count.as_double()),
+                                        ""])
+    table_data.append(["Mean", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
+
     from libtbx import table_utils
     print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
@@ -218,11 +216,12 @@ class Script(object):
 
     if params.show_plots:
       # Plot the results
-      self.detector_plot_dict(detectors[0], refl_counts, u"%sN reflections"%tag, u"%6d")
-      self.detector_plot_dict(detectors[0], normal_angles, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}")
-      self.detector_plot_dict(detectors[0], z_angles, u"%sZ rotation angle between panels (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}")
-      self.detector_plot_dict(detectors[0], xy_deltas, u"%sXY displacements between panels (microns)"%tag, u"%4.1f")
-      self.detector_plot_dict(detectors[0], z_deltas, u"%sZ displacements between panels (microns)"%tag, u"%4.1f")
+      self.detector_plot_dict(detectors[0], refl_counts, u"%sN reflections"%tag, u"%6d", show=False)
+      self.detector_plot_dict(detectors[0], normal_angles, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
+      self.detector_plot_dict(detectors[0], z_angles, u"%sZ rotation angle between panels (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
+      self.detector_plot_dict(detectors[0], xy_deltas, u"%sXY displacements between panels (microns)"%tag, u"%4.1f", show=False)
+      self.detector_plot_dict(detectors[0], z_deltas, u"%sZ displacements between panels (microns)"%tag, u"%4.1f", show=False)
+      plt.show()
 
   def detector_plot_dict(self, detector, data, title, units_str, show=True, reverse_colormap=False):
     """
