@@ -330,14 +330,6 @@ class Script(DCScript):
 
     self.delta_scalar = 50
 
-    # plots! these are plots with callbacks to draw on individual panels
-    self.params.colormap += "_r"
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
-
     # Iterate through the detectors, computing detector statistics at the per-panel level (IE one statistic per panel)
     # Per panel dictionaries
     rmsds = {}
@@ -446,60 +438,66 @@ class Script(DCScript):
     print "Detector statistics.  Angles in degrees, RMSDs in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
-    self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
-
-    # Plot intensity vs. radial_displacement
-    fig = plt.figure()
-    panel_id = 15
-    panel_refls = reflections.select(reflections['panel'] == panel_id)
-    a = panel_refls['radial_displacements']
-    b = panel_refls['intensity.sum.value']
-    sel = (a > -0.2) & (a < 0.2) & (b < 50000)
-    plt.hist2d(a.select(sel), b.select(sel), bins=100)
-    plt.title("%s2D histogram of intensity vs. radial displacement for panel %d"%(tag, panel_id))
-    plt.xlabel("Radial displacement (mm)")
-    plt.ylabel("Intensity")
-    ax = plt.colorbar()
-    ax.set_label("Counts")
-
-    # plot delta 2theta vs. deltapsi
-    a = reflections['delpsical.rad']*180/math.pi
-    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
-    fig = plt.figure()
-    sel = (a > -0.2) & (a < 0.2) & (b > -0.002) & (b < 0.002)
-    plt.hist2d(a.select(sel), b.select(sel), bins=50)
-    cb = plt.colorbar()
-    cb.set_label("N reflections")
-    plt.title(r'%s$\Delta2\Theta$ vs. $\Delta\Psi$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
-    plt.xlabel(r'$\Delta\Psi \circ$')
-    plt.ylabel(r'$\Delta2\Theta \circ$')
-
-    # plot delta 2theta vs. 2theta
-    a = reflections['two_theta_obs']
-    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
-    fig = plt.figure()
-    sel = (b > -0.002) & (b < 0.002)
-    plt.hist2d(a.select(sel), b.select(sel), bins=100)
-    cb = plt.colorbar()
-    cb.set_label("N reflections")
-    plt.title(r'%s$\Delta2\Theta$ vs. 2$\Theta$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
-    plt.xlabel(r'2$\Theta \circ$')
-    plt.ylabel(r'$\Delta2\Theta \circ$')
-
-
     if params.show_plots:
-      # Plot the results
       if self.params.tag is None:
         t = ""
       else:
         t = "%s "%self.params.tag
+
+      # Plots! these are plots with callbacks to draw on individual panels
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
+
+      # Plot intensity vs. radial_displacement
+      fig = plt.figure()
+      panel_id = 15
+      panel_refls = reflections.select(reflections['panel'] == panel_id)
+      a = panel_refls['radial_displacements']
+      b = panel_refls['intensity.sum.value']
+      sel = (a > -0.2) & (a < 0.2) & (b < 50000)
+      plt.hist2d(a.select(sel), b.select(sel), bins=100)
+      plt.title("%s2D histogram of intensity vs. radial displacement for panel %d"%(tag, panel_id))
+      plt.xlabel("Radial displacement (mm)")
+      plt.ylabel("Intensity")
+      ax = plt.colorbar()
+      ax.set_label("Counts")
+
+      # Plot delta 2theta vs. deltapsi
+      a = reflections['delpsical.rad']*180/math.pi
+      b = reflections['two_theta_obs'] - reflections['two_theta_cal']
+      fig = plt.figure()
+      sel = (a > -0.2) & (a < 0.2) & (b > -0.002) & (b < 0.002)
+      plt.hist2d(a.select(sel), b.select(sel), bins=50)
+      cb = plt.colorbar()
+      cb.set_label("N reflections")
+      plt.title(r'%s$\Delta2\Theta$ vs. $\Delta\Psi$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
+      plt.xlabel(r'$\Delta\Psi \circ$')
+      plt.ylabel(r'$\Delta2\Theta \circ$')
+
+      # Plot delta 2theta vs. 2theta
+      a = reflections['two_theta_obs']
+      b = reflections['two_theta_obs'] - reflections['two_theta_cal']
+      fig = plt.figure()
+      sel = (b > -0.002) & (b < 0.002)
+      plt.hist2d(a.select(sel), b.select(sel), bins=100)
+      cb = plt.colorbar()
+      cb.set_label("N reflections")
+      plt.title(r'%s$\Delta2\Theta$ vs. 2$\Theta$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
+      plt.xlabel(r'2$\Theta \circ$')
+      plt.ylabel(r'$\Delta2\Theta \circ$')
+
+      # Plots with single values per panel
       self.detector_plot_dict(detector, refl_counts, u"%s N reflections"%t, u"%6d", show=False)
       self.detector_plot_dict(detector, rmsds, "%s Positional RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, radial_rmsds, "%s Radial RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, ttdpcorr, r"%s $\Delta2\Theta$ vs. $\Delta\Psi$ CC"%t, u"%5.3f", show=False)
 
+      self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
       self.plot_unitcells(experiments)
 
       plt.show()
