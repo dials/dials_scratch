@@ -77,51 +77,6 @@ class Script(DCScript):
       read_reflections=True,
       epilog=help_message)
 
-  def identify_outliers(self, reflections, plots = False):
-    RR = reflections
-
-    class match: pass
-    matches = []
-    for item in RR:
-      m = match()
-      m.x_obs = item["xyzobs.mm.value"][0]
-      m.y_obs = item["xyzobs.mm.value"][1]
-      m.x_calc= item["xyzcal.mm"][0]
-      m.y_calc= item["xyzcal.mm"][1]
-      m.miller_index = item["miller_index"]
-      matches.append(m)
-
-    from rstbx.phil.phil_preferences import indexing_api_defs
-    import iotbx.phil
-    hardcoded_phil = iotbx.phil.parse(
-    input_string=indexing_api_defs).extract()
-
-    from rstbx.indexing_api.outlier_procedure import OutlierPlotPDF
-
-    #comment this in if PDF graph is desired:
-    #hardcoded_phil.indexing.outlier_detection.pdf = "outlier.pdf"
-    # new code for outlier rejection inline here
-    if hardcoded_phil.indexing.outlier_detection.pdf is not None:
-      hardcoded_phil.__inject__("writer",OutlierPlotPDF(hardcoded_phil.indexing.outlier_detection.pdf))
-
-    # execute Sauter and Poon (2010) algorithm
-    from rstbx.indexing_api import outlier_detection
-    od = outlier_detection.find_outliers_from_matches(
-      matches,
-      verbose=True,
-      horizon_phil=hardcoded_phil)
-
-    if hardcoded_phil.indexing.outlier_detection.pdf is not None:
-      od.make_graphs(canvas=hardcoded_phil.writer.R.c,left_margin=0.5)
-      hardcoded_phil.writer.R.c.showPage()
-      hardcoded_phil.writer.R.c.save()
-
-    if plots:
-      self.plot_sp_cdf(od)
-      self.plot_sp_dxdy(od)
-
-    return od
-
   def get_normalized_colors(self, data, vmin=None, vmax=None):
     if vmax is None:
       vmax = self.params.residuals.plot_max
@@ -193,25 +148,6 @@ class Script(DCScript):
 
     a = reflections['delpsical.rad']*180/math.pi
     b = reflections['radial_displacements']
-
-    fake_coords = flex.vec2_double(a, b) * 10#self.delta_scalar
-
-    x, y = panel.get_image_size_mm()
-    offset = col((x, y))/2
-
-    lab_coords = fake_coords + panel.get_lab_coord(offset)[0:2]
-
-    ax.scatter(lab_coords.parts()[0], lab_coords.parts()[1], c = data, norm=norm, cmap = cmap, linewidths=0, s=self.params.dot_size)
-
-    return sm, color_vals
-
-  def plot_delta2theta_vs_deltapsi(self, reflections, panel = None, ax = None, bounds = None):
-    assert panel is not None and ax is not None and bounds is not None
-    data = reflections['difference_vector_norms']
-    norm, cmap, color_vals, sm = self.get_normalized_colors(data)
-
-    a = reflections['delpsical.rad']*180/math.pi
-    b = reflections['two_theta_obs'] - reflections['two_theta_cal']
 
     fake_coords = flex.vec2_double(a, b) * self.delta_scalar
 
@@ -311,42 +247,6 @@ class Script(DCScript):
     for subset,c in zip(data, colors):
         ax.plot(subset.parts()[0], subset.parts()[1], '-', c=c)
 
-  def plot_sp_cdf(self, od, panel = None, ax = None, bounds = None):
-    # These colors correspond to:
-    # mr,o_fraction,o_inliers,o_outliers, sd_data
-    self.plot_pdf_data = [ho,hr]
-    colors = ['darkred','red','salmon','black','limegreen','greenyellow','skyblue']
-    if ax is None:
-      fig = plt.figure()
-      ax = fig.add_subplot(111)
-
-    if bounds is None:
-      data = [flex.vec2_double(d) for d in od.plot_cdf_data]
-      ax.set_ylim((0,1.1))
-      ax.set_title("%s Outlier CDF"%self.params.tag)
-    else:
-      data = [self.get_bounded_data(flex.vec2_double(d), bounds) for d in od.plot_cdf_data]
-
-    for subset,c in zip(data, colors[:len(od.plot_cdf_data)]):
-        ax.plot(subset.parts()[0], subset.parts()[1], '.', c=c)
-
-  def plot_sp_dxdy(self, od, panel = None, ax = None, bounds = None):
-    colors = ['darkred','red','salmon','black','limegreen','greenyellow','skyblue']
-    if ax is None:
-      fig = plt.figure()
-      ax = fig.add_subplot(111, aspect='equal')
-
-    if bounds is None:
-      data = [flex.vec2_double(d) for d in od.plot_dxdy_data]
-      ax.set_xlim((-1,1))
-      ax.set_ylim((-1,1))
-      ax.set_title("%s Outlier DXDY"%self.params.tag)
-    else:
-      data = [self.get_bounded_data(flex.vec2_double(d), bounds) for d in od.plot_dxdy_data]
-
-    for subset,c in zip(data, colors[:len(od.plot_dxdy_data)]):
-      ax.plot(data.parts()[0], data.parts()[1], '.', c=c, linewidth=0, markersize=1)
-
   def get_bounded_data(self, data, bounds):
     assert len(bounds) == 4
     x = [b[0] for b in bounds]
@@ -403,26 +303,7 @@ class Script(DCScript):
     #from dials.algorithms.refinement.prediction import ExperimentsPredictor
     #ref_predictor = ExperimentsPredictor(experiments, force_stills=experiments.all_stills())
 
-    #filtered_refls = flex.reflection_table()
-    #reflections = ref_predictor.predict(reflections)
-    #ods = []
-    #for panel_id in sorted(set(reflections['panel'])):
-    #  print "Performing sauter/poon outlier rejection on panel", panel_id
-    #  panel_refls = reflections.select(reflections['panel'] == panel_id)
-    #  od = self.identify_outliers(panel_refls)
-    #  ods.append(od)
-    #  filtered_refls.extend(panel_refls.select(od.get_cache_status()))
-    #reflections = filtered_refls
-
-    #reflections = reflections.select(self.identify_outliers(reflections, plots=True).get_cache_status())
-
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
-    #print "About to filter images, n reflections:", len(reflections), "n images:", len(set(reflections['id']))
-    #s = flex.sort_permutation(reflections['difference_vector_norms'])
-    #subset = reflections.select(s)[-1000:]
-    #for i in set(subset['id']):
-    #  reflections = reflections.select(reflections['id'] != i)
-    #print "Filtered images, n reflections:", len(reflections), "n images:", len(set(reflections['id']))
 
     n = len(reflections)
     rmsd = math.sqrt((reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).sum_sq()/n)
@@ -567,7 +448,6 @@ class Script(DCScript):
 
     self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
     self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
-    self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta2\Theta$ vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_delta2theta_vs_deltapsi)
 
     # Plot intensity vs. radial_displacement
     fig = plt.figure()
