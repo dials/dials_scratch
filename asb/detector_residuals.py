@@ -339,9 +339,11 @@ class Script(DCScript):
     ttdpcorr = {}
     # per panelgroup flex arrays
     pg_rmsds = flex.double()
+    pg_r_rmsds = flex.double()
+    pg_t_rmsds = flex.double()
     pg_refls_count = flex.int()
-    table_header = ["PG id", "RMSD","N refls"]
-    table_header2 = ["","",""]
+    table_header = ["PG id", "RMSD","Radial", "Transverse", "N refls"]
+    table_header2 = ["","","RMSD","RMSD",""]
     table_data = []
     table_data.append(table_header)
     table_data.append(table_header2)
@@ -391,6 +393,8 @@ class Script(DCScript):
     # Iterate through the detector at the specified hierarchy level
     for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level)):
       pg_msd_sum = 0
+      pg_r_msd_sum = 0
+      pg_t_msd_sum = 0
       pg_refls = 0
       for p in iterate_panels(pg):
         panel_id = id_from_name(detector, p.get_name())
@@ -416,6 +420,8 @@ class Script(DCScript):
         t = panel_refls['transverse_displacements']
         radial_rmsds[p.get_name()]     = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
         transverse_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(t)/len(t)) * 1000
+	pg_r_msd_sum += flex.sum_sq(r)
+	pg_t_msd_sum += flex.sum_sq(t)
 
         a = panel_refls['delpsical.rad']*180/math.pi
         b = panel_refls['two_theta_obs'] - panel_refls['two_theta_cal']
@@ -424,15 +430,30 @@ class Script(DCScript):
 
 
       pg_rmsd = math.sqrt(pg_msd_sum/pg_refls) * 1000
+      pg_r_rmsd = math.sqrt(pg_r_msd_sum/pg_refls) * 1000
+      pg_t_rmsd = math.sqrt(pg_t_msd_sum/pg_refls) * 1000
       pg_rmsds.append(pg_rmsd)
+      pg_r_rmsds.append(pg_r_rmsd)
+      pg_t_rmsds.append(pg_t_rmsd)
       pg_refls_count.append(pg_refls)
-      table_data.append(["%d"%pg_id, "%.4f"%pg_rmsd, "%6d"%pg_refls])
+      table_data.append(["%d"%pg_id, "%.1f"%pg_rmsd, "%.1f"%pg_r_rmsd, "%.1f"%pg_t_rmsd, "%6d"%pg_refls])
 
-    table_data.append(["Mean", "%.4f"%flex.mean(pg_rmsds),
-                               "%8.1f"%flex.mean(pg_refls_count.as_double())])
-    if len(pg_rmsds) > 1:
-      table_data.append(["Stddev", "%.4f"%flex.mean_and_variance(pg_rmsds).unweighted_sample_standard_deviation(),
-                                   "%8.1f"%flex.mean_and_variance(pg_refls_count.as_double()).unweighted_sample_standard_deviation()])
+    r1 = ["Weighted mean"]
+    r2 = ["Weighted stddev"]
+    stats = flex.mean_and_variance(pg_rmsds, pg_refls_count.as_double())
+    r1.append("%.1f"%stats.mean())
+    r2.append("%.1f"%stats.gsl_stats_wsd())
+    stats = flex.mean_and_variance(pg_r_rmsds, pg_refls_count.as_double())
+    r1.append("%.1f"%stats.mean())
+    r2.append("%.1f"%stats.gsl_stats_wsd())
+    stats = flex.mean_and_variance(pg_t_rmsds, pg_refls_count.as_double())
+    r1.append("%.1f"%stats.mean())
+    r2.append("%.1f"%stats.gsl_stats_wsd())
+    r1.append("")
+    r2.append("")
+    table_data.append(r1)
+    table_data.append(r2)
+    table_data.append(["Mean", "", "", "", "%8.1f"%flex.mean(pg_refls_count.as_double())])
 
     from libtbx import table_utils
     print "Detector statistics.  Angles in degrees, RMSDs in microns"
