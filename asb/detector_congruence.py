@@ -222,7 +222,7 @@ class Script(object):
     print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
 
-    print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statitics are computed between the matching panel groups between the two input experiments."
+    print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed between the matching panel groups between the two input experiments."
     print "Normal angle: angle between the normal vectors of matching panel groups."
     print "Z rot: angle between the XY components of the fast axes of the panel groups."
     print "Delta XY: XY shift between matching panel groups."
