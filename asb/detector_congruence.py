@@ -198,11 +198,24 @@ class Script(object):
       all_refls_count.append(total_refls)
       table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
-    table_data.append(["Weighted mean", "%.4f"%flex.mean_weighted(all_normal_angles, all_refls_count.as_double()),
-                                        "%.4f"%flex.mean_weighted(all_z_angles, all_refls_count.as_double()),
-                                        "%4.1f"%flex.mean_weighted(all_xy_deltas, all_refls_count.as_double()),
-                                        "%4.1f"%flex.mean_weighted(all_z_deltas, all_refls_count.as_double()),
-                                        ""])
+    r1 = ["Weighted mean"]
+    r2 = ["Weighted stddev"]
+    stats = flex.mean_and_variance(all_normal_angles, all_refls_count.as_double())
+    r1.append("%.4f"%stats.mean())
+    r2.append("%.4f"%stats.gsl_stats_wsd())
+    stats = flex.mean_and_variance(all_z_angles, all_refls_count.as_double())
+    r1.append("%.4f"%stats.mean())
+    r2.append("%.4f"%stats.gsl_stats_wsd())
+    stats = flex.mean_and_variance(all_xy_deltas, all_refls_count.as_double())
+    r1.append("%4.1f"%stats.mean())
+    r2.append("%4.1f"%stats.gsl_stats_wsd())
+    stats = flex.mean_and_variance(all_z_deltas, all_refls_count.as_double())
+    r1.append("%4.1f"%stats.mean())
+    r2.append("%4.1f"%stats.gsl_stats_wsd())
+    r1.append("")
+    r2.append("")
+    table_data.append(r1)
+    table_data.append(r2)
     table_data.append(["Mean", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
 
     from libtbx import table_utils
@@ -214,6 +227,7 @@ class Script(object):
     print "Z rot: angle between the XY components of the fast axes of the panel groups."
     print "Delta XY: XY shift between matching panel groups."
     print "Delta Z: Z shift between matching panel groups."
+    print "N refls: number of reflections between both matching panel groups. This number is used as a weight when computing means and standard deviations."
 
     if params.tag is None:
       tag = ""
