@@ -157,25 +157,19 @@ class Script(object):
 
     all_normal_angles = flex.double()
     all_rot_z = flex.double()
+    pg_bc_dists = flex.double()
+    all_bc_dist = flex.double()
     all_weights = flex.double()
 
-    table_header = ["PanelG","Normal","Z rot","Delta","Delta","N"]
-    table_header2 = ["Id","Angle","Angle","XY","Z","Refls"]
     precision_table_data = []
-    precision_table_data.append(table_header)
-    precision_table_data.append(table_header2)
-
-    table_header = ["PanelG","Normal","Normal","RotZ", "RotZ", "N"]
-    table_header2 = ["Id","Angle","Angle S","", "Sigma", "Refls"]
     detector_table_data = []
-    detector_table_data.append(table_header)
-    detector_table_data.append(table_header2)
-
     root1 = detectors[0].hierarchy()
     root2 = detectors[1].hierarchy()
 
     root_normal_1 = col(root1.get_normal())
     root_normal_2 = col(root2.get_normal())
+
+    s0 = col(flex.vec3_double([col(b.get_s0()) for b in experiments.beams()]).mean())
 
     for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(root1, 0, params.hierarchy_level),
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
@@ -215,7 +209,26 @@ class Script(object):
         refl_counts[p1.get_name()] = r1 + r2
 
       all_refls_count.append(total_refls)
-      precision_table_data.append(["%d"%pg_id, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
+
+      # Compute distances between panel groups and beam center
+      dists = flex.double()
+      for pg, r in zip([pg1, pg2], [root1, root2]):
+        bc = col(pg.get_beam_centre_lab(s0))
+        if hasattr(pg, 'children'):
+          ori = col(pg.get_origin())
+        else:
+          x, y = pg.get_image_size_mm()
+          offset = col((x, y, 0))/2
+          ori = col(pg.get_lab_coord(offset))
+
+        dists.append((ori-bc).length())
+
+      stats = flex.mean_and_variance(dists, flex.double([total_refls_1, total_refls_2]))
+      dist_m = stats.mean()
+      dist_s = stats.gsl_stats_wsd()
+      pg_bc_dists.append(dist_m)
+      all_bc_dist.extend(dists)
+      precision_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
       # Compute angle between detector normal and panel group normal
       norm_angle_1 = root_normal_1.angle(col(pg1.get_normal()), deg=True)
@@ -244,10 +257,26 @@ class Script(object):
       rotz_m = stats.mean()
       rotz_s = stats.gsl_stats_wsd()
 
-      detector_table_data.append(["%d"%pg_id, "%.4f"%norm_angle_m, "%.4f"%norm_angle_s, "%6.2f"%rotz_m, "%.4f"%rotz_s, "%6d"%total_refls])
+      detector_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%norm_angle_m, "%.4f"%norm_angle_s, "%6.2f"%rotz_m, "%.4f"%rotz_s, "%6d"%total_refls])
+
+    table_d = {d:row for d, row in zip(pg_bc_dists, precision_table_data)}
+    table_header = ["PanelG","Dist","Dist","Normal","Z rot","Delta","Delta","N"]
+    table_header2 = ["Id","","Sigma","Angle","Angle","XY","Z","Refls"]
+    precision_table_data = [table_header, table_header2]
+    precision_table_data.extend([table_d[key] for key in sorted(table_d)])
+
+    table_d = {d:row for d, row in zip(pg_bc_dists, detector_table_data)}
+    table_header = ["PanelG","Dist","Dist","Normal","Normal","RotZ", "RotZ", "N"]
+    table_header2 = ["Id","","Sigma","Angle","Angle S","", "Sigma", "Refls"]
+    detector_table_data = [table_header, table_header2]
+    detector_table_data.extend([table_d[key] for key in sorted(table_d)])
 
     r1 = ["Weighted mean"]
     r2 = ["Weighted stddev"]
+    r1.append("")
+    r2.append("")
+    r1.append("")
+    r2.append("")
     stats = flex.mean_and_variance(all_delta_normals, all_refls_count.as_double())
     r1.append("%.4f"%stats.mean())
     r2.append("%.4f"%stats.gsl_stats_wsd())
@@ -264,13 +293,15 @@ class Script(object):
     r2.append("")
     precision_table_data.append(r1)
     precision_table_data.append(r2)
-    precision_table_data.append(["Mean", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
+    precision_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
 
     from libtbx import table_utils
     print "Congruence statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(precision_table_data,has_header=2,justify='center',delim=" ")
 
     print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed between the matching panel groups between the two input experiments."
+    print "Dist: distance from center of panel group to the beam center"
+    print "Dist Sigma: weighted standard deviation of the measurements used to compute Dist"
     print "Normal angle: angle between the normal vectors of matching panel groups."
     print "Z rot: angle between the XY components of the fast axes of the panel groups."
     print "Delta XY: XY shift between matching panel groups."
@@ -282,14 +313,16 @@ class Script(object):
 
     stats1 = flex.mean_and_variance(all_normal_angles, all_weights.as_double())
     #stats2 = flex.mean_and_variance(all_rot_z, all_weights.as_double())
-    detector_table_data.append(["All", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), ""])
-    #detector_table_data.append(["All", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
-    detector_table_data.append(["Mean", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
+    detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), ""])
+    #detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
+    detector_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
 
     print "Detector level statistics.  Angles in degrees, deltas in microns"
     print table_utils.format(detector_table_data,has_header=2,justify='center',delim=" ")
 
     print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed using the matching panel groups between the two input experiments."
+    print "Dist: distance from center of panel group to the beam center"
+    print "Dist Sigma: weighted standard deviation of the measurements used to compute Dist"
     print "Normal Angle: angle between the normal vector of the detector at its root hierarchy level and the normal of the panel group"
     print "Normal Angle S: weighted standard deviation of the measurements used to compute Normal Angle"
     print "RotZ: rotation of each panel group around the detector normal"
