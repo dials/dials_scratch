@@ -221,7 +221,7 @@ class Script(object):
           ori = col(pg.get_origin())
         else:
           x, y = pg.get_image_size_mm()
-          offset = col((x, y, 0))/2
+          offset = col((x, y))/2
           ori = col(pg.get_lab_coord(offset))
 
         dists.append((ori-bc).length())
