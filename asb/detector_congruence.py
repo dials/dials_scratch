@@ -275,13 +275,15 @@ class Script(object):
     table_d = {d:row for d, row in zip(pg_bc_dists, precision_table_data)}
     table_header = ["PanelG","Dist","Dist","Normal","Z rot","Delta","Delta","N"]
     table_header2 = ["Id","","Sigma","Angle","Angle","XY","Z","Refls"]
-    precision_table_data = [table_header, table_header2]
+    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(microns)","(microns)",""]
+    precision_table_data = [table_header, table_header2, table_header3]
     precision_table_data.extend([table_d[key] for key in sorted(table_d)])
 
     table_d = {d:row for d, row in zip(pg_bc_dists, detector_table_data)}
     table_header = ["PanelG","Dist","Dist","Normal","Normal","RotZ", "RotZ", "Z Offset", "Z Offset", "N"]
     table_header2 = ["Id","","Sigma","Angle","Angle S","", "Sigma", "", "Sigma", "Refls"]
-    detector_table_data = [table_header, table_header2]
+    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(deg)","(deg)","(mm)","(mm)",""]
+    detector_table_data = [table_header, table_header2, table_header3]
     detector_table_data.extend([table_d[key] for key in sorted(table_d)])
 
     r1 = ["Weighted mean"]
@@ -309,8 +311,8 @@ class Script(object):
     precision_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
 
     from libtbx import table_utils
-    print "Congruence statistics.  Angles in degrees, deltas in microns"
-    print table_utils.format(precision_table_data,has_header=2,justify='center',delim=" ")
+    print "Congruence statistics:"
+    print table_utils.format(precision_table_data,has_header=3,justify='center',delim=" ")
 
     print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed between the matching panel groups between the two input experiments."
     print "Dist: distance from center of panel group to the beam center"
@@ -329,8 +331,8 @@ class Script(object):
     detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "", "", "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
     detector_table_data.append(["Mean", "", "", "", "", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
 
-    print "Detector level statistics.  Angles in degrees, distances in mm"
-    print table_utils.format(detector_table_data,has_header=2,justify='center',delim=" ")
+    print "Detector level statistics:"
+    print table_utils.format(detector_table_data,has_header=3,justify='center',delim=" ")
 
     print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed using the matching panel groups between the two input experiments."
     print "Dist: distance from center of panel group to the beam center"
