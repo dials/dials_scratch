@@ -286,29 +286,30 @@ class Script(object):
     detector_table_data = [table_header, table_header2, table_header3]
     detector_table_data.extend([table_d[key] for key in sorted(table_d)])
 
-    r1 = ["Weighted mean"]
-    r2 = ["Weighted stddev"]
-    r1.append("")
-    r2.append("")
-    r1.append("")
-    r2.append("")
-    stats = flex.mean_and_variance(all_delta_normals, all_refls_count.as_double())
-    r1.append("%.4f"%stats.mean())
-    r2.append("%.4f"%stats.gsl_stats_wsd())
-    stats = flex.mean_and_variance(all_z_angles, all_refls_count.as_double())
-    r1.append("%.4f"%stats.mean())
-    r2.append("%.4f"%stats.gsl_stats_wsd())
-    stats = flex.mean_and_variance(all_xy_deltas, all_refls_count.as_double())
-    r1.append("%4.1f"%stats.mean())
-    r2.append("%4.1f"%stats.gsl_stats_wsd())
-    stats = flex.mean_and_variance(all_z_deltas, all_refls_count.as_double())
-    r1.append("%4.1f"%stats.mean())
-    r2.append("%4.1f"%stats.gsl_stats_wsd())
-    r1.append("")
-    r2.append("")
-    precision_table_data.append(r1)
-    precision_table_data.append(r2)
-    precision_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
+    if len(all_refls_count) > 1:
+      r1 = ["Weighted mean"]
+      r2 = ["Weighted stddev"]
+      r1.append("")
+      r2.append("")
+      r1.append("")
+      r2.append("")
+      stats = flex.mean_and_variance(all_delta_normals, all_refls_count.as_double())
+      r1.append("%.4f"%stats.mean())
+      r2.append("%.4f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(all_z_angles, all_refls_count.as_double())
+      r1.append("%.4f"%stats.mean())
+      r2.append("%.4f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(all_xy_deltas, all_refls_count.as_double())
+      r1.append("%4.1f"%stats.mean())
+      r2.append("%4.1f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(all_z_deltas, all_refls_count.as_double())
+      r1.append("%4.1f"%stats.mean())
+      r2.append("%4.1f"%stats.gsl_stats_wsd())
+      r1.append("")
+      r2.append("")
+      precision_table_data.append(r1)
+      precision_table_data.append(r2)
+      precision_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
 
     from libtbx import table_utils
     print "Congruence statistics:"
@@ -326,10 +327,11 @@ class Script(object):
     print
 
 
-    stats1 = flex.mean_and_variance(all_normal_angles, all_weights.as_double())
-    stats2 = flex.mean_and_variance(all_z_offsets, all_weights.as_double())
-    detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "", "", "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
-    detector_table_data.append(["Mean", "", "", "", "", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
+    if len(all_weights) > 1:
+      stats1 = flex.mean_and_variance(all_normal_angles, all_weights.as_double())
+      stats2 = flex.mean_and_variance(all_z_offsets, all_weights.as_double())
+      detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "", "", "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
+      detector_table_data.append(["Mean", "", "", "", "", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
 
     print "Detector level statistics:"
     print table_utils.format(detector_table_data,has_header=3,justify='center',delim=" ")
