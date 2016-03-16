@@ -125,7 +125,8 @@ def run(args):
 
   pyplot.scatter(x, y)
   pyplot.xlabel('1/d^2')
-  pyplot.show('<var(int)>/<var(ext)>')
+  pyplot.ylabel('<var(int)>/<var(ext)>')
+  pyplot.show()
   pyplot.clf()
 
   return
