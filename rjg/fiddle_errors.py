@@ -103,6 +103,31 @@ def run(args):
   pyplot.show()
   pyplot.clf()
 
+  # chi^2 plot vs resolution
+  # i.e. <var(int)>/<var(ext)>
+  # where var(ext) and var(int) are as defined in equations 4 & 5 respectively
+  # in Blessing (1997)
+
+  internal_var = merged_intensities.customized_copy(
+    data=flex.pow2(internal_sigmas))
+  external_var = merged_intensities.customized_copy(
+    data=flex.pow2(external_sigmas))
+
+  n_bins = 10
+  internal_var.setup_binner(n_bins=n_bins)
+  external_var.use_binning_of(internal_var)
+
+  mean_internal = internal_var.mean(use_binning=True)
+  mean_external = external_var.mean(use_binning=True)
+
+  y = [mean_internal.data[i+1]/mean_external.data[i+1] for i in range(n_bins)]
+  x = [mean_internal.binner.bin_centers(2)]
+
+  pyplot.scatter(x, y)
+  pyplot.xlabel('1/d^2')
+  pyplot.show('<var(int)>/<var(ext)>')
+  pyplot.clf()
+
   return
 
 
