@@ -156,10 +156,21 @@ class Script(object):
     all_refls_count = flex.int()
 
     all_normal_angles = flex.double()
+    all_rnormal_angles = flex.double()
+    all_tnormal_angles = flex.double()
+    pg_normal_angle_sigmas = flex.double()
+    pg_rnormal_angle_sigmas = flex.double()
+    pg_tnormal_angle_sigmas = flex.double()
     all_rot_z = flex.double()
+    pg_rot_z_sigmas = flex.double()
     pg_bc_dists = flex.double()
     all_bc_dist = flex.double()
+    all_f_offsets = flex.double()
+    all_s_offsets = flex.double()
     all_z_offsets = flex.double()
+    pg_f_offset_sigmas = flex.double()
+    pg_s_offset_sigmas = flex.double()
+    pg_z_offset_sigmas = flex.double()
     all_weights = flex.double()
 
     precision_table_data = []
@@ -172,18 +183,19 @@ class Script(object):
 
     s0 = col(flex.vec3_double([col(b.get_s0()) for b in experiments.beams()]).mean())
 
+    def get_origin(pg):
+      if hasattr(pg, 'children'):
+        return col(pg.get_origin())
+      else:
+        s = pg.get_image_size()
+        return col(pg.get_pixel_lab_coord((s[0]/2, s[1]/2)))
+
     for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(root1, 0, params.hierarchy_level),
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
       norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
       z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
-      if hasattr(pg1, 'children'):
-        v1 = col(pg1.get_origin())
-        v2 = col(pg2.get_origin())
-      else:
-        s = pg1.get_image_size()
-        assert s == pg2.get_image_size()
-        v1 = col(pg1.get_pixel_lab_coord((s[0]/2, s[1]/2)))
-        v2 = col(pg2.get_pixel_lab_coord((s[0]/2, s[1]/2)))
+      v1 = get_origin(pg1)
+      v2 = get_origin(pg2)
 
       delta = v1 - v2
       xyd = col(delta[0:2]).length()*1000
@@ -195,8 +207,8 @@ class Script(object):
       all_z_deltas.append(zd)
 
       total_refls = 0
-      total_refls_1 = 0
-      total_refls_2 = 0
+      pg1_refls = 0
+      pg2_refls = 0
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
         assert p1.get_name() == p2.get_name()
         z_angles[p1.get_name()] = z_angle
@@ -205,15 +217,19 @@ class Script(object):
         r1 = len(reflections[0].select(reflections[0]['panel'] == id_from_name(detectors[0], p1.get_name())))
         r2 = len(reflections[1].select(reflections[1]['panel'] == id_from_name(detectors[1], p2.get_name())))
         total_refls += r1 + r2
-        total_refls_1 += r1
-        total_refls_2 += r2
+        pg1_refls += r1
+        pg2_refls += r2
         refl_counts[p1.get_name()] = r1 + r2
 
       all_refls_count.append(total_refls)
+      all_weights.append(pg1_refls)
+      all_weights.append(pg2_refls)
 
       # Compute distances between panel groups and beam center
       # Also compute offset along Z axis
       dists = flex.double()
+      f_offsets = flex.double()
+      s_offsets = flex.double()
       z_offsets = flex.double()
       for pg, r in zip([pg1, pg2], [root1, root2]):
         bc = col(pg.get_beam_centre_lab(s0))
@@ -229,48 +245,108 @@ class Script(object):
         rori = col(r.get_origin())
         delta_ori = ori-rori
         r_norm = col(r.get_normal())
-        z_offsets.append(r_norm.dot(delta_ori))
+        r_fast = col(r.get_fast_axis())
+        r_slow = col(r.get_slow_axis())
+        f_offsets.append(r_fast.dot(delta_ori))
+        s_offsets.append(r_slow.dot(delta_ori))
+        z_offsets.append(r_norm.dot(delta_ori)*1000)
 
-      stats = flex.mean_and_variance(dists, flex.double([total_refls_1, total_refls_2]))
+      pg_weights = flex.double([pg1_refls, pg2_refls])
+      stats = flex.mean_and_variance(dists, pg_weights)
       dist_m = stats.mean()
       dist_s = stats.gsl_stats_wsd()
       pg_bc_dists.append(dist_m)
       all_bc_dist.extend(dists)
+      all_f_offsets.extend(f_offsets)
+      all_s_offsets.extend(s_offsets)
       all_z_offsets.extend(z_offsets)
       precision_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
       # Compute angle between detector normal and panel group normal
-      norm_angle_1 = root_normal_1.angle(col(pg1.get_normal()), deg=True)
-      norm_angle_2 = root_normal_2.angle(col(pg2.get_normal()), deg=True)
-      stats = flex.mean_and_variance(flex.double([norm_angle_1, norm_angle_2]), flex.double([total_refls_1, total_refls_2]))
-      norm_angle_m = stats.mean()
-      norm_angle_s = stats.gsl_stats_wsd()
-      all_normal_angles.append(norm_angle_1)
-      all_normal_angles.append(norm_angle_2)
-      all_weights.append(total_refls_1)
-      all_weights.append(total_refls_2)
-
       # Compute rotation of panel group around detector normal
       pg_rotz = flex.double()
+      norm_angles = flex.double()
+      rnorm_angles = flex.double()
+      tnorm_angles = flex.double()
       for pg, r in zip([pg1, pg2], [root1, root2]):
+
+        pgo = get_origin(pg)
+        pgn = col(pg.get_normal())
         pgf = col(pg.get_fast_axis())
+
+        ro = get_origin(r)
+        rn = col(r.get_normal())
         rf = col(r.get_fast_axis())
         rs = col(r.get_slow_axis())
 
+        norm_angle = rn.angle(pgn, deg=True)
+        norm_angles.append(norm_angle)
+        all_normal_angles.append(norm_angle)
+
+        ro_pgo = pgo - ro # vector from the detector origin to the panel group origin
+        radial = ((rf.dot(ro_pgo) * rf) + (rs.dot(ro_pgo) * rs)).normalize() # component of ro_pgo in rf rs plane
+        transverse = rn.cross(radial).normalize()
+        # now radial and transverse are vectors othogonal to each other and the detector normal, such that
+        # radial points at the panel group origin
+        # v is the component of pgn in the rn radial plane
+        v = (radial.dot(pgn) * radial) + (rn.dot(pgn) * rn)
+        angle = rn.angle(v, deg=True)
+        tnorm_angles.append(angle)
+        all_tnormal_angles.append(angle)
+        # v is the component of pgn in the rn transverse plane
+        v = (transverse.dot(pgn) * transverse) + (rn.dot(pgn) * rn)
+        angle = rn.angle(v, deg=True)
+        rnorm_angles.append(angle)
+        all_rnormal_angles.append(angle)
+
         # v is the component of pgf in the rf rs plane
         v = (rf.dot(pgf) * rf) + (rs.dot(pgf) * rs)
-        pg_rotz.append(rf.angle(v, deg=True))
-        all_rot_z.append(pg_rotz[-1])
+        angle = rf.angle(v, deg=True)
+        angle = angle-(round(angle/90)*90) # deviation from 90 degrees
+        pg_rotz.append(angle)
+        all_rot_z.append(angle)
 
-      stats = flex.mean_and_variance(pg_rotz, flex.double([total_refls_1, total_refls_2]))
+      stats = flex.mean_and_variance(norm_angles, pg_weights)
+      norm_angle_m = stats.mean()
+      norm_angle_s = stats.gsl_stats_wsd()
+      pg_normal_angle_sigmas.append(norm_angle_s)
+
+      stats = flex.mean_and_variance(rnorm_angles, pg_weights)
+      rnorm_angle_m = stats.mean()
+      rnorm_angle_s = stats.gsl_stats_wsd()
+      pg_rnormal_angle_sigmas.append(rnorm_angle_s)
+
+      stats = flex.mean_and_variance(tnorm_angles, pg_weights)
+      tnorm_angle_m = stats.mean()
+      tnorm_angle_s = stats.gsl_stats_wsd()
+      pg_tnormal_angle_sigmas.append(tnorm_angle_s)
+
+      stats = flex.mean_and_variance(pg_rotz, pg_weights)
       rotz_m = stats.mean()
       rotz_s = stats.gsl_stats_wsd()
+      pg_rot_z_sigmas.append(rotz_s)
 
-      stats = flex.mean_and_variance(z_offsets, flex.double([total_refls_1, total_refls_2]))
+      stats = flex.mean_and_variance(f_offsets, pg_weights)
+      fo_m = stats.mean()
+      fo_s = stats.gsl_stats_wsd()
+      pg_f_offset_sigmas.append(fo_s)
+      stats = flex.mean_and_variance(s_offsets, pg_weights)
+      so_m = stats.mean()
+      so_s = stats.gsl_stats_wsd()
+      pg_s_offset_sigmas.append(so_s)
+      stats = flex.mean_and_variance(z_offsets, pg_weights)
       zo_m = stats.mean()
       zo_s = stats.gsl_stats_wsd()
+      pg_z_offset_sigmas.append(zo_s)
 
-      detector_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%norm_angle_m, "%.4f"%norm_angle_s, "%6.2f"%rotz_m, "%.4f"%rotz_s, "%.4f"%zo_m, "%.4f"%zo_s, "%6d"%total_refls])
+      detector_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s,
+                                  "%.4f"%norm_angle_m, "%.4f"%norm_angle_s,
+                                  "%.4f"%rnorm_angle_m, "%.4f"%rnorm_angle_s,
+                                  "%.4f"%tnorm_angle_m, "%.4f"%tnorm_angle_s,
+                                  "%6.2f"%rotz_m, "%.4f"%rotz_s,
+                                  "%5.1f"%fo_m, "%.4f"%fo_s,
+                                  "%5.1f"%so_m, "%.4f"%so_s,
+                                  "%5.1f"%zo_m, "%.4f"%zo_s, "%6d"%total_refls])
 
     table_d = {d:row for d, row in zip(pg_bc_dists, precision_table_data)}
     table_header = ["PanelG","Dist","Dist","Normal","Z rot","Delta","Delta","N"]
@@ -280,9 +356,9 @@ class Script(object):
     precision_table_data.extend([table_d[key] for key in sorted(table_d)])
 
     table_d = {d:row for d, row in zip(pg_bc_dists, detector_table_data)}
-    table_header = ["PanelG","Dist","Dist","Normal","Normal","RotZ", "RotZ", "Z Offset", "Z Offset", "N"]
-    table_header2 = ["Id","","Sigma","Angle","Angle S","", "Sigma", "", "Sigma", "Refls"]
-    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(deg)","(deg)","(mm)","(mm)",""]
+    table_header = ["PanelG","Dist","Dist","Normal","Normal","RNormal","RNormal","TNormal","TNormal","RotZ", "RotZ","F Offset","F Offset","S Offset","S Offset","Z Offset","Z Offset","N"]
+    table_header2 = ["Id","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","Refls"]
+    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(mm)","(mm)","(mm)","(mm)","(microns)","(microns)",""]
     detector_table_data = [table_header, table_header2, table_header3]
     detector_table_data.extend([table_d[key] for key in sorted(table_d)])
 
@@ -328,30 +404,66 @@ class Script(object):
 
 
     if len(all_weights) > 1:
-      stats1 = flex.mean_and_variance(all_normal_angles, all_weights.as_double())
-      stats2 = flex.mean_and_variance(all_z_offsets, all_weights.as_double())
-      detector_table_data.append(["All", "", "", "%.4f"%stats1.mean(), "%.4f"%stats1.gsl_stats_wsd(), "", "", "%.4f"%stats2.mean(), "%.4f"%stats2.gsl_stats_wsd(), ""])
-      detector_table_data.append(["Mean", "", "", "", "", "", "", "", "", "%6.1f"%flex.mean(all_weights.as_double())])
+      r1 = ["All"]
+      r2 = ["Mean"]
+      for data, weights, fmt in [[None,None,None],
+                                 [None,None,None],
+                                 [all_normal_angles,       all_weights.as_double(),     "%.4f"],
+                                 [pg_normal_angle_sigmas,  all_refls_count.as_double(), "%.4f"],
+                                 [all_rnormal_angles,      all_weights.as_double(),     "%.4f"],
+                                 [pg_rnormal_angle_sigmas, all_refls_count.as_double(), "%.4f"],
+                                 [all_tnormal_angles,      all_weights.as_double(),     "%.4f"],
+                                 [pg_tnormal_angle_sigmas, all_refls_count.as_double(), "%.4f"],
+                                 [all_rot_z,               all_weights.as_double(),     "%.4f"],
+                                 [pg_rot_z_sigmas,         all_refls_count.as_double(), "%.4f"],
+                                 [all_f_offsets,           all_weights.as_double(),     "%.4f"],
+                                 [pg_f_offset_sigmas,      all_refls_count.as_double(), "%.4f"],
+                                 [all_s_offsets,           all_weights.as_double(),     "%.4f"],
+                                 [pg_s_offset_sigmas,      all_refls_count.as_double(), "%.4f"],
+                                 [all_z_offsets,           all_weights.as_double(),     "%.4f"],
+                                 [pg_z_offset_sigmas,      all_refls_count.as_double(), "%.4f"]]:
+
+        r2.append("")
+        if data is None and weights is None:
+          r1.append("")
+          continue
+        stats = flex.mean_and_variance(data, weights)
+        r1.append(fmt%stats.mean())
+
+      r1.append("")
+      r2.append("%6.1f"%flex.mean(all_weights.as_double()))
+      detector_table_data.append(r1)
+      detector_table_data.append(r2)
 
     print "Detector level statistics:"
     print table_utils.format(detector_table_data,has_header=3,justify='center',delim=" ")
 
-    print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, statistics are computed using the matching panel groups between the two input experiments."
+    print "PanelG Id: panel group id or panel id, depending on hierarchy_level. For each panel group, weighted means and weighted standard deviations (Sigmas) for the properties listed below are computed using the matching panel groups between the input experiments."
     print "Dist: distance from center of panel group to the beam center"
     print "Dist Sigma: weighted standard deviation of the measurements used to compute Dist"
     print "Normal Angle: angle between the normal vector of the detector at its root hierarchy level and the normal of the panel group"
-    print "Normal Angle S: weighted standard deviation of the measurements used to compute Normal Angle"
-    print "RotZ: rotation of each panel group around the detector normal"
-    print "RotZ Sigma: weighted standard deviation of the measurements used to compute RotZ"
+    print "RNormal Angle: radial component of Normal Angle"
+    print "TNormal Angle: transverse component of Normal Angle"
+    print "RotZ: deviation from 90 degrees of the rotation of each panel group around the detector normal"
+    print "F Offset: offset of panel group along the detector's fast axis"
+    print "S Offset: offset of panel group along the detector's slow axis"
     print "Z Offset: offset of panel group along the detector normal"
-    print "Z Offset Sigma: weighted standard deviation of the measurements used to compute Z Offset"
     print "N refls: number of reflections summed between both matching panel groups. This number is used as a weight when computing means and standard deviations."
+    print "All: weighted mean of the values shown"
 
+    def _print_vector(v):
+      for i in v:
+        print "%10.5f"%i,
+      print
     for d_id, d in enumerate(detectors):
       ori = d.hierarchy().get_origin()
       norm = d.hierarchy().get_normal()
-      print "Detector", d_id, "origin:", ori
-      print "Detector", d_id, "normal:", norm
+      fast = d.hierarchy().get_fast_axis()
+      slow = d.hierarchy().get_slow_axis()
+      print "Detector", d_id, "origin:   ",; _print_vector(ori)
+      print "Detector", d_id, "normal:   ",; _print_vector(norm)
+      print "Detector", d_id, "fast axis:",; _print_vector(fast)
+      print "Detector", d_id, "slow axis:",; _print_vector(slow)
 
     if params.tag is None:
       tag = ""
