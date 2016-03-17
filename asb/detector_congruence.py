@@ -183,9 +183,23 @@ class Script(object):
 
     s0 = col(flex.vec3_double([col(b.get_s0()) for b in experiments.beams()]).mean())
 
-    def get_origin(pg):
+    def get_center(pg):
       if hasattr(pg, 'children'):
-        return col(pg.get_origin())
+        # find the average center of all this group's children
+        children_center = col((0,0,0))
+        count = 0
+        for p in iterate_panels(pg):
+          children_center += get_center(p)
+          count += 1
+        children_center /= count
+
+        # project the children center onto the plane of the panel group
+        pgf = col(pg.get_fast_axis())
+        pgs = col(pg.get_slow_axis())
+        pgn = col(pg.get_normal())
+        pgo = col(pg.get_origin())
+
+        return (pgf.dot(children_center) * pgf) + (pgs.dot(children_center) * pgs) + (pgn.dot(pgo) * pgn)
       else:
         s = pg.get_image_size()
         return col(pg.get_pixel_lab_coord((s[0]/2, s[1]/2)))
@@ -194,8 +208,8 @@ class Script(object):
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
       norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
       z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
-      v1 = get_origin(pg1)
-      v2 = get_origin(pg2)
+      v1 = get_center(pg1)
+      v2 = get_center(pg2)
 
       delta = v1 - v2
       xyd = col(delta[0:2]).length()*1000
@@ -233,12 +247,7 @@ class Script(object):
       z_offsets = flex.double()
       for pg, r in zip([pg1, pg2], [root1, root2]):
         bc = col(pg.get_beam_centre_lab(s0))
-        if hasattr(pg, 'children'):
-          ori = col(pg.get_origin())
-        else:
-          x, y = pg.get_image_size_mm()
-          offset = col((x, y))/2
-          ori = col(pg.get_lab_coord(offset))
+        ori = get_center(pg)
 
         dists.append((ori-bc).length())
 
@@ -270,11 +279,11 @@ class Script(object):
       tnorm_angles = flex.double()
       for pg, r in zip([pg1, pg2], [root1, root2]):
 
-        pgo = get_origin(pg)
+        pgo = get_center(pg)
         pgn = col(pg.get_normal())
         pgf = col(pg.get_fast_axis())
 
-        ro = get_origin(r)
+        ro = get_center(r)
         rn = col(r.get_normal())
         rf = col(r.get_fast_axis())
         rs = col(r.get_slow_axis())
@@ -431,7 +440,7 @@ class Script(object):
         r1.append(fmt%stats.mean())
 
       r1.append("")
-      r2.append("%6.1f"%flex.mean(all_weights.as_double()))
+      r2.append("%6.1f"%flex.mean(all_refls_count.as_double()))
       detector_table_data.append(r1)
       detector_table_data.append(r2)
 
