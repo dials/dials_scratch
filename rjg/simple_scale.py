@@ -51,7 +51,8 @@ def run(args):
   assert batches is not None
 
   if params.d_min is not None:
-    intensities = intensities.resolution_filter(d_min=params.d_min)
+    intensities = intensities.resolution_filter(d_min=params.d_min).set_info(
+      intensities.info())
 
   refined = refinery(intensities, batches)
   refined.plot_scales()
@@ -74,7 +75,9 @@ def run(args):
     scaled_unmerged.sigmas().as_float(), selection_valid=selection_valid)
 
   mtz_dataset.add_column('SCALEUSED', 'R').set_values(scales.as_float())
-  mtz_obj.write('scaled_unmerged.mtz')
+  mtz_out = 'scaled_unmerged.mtz'
+  print 'Writing scaled unmerged intensities to %s' %mtz_out
+  mtz_obj.write(mtz_out)
   return
 
 
@@ -87,7 +90,8 @@ class refinery(object):
     self.batches = batches
     self.minb = flex.min(self.batches.data())
     self.maxb = flex.max(self.batches.data())
-    self.x = flex.double(self.maxb-self.minb + 1, 1)
+    n_scale_factors = self.maxb-self.minb + 1
+    self.x = flex.double(n_scale_factors, 1)
     scitbx.lbfgs.run(target_evaluator=self)
 
   def compute_functional_and_gradients(self):
@@ -107,10 +111,10 @@ class refinery(object):
       k = self.x[j]
       p = mi.pairs()[i]
       mean_I = merged_intensities.data()[p[0]]
-      unmerged_I = unmerged_intensities.data()[i]
-      delta = unmerged_I - mean_I/k
+      unmerged_I = self.unmerged_intensities.data()[i]
+      delta = unmerged_I - k * mean_I
       f += (w * delta**2)
-      g[j] += 2 * w * delta * mean_I / (k**2)
+      g[j] += (- 2 * w * mean_I * delta)
 
     #print f
 
@@ -126,11 +130,11 @@ class refinery(object):
     scales = flex.double(self.unmerged_intensities.size())
     for i in range(scales.size()):
       scales[i] = self.x[self.batches.data()[i] - self.minb]
-    return scales
+    return 1/scales
 
   def plot_scales(self):
     from matplotlib import pyplot
-    scales = self.x
+    scales = 1/self.x
     pyplot.scatter(range(len(scales)), list(scales))
     pyplot.show()
 
