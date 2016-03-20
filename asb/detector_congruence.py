@@ -150,6 +150,8 @@ class Script(object):
     z_deltas = {}
     refl_counts = {}
     all_delta_normals = flex.double()
+    all_rdelta_normals = flex.double()
+    all_tdelta_normals = flex.double()
     all_z_angles = flex.double()
     all_xy_deltas = flex.double()
     all_z_deltas = flex.double()
@@ -206,7 +208,31 @@ class Script(object):
 
     for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(root1, 0, params.hierarchy_level),
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
-      norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
+      delta_norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
+      all_delta_normals.append(delta_norm_angle)
+
+      pgo = (get_center(pg1)+get_center(pg2))/2
+      ro = (get_center(root1)+get_center(root2))/2
+      rn = (col(root1.get_normal())+col(root2.get_normal()))/2
+      rf = (col(root1.get_fast_axis())+col(root2.get_fast_axis()))/2
+      rs = (col(root1.get_slow_axis())+col(root2.get_slow_axis()))/2
+
+      ro_pgo = pgo - ro # vector from the detector origin to the average panel group origin
+      radial = ((rf.dot(ro_pgo) * rf) + (rs.dot(ro_pgo) * rs)).normalize() # component of ro_pgo in rf rs plane
+      transverse = rn.cross(radial).normalize()
+      # now radial and transverse are vectors othogonal to each other and the detector normal, such that
+      # radial points at the panel group origin
+      # v1 and v2 are the components of pg 1 and 2 normals in the rn radial plane
+      v1 = (radial.dot(col(pg1.get_normal())) * radial) + (rn.dot(col(pg1.get_normal())) * rn)
+      v2 = (radial.dot(col(pg2.get_normal())) * radial) + (rn.dot(col(pg2.get_normal())) * rn)
+      rdelta_norm_angle = v1.angle(v2, deg=True)
+      all_rdelta_normals.append(rdelta_norm_angle)
+      # v1 and v2 are the components of pg 1 and 2 normals in the rn transverse plane
+      v1 = (transverse.dot(col(pg1.get_normal())) * transverse) + (rn.dot(col(pg1.get_normal())) * rn)
+      v2 = (transverse.dot(col(pg2.get_normal())) * transverse) + (rn.dot(col(pg2.get_normal())) * rn)
+      tdelta_norm_angle = v1.angle(v2, deg=True)
+      all_tdelta_normals.append(tdelta_norm_angle)
+
       z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
       v1 = get_center(pg1)
       v2 = get_center(pg2)
@@ -215,7 +241,6 @@ class Script(object):
       xyd = col(delta[0:2]).length()*1000
       zd = abs(delta[2])*1000
 
-      all_delta_normals.append(norm_angle)
       all_z_angles.append(z_angle)
       all_xy_deltas.append(xyd)
       all_z_deltas.append(zd)
@@ -269,7 +294,7 @@ class Script(object):
       all_f_offsets.extend(f_offsets)
       all_s_offsets.extend(s_offsets)
       all_z_offsets.extend(z_offsets)
-      precision_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
+      precision_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s, "%.4f"%delta_norm_angle, "%.4f"%rdelta_norm_angle, "%.4f"%tdelta_norm_angle, "%.4f"%z_angle, "%4.1f"%xyd, "%4.1f"%zd, "%6d"%total_refls])
 
       # Compute angle between detector normal and panel group normal
       # Compute rotation of panel group around detector normal
@@ -300,13 +325,13 @@ class Script(object):
         # v is the component of pgn in the rn radial plane
         v = (radial.dot(pgn) * radial) + (rn.dot(pgn) * rn)
         angle = rn.angle(v, deg=True)
-        tnorm_angles.append(angle)
-        all_tnormal_angles.append(angle)
+        rnorm_angles.append(angle)
+        all_rnormal_angles.append(angle)
         # v is the component of pgn in the rn transverse plane
         v = (transverse.dot(pgn) * transverse) + (rn.dot(pgn) * rn)
         angle = rn.angle(v, deg=True)
-        rnorm_angles.append(angle)
-        all_rnormal_angles.append(angle)
+        tnorm_angles.append(angle)
+        all_tnormal_angles.append(angle)
 
         # v is the component of pgf in the rf rs plane
         v = (rf.dot(pgf) * rf) + (rs.dot(pgf) * rs)
@@ -358,8 +383,8 @@ class Script(object):
                                   "%5.1f"%zo_m, "%.4f"%zo_s, "%6d"%total_refls])
 
     table_d = {d:row for d, row in zip(pg_bc_dists, precision_table_data)}
-    table_header = ["PanelG","Dist","Dist","Normal","Z rot","Delta","Delta","N"]
-    table_header2 = ["Id","","Sigma","Angle","Angle","XY","Z","Refls"]
+    table_header = ["PanelG","Dist","Dist","Normal","RNormal","TNormal","Z rot","Delta","Delta","N"]
+    table_header2 = ["Id","","Sigma","Angle","Angle","Angle","Angle","XY","Z","Refls"]
     table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(microns)","(microns)",""]
     precision_table_data = [table_header, table_header2, table_header3]
     precision_table_data.extend([table_d[key] for key in sorted(table_d)])
@@ -381,6 +406,12 @@ class Script(object):
       stats = flex.mean_and_variance(all_delta_normals, all_refls_count.as_double())
       r1.append("%.4f"%stats.mean())
       r2.append("%.4f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(all_rdelta_normals, all_refls_count.as_double())
+      r1.append("%.4f"%stats.mean())
+      r2.append("%.4f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(all_tdelta_normals, all_refls_count.as_double())
+      r1.append("%.4f"%stats.mean())
+      r2.append("%.4f"%stats.gsl_stats_wsd())
       stats = flex.mean_and_variance(all_z_angles, all_refls_count.as_double())
       r1.append("%.4f"%stats.mean())
       r2.append("%.4f"%stats.gsl_stats_wsd())
@@ -394,7 +425,7 @@ class Script(object):
       r2.append("")
       precision_table_data.append(r1)
       precision_table_data.append(r2)
-      precision_table_data.append(["Mean", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
+      precision_table_data.append(["Mean", "", "", "", "", "", "", "", "", "%6.1f"%flex.mean(all_refls_count.as_double())])
 
     from libtbx import table_utils
     print "Congruence statistics:"
@@ -404,6 +435,8 @@ class Script(object):
     print "Dist: distance from center of panel group to the beam center"
     print "Dist Sigma: weighted standard deviation of the measurements used to compute Dist"
     print "Normal angle: angle between the normal vectors of matching panel groups."
+    print "RNormal angle: radial component of the angle between the normal vectors of matching panel groups"
+    print "TNormal angle: transverse component of the angle between the normal vectors of matching panel groups"
     print "Z rot: angle between the XY components of the fast axes of the panel groups."
     print "Delta XY: XY shift between matching panel groups."
     print "Delta Z: Z shift between matching panel groups."
