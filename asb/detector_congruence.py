@@ -44,6 +44,10 @@ colormap=RdYlGn_r
 show_plots=True
   .type=bool
   .help=Whether to show congruence plots
+draw_normal_arrows=False
+  .type=bool
+  .help=Whether to draw the XY components of each panel group's normal vector. Useful \
+        for visualizing tilt.
 ''')
 
 def iterate_detector_at_level(item, depth = 0, level = 0):
@@ -119,7 +123,7 @@ def get_bounds(root, pg):
     rf = col(root.get_fast_axis())
     rs = col(root.get_slow_axis())
 
-    return [p.dot(rf)*rf + p.dot(rs)*rs for p in [p0, p1, p2, p3]]
+    return [col((p.dot(rf), + p.dot(rs),0)) for p in [p0, p1, p2, p3]]
 
   if hasattr(pg, 'children'):
     minx = miny = float('inf')
@@ -208,6 +212,7 @@ class Script(object):
     z_angles = {}
     xy_deltas = {}
     z_deltas = {}
+    z_offsets_d = {}
     refl_counts = {}
     all_delta_normals = flex.double()
     all_rdelta_normals = flex.double()
@@ -247,6 +252,22 @@ class Script(object):
 
     for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(root1, 0, params.hierarchy_level),
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
+      total_refls = 0
+      pg1_refls = 0
+      pg2_refls = 0
+      for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
+        r1 = len(reflections[0].select(reflections[0]['panel'] == id_from_name(detectors[0], p1.get_name())))
+        r2 = len(reflections[1].select(reflections[1]['panel'] == id_from_name(detectors[1], p2.get_name())))
+        total_refls += r1 + r2
+        pg1_refls += r1
+        pg2_refls += r2
+      if pg1_refls == 0 and pg2_refls == 0:
+        print "No reflections on panel group", pg_id
+        continue
+
+      assert pg1.get_name() == pg2.get_name()
+      refl_counts[pg1.get_name()] = total_refls
+
       delta_norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
       all_delta_normals.append(delta_norm_angle)
 
@@ -288,20 +309,9 @@ class Script(object):
       all_xy_deltas.append(xyd)
       all_z_deltas.append(zd)
 
-      total_refls = 0
-      pg1_refls = 0
-      pg2_refls = 0
-      for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
-        r1 = len(reflections[0].select(reflections[0]['panel'] == id_from_name(detectors[0], p1.get_name())))
-        r2 = len(reflections[1].select(reflections[1]['panel'] == id_from_name(detectors[1], p2.get_name())))
-        total_refls += r1 + r2
-        pg1_refls += r1
-        pg2_refls += r2
-      assert pg1.get_name() == pg2.get_name()
       z_angles[pg1.get_name()] = z_angle
       xy_deltas[pg1.get_name()] = xyd
       z_deltas[pg1.get_name()] = zd
-      refl_counts[pg1.get_name()] = total_refls
 
       all_refls_count.append(total_refls)
       all_weights.append(pg1_refls)
@@ -419,6 +429,7 @@ class Script(object):
       zo_m = stats.mean()
       zo_s = stats.gsl_stats_wsd()
       pg_z_offset_sigmas.append(zo_s)
+      z_offsets_d[pg1.get_name()] = zo_m
 
       detector_table_data.append(["%d"%pg_id, "%5.1f"%dist_m, "%.4f"%dist_s,
                                   "%.4f"%norm_angle_m, "%.4f"%norm_angle_s,
@@ -580,6 +591,7 @@ class Script(object):
       #self.detector_plot_dict(detectors[0], delta_normals, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
       self.detector_plot_dict(detectors[0], z_angles, u"%sZ rotation angle between panels (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
       self.detector_plot_dict(detectors[0], xy_deltas, u"%sXY displacements between panels (microns)"%tag, u"%4.1f", show=False)
+      self.detector_plot_dict(detectors[0], z_offsets_d, u"%sZ offsets along detector normal (microns)"%tag, u"%4.1f", show=False)
       self.detector_plot_dict(detectors[0], z_deltas, u"%sZ displacements between panels (microns)"%tag, u"%4.1f", show=False)
       plt.show()
 
@@ -604,9 +616,14 @@ class Script(object):
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
     max_dim = 0
-    for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, self.params.hierarchy_level)):
+    root = detector.hierarchy()
+    rf = col(root.get_fast_axis())
+    rs = col(root.get_slow_axis())
+    for pg_id, pg in enumerate(iterate_detector_at_level(root, 0, self.params.hierarchy_level)):
+      if pg.get_name() not in data:
+        continue
       # get panel coordinates
-      p0, p1, p2, p3 = get_bounds(detector.hierarchy(), pg)
+      p0, p1, p2, p3 = get_bounds(root, pg)
 
       v1 = p1-p0
       v2 = p3-p0
@@ -615,6 +632,12 @@ class Script(object):
       # add the panel to the plot
       ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(data[pg.get_name()]), fill=True))
       ax.annotate("%d %s"%(pg_id, units_str%data[pg.get_name()]), vcen[0:2], ha='center')
+
+      if self.params.draw_normal_arrows:
+        pgn = col(pg.get_normal())
+        v = col((rf.dot(pgn), rs.dot(pgn), 0))
+        v *= 10000
+        ax.arrow(vcen[0], vcen[1], v[0], v[1], head_width=5.0, head_length=10.0, fc='k', ec='k')
 
       # find the plot maximum dimensions
       for p in [p0, p1, p2, p3]:
