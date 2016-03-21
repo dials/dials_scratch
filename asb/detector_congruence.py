@@ -26,7 +26,7 @@ between two detectors.
 
 Example:
 
-  libtbx.python asic_stats.py experiment1.json experiment2.json
+  libtbx.python detector_congruence.py experiment1.json experiment2.json reflections1.pickle reflections2.pickle
 '''
 
 # Create the phil parameters
@@ -506,6 +506,21 @@ class Script(object):
       print "Detector", d_id, "normal:   ",; _print_vector(norm)
       print "Detector", d_id, "fast axis:",; _print_vector(fast)
       print "Detector", d_id, "slow axis:",; _print_vector(slow)
+
+    lengths = flex.vec3_double()
+    angles = flex.vec3_double()
+    weights = flex.double()
+    for refls, expts in zip(reflections, [d.data for d in params.input.experiments]):
+      for crystal_id, crystal in enumerate(expts.crystals()):
+        lengths.append(crystal.get_unit_cell().parameters()[0:3])
+        angles.append(crystal.get_unit_cell().parameters()[3:6])
+        weights.append(len(refls.select(refls['id'] == crystal_id)))
+
+    print "Unit cell stats, weighted means and standard deviations"
+    for subset, tags in zip([lengths, angles], [["Cell a", "Cell b", "Cell c"],["Cell alpha", "Cell beta", "Cell gamma"]]):
+      for data, tag in zip(subset.parts(), tags):
+        stats = flex.mean_and_variance(data, weights)
+        print "%s %5.1f +/- %6.3f"%(tag, stats.mean(), stats.gsl_stats_wsd())
 
     if params.tag is None:
       tag = ""
