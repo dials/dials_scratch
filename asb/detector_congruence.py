@@ -226,11 +226,15 @@ class Script(object):
       v1 = (radial.dot(col(pg1.get_normal())) * radial) + (rn.dot(col(pg1.get_normal())) * rn)
       v2 = (radial.dot(col(pg2.get_normal())) * radial) + (rn.dot(col(pg2.get_normal())) * rn)
       rdelta_norm_angle = v1.angle(v2, deg=True)
+      if v1.cross(v2).dot(transverse) < 0:
+        rdelta_norm_angle = -rdelta_norm_angle
       all_rdelta_normals.append(rdelta_norm_angle)
       # v1 and v2 are the components of pg 1 and 2 normals in the rn transverse plane
       v1 = (transverse.dot(col(pg1.get_normal())) * transverse) + (rn.dot(col(pg1.get_normal())) * rn)
       v2 = (transverse.dot(col(pg2.get_normal())) * transverse) + (rn.dot(col(pg2.get_normal())) * rn)
       tdelta_norm_angle = v1.angle(v2, deg=True)
+      if v1.cross(v2).dot(radial) < 0:
+        tdelta_norm_angle = -tdelta_norm_angle
       all_tdelta_normals.append(tdelta_norm_angle)
 
       z_angle = col(pg1.get_fast_axis()[0:2]).angle(col(pg2.get_fast_axis()[0:2]), deg=True)
@@ -325,11 +329,15 @@ class Script(object):
         # v is the component of pgn in the rn radial plane
         v = (radial.dot(pgn) * radial) + (rn.dot(pgn) * rn)
         angle = rn.angle(v, deg=True)
+        if rn.cross(v).dot(transverse) < 0:
+          angle = -angle
         rnorm_angles.append(angle)
         all_rnormal_angles.append(angle)
         # v is the component of pgn in the rn transverse plane
         v = (transverse.dot(pgn) * transverse) + (rn.dot(pgn) * rn)
         angle = rn.angle(v, deg=True)
+        if rn.cross(v).dot(radial) < 0:
+          angle = -angle
         tnorm_angles.append(angle)
         all_tnormal_angles.append(angle)
 
