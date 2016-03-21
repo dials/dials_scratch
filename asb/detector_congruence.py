@@ -84,6 +84,66 @@ def id_from_name(detector, name):
   """
   return [p.get_name() for p in detector].index(name)
 
+def get_center(pg):
+  """ Find the center of a panel group pg, projected on its fast/slow plane """
+  if hasattr(pg, 'children'):
+    # find the average center of all this group's children
+    children_center = col((0,0,0))
+    count = 0
+    for p in iterate_panels(pg):
+      children_center += get_center(p)
+      count += 1
+    children_center /= count
+
+    # project the children center onto the plane of the panel group
+    pgf = col(pg.get_fast_axis())
+    pgs = col(pg.get_slow_axis())
+    pgn = col(pg.get_normal())
+    pgo = col(pg.get_origin())
+
+    return (pgf.dot(children_center) * pgf) + (pgs.dot(children_center) * pgs) + (pgn.dot(pgo) * pgn)
+  else:
+    s = pg.get_image_size()
+    return col(pg.get_pixel_lab_coord((s[0]/2, s[1]/2)))
+
+def get_bounds(root, pg):
+  """ Find the max extent of the panel group pg, projected onto the fast/slow plane of root """
+  def panel_bounds(root, panel):
+    size = panel.get_image_size()
+    p0 = col(panel.get_pixel_lab_coord((0,0)))
+    p1 = col(panel.get_pixel_lab_coord((size[0]-1,0)))
+    p2 = col(panel.get_pixel_lab_coord((size[0]-1,size[1]-1)))
+    p3 = col(panel.get_pixel_lab_coord((0,size[1]-1)))
+
+    rn = col(root.get_normal())
+    rf = col(root.get_fast_axis())
+    rs = col(root.get_slow_axis())
+
+    return [p.dot(rf)*rf + p.dot(rs)*rs for p in [p0, p1, p2, p3]]
+
+  if hasattr(pg, 'children'):
+    minx = miny = float('inf')
+    maxx = maxy = float('-inf')
+    for panel in iterate_panels(pg):
+      bounds = panel_bounds(root, panel)
+      for v in bounds:
+        if v[0] < minx:
+          minx = v[0]
+        if v[0] > maxx:
+          maxx = v[0]
+        if v[1] < miny:
+          miny = v[1]
+        if v[1] > maxy:
+          maxy = v[1]
+    return [col((minx, miny, 0)),
+            col((maxx, miny, 0)),
+            col((maxx, maxy, 0)),
+            col((minx, maxy, 0))]
+
+  else:
+    return panel_bounds(root, pg)
+
+
 class Script(object):
   ''' Class to parse the command line options. '''
 
@@ -185,27 +245,6 @@ class Script(object):
 
     s0 = col(flex.vec3_double([col(b.get_s0()) for b in experiments.beams()]).mean())
 
-    def get_center(pg):
-      if hasattr(pg, 'children'):
-        # find the average center of all this group's children
-        children_center = col((0,0,0))
-        count = 0
-        for p in iterate_panels(pg):
-          children_center += get_center(p)
-          count += 1
-        children_center /= count
-
-        # project the children center onto the plane of the panel group
-        pgf = col(pg.get_fast_axis())
-        pgs = col(pg.get_slow_axis())
-        pgn = col(pg.get_normal())
-        pgo = col(pg.get_origin())
-
-        return (pgf.dot(children_center) * pgf) + (pgs.dot(children_center) * pgs) + (pgn.dot(pgo) * pgn)
-      else:
-        s = pg.get_image_size()
-        return col(pg.get_pixel_lab_coord((s[0]/2, s[1]/2)))
-
     for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(root1, 0, params.hierarchy_level),
                                            iterate_detector_at_level(root2, 0, params.hierarchy_level))):
       delta_norm_angle = col(pg1.get_normal()).angle(col(pg2.get_normal()), deg=True)
@@ -253,16 +292,16 @@ class Script(object):
       pg1_refls = 0
       pg2_refls = 0
       for p1, p2 in zip(iterate_panels(pg1), iterate_panels(pg2)):
-        assert p1.get_name() == p2.get_name()
-        z_angles[p1.get_name()] = z_angle
-        xy_deltas[p1.get_name()] = xyd
-        z_deltas[p1.get_name()] = zd
         r1 = len(reflections[0].select(reflections[0]['panel'] == id_from_name(detectors[0], p1.get_name())))
         r2 = len(reflections[1].select(reflections[1]['panel'] == id_from_name(detectors[1], p2.get_name())))
         total_refls += r1 + r2
         pg1_refls += r1
         pg2_refls += r2
-        refl_counts[p1.get_name()] = r1 + r2
+      assert pg1.get_name() == pg2.get_name()
+      z_angles[pg1.get_name()] = z_angle
+      xy_deltas[pg1.get_name()] = xyd
+      z_deltas[pg1.get_name()] = zd
+      refl_counts[pg1.get_name()] = total_refls
 
       all_refls_count.append(total_refls)
       all_weights.append(pg1_refls)
@@ -538,7 +577,7 @@ class Script(object):
     if params.show_plots:
       # Plot the results
       self.detector_plot_dict(detectors[0], refl_counts, u"%sN reflections"%tag, u"%6d", show=False)
-      self.detector_plot_dict(detectors[0], delta_normals, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
+      #self.detector_plot_dict(detectors[0], delta_normals, u"%sAngle between normal vectors (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
       self.detector_plot_dict(detectors[0], z_angles, u"%sZ rotation angle between panels (\N{DEGREE SIGN})"%tag, u"%.2f\N{DEGREE SIGN}", show=False)
       self.detector_plot_dict(detectors[0], xy_deltas, u"%sXY displacements between panels (microns)"%tag, u"%4.1f", show=False)
       self.detector_plot_dict(detectors[0], z_deltas, u"%sZ displacements between panels (microns)"%tag, u"%4.1f", show=False)
@@ -565,21 +604,17 @@ class Script(object):
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
     max_dim = 0
-    for panel_id, panel in enumerate(detector):
+    for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, self.params.hierarchy_level)):
       # get panel coordinates
-      size = panel.get_image_size()
-      p0 = col(panel.get_pixel_lab_coord((0,0)))
-      p1 = col(panel.get_pixel_lab_coord((size[0]-1,0)))
-      p2 = col(panel.get_pixel_lab_coord((size[0]-1,size[1]-1)))
-      p3 = col(panel.get_pixel_lab_coord((0,size[1]-1)))
+      p0, p1, p2, p3 = get_bounds(detector.hierarchy(), pg)
 
       v1 = p1-p0
       v2 = p3-p0
       vcen = ((v2/2) + (v1/2)) + p0
 
-     # add the panel to the plot
-      ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(data[panel.get_name()]), fill=True))
-      ax.annotate("%d %s"%(panel_id, units_str%data[panel.get_name()]), vcen[0:2], ha='center')
+      # add the panel to the plot
+      ax.add_patch(Polygon((p0[0:2],p1[0:2],p2[0:2],p3[0:2]), closed=True, color=sm.to_rgba(data[pg.get_name()]), fill=True))
+      ax.annotate("%d %s"%(pg_id, units_str%data[pg.get_name()]), vcen[0:2], ha='center')
 
       # find the plot maximum dimensions
       for p in [p0, p1, p2, p3]:
