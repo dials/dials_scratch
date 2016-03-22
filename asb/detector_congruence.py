@@ -334,8 +334,8 @@ class Script(object):
         r_norm = col(r.get_normal())
         r_fast = col(r.get_fast_axis())
         r_slow = col(r.get_slow_axis())
-        f_offsets.append(r_fast.dot(delta_ori))
-        s_offsets.append(r_slow.dot(delta_ori))
+        f_offsets.append(r_fast.dot(delta_ori)*1000)
+        s_offsets.append(r_slow.dot(delta_ori)*1000)
         z_offsets.append(r_norm.dot(delta_ori)*1000)
 
       pg_weights = flex.double([pg1_refls, pg2_refls])
@@ -436,9 +436,9 @@ class Script(object):
                                   "%.4f"%rnorm_angle_m, "%.4f"%rnorm_angle_s,
                                   "%.4f"%tnorm_angle_m, "%.4f"%tnorm_angle_s,
                                   "%6.2f"%rotz_m, "%.4f"%rotz_s,
-                                  "%5.1f"%fo_m, "%.4f"%fo_s,
-                                  "%5.1f"%so_m, "%.4f"%so_s,
-                                  "%5.1f"%zo_m, "%.4f"%zo_s, "%6d"%total_refls])
+                                  "%9.1f"%fo_m, "%5.1f"%fo_s,
+                                  "%9.1f"%so_m, "%5.1f"%so_s,
+                                  "%5.1f"%zo_m, "%5.1f"%zo_s, "%6d"%total_refls])
 
     table_d = {d:row for d, row in zip(pg_bc_dists, precision_table_data)}
     table_header = ["PanelG","Dist","Dist","Normal","RNormal","TNormal","Z rot","Delta","Delta","N"]
@@ -450,7 +450,7 @@ class Script(object):
     table_d = {d:row for d, row in zip(pg_bc_dists, detector_table_data)}
     table_header = ["PanelG","Dist","Dist","Normal","Normal","RNormal","RNormal","TNormal","TNormal","RotZ", "RotZ","F Offset","F Offset","S Offset","S Offset","Z Offset","Z Offset","N"]
     table_header2 = ["Id","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","","Sigma","Refls"]
-    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(mm)","(mm)","(mm)","(mm)","(microns)","(microns)",""]
+    table_header3 = ["", "(mm)","(mm)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(deg)","(microns)","(microns)","(microns)","(microns)","(microns)","(microns)",""]
     detector_table_data = [table_header, table_header2, table_header3]
     detector_table_data.extend([table_d[key] for key in sorted(table_d)])
 
@@ -516,12 +516,12 @@ class Script(object):
                                  [pg_tnormal_angle_sigmas, all_refls_count.as_double(), "%.4f"],
                                  [all_rot_z,               all_weights.as_double(),     "%.4f"],
                                  [pg_rot_z_sigmas,         all_refls_count.as_double(), "%.4f"],
-                                 [all_f_offsets,           all_weights.as_double(),     "%.4f"],
-                                 [pg_f_offset_sigmas,      all_refls_count.as_double(), "%.4f"],
-                                 [all_s_offsets,           all_weights.as_double(),     "%.4f"],
-                                 [pg_s_offset_sigmas,      all_refls_count.as_double(), "%.4f"],
-                                 [all_z_offsets,           all_weights.as_double(),     "%.4f"],
-                                 [pg_z_offset_sigmas,      all_refls_count.as_double(), "%.4f"]]:
+                                 [all_f_offsets,           all_weights.as_double(),     "%9.1f"],
+                                 [pg_f_offset_sigmas,      all_refls_count.as_double(), "%5.1f"],
+                                 [all_s_offsets,           all_weights.as_double(),     "%9.1f"],
+                                 [pg_s_offset_sigmas,      all_refls_count.as_double(), "%5.1f"],
+                                 [all_z_offsets,           all_weights.as_double(),     "%9.1f"],
+                                 [pg_z_offset_sigmas,      all_refls_count.as_double(), "%5.1f"]]:
 
         r2.append("")
         if data is None and weights is None:

@@ -106,18 +106,21 @@ class Script(ParentScript):
       data = flex.double()
       weights = flex.double()
 
-      for pg_id, pg in enumerate(iterate_detector_at_level(moving_root, 0, level)):
-
+      for pg_id, (pg1, pg2) in enumerate(zip(iterate_detector_at_level(reference_root, 0, level),
+                                             iterate_detector_at_level(moving_root, 0, level))):
         weight = 0
-        for panel_id, p in enumerate(iterate_panels(pg)):
+        for panel_id, p in enumerate(iterate_panels(pg2)):
           weight += len(reflections.select(reflections['panel'] == id_from_name(detector, p.get_name())))
         weights.append(weight)
 
-        bc = col(pg.get_beam_centre_lab(s0))
-        ori = get_center(pg)
+        dists = []
+        for pg in [pg1,pg2]:
+          bc = col(pg.get_beam_centre_lab(s0)) # XXX use two bc here, one from each dataset
+          ori = get_center(pg)
 
-        delta_ori = ori-rori
-        data.append(r_norm.dot(delta_ori)*1000)
+          delta_ori = ori-rori
+          dists.append(r_norm.dot(delta_ori)*1000)
+        data.append(dists[1]-dists[0])
 
       if len(data) > 1:
         stats = flex.mean_and_variance(data, weights)
