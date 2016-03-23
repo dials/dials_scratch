@@ -80,27 +80,6 @@ class Script(ParentScript):
     r_norm = col(reference_root.get_normal())
     s0 = col(flex.vec3_double([col(b.get_s0()) for b in experiments.beams()]).mean())
 
-    def get_center(pg):
-      if hasattr(pg, 'children'):
-        # find the average center of all this group's children
-        children_center = col((0,0,0))
-        count = 0
-        for p in iterate_panels(pg):
-          children_center += get_center(p)
-          count += 1
-        children_center /= count
-
-        # project the children center onto the plane of the panel group
-        pgf = col(pg.get_fast_axis())
-        pgs = col(pg.get_slow_axis())
-        pgn = col(pg.get_normal())
-        pgo = col(pg.get_origin())
-
-        return (pgf.dot(children_center) * pgf) + (pgs.dot(children_center) * pgs) + (pgn.dot(pgo) * pgn)
-      else:
-        s = pg.get_image_size()
-        return col(pg.get_pixel_lab_coord((s[0]/2, s[1]/2)))
-
     for level in xrange(4):
       print "Z offsets at level", level
       data = flex.double()
@@ -115,11 +94,8 @@ class Script(ParentScript):
 
         dists = []
         for pg in [pg1,pg2]:
-          bc = col(pg.get_beam_centre_lab(s0)) # XXX use two bc here, one from each dataset
-          ori = get_center(pg)
-
-          delta_ori = ori-rori
-          dists.append(r_norm.dot(delta_ori)*1000)
+          ori = pg.get_local_origin()
+          dists.append(ori[2]*1000)
         data.append(dists[1]-dists[0])
 
       if len(data) > 1:
