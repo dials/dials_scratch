@@ -13,6 +13,8 @@ from __future__ import division
 from scitbx.array_family import flex
 from scitbx.matrix import col
 from libtbx.phil import parse
+from libtbx.utils import Sorry
+from xfel.command_line.cspad_detector_congruence import get_center
 
 help_message = '''
 
@@ -24,7 +26,9 @@ Example:
 
 # Create the phil parameters
 phil_scope = parse('''
-  include scope dials_scratch.asb.detector_congruence.phil_scope
+max_hierarchy_level=Auto
+  .type = int
+  .help = Maximum hierarchy level to compute shifts to
 ''', process_includes=True)
 
 from dials_scratch.asb.detector_congruence import iterate_detector_at_level, iterate_panels, id_from_name
@@ -69,13 +73,22 @@ class Script(ParentScript):
 
     # Verify inputs
     if len(detectors) != 2:
-      print "Please provide a reference and a moving set of experiments and or datablocks"
-      return
+      raise Sorry("Please provide a reference and a moving set of experiments and or datablocks")
 
-    from xfel.command_line.cspad_detector_congruence import get_center
-
-    detector = detectors[1]
     reflections = reflections[1]
+    detector = detectors[1]
+
+    if not hasattr(detector, 'hierarchy'):
+      raise Sorry("Script intended for hierarchical detectors")
+
+    if params.max_hierarchy_level is None or str(params.max_hierarchy_level).lower() == 'auto':
+      params.max_hierarchy_level = 0
+      root = detector.hierarchy()
+      while hasattr(root, 'children'):
+        root = root[0]
+        params.max_hierarchy_level += 1
+      print "Found", params.max_hierarchy_level+1, "hierarchy levels"
+
     reference_root = detectors[0].hierarchy()
     moving_root = detector.hierarchy()
     rori = get_center(reference_root)
@@ -98,7 +111,7 @@ class Script(ParentScript):
         return pg.parent
 
     # Iterate through the hierarchy levels
-    for level in xrange(4):
+    for level in xrange(params.max_hierarchy_level+1):
       delta_xy = flex.double()
       r_offsets = flex.double()
       t_offsets = flex.double()
