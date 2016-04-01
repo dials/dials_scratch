@@ -53,11 +53,11 @@ residuals {
     .type = float
     .help = Maximum y value to be shown in the histogram
 }
-include scope dials_scratch.asb.detector_congruence.phil_scope
+include scope xfel.command_line.cspad_detector_congruence.phil_scope
 ''', process_includes=True)
 
-from detector_congruence import iterate_detector_at_level, iterate_panels, id_from_name
-from detector_congruence import Script as DCScript
+from xfel.command_line.cspad_detector_congruence import iterate_detector_at_level, iterate_panels, id_from_name
+from xfel.command_line.cspad_detector_congruence import Script as DCScript
 class Script(DCScript):
   ''' Class to parse the command line options. '''
 
@@ -274,6 +274,20 @@ class Script(DCScript):
     return flex.vec2_double(data.parts()[0] * (scale/abs(data_scale_x)),
                             data.parts()[1] * (scale/abs(data_scale_y))) + origin
 
+  def get_weighted_rmsd(self, reflections):
+    n = len(reflections)
+    #weights = 1/reflections['intensity.sum.variance']
+    reflections = reflections.select(reflections['xyzobs.mm.variance'].norms() > 0)
+    weights = 1/reflections['xyzobs.mm.variance'].norms()
+
+    un_rmsd = math.sqrt( flex.sum(reflections['difference_vector_norms']**2)/n)
+    print "Uweighted RMSD", un_rmsd
+
+    w_rmsd = math.sqrt( flex.sum( weights*(reflections['difference_vector_norms']**2) )/flex.sum(weights))
+    print "Weighted RMSD", w_rmsd
+
+    return un_rmsd
+
   def run(self):
     ''' Parse the options. '''
     from dials.util.options import flatten_experiments, flatten_reflections
@@ -306,7 +320,7 @@ class Script(DCScript):
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
 
     n = len(reflections)
-    rmsd = math.sqrt((reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).sum_sq()/n)
+    rmsd = self.get_weighted_rmsd(reflections)
     print "Dataset RMSD", rmsd * 1000
 
     if params.tag is None:
@@ -396,37 +410,27 @@ class Script(DCScript):
       pg_r_msd_sum = 0
       pg_t_msd_sum = 0
       pg_refls = 0
+      pg_delpsi = flex.double()
+      pg_deltwotheta = flex.double()
       for p in iterate_panels(pg):
         panel_id = id_from_name(detector, p.get_name())
         panel_refls = reflections.select(reflections['panel'] == panel_id)
         n = len(panel_refls)
         pg_refls += n
-        refl_counts[p.get_name()] = n
-
-        if n == 0:
-          rmsds[p.get_name()] = -1
-          radial_rmsds[p.get_name()] = -1
-          transverse_rmsds[p.get_name()] = -1
-          continue
 
         delta_x = panel_refls['xyzcal.mm'].parts()[0] - panel_refls['xyzobs.mm.value'].parts()[0]
         delta_y = panel_refls['xyzcal.mm'].parts()[1] - panel_refls['xyzobs.mm.value'].parts()[1]
 
         tmp = flex.sum((delta_x**2)+(delta_y**2))
-        rmsds[p.get_name()] = math.sqrt(tmp/n) * 1000
         pg_msd_sum += tmp
 
         r = panel_refls['radial_displacements']
         t = panel_refls['transverse_displacements']
-        radial_rmsds[p.get_name()]     = math.sqrt(flex.sum_sq(r)/len(r)) * 1000
-        transverse_rmsds[p.get_name()] = math.sqrt(flex.sum_sq(t)/len(t)) * 1000
-	pg_r_msd_sum += flex.sum_sq(r)
-	pg_t_msd_sum += flex.sum_sq(t)
+        pg_r_msd_sum += flex.sum_sq(r)
+        pg_t_msd_sum += flex.sum_sq(t)
 
-        a = panel_refls['delpsical.rad']*180/math.pi
-        b = panel_refls['two_theta_obs'] - panel_refls['two_theta_cal']
-        lc = flex.linear_correlation(a, b)
-        ttdpcorr[p.get_name()] = lc.coefficient()
+        pg_delpsi.extend(panel_refls['delpsical.rad']*180/math.pi)
+        pg_deltwotheta.extend(panel_refls['two_theta_obs'] - panel_refls['two_theta_cal'])
 
 
       pg_rmsd = math.sqrt(pg_msd_sum/pg_refls) * 1000
@@ -437,6 +441,21 @@ class Script(DCScript):
       pg_t_rmsds.append(pg_t_rmsd)
       pg_refls_count.append(pg_refls)
       table_data.append(["%d"%pg_id, "%.1f"%pg_rmsd, "%.1f"%pg_r_rmsd, "%.1f"%pg_t_rmsd, "%6d"%pg_refls])
+
+      refl_counts[pg.get_name()] = pg_refls
+      if pg_refls == 0:
+        rmsds[p.get_name()] = -1
+        radial_rmsds[p.get_name()] = -1
+        transverse_rmsds[p.get_name()] = -1
+        ttdpcorr[pg.get_name()] = -1
+      else:
+        rmsds[pg.get_name()] = pg_rmsd
+        radial_rmsds[pg.get_name()]     = pg_r_rmsd
+        transverse_rmsds[pg.get_name()] = pg_t_rmsd
+
+        lc = flex.linear_correlation(pg_delpsi, pg_deltwotheta)
+        ttdpcorr[pg.get_name()] = lc.coefficient()
+
 
     r1 = ["Weighted mean"]
     r2 = ["Weighted stddev"]
