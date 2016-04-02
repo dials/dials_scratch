@@ -52,6 +52,9 @@ residuals {
   histogram_ymax=None
     .type = float
     .help = Maximum y value to be shown in the histogram
+  exclude_outliers=True
+    .type = bool
+    .help = Whether to exclude outliers while computing statistics
 }
 include scope xfel.command_line.cspad_detector_congruence.phil_scope
 ''', process_includes=True)
@@ -247,6 +250,32 @@ class Script(DCScript):
     for subset,c in zip(data, colors):
         ax.plot(subset.parts()[0], subset.parts()[1], '-', c=c)
 
+  def plot_difference_vector_norms_histograms(self, reflections, panel = None, ax = None, bounds = None):
+    r = reflections['difference_vector_norms']*1000
+    h = flex.histogram(r, n_slots=50, data_min=0, data_max=100)
+
+    x_extent = max(r)
+    y_extent = len(r)
+    xobs = [i/x_extent for i in sorted(r)]
+    yobs = [i/y_extent for i in xrange(y_extent)]
+    obs = [(x, y) for x, y in zip(xobs, yobs)]
+
+    if bounds is None:
+      #ax.set_xlim((-1,1))
+      #ax.set_ylim((-1,1))
+      x = h.slot_centers().as_numpy_array()
+      y = h.slots().as_numpy_array()
+      ax.set_title("%s Residual norms histogram"%self.params.tag)
+    if bounds is not None:
+      d = flex.vec2_double(h.slot_centers(), h.slots().as_double())
+      data = self.get_bounded_data(d, bounds)
+      x, y = data.parts()
+
+    if ax is None:
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+    ax.plot(x, y, '-', c='blue')
+
   def get_bounded_data(self, data, bounds):
     assert len(bounds) == 4
     x = [b[0] for b in bounds]
@@ -316,6 +345,12 @@ class Script(DCScript):
 
     #from dials.algorithms.refinement.prediction import ExperimentsPredictor
     #ref_predictor = ExperimentsPredictor(experiments, force_stills=experiments.all_stills())
+
+    print "N reflections total:", len(reflections)
+    if params.residuals.exclude_outliers:
+      reflections = reflections.select(reflections.get_flags(reflections.flags.used_in_refinement))
+      print "N reflections used in refinement", len(reflections)
+      print "Reporting only on those reflections used in refinement"
 
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
 
@@ -491,6 +526,7 @@ class Script(DCScript):
       self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
       self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
       self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
+      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sDistance vector norms'%tag, show=False, plot_callback=self.plot_difference_vector_norms_histograms)
 
       # Plot intensity vs. radial_displacement
       fig = plt.figure()
