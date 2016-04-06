@@ -349,7 +349,7 @@ class Script(DCScript):
     print "N reflections total:", len(reflections)
     if params.residuals.exclude_outliers:
       reflections = reflections.select(reflections.get_flags(reflections.flags.used_in_refinement))
-      print "N reflections used in refinement", len(reflections)
+      print "N reflections used in refinement:", len(reflections)
       print "Reporting only on those reflections used in refinement"
 
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
@@ -468,9 +468,12 @@ class Script(DCScript):
         pg_deltwotheta.extend(panel_refls['two_theta_obs'] - panel_refls['two_theta_cal'])
 
 
-      pg_rmsd = math.sqrt(pg_msd_sum/pg_refls) * 1000
-      pg_r_rmsd = math.sqrt(pg_r_msd_sum/pg_refls) * 1000
-      pg_t_rmsd = math.sqrt(pg_t_msd_sum/pg_refls) * 1000
+      if pg_refls == 0:
+        pg_rmsd = pg_r_rmsd = pg_t_rmsd = 0
+      else:
+        pg_rmsd = math.sqrt(pg_msd_sum/pg_refls) * 1000
+        pg_r_rmsd = math.sqrt(pg_r_msd_sum/pg_refls) * 1000
+        pg_t_rmsd = math.sqrt(pg_t_msd_sum/pg_refls) * 1000
       pg_rmsds.append(pg_rmsd)
       pg_r_rmsds.append(pg_r_rmsd)
       pg_t_rmsds.append(pg_t_rmsd)
@@ -494,15 +497,19 @@ class Script(DCScript):
 
     r1 = ["Weighted mean"]
     r2 = ["Weighted stddev"]
-    stats = flex.mean_and_variance(pg_rmsds, pg_refls_count.as_double())
-    r1.append("%.1f"%stats.mean())
-    r2.append("%.1f"%stats.gsl_stats_wsd())
-    stats = flex.mean_and_variance(pg_r_rmsds, pg_refls_count.as_double())
-    r1.append("%.1f"%stats.mean())
-    r2.append("%.1f"%stats.gsl_stats_wsd())
-    stats = flex.mean_and_variance(pg_t_rmsds, pg_refls_count.as_double())
-    r1.append("%.1f"%stats.mean())
-    r2.append("%.1f"%stats.gsl_stats_wsd())
+    if len(pg_rmsds) > 1:
+      stats = flex.mean_and_variance(pg_rmsds, pg_refls_count.as_double())
+      r1.append("%.1f"%stats.mean())
+      r2.append("%.1f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(pg_r_rmsds, pg_refls_count.as_double())
+      r1.append("%.1f"%stats.mean())
+      r2.append("%.1f"%stats.gsl_stats_wsd())
+      stats = flex.mean_and_variance(pg_t_rmsds, pg_refls_count.as_double())
+      r1.append("%.1f"%stats.mean())
+      r2.append("%.1f"%stats.gsl_stats_wsd())
+    else:
+      r1.extend([""]*3)
+      r2.extend([""]*3)
     r1.append("")
     r2.append("")
     table_data.append(r1)
@@ -512,6 +519,8 @@ class Script(DCScript):
     from libtbx import table_utils
     print "Detector statistics.  Angles in degrees, RMSDs in microns"
     print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
+
+    self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
 
     if params.show_plots:
       if self.params.tag is None:
@@ -573,7 +582,6 @@ class Script(DCScript):
       self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, ttdpcorr, r"%s $\Delta2\Theta$ vs. $\Delta\Psi$ CC"%t, u"%5.3f", show=False)
 
-      self.histogram(reflections, '%sDifference vector norms (mm)'%tag)
       self.plot_unitcells(experiments)
 
       plt.show()
