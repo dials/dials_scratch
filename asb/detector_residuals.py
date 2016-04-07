@@ -175,11 +175,15 @@ class Script(DCScript):
 
     fig, axes = plt.subplots(nrows=3, ncols=1)
     for ax, axis, data in zip(axes, ['A', 'B', 'C'], [all_a, all_b, all_c]):
-      h = flex.histogram(data,n_slots=50)
+      stats = flex.mean_and_variance(data)
+      cutoff = 4*stats.unweighted_sample_standard_deviation()
+      sel = (data >= stats.mean()-cutoff) & (data <= stats.mean()+cutoff)
+      subset = data.select(sel)
+      h = flex.histogram(subset,n_slots=50)
       ax.plot(h.slot_centers().as_numpy_array(),h.slots().as_numpy_array(),'-')
-      ax.set_title("%s axis histogram. Mean: %7.2f Stddev: %7.2f"%(axis,
-                                                                 flex.mean(data),
-                                                                 flex.mean_and_variance(data).unweighted_sample_standard_deviation()))
+      ax.set_title("%s axis histogram (showing %d of %d xtals). Mean: %7.2f Stddev: %7.2f"%(
+        axis, len(subset), len(data), stats.mean(),
+        stats.unweighted_sample_standard_deviation()))
       ax.set_ylabel("N lattices")
       ax.set_xlabel(r"$\AA$")
     plt.tight_layout()
