@@ -527,6 +527,7 @@ class Script(DCScript):
         t = ""
       else:
         t = "%s "%self.params.tag
+      self.image_rmsd_histogram(reflections, tag)
 
       # Plots! these are plots with callbacks to draw on individual panels
       self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
@@ -632,6 +633,25 @@ class Script(DCScript):
     ax.plot((rmsd2, rmsd2), (0, flex.max(h.slots())), 'b--')
 
     ax.legend([r"$\Delta$XY", "MeanObs", "MeanRayl", "Mode", "RMSDObs", "RMSDRayl"])
+
+  def image_rmsd_histogram(self, reflections, tag):
+    data = flex.double()
+    for i in set(reflections['id']):
+      refls = reflections.select(reflections['id']==i)
+      if len(refls) == 0:
+        continue
+      rmsd = math.sqrt(flex.sum_sq(refls['difference_vector_norms'])/len(refls))
+      data.append(rmsd)
+    data *= 1000
+    h = flex.histogram(data, n_slots=40)
+    fig = plt.figure()
+    ax = fig.add_subplot('111')
+    ax.plot(h.slot_centers().as_numpy_array(), h.slots().as_numpy_array(), '-')
+    plt.title("%sHistogram of image RMSDs"%tag)
+
+    fig = plt.figure()
+    plt.boxplot(data, vert=False)
+    plt.title("%sBoxplot of image RMSDs"%tag)
 
   def detector_plot_refls(self, detector, reflections, data, title, show=True, plot_callback=None, colorbar_units=None):
     """
