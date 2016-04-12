@@ -177,7 +177,10 @@ class Script(DCScript):
     for ax, axis, data in zip(axes, ['A', 'B', 'C'], [all_a, all_b, all_c]):
       stats = flex.mean_and_variance(data)
       cutoff = 4*stats.unweighted_sample_standard_deviation()
-      sel = (data >= stats.mean()-cutoff) & (data <= stats.mean()+cutoff)
+      if cutoff < 0.5:
+        cutoff = 0.5
+      limits = stats.mean()-cutoff, stats.mean()+cutoff
+      sel = (data >= limits[0]) & (data <= limits[1])
       subset = data.select(sel)
       h = flex.histogram(subset,n_slots=50)
       ax.plot(h.slot_centers().as_numpy_array(),h.slots().as_numpy_array(),'-')
@@ -186,6 +189,7 @@ class Script(DCScript):
         stats.unweighted_sample_standard_deviation()))
       ax.set_ylabel("N lattices")
       ax.set_xlabel(r"$\AA$")
+      ax.set_xlim(limits)
     plt.tight_layout()
 
   def plot_histograms(self, reflections, panel = None, ax = None, bounds = None):
@@ -423,8 +427,8 @@ class Script(DCScript):
         tto.extend(flex.double([panel.get_two_theta_at_pixel(s0, (obs_x[i], obs_y[i])) for i in xrange(len(expt_refls))]))
         ttc.extend(flex.double([panel.get_two_theta_at_pixel(s0, (cal_x[i], cal_y[i])) for i in xrange(len(expt_refls))]))
       panel_refls['beam_centre_lab'] = bcl
-      panel_refls['two_theta_obs'] = tto
-      panel_refls['two_theta_cal'] = ttc #+ (0.5*panel_refls['delpsical.rad']*panel_refls['two_theta_obs'])
+      panel_refls['two_theta_obs'] = tto * (180/math.pi)
+      panel_refls['two_theta_cal'] = ttc * (180/math.pi) #+ (0.5*panel_refls['delpsical.rad']*panel_refls['two_theta_obs'])
       # Compute obs in lab space
       x, y, _ = panel_refls['xyzobs.mm.value'].parts()
       c = flex.vec2_double(x, y)
@@ -560,7 +564,8 @@ class Script(DCScript):
       a = reflections['delpsical.rad']*180/math.pi
       b = reflections['two_theta_obs'] - reflections['two_theta_cal']
       fig = plt.figure()
-      sel = (a > -0.2) & (a < 0.2) & (b > -0.002) & (b < 0.002)
+      sel = (a > -0.2) & (a < 0.2) & (b > -0.05) & (b < 0.05)
+      plt.hist2d(a, b, bins=50)
       plt.hist2d(a.select(sel), b.select(sel), bins=50)
       cb = plt.colorbar()
       cb.set_label("N reflections")
@@ -572,13 +577,19 @@ class Script(DCScript):
       a = reflections['two_theta_obs']
       b = reflections['two_theta_obs'] - reflections['two_theta_cal']
       fig = plt.figure()
-      sel = (b > -0.002) & (b < 0.002)
-      plt.hist2d(a.select(sel), b.select(sel), bins=100)
+      limits = -0.05, 0.05
+      sel = (b > limits[0]) & (b < limits[1])
+      plt.hist2d(a.select(sel), b.select(sel), bins=100, range=((0,50), limits))
+      plt.clim((0,100))
       cb = plt.colorbar()
       cb.set_label("N reflections")
       plt.title(r'%s$\Delta2\Theta$ vs. 2$\Theta$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
       plt.xlabel(r'2$\Theta \circ$')
       plt.ylabel(r'$\Delta2\Theta \circ$')
+
+      # calc the trendline
+      z = np.polyfit(a.select(sel), b.select(sel), 1)
+      print 'y=%.7fx+(%.7f)'%(z[0],z[1])
 
       # Plots with single values per panel
       self.detector_plot_dict(detector, refl_counts, u"%s N reflections"%t, u"%6d", show=False)
