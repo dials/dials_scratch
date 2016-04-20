@@ -127,6 +127,53 @@ class AnalyticalGradients(object):
 
     return ds1_dp
 
+  def get_crystal_orientation_gradients(self, reflections):
+
+    # get derivatives of the U matrix wrt the parameters
+    dU_dxlo_p = self.xl_orientation_parameterisation.get_ds_dp()
+    p_names = self.xl_orientation_parameterisation.get_param_names()
+
+    n = len(reflections)
+    U = flex.mat3_double(n, self.U)
+    B = flex.mat3_double(n, self.B)
+    UB = U*B
+
+    # q is the reciprocal lattice vector, in the lab frame
+    h = reflections['miller_index'].as_vec3_double()
+    q = (UB * h)
+    qlen = q.norms()
+    qlen2 = q.dot(q)
+
+    q_s0 = q + self.s0
+    s1 = reflections['s1']
+    ss = qlen2 + 2 * q.dot(self.s0) + self.s0len2
+    assert (ss > 0.0).all_eq(True)
+    s = flex.sqrt(ss)
+    sss = s * ss
+    inv_s = 1.0 / s
+    inv_sss = 1.0 / sss
+
+    ds1_dp = {}
+
+    # loop through the parameters
+    for name, der in zip(p_names, dU_dxlo_p):
+
+      # calculate the derivative of q for this parameter
+      dq = flex.mat3_double(n, der.elems) * B * h
+
+      # term1
+      term1 = self.s0len * dq
+      term1 = term1 * inv_s
+
+      # term2
+      term2 = self.s0len * q_s0 * q_s0.dot(dq)
+      term2 = term2 * inv_sss
+
+      name = 'Crystal1' + name # XXXX Hack to get matching keys
+      ds1_dp[name] = {'ds1':(term1 - term2)}
+
+    return ds1_dp
+
 def run(verbose = False):
 
   # Build models, with a larger crystal than default in order to get plenty of
@@ -205,14 +252,14 @@ def run(verbose = False):
   ref_predictor.update()
   ref_predictor.predict(reflections)
 
-  # calculate analytical gradient for the first interesting gradient, i.e
-  # the one for Beam1Mu1
+  # calculate analytical gradients
   ag = AnalyticalGradients(stills_experiments,
                  detector_parameterisation=det_param,
                  beam_parameterisation=s0_param,
                  xl_orientation_parameterisation=xlo_param,
                  xl_unit_cell_parameterisation=xluc_param)
   an_grads = ag.get_beam_gradients(reflections)
+  an_grads.update(ag.get_crystal_orientation_gradients(reflections))
 
   # get finite difference gradients
   p_vals = pred_param.get_param_vals()
@@ -283,5 +330,3 @@ def run(verbose = False):
 if __name__ == "__main__":
 
   run(verbose=True)
-
-  print "OK"
