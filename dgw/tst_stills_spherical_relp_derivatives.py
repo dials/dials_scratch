@@ -174,6 +174,53 @@ class AnalyticalGradients(object):
 
     return ds1_dp
 
+  def get_crystal_unit_cell_gradients(self, reflections):
+
+    # get derivatives of the B matrix wrt the parameters
+    dB_dxluc_p = self.xl_unit_cell_parameterisation.get_ds_dp()
+    p_names = self.xl_unit_cell_parameterisation.get_param_names()
+
+    n = len(reflections)
+    U = flex.mat3_double(n, self.U)
+    B = flex.mat3_double(n, self.B)
+    UB = U*B
+
+    # q is the reciprocal lattice vector, in the lab frame
+    h = reflections['miller_index'].as_vec3_double()
+    q = (UB * h)
+    qlen = q.norms()
+    qlen2 = q.dot(q)
+
+    q_s0 = q + self.s0
+    s1 = reflections['s1']
+    ss = qlen2 + 2 * q.dot(self.s0) + self.s0len2
+    assert (ss > 0.0).all_eq(True)
+    s = flex.sqrt(ss)
+    sss = s * ss
+    inv_s = 1.0 / s
+    inv_sss = 1.0 / sss
+
+    ds1_dp = {}
+
+    # loop through the parameters
+    for name, der in zip(p_names, dB_dxluc_p):
+
+      # calculate the derivative of q for this parameter
+      dq = U * flex.mat3_double(n, der.elems) * h
+
+      # term1
+      term1 = self.s0len * dq
+      term1 = term1 * inv_s
+
+      # term2
+      term2 = self.s0len * q_s0 * q_s0.dot(dq)
+      term2 = term2 * inv_sss
+
+      name = 'Crystal1' + name # XXXX Hack to get matching keys
+      ds1_dp[name] = {'ds1':(term1 - term2)}
+
+    return ds1_dp
+
 def run(verbose = False):
 
   # Build models, with a larger crystal than default in order to get plenty of
@@ -260,6 +307,7 @@ def run(verbose = False):
                  xl_unit_cell_parameterisation=xluc_param)
   an_grads = ag.get_beam_gradients(reflections)
   an_grads.update(ag.get_crystal_orientation_gradients(reflections))
+  an_grads.update(ag.get_crystal_unit_cell_gradients(reflections))
 
   # get finite difference gradients
   p_vals = pred_param.get_param_vals()
