@@ -59,7 +59,7 @@ residuals {
 include scope xfel.command_line.cspad_detector_congruence.phil_scope
 ''', process_includes=True)
 
-from xfel.command_line.cspad_detector_congruence import iterate_detector_at_level, iterate_panels, id_from_name
+from xfel.command_line.cspad_detector_congruence import iterate_detector_at_level, iterate_panels, id_from_name, get_center
 from xfel.command_line.cspad_detector_congruence import Script as DCScript
 class Script(DCScript):
   ''' Class to parse the command line options. '''
@@ -394,11 +394,14 @@ class Script(DCScript):
     transverse_rmsds = {}
     radial_rmsds = {}
     ttdpcorr = {}
+    pg_bc_dists = {}
+    mean_delta_two_theta = {}
     # per panelgroup flex arrays
     pg_rmsds = flex.double()
     pg_r_rmsds = flex.double()
     pg_t_rmsds = flex.double()
     pg_refls_count = flex.int()
+    pg_refls_count_d = {}
     table_header = ["PG id", "RMSD","Radial", "Transverse", "N refls"]
     table_header2 = ["","","RMSD","RMSD",""]
     table_data = []
@@ -475,6 +478,10 @@ class Script(DCScript):
         pg_delpsi.extend(panel_refls['delpsical.rad']*180/math.pi)
         pg_deltwotheta.extend(panel_refls['two_theta_obs'] - panel_refls['two_theta_cal'])
 
+      bc = col(pg.get_beam_centre_lab(s0))
+      ori = get_center(pg)
+      pg_bc_dists[pg.get_name()] = (ori-bc).length()
+      mean_delta_two_theta[pg.get_name()] = flex.mean(pg_deltwotheta)
 
       if pg_refls == 0:
         pg_rmsd = pg_r_rmsd = pg_t_rmsd = 0
@@ -486,6 +493,7 @@ class Script(DCScript):
       pg_r_rmsds.append(pg_r_rmsd)
       pg_t_rmsds.append(pg_t_rmsd)
       pg_refls_count.append(pg_refls)
+      pg_refls_count_d[pg.get_name()] = pg_refls
       table_data.append(["%d"%pg_id, "%.1f"%pg_rmsd, "%.1f"%pg_r_rmsd, "%.1f"%pg_t_rmsd, "%6d"%pg_refls])
 
       refl_counts[pg.get_name()] = pg_refls
@@ -574,7 +582,7 @@ class Script(DCScript):
       plt.ylabel(r'$\Delta2\Theta \circ$')
 
       # Plot delta 2theta vs. 2theta
-      a = reflections['two_theta_obs']
+      a = reflections['two_theta_obs']#[:71610]
       b = reflections['two_theta_obs'] - reflections['two_theta_cal']
       fig = plt.figure()
       limits = -0.05, 0.05
@@ -598,9 +606,122 @@ class Script(DCScript):
       self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, ttdpcorr, r"%s $\Delta2\Theta$ vs. $\Delta\Psi$ CC"%t, u"%5.3f", show=False)
 
+      # Plot data by panel group
+      sorted_values = sorted(pg_bc_dists.values())
+      vdict = {}
+      for k in pg_bc_dists:
+        vdict[pg_bc_dists[k]] = k
+      sorted_keys = [vdict[v] for v in sorted_values]
+      x = sorted_values
+
+      self.plot_multi_data(x,
+                           [[pg_refls_count_d[k] for k in sorted_keys],
+                            ([rmsds[k] for k in sorted_keys],
+                             [radial_rmsds[k] for k in sorted_keys],
+                             [transverse_rmsds[k] for k in sorted_keys]),
+                            [radial_rmsds[k]/transverse_rmsds[k] for k in sorted_keys],
+                            [mean_delta_two_theta[k] for k in sorted_keys]],
+                           "Panel group distance from beam center (mm)",
+                           ["N reflections",
+                            ("Overall RMSD",
+                             "Radial RMSD",
+                             "Transverse RMSD"),
+                            "R/T RMSD ratio",
+                            "Delta two theta"],
+                           ["N reflections",
+                            "RMSD (microns)",
+                            "R/T RMSD ratio",
+                            "Delta two theta (degrees)"],
+                           "%sData by panelgroup"%tag)
+
       self.plot_unitcells(experiments)
+      self.plot_data_by_two_theta(reflections, tag)
 
       plt.show()
+
+  def plot_multi_data(self, x, ygroups, xlabel, legends, ylabels, title):
+    fig = plt.figure()
+    from mpl_toolkits.axes_grid1 import host_subplot
+    import mpl_toolkits.axisartist as AA
+
+    host = host_subplot(111, axes_class=AA.Axes)
+    plt.subplots_adjust(right=0.75)
+
+    y1 = ygroups[0]
+    ygroups = ygroups[1:]
+    current_offset = 60
+    offset = 60
+
+    host.set_title(title)
+    host.set_xlabel(xlabel)
+    host.set_ylabel(ylabels[0])
+    p1, = host.plot(x, y1, label=legends[0])
+    host.axis["left"].label.set_color(p1.get_color())
+
+    for y, legend, ylabel in zip(ygroups, legends[1:], ylabels[1:]):
+      par = host.twinx()
+      new_fixed_axis = par.get_grid_helper().new_fixed_axis
+      par.axis["right"] = new_fixed_axis(loc="right",
+                                         axes=par,
+                                         offset=(current_offset, 0))
+      par.axis["right"].toggle(all=True)
+      current_offset += offset
+
+      if isinstance(y, tuple):
+        for data, l in zip(y, legend):
+          p, = par.plot(x, data, label=l)
+      else:
+        p, = par.plot(x, y, label=legend)
+        par.axis["right"].label.set_color(p.get_color())
+      par.set_ylabel(ylabel)
+
+    host.legend(loc='lower center', bbox_to_anchor=(0.6, 0.0),
+                ncol=3, fancybox=True, shadow=True)
+    plt.draw()
+
+  def plot_data_by_two_theta(self, reflections, tag):
+    n_bins = 30
+    arbitrary_padding = 1
+    sorted_two_theta = flex.sorted(reflections['two_theta_obs'])
+    bin_low = [sorted_two_theta[int((len(sorted_two_theta)/n_bins) * i)] for i in xrange(n_bins)]
+    bin_high = [bin_low[i+1] for i in xrange(n_bins-1)]
+    bin_high.append(sorted_two_theta[-1]+arbitrary_padding)
+
+    title = "%sBinned data by two theta (n reflections per bin: %.1f)"%(tag, len(sorted_two_theta)/n_bins)
+
+    x = flex.double()
+    x_centers = flex.double()
+    n_refls = flex.double()
+    rmsds = flex.double()
+    radial_rmsds = flex.double()
+    transverse_rmsds = flex.double()
+    rt_ratio = flex.double()
+    #delta_two_theta = flex.double()
+    rmsd_delta_two_theta = flex.double()
+
+    for i in xrange(n_bins):
+      x_centers.append(((bin_high[i]-bin_low[i])/2) + bin_low[i])
+      refls = reflections.select((reflections['two_theta_obs'] >= bin_low[i]) & (reflections['two_theta_obs'] < bin_high[i]))
+      n = len(refls)
+      n_refls.append(n)
+      rmsds.append(1000*math.sqrt(flex.sum_sq(refls['difference_vector_norms'])/n))
+      radial_rmsds.append(1000*math.sqrt(flex.sum_sq(refls['radial_displacements'])/n))
+      transverse_rmsds.append(1000*math.sqrt(flex.sum_sq(refls['transverse_displacements'])/n))
+      rt_ratio.append(radial_rmsds[-1]/transverse_rmsds[-1])
+      rmsd_delta_two_theta.append(math.sqrt(flex.sum_sq(refls['two_theta_obs']-refls['two_theta_cal'])/n))
+      #delta_two_theta.append(flex.mean(refls['two_theta_obs']-refls['two_theta_cal']))
+    assert len(reflections) == flex.sum(n_refls)
+
+    self.plot_multi_data(x_centers,
+                         [rt_ratio, (rmsds, radial_rmsds, transverse_rmsds), rmsd_delta_two_theta],
+                         "Two theta (degrees)",
+                         ["R/T RMSD ratio",
+                          ("Overall RMSD","Radial RMSD","Transverse RMSD"),
+                          "RMSD delta two theta"],
+                         ["R/T RMSD ratio",
+                          "Overall, radial, transverse RMSD (microns)",
+                          "Delta two theta RMSD (degrees)"],
+                         title)
 
   def histogram(self, reflections, title):
     data = reflections['difference_vector_norms']
