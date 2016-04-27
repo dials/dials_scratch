@@ -37,7 +37,7 @@ class Image(object):
         detector = self.image.get_detector()
 
         viewer.num_panels = len(detector)
-        d = detector[0].get_distance()
+        d = detector[0].get_directed_distance()
 
         origin = np.zeros((len(detector), 3))
         fast = np.zeros((len(detector), 3))

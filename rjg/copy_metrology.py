@@ -67,7 +67,7 @@ def run(args):
 
   assert len(h) == len(href)
 
-  assert abs(h.get_distance() - href.get_distance()) < params.max_delta_distance
+  assert abs(h.get_directed_distance() - href.get_directed_distance()) < params.max_delta_distance
 
   for panel, panel_ref in zip(h.children(), href.children()):
     panel.set_local_frame(

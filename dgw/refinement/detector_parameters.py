@@ -74,7 +74,7 @@ class DetectorParameterisationSinglePanel(ModelParameterisation):
     # set up the parameters.
     # distance from lab origin to detector model plane along its
     # normal, in initial orientation
-    distance = panel.get_distance()
+    distance = panel.get_directed_distance()
     dist = Parameter(distance, dn, 'length')
 
     # shift in the detector model plane to locate dorg, in initial
