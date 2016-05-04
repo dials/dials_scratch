@@ -38,6 +38,8 @@ phil_scope = iotbx.phil.parse("""\
     .type = float
   debug = False
     .type = bool
+  whole_panel = False
+    .type = bool
 """, process_includes=True)
 
 help_message = '''
@@ -252,6 +254,36 @@ def model_reflection_predict(reflection, experiment, params):
 
   return
 
+def predict_still_delpsi_and_s1(p0_star, experiment, s0=None):
+  '''Predict deltapsi angle and s1 vector. Returns (delpsi, s1)'''
+  from scitbx import matrix
+  import math
+  # Calculate the reciprocal space vector and required unit vectors
+  q = p0_star
+  if s0 is None:
+    s0 = matrix.col(experiment.beam.get_s0())
+  unit_s0 = s0.normalize()
+  e1 = q.cross(unit_s0).normalize()
+  c0 = unit_s0.cross(e1).normalize()
+
+  # Calculate the vector rotated to the Ewald sphere
+  qq = q.length_sq()
+  lmbda = 1. / s0.length()
+  a = 0.5 * qq * lmbda
+  tmp = qq - (a*a)
+  assert tmp > 0.0
+  b = math.sqrt(tmp)
+  r = (-1.0 * a * unit_s0) + (b * c0)
+
+  # Calculate delpsi value
+  q0 = q.normalize()
+  q1 = q0.cross(e1).normalize()
+  delpsi = -1.0 * math.atan2(r.dot(q1), r.dot(q0))
+
+  # Calculate the ray
+  s1 = (s0 + r).normalize() * s0.length()
+  return delpsi, s1
+
 def predict_angles(p0_star, experiment, s0=None):
   '''Predict Ewald sphere crossing angle for RLP x, returned in order
   (entering, exiting).'''
@@ -314,6 +346,7 @@ def model_reflection_rt0(reflection, experiment, params):
   import random
   from scitbx import matrix
   from dials.array_family import flex
+  still = (experiment.goniometer is None) or (experiment.scan is None)
 
   d2r = math.pi / 180.0
 
@@ -330,18 +363,26 @@ def model_reflection_rt0(reflection, experiment, params):
     else:
       print 'exiting'
 
-  Amat = matrix.sqr(experiment.crystal.get_A_at_scan_point(int(xyz[2])))
-  p0_star = Amat * hkl
+  if still:
+    Amat = matrix.sqr(experiment.crystal.get_A())
+    p0_star = Amat * hkl
+    angle, s1 = predict_still_delpsi_and_s1(p0_star, experiment)
+    assert angle
 
-  angles = predict_angles(p0_star, experiment)
+    if params.debug:
+      print 'delpsi angle = %f' % angle
+  else:
+    Amat = matrix.sqr(experiment.crystal.get_A_at_scan_point(int(xyz[2])))
+    p0_star = Amat * hkl
+    angles = predict_angles(p0_star, experiment)
 
-  assert(angles)
+    assert(angles)
 
-  if params.debug:
-    print 'angles = %f %f' % angles
+    if params.debug:
+      print 'angles = %f %f' % angles
 
-  angle = angles[0] if (abs(angles[0] - xyz_mm[2]) <
-                        abs(angles[1] - xyz_mm[2])) else angles[1]
+    angle = angles[0] if (abs(angles[0] - xyz_mm[2]) <
+                          abs(angles[1] - xyz_mm[2])) else angles[1]
 
   # FIX DQE for this example *** NOT PORTABLE ***
   p = experiment.detector[reflection['panel']]
@@ -364,8 +405,9 @@ def model_reflection_rt0(reflection, experiment, params):
       return
 
   s1 = reflection['s1']
-  a = matrix.col(experiment.goniometer.get_rotation_axis())
   s0 = matrix.col(experiment.beam.get_s0())
+  if not still:
+    a = matrix.col(experiment.goniometer.get_rotation_axis())
 
   if params.debug:
     print 's1 = %f %f %f' % s1
@@ -400,6 +442,8 @@ def model_reflection_rt0(reflection, experiment, params):
 
   detector = experiment.detector
 
+  if params.whole_panel:
+    whole_panel = flex.double(flex.grid(p.get_image_size()))
   patch = flex.double(dy * dx, 0)
   patch.reshape(flex.grid(dy, dx))
 
@@ -426,22 +470,43 @@ def model_reflection_rt0(reflection, experiment, params):
                         random.gauss(0, ns),
                         random.gauss(0, ns)))
       p0 += dp0
-    angles = predict_angles(p0, experiment, b)
-    if angles is None:
-      # scattered ray ended up in blind region
-      continue
-    r = angles[0] if reflection['entering'] else angles[1]
-    p = p0.rotate(a, r)
-    s1 = p + b
+    if still:
+      result = predict_still_delpsi_and_s1(p0, experiment, b)
+      if result is None:
+        # scattered ray ended up in blind region
+        continue
+      angle, s1 = result
+    else:
+      angles = predict_angles(p0, experiment, b)
+      if angles is None:
+        # scattered ray ended up in blind region
+        continue
+      r = angles[0] if reflection['entering'] else angles[1]
+      p = p0.rotate(a, r)
+      s1 = p + b
 
     if params.physics:
       model_path_through_sensor(detector, reflection, s1, patch, scale)
 
     else:
-      panel, xy = detector.get_ray_intersection(s1)
+      try:
+        panel, xy = detector.get_ray_intersection(s1)
+      except RuntimeError, e:
+        # Not on the detector
+        continue
+      if panel != reflection['panel']:
+        continue
 
       # FIXME DO NOT USE THIS FUNCTION EVENTUALLY...
       x, y = detector[panel].millimeter_to_pixel(xy)
+      x = int(round(x))
+      y = int(round(y))
+      if params.whole_panel:
+        if x < 0 or x >= whole_panel.focus()[1]:
+          continue
+        if y < 0 or y >= whole_panel.focus()[0]:
+          continue
+        whole_panel[(y, x)] += 1.0 / scale
       if x < bbox[0] or x >= bbox[1]:
         continue
       if y < bbox[2] or y >= bbox[3]:
@@ -452,7 +517,7 @@ def model_reflection_rt0(reflection, experiment, params):
       # length through the detector sensitive surface i.e. deposit fractional
       # counts along pixels (and allow for DQE i.e. photon passing right through
       # the detector)
-      patch[(int(y), int(x))] += 1.0 / scale
+      patch[(y, x)] += 1.0 / scale
 
   if params.show:
     print 'Simulated reflection (flattened in Z):'
@@ -462,9 +527,22 @@ def model_reflection_rt0(reflection, experiment, params):
         print '%5d' % int(patch[(j, i)]),
       print
 
-
   cc = profile_correlation(data, patch)
   print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
+  if params.whole_panel:
+    print "BBOX", bbox
+    from matplotlib import pyplot as plt
+    from matplotlib import patches as patches
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.imshow(whole_panel.as_numpy_array(), interpolation='none')
+    plt.colorbar()
+    ax.add_patch(patches.Rectangle((bbox[0],bbox[2]),bbox[1]-bbox[0],bbox[3]-bbox[2],fill=False))
+    plt.scatter([reflection['xyzobs.px.value'][0]],[reflection['xyzobs.px.value'][1]], c='green')
+    plt.scatter([reflection['xyzcal.px'][0]],[reflection['xyzcal.px'][1]], c='red')
+    plt.scatter([p.get_beam_centre_px(s0)[0]],[p.get_beam_centre_px(s0)[1]], c='gold')
+    plt.legend(['','Obs','Cal','BC'])
+    plt.show()
 
   return cc
 
@@ -481,14 +559,14 @@ def main(reflections, experiment, params):
   method = params.method
   ids = params.id
 
-  if 'intensity.prf.variance' in reflections:
-    selection = reflections.get_flags(
-      reflections.flags.integrated,
-      all=True)
-  else:
-    selection = reflections.get_flags(
-      reflections.flags.integrated_sum)
-  reflections = reflections.select(selection)
+  #if 'intensity.prf.variance' in reflections:
+  #  selection = reflections.get_flags(
+  #    reflections.flags.integrated,
+  #    all=True)
+  #else:
+  #  selection = reflections.get_flags(
+  #    reflections.flags.integrated_sum)
+  #reflections = reflections.select(selection)
 
   # filter according to rules
 
@@ -536,7 +614,6 @@ def main(reflections, experiment, params):
 def run(args):
   from dials.util.options import OptionParser
   from dials.util.options import flatten_experiments
-  from dials.util.options import flatten_datablocks
   from dials.util.options import flatten_reflections
   import libtbx.load_env
 
