@@ -1,7 +1,5 @@
 from __future__ import division
 
-# LIBTBX_SET_DISPATCHER_NAME dev.dials.duelling_profiles
-
 import iotbx.phil
 
 phil_scope = iotbx.phil.parse("""\
