@@ -446,7 +446,7 @@ def model_reflection_rt0(reflection, experiment, params):
   detector = experiment.detector
 
   if params.whole_panel:
-    whole_panel = flex.double(flex.grid(p.get_image_size()))
+    whole_panel = flex.double(flex.grid(p.get_image_size()[1], p.get_image_size()[0]))
   patch = flex.double(dy * dx, 0)
   patch.reshape(flex.grid(dy, dx))
 
