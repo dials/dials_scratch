@@ -563,6 +563,7 @@ def model_reflection_rt0(reflection, experiment, params):
     print "BBOX", bbox
     from matplotlib import pyplot as plt
     from matplotlib import patches as patches
+    import numpy as np
     fig = plt.figure()
     ax = fig.add_subplot(111)
     plt.imshow(whole_panel.as_numpy_array(), interpolation='none')
@@ -571,7 +572,14 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.scatter([reflection['xyzobs.px.value'][0]],[reflection['xyzobs.px.value'][1]], c='green')
     plt.scatter([reflection['xyzcal.px'][0]],[reflection['xyzcal.px'][1]], c='red')
     plt.scatter([p.get_beam_centre_px(s0)[0]],[p.get_beam_centre_px(s0)[1]], c='gold')
-    plt.legend(['','Obs','Cal','BC'])
+
+    arr = whole_panel.as_numpy_array()
+    centroid_x = np.average(range(arr.shape[1]),weights=arr.sum(0))
+    centroid_y = np.average(range(arr.shape[0]),weights=arr.sum(1))
+    plt.scatter([centroid_x],[centroid_y], c='purple')
+
+    plt.legend(['','Obs','Cal','BC','CM'])
+
     plt.show()
 
   return cc
