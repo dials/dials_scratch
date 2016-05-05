@@ -38,6 +38,8 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   whole_panel = False
     .type = bool
+  interference_weighting = False
+    .type = bool
 """, process_includes=True)
 
 help_message = '''
@@ -252,7 +254,7 @@ def model_reflection_predict(reflection, experiment, params):
 
   return
 
-def predict_still_delpsi_and_s1(p0_star, experiment, s0=None):
+def predict_still_delpsi_and_s1(p0_star, experiment, s0=None, s1_rotated=True):
   '''Predict deltapsi angle and s1 vector. Returns (delpsi, s1)'''
   from scitbx import matrix
   import math
@@ -279,7 +281,10 @@ def predict_still_delpsi_and_s1(p0_star, experiment, s0=None):
   delpsi = -1.0 * math.atan2(r.dot(q1), r.dot(q0))
 
   # Calculate the ray
-  s1 = (s0 + r).normalize() * s0.length()
+  if s1_rotated:
+    s1 = (s0 + r).normalize() * s0.length()
+  else:
+    s1 = (s0 + q).normalize() * s0.length()
   return delpsi, s1
 
 def predict_angles(p0_star, experiment, s0=None):
@@ -447,6 +452,27 @@ def model_reflection_rt0(reflection, experiment, params):
 
   bbox = reflection['bbox']
 
+  if params.interference_weighting:
+    # Kroon-Batenburg 2015 equation 7
+    uc = experiment.crystal.get_unit_cell()
+    lmbda = experiment.beam.get_wavelength()
+
+    if hasattr(experiment.crystal, "_ML_domain_size_ang"):
+      # assume spherical crystallite
+      diameter = experiment.crystal._ML_domain_size_ang
+      volume = (math.pi*4/3)*((diameter/2)**3)
+      ncell = volume / uc.volume()
+    else:
+      ncell = 25
+    if params.debug:
+      print "ncell: %f"%ncell
+
+    d = uc.d(hkl)
+    theta = uc.two_theta(hkl, lmbda)/2
+    iw_s = ncell * (abs(hkl[0]) + abs(hkl[1]) + abs(hkl[2]))
+    iw_B = 2*math.pi*d*math.cos(theta)/lmbda
+    iw_term1 = (1/(2*(math.sin(theta)**2))) * (1/iw_s)
+
   scale = params.scale
   if params.show:
     print '%d rays' % (int(round(i0 * scale)))
@@ -469,11 +495,11 @@ def model_reflection_rt0(reflection, experiment, params):
                         random.gauss(0, ns)))
       p0 += dp0
     if still:
-      result = predict_still_delpsi_and_s1(p0, experiment, b)
+      result = predict_still_delpsi_and_s1(p0, experiment, b, s1_rotated = not params.interference_weighting)
       if result is None:
         # scattered ray ended up in blind region
         continue
-      angle, s1 = result
+      epsilon, s1 = result
     else:
       angles = predict_angles(p0, experiment, b)
       if angles is None:
@@ -482,6 +508,12 @@ def model_reflection_rt0(reflection, experiment, params):
       r = angles[0] if reflection['entering'] else angles[1]
       p = p0.rotate(a, r)
       s1 = p + b
+
+    if params.interference_weighting:
+      # Rest of Kroon-Batenburg eqn 7
+      iw = iw_term1 * (math.sin(iw_s*iw_B*epsilon)**2) / ((iw_B*epsilon)**2)
+    else:
+      iw = 1
 
     if params.physics:
       model_path_through_sensor(detector, reflection, s1, patch, scale)
@@ -504,7 +536,7 @@ def model_reflection_rt0(reflection, experiment, params):
           continue
         if y < 0 or y >= whole_panel.focus()[0]:
           continue
-        whole_panel[(y, x)] += 1.0 / scale
+        whole_panel[(y, x)] += 1.0 * iw / scale
       if x < bbox[0] or x >= bbox[1]:
         continue
       if y < bbox[2] or y >= bbox[3]:
@@ -515,7 +547,7 @@ def model_reflection_rt0(reflection, experiment, params):
       # length through the detector sensitive surface i.e. deposit fractional
       # counts along pixels (and allow for DQE i.e. photon passing right through
       # the detector)
-      patch[(y, x)] += 1.0 / scale
+      patch[(y, x)] += 1.0 * iw / scale
 
   if params.show:
     print 'Simulated reflection (flattened in Z):'
