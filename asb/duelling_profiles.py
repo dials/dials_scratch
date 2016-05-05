@@ -74,7 +74,7 @@ def random_vector_cone(vector, sd):
   import random
   import math
   o0 = vector.ortho()
-  o1 = vector.rotate(o0, random.random() * 2.0 * math.pi)
+  o1 = o0.rotate(vector, random.random() * 2.0 * math.pi)
   return vector.rotate(o1, random.gauss(0, sd))
 
 def model_reflection_example(reflection, experiment, params):
