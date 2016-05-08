@@ -271,7 +271,8 @@ def predict_still_delpsi_and_s1(p0_star, experiment, s0=None, s1_rotated=True):
   lmbda = 1. / s0.length()
   a = 0.5 * qq * lmbda
   tmp = qq - (a*a)
-  assert tmp > 0.0
+  if tmp <= 0:
+    return None
   b = math.sqrt(tmp)
   r = (-1.0 * a * unit_s0) + (b * c0)
 
@@ -447,6 +448,7 @@ def model_reflection_rt0(reflection, experiment, params):
 
   if params.whole_panel:
     whole_panel = flex.double(flex.grid(p.get_image_size()[1], p.get_image_size()[0]))
+    all_pix = flex.vec3_double()
   patch = flex.double(dy * dx, 0)
   patch.reshape(flex.grid(dy, dx))
 
@@ -457,7 +459,7 @@ def model_reflection_rt0(reflection, experiment, params):
     uc = experiment.crystal.get_unit_cell()
     lmbda = experiment.beam.get_wavelength()
 
-    if hasattr(experiment.crystal, "_ML_domain_size_ang"):
+    if False:#hasattr(experiment.crystal, "_ML_domain_size_ang"):
       # assume spherical crystallite
       diameter = experiment.crystal._ML_domain_size_ang
       volume = (math.pi*4/3)*((diameter/2)**3)
@@ -520,12 +522,13 @@ def model_reflection_rt0(reflection, experiment, params):
 
     else:
       try:
-        panel, xy = detector.get_ray_intersection(s1)
+        xy = p.get_ray_intersection(s1)
       except RuntimeError, e:
         # Not on the detector
         continue
-      if panel != reflection['panel']:
-        continue
+      panel = reflection['panel']
+
+      all_pix.append((xy[0],xy[1],iw))
 
       # FIXME DO NOT USE THIS FUNCTION EVENTUALLY...
       x, y = detector[panel].millimeter_to_pixel(xy)
@@ -579,6 +582,23 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.scatter([centroid_x],[centroid_y], c='purple')
 
     plt.legend(['','Obs','Cal','BC','CM'])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    results = plt.hist2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_pix.parts()[2], bins=100)
+    plt.colorbar()
+    plt.scatter([reflection['xyzobs.mm.value'][0]],[reflection['xyzobs.mm.value'][1]], c='green')
+    plt.scatter([reflection['xyzcal.mm'][0]],[reflection['xyzcal.mm'][1]], c='red')
+    plt.scatter([p.get_beam_centre(s0)[0]],[p.get_beam_centre(s0)[1]], c='gold')
+
+    arr, xedges, yedges, Image = results
+    xcenters = [xedges[i]+((xedges[i+1]-xedges[i])/2) for i in xrange(len(xedges)-1)]
+    ycenters = [yedges[i]+((yedges[i+1]-yedges[i])/2) for i in xrange(len(yedges)-1)]
+    centroid_x = np.average(xcenters,weights=arr.sum(1))
+    centroid_y = np.average(ycenters,weights=arr.sum(0))
+    plt.scatter([centroid_x],[centroid_y], c='purple')
+
+    plt.legend(['Obs','Cal','BC','CM'])
 
     plt.show()
 
