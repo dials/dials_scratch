@@ -40,6 +40,8 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   interference_weighting = False
     .type = bool
+  real_space_beam_simulation = False
+    .type = bool
 """, process_includes=True)
 
 help_message = '''
@@ -479,11 +481,34 @@ def model_reflection_rt0(reflection, experiment, params):
   if params.show:
     print '%d rays' % (int(round(i0 * scale)))
   for i in range(int(round(i0 * scale))):
-    if params.sigma_l:
-      l_scale = random.gauss(1, params.sigma_l)
-      b = random_vector_cone(s0 * l_scale, sigma_b)
+    if params.real_space_beam_simulation:
+      # all values in mm
+      source_length = 0.8 # square source (mm)
+      sx = (random.random() * source_length) - (source_length / 2)
+      sy = (random.random() * source_length) - (source_length / 2)
+      source_to_crystal = -8.5 * 1000 # source is 8.5 m from crystal
+
+      crystal_radius = random.gauss(4 / 1000, 0.2 /1000) # spherical crystal 4 microns radius on average
+      # pick a point in the spherical crystal by picking a random point along X, then rotating it
+      # randomly around Y and Z.
+      v = matrix.col((random.random() * crystal_radius, 0, 0))
+      v = v.rotate(matrix.col((0,1,0)), random.random() * 2.0 * math.pi)
+      v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
+
+      # construct a vector from a random point on the source to a random point in the crystal
+      real_space_beam_vector = matrix.col((sx, sy, source_to_crystal)) + v
+
+      # construct the randomized reciprocal space beam vector
+      b = real_space_beam_vector.normalize() * (1/experiment.beam.get_wavelength())
+      if params.sigma_l:
+        l_scale = random.gauss(1, params.sigma_l)
+        b *= l_scale
     else:
-      b = random_vector_cone(s0, sigma_b)
+      if params.sigma_l:
+        l_scale = random.gauss(1, params.sigma_l)
+        b = random_vector_cone(s0 * l_scale, sigma_b)
+      else:
+        b = random_vector_cone(s0, sigma_b)
     if params.sigma_cell:
       cell_scale = random.gauss(1, params.sigma_cell)
       p0 = random_vector_cone(cell_scale * Amat * hkl, sigma_m)
