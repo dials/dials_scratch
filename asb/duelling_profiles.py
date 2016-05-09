@@ -380,6 +380,14 @@ def abs_angle(a, b):
   import math
   return abs(math.atan2(math.sin(b - a), math.cos(b - a)))
 
+def get_random_axis():
+  from scitbx import matrix
+  from dials.array_family import flex
+  m = matrix.sqr(flex.random_double_r3_rotation_matrix_arvo_1992())
+  q = m.r3_rotation_matrix_as_unit_quaternion()
+  angle, axis = q.unit_quaternion_as_axis_and_angle()
+  return axis
+
 def model_reflection_rt0(reflection, experiment, params):
   import math
   import random
@@ -542,11 +550,8 @@ def model_reflection_rt0(reflection, experiment, params):
 
       if params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'sphere':
         crystal_radius = params.real_space_beam_simulation.illuminated_crystal_volume.sphere.radius
-        # pick a point in the spherical crystal by picking a random point along X, then rotating it
-        # randomly around Y and Z.
-        v = matrix.col((random.random() * crystal_radius, 0, 0))
-        v = v.rotate(matrix.col((0,1,0)), random.random() * 2.0 * math.pi)
-        v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
+        v = get_random_axis() * crystal_radius
+
       elif params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'rectangular_parallelepiped':
         width = params.real_space_beam_simulation.illuminated_crystal_volume.rectangular_parallelepiped.width
         depth = params.real_space_beam_simulation.illuminated_crystal_volume.rectangular_parallelepiped.depth
