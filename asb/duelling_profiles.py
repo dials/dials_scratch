@@ -38,10 +38,23 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   whole_panel = False
     .type = bool
-  interference_weighting = False
-    .type = bool
-  real_space_beam_simulation = False
-    .type = bool
+  interference_weighting {
+    enable = False
+      .type = bool
+    ncell = None
+      .type = float
+    domain_size_angstroms = 573
+      .type = float
+  }
+  real_space_beam_simulation {
+    enable = False
+      .type = bool
+    source_shape = *square circle
+      .type = choice
+    source_dimension = 0.8
+      .type = float
+      .help = Radius of circle or side length of square (in mm)
+  }
 """, process_includes=True)
 
 help_message = '''
@@ -451,25 +464,36 @@ def model_reflection_rt0(reflection, experiment, params):
   if params.whole_panel:
     whole_panel = flex.double(flex.grid(p.get_image_size()[1], p.get_image_size()[0]))
     all_pix = flex.vec3_double()
+
   patch = flex.double(dy * dx, 0)
   patch.reshape(flex.grid(dy, dx))
 
   bbox = reflection['bbox']
 
-  if params.interference_weighting:
+  if params.interference_weighting.enable:
     # Kroon-Batenburg 2015 equation 7
     uc = experiment.crystal.get_unit_cell()
     lmbda = experiment.beam.get_wavelength()
 
-    if False:#hasattr(experiment.crystal, "_ML_domain_size_ang"):
-      # assume spherical crystallite
-      diameter = experiment.crystal._ML_domain_size_ang
-      volume = (math.pi*4/3)*((diameter/2)**3)
-      ncell = volume / uc.volume()
+    if params.interference_weighting.ncell:
+      if params.interference_weighting.domain_size_angstroms:
+        raise RuntimeError, "Only specify ncell or domain_size_angstroms, not both"
+      ncell = params.interference_weighting.ncell
     else:
-      ncell = 25
-    if params.debug:
-      print "ncell: %f"%ncell
+      if params.interference_weighting.domain_size_angstroms:
+        diameter = params.interference_weighting.domain_size_angstroms
+      elif hasattr(experiment.crystal, "_ML_domain_size_ang"):
+        diameter = experiment.crystal._ML_domain_size_ang
+      else:
+        diameter = None
+      if diameter is None:
+        ncell = 25
+      else:
+        # assume spherical crystallite
+        volume = (math.pi*4/3)*((diameter/2)**3)
+        ncell = volume / uc.volume()
+
+    print "ncell: %.1f"%ncell
 
     d = uc.d(hkl)
     theta = uc.two_theta(hkl, lmbda)/2
@@ -481,11 +505,19 @@ def model_reflection_rt0(reflection, experiment, params):
   if params.show:
     print '%d rays' % (int(round(i0 * scale)))
   for i in range(int(round(i0 * scale))):
-    if params.real_space_beam_simulation:
+    if params.real_space_beam_simulation.enable:
       # all values in mm
-      source_length = 0.8 # square source (mm)
-      sx = (random.random() * source_length) - (source_length / 2)
-      sy = (random.random() * source_length) - (source_length / 2)
+      if params.real_space_beam_simulation.source_shape == 'square':
+        source_length = params.real_space_beam_simulation.source_dimension
+        sx = (random.random() * source_length) - (source_length / 2)
+        sy = (random.random() * source_length) - (source_length / 2)
+      elif params.real_space_beam_simulation.source_shape == 'circle':
+        source_radius = params.real_space_beam_simulation.source_dimension
+        v = matrix.col((random.random() * source_radius, 0, 0))
+        v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
+        sx = v[0]
+        sy = v[1]
+
       source_to_crystal = -8.5 * 1000 # source is 8.5 m from crystal
 
       crystal_radius = random.gauss(4 / 1000, 0.2 /1000) # spherical crystal 4 microns radius on average
@@ -522,7 +554,7 @@ def model_reflection_rt0(reflection, experiment, params):
                         random.gauss(0, ns)))
       p0 += dp0
     if still:
-      result = predict_still_delpsi_and_s1(p0, experiment, b, s1_rotated = not params.interference_weighting)
+      result = predict_still_delpsi_and_s1(p0, experiment, b, s1_rotated = not params.interference_weighting.enable)
       if result is None:
         # scattered ray ended up in blind region
         continue
@@ -536,7 +568,7 @@ def model_reflection_rt0(reflection, experiment, params):
       p = p0.rotate(a, r)
       s1 = p + b
 
-    if params.interference_weighting:
+    if params.interference_weighting.enable:
       # Rest of Kroon-Batenburg eqn 7
       iw = iw_term1 * (math.sin(iw_s*iw_B*epsilon)**2) / ((iw_B*epsilon)**2)
     else:
@@ -624,6 +656,9 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.scatter([centroid_x],[centroid_y], c='purple')
 
     plt.legend(['Obs','Cal','BC','CM'])
+
+    plt.plot([centroid_x, p.get_beam_centre(s0)[0]],
+             [centroid_y, p.get_beam_centre(s0)[1]], 'k-', lw=2)
 
     plt.show()
 
