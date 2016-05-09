@@ -596,6 +596,7 @@ def model_reflection_rt0(reflection, experiment, params):
       rotation = random.gauss(0, sigma_m)
       R = axis.axis_and_angle_as_r3_rotation_matrix(rotation)
       if params.sigma_cell:
+        cell_scale = random.gauss(1, params.sigma_cell)
         p0 = cell_scale * R * Amat * hkl
       else:
         p0 = R * Amat * hkl
