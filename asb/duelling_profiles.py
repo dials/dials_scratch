@@ -38,6 +38,13 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   whole_panel = False
     .type = bool
+  sigma_m_rotates_relp = True
+    .type = bool
+    .help = If true, sigma_m is a conical distribution of relp vectors, I.E. a cloud of vectors \
+            centered on the vector from the origin of reciprocal space to the reciprocal lattice \
+            point. If false, rotate the crystal itself around random axes when applying rotational \
+            mosaicity, using sigma_m as a standard deviation for small rotation angles around \
+            these random axes.
   interference_weighting {
     enable = False
       .type = bool
@@ -578,11 +585,20 @@ def model_reflection_rt0(reflection, experiment, params):
         b = random_vector_cone(s0 * l_scale, sigma_b)
       else:
         b = random_vector_cone(s0, sigma_b)
-    if params.sigma_cell:
-      cell_scale = random.gauss(1, params.sigma_cell)
-      p0 = random_vector_cone(cell_scale * Amat * hkl, sigma_m)
+    if params.sigma_m_rotates_relp:
+      if params.sigma_cell:
+        cell_scale = random.gauss(1, params.sigma_cell)
+        p0 = random_vector_cone(cell_scale * Amat * hkl, sigma_m)
+      else:
+        p0 = random_vector_cone(Amat * hkl, sigma_m)
     else:
-      p0 = random_vector_cone(Amat * hkl, sigma_m)
+      axis = get_random_axis()
+      rotation = random.gauss(0, sigma_m)
+      R = axis.axis_and_angle_as_r3_rotation_matrix(rotation)
+      if params.sigma_cell:
+        p0 = cell_scale * R * Amat * hkl
+      else:
+        p0 = R * Amat * hkl
     if params.rs_node_size > 0:
       ns = params.rs_node_size
       import random
