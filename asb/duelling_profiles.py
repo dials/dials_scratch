@@ -53,7 +53,27 @@ phil_scope = iotbx.phil.parse("""\
       .type = choice
     source_dimension = 0.8
       .type = float
-      .help = Radius of circle or side length of square (in mm)
+      .help = radius of circle or side length of square (in mm)
+    source_to_crystal = 8500
+      .type = float
+      .help = Distance from source to crystal (in mm)
+    illuminated_crystal_volume {
+      shape = sphere *rectangular_parallelepiped
+        .type = choice
+      sphere {
+        radius = .005
+          .type = float
+          .help = (in mm)
+      }
+      rectangular_parallelepiped {
+        width = .0013
+          .type = float
+          .help = dimension along X and Y axes (in mm)
+        depth = .01
+          .type = float
+          .help = dimension along Z axis (in mm)
+      }
+    }
   }
 """, process_includes=True)
 
@@ -517,17 +537,29 @@ def model_reflection_rt0(reflection, experiment, params):
         v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
         sx = v[0]
         sy = v[1]
+      else:
+        raise RuntimeError, "Invalid choice for source_shape"
 
-      source_to_crystal = -8.5 * 1000 # source is 8.5 m from crystal
+      if params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'sphere':
+        crystal_radius = params.real_space_beam_simulation.illuminated_crystal_volume.sphere.radius
+        # pick a point in the spherical crystal by picking a random point along X, then rotating it
+        # randomly around Y and Z.
+        v = matrix.col((random.random() * crystal_radius, 0, 0))
+        v = v.rotate(matrix.col((0,1,0)), random.random() * 2.0 * math.pi)
+        v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
+      elif params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'rectangular_parallelepiped':
+        width = params.real_space_beam_simulation.illuminated_crystal_volume.rectangular_parallelepiped.width
+        depth = params.real_space_beam_simulation.illuminated_crystal_volume.rectangular_parallelepiped.depth
 
-      crystal_radius = random.gauss(4 / 1000, 0.2 /1000) # spherical crystal 4 microns radius on average
-      # pick a point in the spherical crystal by picking a random point along X, then rotating it
-      # randomly around Y and Z.
-      v = matrix.col((random.random() * crystal_radius, 0, 0))
-      v = v.rotate(matrix.col((0,1,0)), random.random() * 2.0 * math.pi)
-      v = v.rotate(matrix.col((0,0,1)), random.random() * 2.0 * math.pi)
+        cx = (random.random() * width) - (width / 2)
+        cy = (random.random() * width) - (width / 2)
+        cz = (random.random() * depth) - (depth / 2)
+        v = matrix.col((cx, cy, cz))
+      else:
+        raise RuntimeError, "Invalid choice for illuminated_crystal_volume.shape"
 
-      # construct a vector from a random point on the source to a random point in the crystal
+      # construct a vector from a random point on the source to a random point in the crystal (note the minus sign!)
+      source_to_crystal = -params.real_space_beam_simulation.source_to_crystal
       real_space_beam_vector = matrix.col((sx, sy, source_to_crystal)) + v
 
       # construct the randomized reciprocal space beam vector
