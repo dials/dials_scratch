@@ -686,7 +686,23 @@ def model_reflection_rt0(reflection, experiment, params):
   print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
 
   import numpy as np
-  mm_plot, xedges, yedges = np.histogram2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100)
+  maxx = flex.max(all_pix.parts()[0])
+  maxy = flex.max(all_pix.parts()[1])
+  minx = flex.min(all_pix.parts()[0])
+  miny = flex.min(all_pix.parts()[1])
+  dx = (maxx-minx)/2
+  dy = (maxy-miny)/2
+  medx = minx + (dx)
+  medy = miny + (dy)
+  if maxx-minx > maxy-miny:
+    miny = medy-dx
+    maxy = medy+dx
+  else:
+    minx = medx-dy
+    maxx = medx+dy
+  limits = [[minx, maxx], [miny, maxy]]
+
+  mm_plot, xedges, yedges = np.histogram2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100, range=limits)
   xcenters = [xedges[i]+((xedges[i+1]-xedges[i])/2) for i in xrange(len(xedges)-1)]
   ycenters = [yedges[i]+((yedges[i+1]-yedges[i])/2) for i in xrange(len(yedges)-1)]
   mm_centroid_x = np.average(xcenters,weights=mm_plot.sum(1))
@@ -720,8 +736,8 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.legend(['','Obs','Cal','BC','CM'])
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    results = plt.hist2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100)
+    ax = fig.add_subplot(111)
+    results = plt.hist2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100, range=limits)
     plt.colorbar()
     plt.scatter([reflection['xyzobs.mm.value'][0]],[reflection['xyzobs.mm.value'][1]], c='green')
     plt.scatter([reflection['xyzcal.mm'][0]],[reflection['xyzcal.mm'][1]], c='red')
