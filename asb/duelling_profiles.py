@@ -503,7 +503,8 @@ def model_reflection_rt0(reflection, experiment, params):
 
   if params.whole_panel:
     whole_panel = flex.double(flex.grid(p.get_image_size()[1], p.get_image_size()[0]))
-    all_pix = flex.vec3_double()
+  all_pix = flex.vec2_double()
+  all_iw = flex.double()
 
   patch = flex.double(dy * dx, 0)
   patch.reshape(flex.grid(dy, dx))
@@ -648,7 +649,8 @@ def model_reflection_rt0(reflection, experiment, params):
         continue
       panel = reflection['panel']
 
-      all_pix.append((xy[0],xy[1],iw))
+      all_pix.append(xy)
+      all_iw.append(iw)
 
       # FIXME DO NOT USE THIS FUNCTION EVENTUALLY...
       x, y = detector[panel].millimeter_to_pixel(xy)
@@ -682,8 +684,22 @@ def model_reflection_rt0(reflection, experiment, params):
 
   cc = profile_correlation(data, patch)
   print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
+
+  import numpy as np
+  mm_plot, xedges, yedges = np.histogram2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100)
+  xcenters = [xedges[i]+((xedges[i+1]-xedges[i])/2) for i in xrange(len(xedges)-1)]
+  ycenters = [yedges[i]+((yedges[i+1]-yedges[i])/2) for i in xrange(len(yedges)-1)]
+  mm_centroid_x = np.average(xcenters,weights=mm_plot.sum(1))
+  mm_centroid_y = np.average(ycenters,weights=mm_plot.sum(0))
+  reflection['xyzsim.mm'] = (mm_centroid_x, mm_centroid_y, 0.0)
+
+  print "obs:", reflection['xyzobs.mm.value']
+  print "cal:", reflection['xyzcal.mm']
+  print "sim:", reflection['xyzsim.mm']
+  print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
+  print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
+
   if params.plots and params.whole_panel:
-    print "BBOX", bbox
     from matplotlib import pyplot as plt
     from matplotlib import patches as patches
     import numpy as np
@@ -704,8 +720,8 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.legend(['','Obs','Cal','BC','CM'])
 
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    results = plt.hist2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_pix.parts()[2], bins=100)
+    ax = fig.add_subplot(111, aspect='equal')
+    results = plt.hist2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100)
     plt.colorbar()
     plt.scatter([reflection['xyzobs.mm.value'][0]],[reflection['xyzobs.mm.value'][1]], c='green')
     plt.scatter([reflection['xyzcal.mm'][0]],[reflection['xyzcal.mm'][1]], c='red')
@@ -758,9 +774,9 @@ def main(reflections, experiment, params):
   if params.num > len(reflections):
     raise RuntimeError, 'you asked for too many reflections sorry'
 
+  from dials.array_family import flex
   if params.seed > 0 and params.num > 0:
     import random
-    from dials.array_family import flex
     random.seed(params.seed)
     selected = flex.bool(len(reflections), False)
     while len(selected.iselection()) < params.num:
@@ -772,6 +788,9 @@ def main(reflections, experiment, params):
   print 'Removed %d reflections, %d remain' % (nref0 - nref1, nref1)
 
   results = []
+  simmed = reflections.copy()[0:0]
+  simmed['dqe'] = flex.double()
+  simmed['xyzsim.mm'] = flex.vec3_double()
 
   for j, reflection in enumerate(reflections):
     result = None
@@ -789,7 +808,11 @@ def main(reflections, experiment, params):
       result = globals()['model_reflection_%s' % method](reflection, experiment, params)
     if not result is None:
       results.append(result)
+      simmed.append(reflection)
 
+  import math
+  print "RMSD obs - cal:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzcal.mm']).sum_sq()/len(simmed)) * 1000
+  print "RMSD obs - sim:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()/len(simmed)) * 1000
   return results
 
 def run(args):
