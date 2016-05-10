@@ -38,6 +38,9 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   whole_panel = False
     .type = bool
+  nrays = None
+    .type = int
+    .help = If None, use reflection intensity for nrays.
   sigma_m_rotates_relp = True
     .type = bool
     .help = If true, sigma_m is a conical distribution of relp vectors, I.E. a cloud of vectors \
@@ -45,6 +48,8 @@ phil_scope = iotbx.phil.parse("""\
             point. If false, rotate the crystal itself around random axes when applying rotational \
             mosaicity, using sigma_m as a standard deviation for small rotation angles around \
             these random axes.
+  plots = False
+    .type=bool
   interference_weighting {
     enable = False
       .type = bool
@@ -537,9 +542,13 @@ def model_reflection_rt0(reflection, experiment, params):
     iw_term1 = (1/(2*(math.sin(theta)**2))) * (1/iw_s)
 
   scale = params.scale
+  if params.nrays is None:
+    nrays = int(round(i0 * scale))
+  else:
+    nrays = params.nrays
   if params.show:
-    print '%d rays' % (int(round(i0 * scale)))
-  for i in range(int(round(i0 * scale))):
+    print '%d rays' % (nrays)
+  for i in range(nrays):
     if params.real_space_beam_simulation.enable:
       # all values in mm
       if params.real_space_beam_simulation.source_shape == 'square':
@@ -673,7 +682,7 @@ def model_reflection_rt0(reflection, experiment, params):
 
   cc = profile_correlation(data, patch)
   print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
-  if params.whole_panel:
+  if params.plots and params.whole_panel:
     print "BBOX", bbox
     from matplotlib import pyplot as plt
     from matplotlib import patches as patches
