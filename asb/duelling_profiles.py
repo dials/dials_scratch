@@ -396,9 +396,16 @@ def get_random_axis():
   from scitbx import matrix
   from dials.array_family import flex
   m = matrix.sqr(flex.random_double_r3_rotation_matrix_arvo_1992())
-  q = m.r3_rotation_matrix_as_unit_quaternion()
-  angle, axis = q.unit_quaternion_as_axis_and_angle()
-  return axis
+
+  # Note: going through a unit quaternion will result in a non-uniform distribution,
+  # with a bias twoards vectors whose x, y and z components are positive.
+  #q = m.r3_rotation_matrix_as_unit_quaternion()
+  #angle, axis = q.unit_quaternion_as_axis_and_angle()
+  #return axis
+
+  # This approach results in a uniform distribution.
+  axis = matrix.col((1,0,0))
+  return m * axis
 
 def model_reflection_rt0(reflection, experiment, params):
   import math
@@ -487,12 +494,16 @@ def model_reflection_rt0(reflection, experiment, params):
         print '%5d' % data[(j, i)],
       print
 
-  if params.sigma_m > 0:
+  if params.sigma_m is None:
+    sigma_m = 0
+  elif params.sigma_m > 0:
     sigma_m = params.sigma_m * d2r
   else:
     sigma_m = experiment.profile.sigma_m() * d2r
 
-  if params.sigma_b > 0:
+  if params.sigma_b is None:
+    sigma_b = 0
+  elif params.sigma_b > 0:
     sigma_b = params.sigma_b * d2r
   else:
     sigma_b = experiment.profile.sigma_b() * d2r
