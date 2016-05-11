@@ -448,7 +448,7 @@ def model_reflection_rt0(reflection, experiment, params):
   n = matrix.col(p.get_normal())
   s1 = matrix.col(reflection['s1'])
   t = p.get_thickness() / math.cos(s1.angle(n))
-  if params.debug:
+  if params.debug and 'dqe' in reflection:
     print 'old dqe = %f' % reflection['dqe']
   reflection['dqe'] = (1.0 - math.exp(-p.get_mu() * t * 0.1))
   if params.debug:
@@ -534,7 +534,8 @@ def model_reflection_rt0(reflection, experiment, params):
         volume = (math.pi*4/3)*((diameter/2)**3)
         ncell = volume / uc.volume()
 
-    print "ncell: %.1f"%ncell
+    if params.debug:
+      print "ncell: %.1f"%ncell
 
     d = uc.d(hkl)
     theta = uc.two_theta(hkl, lmbda)/2
@@ -567,7 +568,7 @@ def model_reflection_rt0(reflection, experiment, params):
 
       if params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'sphere':
         crystal_radius = params.real_space_beam_simulation.illuminated_crystal_volume.sphere.radius
-        v = get_random_axis() * crystal_radius
+        v = get_random_axis() * crystal_radius * random.random()
 
       elif params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'rectangular_parallelepiped':
         width = params.real_space_beam_simulation.illuminated_crystal_volume.rectangular_parallelepiped.width
@@ -674,6 +675,7 @@ def model_reflection_rt0(reflection, experiment, params):
       # the detector)
       patch[(y, x)] += 1.0 * iw / scale
 
+  cc = profile_correlation(data, patch)
   if params.show:
     print 'Simulated reflection (flattened in Z):'
     print
@@ -681,9 +683,7 @@ def model_reflection_rt0(reflection, experiment, params):
       for i in range(dx):
         print '%5d' % int(patch[(j, i)]),
       print
-
-  cc = profile_correlation(data, patch)
-  print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
+    print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
 
   import numpy as np
   maxx = flex.max(all_pix.parts()[0])
@@ -709,11 +709,12 @@ def model_reflection_rt0(reflection, experiment, params):
   mm_centroid_y = np.average(ycenters,weights=mm_plot.sum(0))
   reflection['xyzsim.mm'] = (mm_centroid_x, mm_centroid_y, 0.0)
 
-  print "obs:", reflection['xyzobs.mm.value']
-  print "cal:", reflection['xyzcal.mm']
-  print "sim:", reflection['xyzsim.mm']
-  print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
-  print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
+  if params.debug:
+    print "obs:", reflection['xyzobs.mm.value']
+    print "cal:", reflection['xyzcal.mm']
+    print "sim:", reflection['xyzsim.mm']
+    print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
+    print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
 
   if params.plots and params.whole_panel:
     from matplotlib import pyplot as plt
@@ -757,7 +758,7 @@ def model_reflection_rt0(reflection, experiment, params):
 
     plt.show()
 
-  return cc
+  return cc, reflection
 
 def model_reflection_flat(reflection, experiment, params):
   pixels = reflection['shoebox']
@@ -823,12 +824,14 @@ def main(reflections, experiment, params):
       print j
       result = globals()['model_reflection_%s' % method](reflection, experiment, params)
     if not result is None:
-      results.append(result)
-      simmed.append(reflection)
+      results.append(result[0])
+      simmed.append(result[1])
 
   import math
-  print "RMSD obs - cal:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzcal.mm']).sum_sq()/len(simmed)) * 1000
-  print "RMSD obs - sim:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()/len(simmed)) * 1000
+  if params.debug:
+    print "RMSD obs - cal:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzcal.mm']).sum_sq()/len(simmed)) * 1000
+    print "RMSD obs - sim:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()/len(simmed)) * 1000
+    print "Functional:", (simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()
   return results
 
 def run(args):
