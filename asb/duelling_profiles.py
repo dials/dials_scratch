@@ -3,7 +3,7 @@ from __future__ import division
 import iotbx.phil
 
 phil_scope = iotbx.phil.parse("""\
-  method = *example rt0 flat predict
+  method = example *rt0 flat predict
     .type = choice
   id = None
     .type = int
@@ -38,10 +38,10 @@ phil_scope = iotbx.phil.parse("""\
     .type = bool
   whole_panel = False
     .type = bool
-  nrays = None
+  nrays = 100000
     .type = int
     .help = If None, use reflection intensity for nrays.
-  sigma_m_rotates_relp = True
+  sigma_m_rotates_relp = False
     .type = bool
     .help = If true, sigma_m is a conical distribution of relp vectors, I.E. a cloud of vectors \
             centered on the vector from the origin of reciprocal space to the reciprocal lattice \
@@ -51,7 +51,7 @@ phil_scope = iotbx.phil.parse("""\
   plots = False
     .type=bool
   interference_weighting {
-    enable = False
+    enable = True
       .type = bool
     ncell = None
       .type = float
@@ -59,7 +59,7 @@ phil_scope = iotbx.phil.parse("""\
       .type = float
   }
   real_space_beam_simulation {
-    enable = False
+    enable = True
       .type = bool
     source_shape = *square circle
       .type = choice
@@ -727,25 +727,26 @@ def model_reflection_rt0(reflection, experiment, params):
     print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
     print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
 
-  if params.plots and params.whole_panel:
+  if params.plots:
     from matplotlib import pyplot as plt
     from matplotlib import patches as patches
     import numpy as np
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plt.imshow(whole_panel.as_numpy_array(), interpolation='none')
-    plt.colorbar()
-    ax.add_patch(patches.Rectangle((bbox[0],bbox[2]),bbox[1]-bbox[0],bbox[3]-bbox[2],fill=False))
-    plt.scatter([reflection['xyzobs.px.value'][0]],[reflection['xyzobs.px.value'][1]], c='green')
-    plt.scatter([reflection['xyzcal.px'][0]],[reflection['xyzcal.px'][1]], c='red')
-    plt.scatter([p.get_beam_centre_px(s0)[0]],[p.get_beam_centre_px(s0)[1]], c='gold')
+    if params.whole_panel:
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      plt.imshow(whole_panel.as_numpy_array(), interpolation='none')
+      plt.colorbar()
+      ax.add_patch(patches.Rectangle((bbox[0],bbox[2]),bbox[1]-bbox[0],bbox[3]-bbox[2],fill=False))
+      plt.scatter([reflection['xyzobs.px.value'][0]],[reflection['xyzobs.px.value'][1]], c='green')
+      plt.scatter([reflection['xyzcal.px'][0]],[reflection['xyzcal.px'][1]], c='red')
+      plt.scatter([p.get_beam_centre_px(s0)[0]],[p.get_beam_centre_px(s0)[1]], c='gold')
 
-    arr = whole_panel.as_numpy_array()
-    centroid_x = np.average(range(arr.shape[1]),weights=arr.sum(0))
-    centroid_y = np.average(range(arr.shape[0]),weights=arr.sum(1))
-    plt.scatter([centroid_x],[centroid_y], c='purple')
+      arr = whole_panel.as_numpy_array()
+      centroid_x = np.average(range(arr.shape[1]),weights=arr.sum(0))
+      centroid_y = np.average(range(arr.shape[0]),weights=arr.sum(1))
+      plt.scatter([centroid_x],[centroid_y], c='purple')
 
-    plt.legend(['','Obs','Cal','BC','CM'])
+      plt.legend(['','Obs','Cal','BC','CM'])
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
