@@ -419,6 +419,9 @@ def model_reflection_rt0(reflection, experiment, params):
   hkl = reflection['miller_index']
   xyz = reflection['xyzcal.px']
   xyz_mm = reflection['xyzcal.mm']
+  panel = reflection['panel']
+  p = experiment.detector[panel]
+  s0 = matrix.col(experiment.beam.get_s0())
 
   if params.debug:
     print 'hkl = %d %d %d' % hkl
@@ -428,6 +431,9 @@ def model_reflection_rt0(reflection, experiment, params):
       print 'entering'
     else:
       print 'exiting'
+
+    resolution = p.get_resolution_at_pixel(s0, reflection['xyzobs.px.value'][0:2])
+    print "Resolution = %.2f"% resolution
 
   if still:
     Amat = matrix.sqr(experiment.crystal.get_A())
@@ -451,7 +457,6 @@ def model_reflection_rt0(reflection, experiment, params):
                           abs(angles[1] - xyz_mm[2])) else angles[1]
 
   # FIX DQE for this example *** NOT PORTABLE ***
-  p = experiment.detector[reflection['panel']]
   n = matrix.col(p.get_normal())
   s1 = matrix.col(reflection['s1'])
   t = p.get_thickness() / math.cos(s1.angle(n))
@@ -471,7 +476,6 @@ def model_reflection_rt0(reflection, experiment, params):
       return
 
   s1 = reflection['s1']
-  s0 = matrix.col(experiment.beam.get_s0())
   if not still:
     a = matrix.col(experiment.goniometer.get_rotation_axis())
 
@@ -659,7 +663,6 @@ def model_reflection_rt0(reflection, experiment, params):
       except RuntimeError, e:
         # Not on the detector
         continue
-      panel = reflection['panel']
 
       all_pix.append(xy)
       all_iw.append(iw)
@@ -713,12 +716,11 @@ def model_reflection_rt0(reflection, experiment, params):
     maxx = medx+dy
   limits = [[minx, maxx], [miny, maxy]]
 
-  mm_plot, xedges, yedges = np.histogram2d(all_pix.parts()[0], all_pix.parts()[1], weights=all_iw, bins=100, range=limits)
-  xcenters = [xedges[i]+((xedges[i+1]-xedges[i])/2) for i in xrange(len(xedges)-1)]
-  ycenters = [yedges[i]+((yedges[i+1]-yedges[i])/2) for i in xrange(len(yedges)-1)]
-  mm_centroid_x = np.average(xcenters,weights=mm_plot.sum(1))
-  mm_centroid_y = np.average(ycenters,weights=mm_plot.sum(0))
-  reflection['xyzsim.mm'] = (mm_centroid_x, mm_centroid_y, 0.0)
+  reflection['xyzsim.mm'] = (flex.mean_weighted(all_pix.parts()[0], all_iw),
+                             flex.mean_weighted(all_pix.parts()[1], all_iw), 0.0)
+
+  pred = p.get_ray_intersection((matrix.col(experiment.beam.get_s0()) + (Amat*hkl)).normalize() * s0.length())
+  reflection['xyzpred.mm'] = (pred[0], pred[1], 0.0)
 
   if params.debug:
     print "obs:", reflection['xyzobs.mm.value']
@@ -726,6 +728,7 @@ def model_reflection_rt0(reflection, experiment, params):
     print "sim:", reflection['xyzsim.mm']
     print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
     print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
+    print "delta Cal - sim", (matrix.col(reflection['xyzcal.mm']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
 
   if params.plots:
     from matplotlib import pyplot as plt
@@ -746,7 +749,7 @@ def model_reflection_rt0(reflection, experiment, params):
       centroid_y = np.average(range(arr.shape[0]),weights=arr.sum(1))
       plt.scatter([centroid_x],[centroid_y], c='purple')
 
-      plt.legend(['','Obs','Cal','BC','CM'])
+      plt.legend(['','Obs','Cal','BC','Sim'])
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -754,19 +757,15 @@ def model_reflection_rt0(reflection, experiment, params):
     plt.colorbar()
     plt.scatter([reflection['xyzobs.mm.value'][0]],[reflection['xyzobs.mm.value'][1]], c='green')
     plt.scatter([reflection['xyzcal.mm'][0]],[reflection['xyzcal.mm'][1]], c='red')
+    plt.scatter([reflection['xyzpred.mm'][0]],[reflection['xyzcal.mm'][1]], c='white')
     plt.scatter([p.get_beam_centre(s0)[0]],[p.get_beam_centre(s0)[1]], c='gold')
 
-    arr, xedges, yedges, Image = results
-    xcenters = [xedges[i]+((xedges[i+1]-xedges[i])/2) for i in xrange(len(xedges)-1)]
-    ycenters = [yedges[i]+((yedges[i+1]-yedges[i])/2) for i in xrange(len(yedges)-1)]
-    centroid_x = np.average(xcenters,weights=arr.sum(1))
-    centroid_y = np.average(ycenters,weights=arr.sum(0))
-    plt.scatter([centroid_x],[centroid_y], c='purple')
+    plt.scatter([reflection['xyzsim.mm'][0]],[reflection['xyzsim.mm'][1]], c='purple')
 
-    plt.legend(['Obs','Cal','BC','CM'])
+    plt.legend(['Obs','Cal','Pred','BC','Sim'])
 
-    plt.plot([centroid_x, p.get_beam_centre(s0)[0]],
-             [centroid_y, p.get_beam_centre(s0)[1]], 'k-', lw=2)
+    plt.plot([reflection['xyzsim.mm'][0], p.get_beam_centre(s0)[0]],
+             [reflection['xyzsim.mm'][1], p.get_beam_centre(s0)[1]], 'k-', lw=2)
 
     plt.show()
 
@@ -820,6 +819,7 @@ def main(reflections, experiment, params):
   simmed = reflections.copy()[0:0]
   simmed['dqe'] = flex.double()
   simmed['xyzsim.mm'] = flex.vec3_double()
+  simmed['xyzpred.mm'] = flex.vec3_double()
 
   for j, reflection in enumerate(reflections):
     result = None
