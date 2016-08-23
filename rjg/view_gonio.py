@@ -20,10 +20,7 @@ help_message = '''
 phil_scope= libtbx.phil.parse("""
   angle = None
     .type = float
-  show_rotation_axis = True
-    .type = bool
-  show_beam_vector = True
-    .type = bool
+    .multiple = True
   z_min = None
     .type = float
   z_max = None
@@ -57,18 +54,19 @@ class render_3d(object):
     beam = self.imageset.get_beam()
     self.set_points()
 
-
   def set_goniometer_points(self):
     gonio = self.imageset.get_goniometer()
     scan = self.imageset.get_scan()
     detector = self.imageset.get_detector()
 
     angle = self.settings.angle
-    if angle is None:
-      angle = scan.get_oscillation()[0]
+    if angle:
+      assert len(angle) == len(gonio.get_angles())
+      gonio.set_angles(angle)
 
-    gonio_masker = self.imageset.reader().get_format().get_goniometer_shadow_masker()
-    points = gonio_masker.extrema_at_scan_angle(angle)
+    gonio_masker = self.imageset.reader().get_format().get_goniometer_shadow_masker(gonio)
+    points = gonio_masker.extrema_at_scan_angle(
+      gonio.get_angles()[gonio.get_scan_axis()])
 
     line_i_seqs = flex.vec2_double(((0,i) for i in range(1, points.size())))
     line_i_seqs += (self.viewer.points.size(), self.viewer.points.size())
@@ -77,7 +75,8 @@ class render_3d(object):
 
     self.viewer.points.extend(points)
 
-    shadow = gonio_masker.project_extrema(detector, angle)
+    shadow = gonio_masker.project_extrema(
+      detector, gonio.get_angles()[gonio.get_scan_axis()])
 
     for shadow_points, p in zip(shadow, detector):
       n = self.viewer.points.size()
@@ -158,6 +157,7 @@ class ExperimentViewer(wx.Frame, render_3d):
 
   def load_imageset(self, imageset):
     render_3d.load_imageset(self, imageset)
+    self.settings_panel.add_goniometer_controls(imageset.get_goniometer())
 
   def OnActive (self, event) :
     if self.IsShown() and type(self.viewer).__name__ != "_wxPyDeadObject":
@@ -214,12 +214,8 @@ class ExperimentViewer(wx.Frame, render_3d):
 
   def set_points(self):
     render_3d.set_points(self)
-    #self.settings_panel.z_min_ctrl.SetValue(self.settings.z_min)
-    #self.settings_panel.z_max_ctrl.SetValue(self.settings.z_max)
 
   def update_settings(self, *args, **kwds):
-    #detector = self.imagesets[0].get_detector()
-    #beam = self.imagesets[0].get_beam()
     self.set_points()
     self.viewer.update_settings(*args, **kwds)
 
@@ -233,83 +229,34 @@ class settings_window (wxtbx.utils.SettingsPanel) :
     self.GetParent().viewer.OnChar(event)
 
   def add_controls (self) :
+    pass
     # d_min control
+    #from wx.lib.agw import floatspin
+
+  def add_goniometer_controls(self, goniometer):
     from wx.lib.agw import floatspin
-    #self.d_min_ctrl = floatspin.FloatSpin(parent=self, increment=0.05, digits=2)
-    #self.d_min_ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
-    #if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
-      #self.d_min_ctrl.SetBackgroundColour(self.GetBackgroundColour())
-    #box = wx.BoxSizer(wx.HORIZONTAL)
-    #self.panel_sizer.Add(box)
-    #label = wx.StaticText(self,-1,"High resolution:")
-    #box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #box.Add(self.d_min_ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, self.d_min_ctrl)
 
-    #self.z_min_ctrl = floatspin.FloatSpin(parent=self, increment=1, digits=0)
-    #self.z_min_ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
-    #if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
-      #self.z_min_ctrl.SetBackgroundColour(self.GetBackgroundColour())
-    #box = wx.BoxSizer(wx.HORIZONTAL)
-    #self.panel_sizer.Add(box)
-    #label = wx.StaticText(self,-1,"Min Z")
-    #box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #box.Add(self.z_min_ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, self.z_min_ctrl)
-
-    #self.z_max_ctrl = floatspin.FloatSpin(parent=self, increment=1, digits=0)
-    #self.z_max_ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
-    #if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
-      #self.z_max_ctrl.SetBackgroundColour(self.GetBackgroundColour())
-    #box = wx.BoxSizer(wx.HORIZONTAL)
-    #self.panel_sizer.Add(box)
-    #label = wx.StaticText(self,-1,"Max Z")
-    #box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #box.Add(self.z_max_ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    #self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, self.z_max_ctrl)
-
-    self.scan_angle_ctrl = floatspin.FloatSpin(parent=self, increment=1, digits=1)
-    if self.settings.angle is not None:
-      self.scan_angle_ctrl.SetValue(self.settings.angle)
-    self.scan_angle_ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
-    if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
-      self.scan_angle_ctrl.SetBackgroundColour(self.GetBackgroundColour())
-    box = wx.BoxSizer(wx.HORIZONTAL)
-    self.panel_sizer.Add(box)
-    label = wx.StaticText(self,-1,"Scan angle")
-    box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    box.Add(self.scan_angle_ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, self.scan_angle_ctrl)
-
-    ctrls = self.create_controls(
-      setting="show_rotation_axis",
-      label="Show rotation axis")
-    self.panel_sizer.Add(ctrls[0], 0, wx.ALL, 5)
-    ctrls = self.create_controls(
-      setting="show_beam_vector",
-      label="Show beam vector")
-    self.panel_sizer.Add(ctrls[0], 0, wx.ALL, 5)
-    self.marker_size_ctrl = floatspin.FloatSpin(parent=self, increment=1, digits=0,
-                                          min_val=1)
-    self.marker_size_ctrl.SetValue(self.settings.marker_size)
-    self.marker_size_ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
-    if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
-      self.marker_size_ctrl.SetBackgroundColour(self.GetBackgroundColour())
-    box = wx.BoxSizer(wx.HORIZONTAL)
-    self.panel_sizer.Add(box)
-    label = wx.StaticText(self,-1,"Marker size:")
-    box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    box.Add(self.marker_size_ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-    self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, self.marker_size_ctrl)
-
-
+    self.rotation_angle_ctrls = []
+    names = goniometer.get_names()
+    axes = goniometer.get_axes()
+    angles = goniometer.get_angles()
+    for name, axis, angle in zip(names, axes, angles):
+      ctrl = floatspin.FloatSpin(parent=self, increment=1, digits=1)
+      ctrl.SetValue(angle)
+      ctrl.Bind(wx.EVT_SET_FOCUS, lambda evt: None)
+      if wx.VERSION >= (2,9): # XXX FloatSpin bug in 2.9.2/wxOSX_Cocoa
+        ctrl.SetBackgroundColour(self.GetBackgroundColour())
+      box = wx.BoxSizer(wx.HORIZONTAL)
+      self.panel_sizer.Add(box)
+      label = wx.StaticText(self,-1,"%s angle" %name)
+      box.Add(ctrl, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+      box.Add(label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+      self.Bind(floatspin.EVT_FLOATSPIN, self.OnChangeSettings, ctrl)
+      self.rotation_angle_ctrls.append(ctrl)
 
   def OnChangeSettings(self, event):
-    #self.settings.z_min = self.z_min_ctrl.GetValue()
-    #self.settings.z_max = self.z_max_ctrl.GetValue()
-    self.settings.angle = self.scan_angle_ctrl.GetValue()
-    #self.settings.reverse_phi = self.reverse_phi_ctrl.GetValue()
-    self.settings.marker_size = self.marker_size_ctrl.GetValue()
+    for i, ctrl in enumerate(self.rotation_angle_ctrls):
+      self.settings.angle[i] = ctrl.GetValue()
     self.parent.update_settings()
 
 
@@ -386,34 +333,18 @@ class RLVWindow(wx_viewer.show_points_and_lines_mixin):
 
   def DrawGL(self):
     wx_viewer.show_points_and_lines_mixin.DrawGL(self)
-    #self.draw_goniometer()
-    if self.rotation_axis is not None and self.settings.show_rotation_axis:
-      self.draw_axis(self.rotation_axis, "phi")
-    if self.beam_vector is not None and self.settings.show_beam_vector:
-      self.draw_axis(self.beam_vector, "beam")
-
-  #def draw_goniometer(self):
-    #if self.gonio_points_display_list is None:
-      #self.gonio_points_display_list = gltbx.gl_managed.display_list()
-      #self.gonio_points_display_list.compile()
-      #glLineWidth(1)
-      #colors = flex.vec3_double(len(self.gonio_points), (1,1,1))
-      #for point, color in zip(self.gonio_points, colors):
-        #self.draw_cross_at(point, color=color)
-      #self.gonio_points_display_list.end()
-    #self.gonio_points_display_list.call()
-
-  #def draw_detector(self):
-    #if self.detector_points_display_list is None:
-      #self.gonio_points_display_list = gltbx.gl_managed.display_list()
-      #self.gonio_points_display_list.compile()
-      #glLineWidth(1)
-      #colors = flex.vec3_double(len(self.gonio_points), (1,1,1))
-      #for point, color in zip(self.gonio_points, colors):
-        #self.draw_cross_at(point, color=color)
-      #self.gonio_points_display_list.end()
-    #self.gonio_points_display_list.call()
-    #self.draw_lines()
+    gonio = self.parent.imageset.get_goniometer()
+    beam = self.parent.imageset.get_beam()
+    from scitbx import matrix
+    R = matrix.identity(3)
+    names = reversed(gonio.get_names())
+    axes = reversed(gonio.get_axes())
+    angles = reversed(gonio.get_angles())
+    for name, axis, angle in zip(names, axes, angles):
+      axis = R * matrix.col(axis)
+      self.draw_axis(axis.elems, name)
+      R = axis.axis_and_angle_as_r3_rotation_matrix(angle, deg=True) * R
+    self.draw_axis(beam.get_s0(), "beam")
 
   def draw_axis(self, axis, label):
     if self.minimum_covering_sphere is None:
@@ -483,8 +414,12 @@ def run(args):
 
   assert len(imagesets) == 1
   imageset = imagesets[0]
-  if params.angle is None:
-    params.angle = imageset.get_scan().get_oscillation()[0]
+  gonio = imageset.get_goniometer()
+  if params.angle:
+    assert len(params.angle) == len(gonio.get_angles())
+  else:
+    for angle in gonio.get_angles():
+      params.angle.append(angle)
 
   import wxtbx.app
   a = wxtbx.app.CCTBXApp(0)
