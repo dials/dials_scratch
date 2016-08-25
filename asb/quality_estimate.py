@@ -46,14 +46,14 @@ class Script(object):
 
   def run(self):
     '''Execute the script.'''
-    import os
+    import os, math
     from cctbx.crystal import symmetry
     from scitbx.array_family import flex
     from libtbx import table_utils, easy_pickle
     from xfel.command_line.cspad_cbf_metrology import find_files
     from dxtbx.model.experiment.experiment_list import ExperimentListFactory
-    table_header = ["","","","I","IsigI","Cutoff"]
-    table_header2 = ["Bin","Resolution Range","Completeness","","",""]
+    table_header = ["","","","I","IsigI","N >","RMSD","Cutoff"]
+    table_header2 = ["Bin","Resolution Range","Completeness","","","cutoff","(um)",""]
 
     # Parse the command line
     params, options, all_paths = self.parser.parse_args(show_diff_phil=False, return_unhandled=True)
@@ -99,7 +99,12 @@ class Script(object):
           avg_i = flex.mean(bin_refls['intensity.sum.value']) if n_refls > 0 else 0
           avg_i_sigi = flex.mean(bin_refls['intensity.sum.value'] /
                                  flex.sqrt(bin_refls['intensity.sum.variance'])) if n_refls > 0 else 0
-          acceptable_resolution_bins.append(avg_i_sigi > params.sig_filter_sigma)
+          acceptable_resolution_bins.append(avg_i_sigi >= params.sig_filter_sigma)
+
+          bright_refls = bin_refls.select((bin_refls['intensity.sum.value']/flex.sqrt(bin_refls['intensity.sum.variance'])) >= params.sig_filter_sigma)
+          n_bright = len(bright_refls)
+
+          rmsd_obs = 1000*math.sqrt((bright_refls['xyzcal.mm']-bright_refls['xyzobs.mm.value']).sum_sq()/n_bright) if n_bright > 0 else 0
 
           table_row = []
           table_row.append("%3d"%i)
@@ -110,6 +115,8 @@ class Script(object):
 
           table_row.append("%.1f"%(avg_i))
           table_row.append("%.1f"%(avg_i_sigi))
+          table_row.append("%3d"%n_bright)
+          table_row.append("%.1f"%(rmsd_obs))
           table_data.append(table_row)
 
         acceptable_resolution_bins = [acceptable_resolution_bins[i] for i in xrange(len(acceptable_resolution_bins))
