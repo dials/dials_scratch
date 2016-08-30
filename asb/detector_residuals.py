@@ -335,10 +335,10 @@ class Script(DCScript):
     weights = 1/reflections['xyzobs.mm.variance'].norms()
 
     un_rmsd = math.sqrt( flex.sum(reflections['difference_vector_norms']**2)/n)
-    print "Uweighted RMSD", un_rmsd
+    print "Uweighted RMSD (mm)", un_rmsd
 
     w_rmsd = math.sqrt( flex.sum( weights*(reflections['difference_vector_norms']**2) )/flex.sum(weights))
-    print "Weighted RMSD", w_rmsd
+    print "Weighted RMSD (mm)", w_rmsd
 
     return un_rmsd
 
@@ -386,7 +386,7 @@ class Script(DCScript):
 
     n = len(reflections)
     rmsd = self.get_weighted_rmsd(reflections)
-    print "Dataset RMSD", rmsd * 1000
+    print "Dataset RMSD (microns)", rmsd * 1000
 
     if params.tag is None:
       tag = ''
@@ -425,7 +425,7 @@ class Script(DCScript):
     pg_refls_count = flex.int()
     pg_refls_count_d = {}
     table_header = ["PG id", "RMSD","Radial", "Transverse", "N refls"]
-    table_header2 = ["","","RMSD","RMSD",""]
+    table_header2 = ["","(um)","RMSD (um)","RMSD (um)",""]
     table_data = []
     table_data.append(table_header)
     table_data.append(table_header2)
@@ -781,19 +781,19 @@ class Script(DCScript):
     sigma = mode = h.slot_centers()[list(h.slots()).index(flex.max(h.slots()))]
     mean = flex.mean(data)
     median = flex.median(data)
-    print "RMSD", rmsd * 1000
-    print "Histogram mode:", mode * 1000
-    print "Overall mean:", mean * 1000
-    print "Overall median:", median * 1000
+    print "RMSD (microns)", rmsd * 1000
+    print "Histogram mode (microns):", mode * 1000
+    print "Overall mean (microns):", mean * 1000
+    print "Overall median (microns):", median * 1000
     mean2 = math.sqrt(math.pi/2)*sigma
     rmsd2 = math.sqrt(2)*sigma
-    print "Rayleigh Mean", mean2 * 1000
-    print "Rayleigh RMSD", rmsd2 * 1000
+    print "Rayleigh Mean (microns)", mean2 * 1000
+    print "Rayleigh RMSD (microns)", rmsd2 * 1000
 
     r = reflections['radial_displacements']
     t = reflections['transverse_displacements']
-    print "Overall radial RMSD", math.sqrt(flex.sum_sq(r)/len(r)) * 1000
-    print "Overall transverse RMSD", math.sqrt(flex.sum_sq(t)/len(t)) * 1000
+    print "Overall radial RMSD (microns)", math.sqrt(flex.sum_sq(r)/len(r)) * 1000
+    print "Overall transverse RMSD (microns)", math.sqrt(flex.sum_sq(t)/len(t)) * 1000
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -814,6 +814,8 @@ class Script(DCScript):
     ax.plot((rmsd2, rmsd2), (0, flex.max(h.slots())), 'b--')
 
     ax.legend([r"$\Delta$XY", "MeanObs", "MeanRayl", "Mode", "RMSDObs", "RMSDRayl"])
+    ax.set_xlabel("(mm)")
+    ax.set_ylabel("Count")
 
   def image_rmsd_histogram(self, reflections, tag):
     data = flex.double()
@@ -829,10 +831,14 @@ class Script(DCScript):
     ax = fig.add_subplot('111')
     ax.plot(h.slot_centers().as_numpy_array(), h.slots().as_numpy_array(), '-')
     plt.title("%sHistogram of image RMSDs"%tag)
+    ax.set_xlabel("RMSD (microns)")
+    ax.set_ylabel("Count")
 
     fig = plt.figure()
+    ax = fig.add_subplot('111')
     plt.boxplot(data, vert=False)
     plt.title("%sBoxplot of image RMSDs"%tag)
+    ax.set_xlabel("RMSD (microns)")
 
   def detector_plot_refls(self, detector, reflections, title, show=True, plot_callback=None, colorbar_units=None):
     """
