@@ -17,6 +17,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.colors import Normalize
 from matplotlib import cm
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 from libtbx.phil import parse
 import math
@@ -55,7 +56,13 @@ residuals {
   exclude_outliers=True
     .type = bool
     .help = Whether to exclude outliers while computing statistics
+  i_sigi_cutoff=None
+    .type = float
+    .help = Minimum I/sigI filter for RMSD plots
 }
+save_pdf = False
+  .type = bool
+  .help = Whether to show the plots or save as a multi-page pdf
 include scope xfel.command_line.cspad_detector_congruence.phil_scope
 ''', process_includes=True)
 
@@ -115,10 +122,18 @@ class Script(DCScript):
 
     return sm, color_vals
 
-  def plot_obs_colored_by_deltas(self, reflections, panel = None, ax = None, bounds = None):
-    assert panel is not None and ax is not None and bounds is not None
+  def plot_obs_colored_by_radial_deltas(self, reflections, panel = None, ax = None, bounds = None):
+    return self.plot_obs_colored_by_data(flex.abs(reflections['radial_displacements']), reflections, panel, ax, bounds)
 
+  def plot_obs_colored_by_transverse_deltas(self, reflections, panel = None, ax = None, bounds = None):
+    return self.plot_obs_colored_by_data(flex.abs(reflections['transverse_displacements']), reflections, panel, ax, bounds)
+
+  def plot_obs_colored_by_deltas(self, reflections, panel = None, ax = None, bounds = None):
     data = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
+    return self.plot_obs_colored_by_data(data, reflections, panel, ax, bounds)
+
+  def plot_obs_colored_by_data(self, data, reflections, panel = None, ax = None, bounds = None):
+    assert panel is not None and ax is not None and bounds is not None
     norm, cmap, color_vals, sm = self.get_normalized_colors(data)
     mm_panel_coords = flex.vec2_double(reflections['xyzobs.mm.value'].parts()[0], reflections['xyzobs.mm.value'].parts()[1])
     lab_coords = panel.get_lab_coord(mm_panel_coords)
@@ -313,6 +328,8 @@ class Script(DCScript):
 
   def get_weighted_rmsd(self, reflections):
     n = len(reflections)
+    if n == 0:
+      return 0
     #weights = 1/reflections['intensity.sum.variance']
     reflections = reflections.select(reflections['xyzobs.mm.variance'].norms() > 0)
     weights = 1/reflections['xyzobs.mm.variance'].norms()
@@ -359,6 +376,11 @@ class Script(DCScript):
       reflections = reflections.select(reflections.get_flags(reflections.flags.used_in_refinement))
       print "N reflections used in refinement:", len(reflections)
       print "Reporting only on those reflections used in refinement"
+
+    if self.params.residuals.i_sigi_cutoff is not None:
+      sel = (reflections['intensity.sum.value']/flex.sqrt(reflections['intensity.sum.variance'])) >= self.params.residuals.i_sigi_cutoff
+      reflections = reflections.select(sel)
+      print "After filtering by I/sigi cutoff of %f, there are %d reflections left"%(self.params.residuals.i_sigi_cutoff,len(reflections))
 
     reflections['difference_vector_norms'] = (reflections['xyzcal.mm']-reflections['xyzobs.mm.value']).norms()
 
@@ -481,7 +503,10 @@ class Script(DCScript):
       bc = col(pg.get_beam_centre_lab(s0))
       ori = get_center(pg)
       pg_bc_dists[pg.get_name()] = (ori-bc).length()
-      mean_delta_two_theta[pg.get_name()] = flex.mean(pg_deltwotheta)
+      if len(pg_deltwotheta) > 0:
+        mean_delta_two_theta[pg.get_name()] = flex.mean(pg_deltwotheta)
+      else:
+        mean_delta_two_theta[pg.get_name()] = 0
 
       if pg_refls == 0:
         pg_rmsd = pg_r_rmsd = pg_t_rmsd = 0
@@ -546,13 +571,15 @@ class Script(DCScript):
       self.image_rmsd_histogram(reflections, tag)
 
       # Plots! these are plots with callbacks to draw on individual panels
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sDifference vector norms (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
-      self.detector_plot_refls(detector, reflections, reflections['difference_vector_norms'], r'%sDistance vector norms'%tag, show=False, plot_callback=self.plot_difference_vector_norms_histograms)
+      self.detector_plot_refls(detector, reflections, '%sOverall positional displacements (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltas)
+      self.detector_plot_refls(detector, reflections, '%sRadial positional displacements (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_radial_deltas)
+      self.detector_plot_refls(detector, reflections, '%sTransverse positional displacements (mm)'%tag, show=False, plot_callback=self.plot_obs_colored_by_transverse_deltas)
+      self.detector_plot_refls(detector, reflections, r'%s$\Delta\Psi$'%tag, show=False, plot_callback=self.plot_obs_colored_by_deltapsi, colorbar_units=r"$\circ$")
+      self.detector_plot_refls(detector, reflections, r'%s$\Delta$XY*%s'%(tag, self.delta_scalar), show=False, plot_callback=self.plot_deltas)
+      self.detector_plot_refls(detector, reflections, '%sSP Manual CDF'%tag, show=False, plot_callback=self.plot_cdf_manually)
+      self.detector_plot_refls(detector, reflections, r'%s$\Delta$XY Histograms'%tag, show=False, plot_callback=self.plot_histograms)
+      self.detector_plot_refls(detector, reflections, r'%sRadial displacements vs. $\Delta\Psi$, colored by $\Delta$XY'%tag, show=False, plot_callback=self.plot_radial_displacements_vs_deltapsi)
+      self.detector_plot_refls(detector, reflections, r'%sDistance vector norms'%tag, show=False, plot_callback=self.plot_difference_vector_norms_histograms)
 
       # Plot intensity vs. radial_displacement
       fig = plt.figure()
@@ -569,17 +596,29 @@ class Script(DCScript):
       ax.set_label("Counts")
 
       # Plot delta 2theta vs. deltapsi
-      a = reflections['delpsical.rad']*180/math.pi
-      b = reflections['two_theta_obs'] - reflections['two_theta_cal']
-      fig = plt.figure()
-      sel = (a > -0.2) & (a < 0.2) & (b > -0.05) & (b < 0.05)
-      plt.hist2d(a, b, bins=50)
-      plt.hist2d(a.select(sel), b.select(sel), bins=50)
-      cb = plt.colorbar()
-      cb.set_label("N reflections")
-      plt.title(r'%s$\Delta2\Theta$ vs. $\Delta\Psi$. Showing %d of %d refls'%(tag,len(a.select(sel)),len(a)))
-      plt.xlabel(r'$\Delta\Psi \circ$')
-      plt.ylabel(r'$\Delta2\Theta \circ$')
+      n_bins = 10
+      bin_size = len(reflections)//n_bins
+      bin_low = []
+      bin_high = []
+      data = flex.sorted(reflections['two_theta_obs'])
+      for i in xrange(n_bins):
+        bin_low = data[i*bin_size]
+        if (i+1)*bin_size >= len(reflections):
+          bin_high = data[-1]
+        else:
+          bin_high = data[(i+1)*bin_size]
+        refls = reflections.select((reflections['two_theta_obs'] >= bin_low) &
+                                   (reflections['two_theta_obs'] <= bin_high))
+        a = refls['delpsical.rad']*180/math.pi
+        b = refls['two_theta_obs'] - refls['two_theta_cal']
+        fig = plt.figure()
+        sel = (a > -0.2) & (a < 0.2) & (b > -0.05) & (b < 0.05)
+        plt.hist2d(a.select(sel), b.select(sel), bins=50, range = [[-0.2, 0.2], [-0.05, 0.05]])
+        cb = plt.colorbar()
+        cb.set_label("N reflections")
+        plt.title(r'%sBin %d (%.02f, %.02f 2$\Theta$) $\Delta2\Theta$ vs. $\Delta\Psi$. Showing %d of %d refls'%(tag,i,bin_low,bin_high,len(a.select(sel)),len(a)))
+        plt.xlabel(r'$\Delta\Psi \circ$')
+        plt.ylabel(r'$\Delta2\Theta \circ$')
 
       # Plot delta 2theta vs. 2theta
       a = reflections['two_theta_obs']#[:71610]
@@ -606,13 +645,16 @@ class Script(DCScript):
       self.detector_plot_dict(detector, transverse_rmsds, "%s Transverse RMSDs (microns)"%t, u"%4.1f", show=False)
       self.detector_plot_dict(detector, ttdpcorr, r"%s $\Delta2\Theta$ vs. $\Delta\Psi$ CC"%t, u"%5.3f", show=False)
 
+      self.plot_unitcells(experiments)
+      self.plot_data_by_two_theta(reflections, tag)
+
       # Plot data by panel group
       sorted_values = sorted(pg_bc_dists.values())
       vdict = {}
       for k in pg_bc_dists:
         vdict[pg_bc_dists[k]] = k
-      sorted_keys = [vdict[v] for v in sorted_values]
-      x = sorted_values
+      sorted_keys = [vdict[v] for v in sorted_values if vdict[v] in rmsds]
+      x = [sorted_values[i] for i in xrange(len(sorted_values)) if pg_bc_dists.keys()[i] in rmsds]
 
       self.plot_multi_data(x,
                            [[pg_refls_count_d[k] for k in sorted_keys],
@@ -634,10 +676,13 @@ class Script(DCScript):
                             "Delta two theta (degrees)"],
                            "%sData by panelgroup"%tag)
 
-      self.plot_unitcells(experiments)
-      self.plot_data_by_two_theta(reflections, tag)
-
-      plt.show()
+      if self.params.save_pdf:
+        pp = PdfPages('residuals_%s.pdf'%(tag.strip()))
+        for i in plt.get_fignums():
+          pp.savefig(plt.figure(i))
+        pp.close()
+      else:
+        plt.show()
 
   def plot_multi_data(self, x, ygroups, xlabel, legends, ylabels, title):
     fig = plt.figure()
@@ -789,11 +834,10 @@ class Script(DCScript):
     plt.boxplot(data, vert=False)
     plt.title("%sBoxplot of image RMSDs"%tag)
 
-  def detector_plot_refls(self, detector, reflections, data, title, show=True, plot_callback=None, colorbar_units=None):
+  def detector_plot_refls(self, detector, reflections, title, show=True, plot_callback=None, colorbar_units=None):
     """
-    Use matplotlib to plot a detector, color coding panels according to data
+    Use matplotlib to plot a detector, color coding panels according to callback
     @param detector detector reference detector object
-    @param data python dictionary of panel names as keys and numbers as values
     @param title title string for plot
     @param units_str string with a formatting statment for units on each panel
     """
