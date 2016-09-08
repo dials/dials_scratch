@@ -509,7 +509,7 @@ def model_reflection_rt0(reflection, experiment, params):
     sigma_b = 0
   elif params.sigma_b > 0:
     sigma_b = params.sigma_b * d2r
-  else:
+  elif experiment.profile is not None:
     sigma_b = experiment.profile.sigma_b() * d2r
 
   r0 = xyz_mm[2]
