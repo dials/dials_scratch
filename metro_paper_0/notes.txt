@@ -1,0 +1,121 @@
+GW Metrology notes
+
+Ran P6M 60 tile metrology: with scan static refinement get these effects:
+
+Panel: 0 dFast 0.042 dSlow 0.026 dNorm 0.035
+Panel: 1 dFast 0.027 dSlow 0.023 dNorm 0.013
+Panel: 2 dFast 0.050 dSlow 0.040 dNorm 0.055
+Panel: 3 dFast 0.005 dSlow 0.020 dNorm 0.021
+Panel: 4 dFast 0.037 dSlow 0.077 dNorm 0.084
+Panel: 5 dFast 0.008 dSlow 0.045 dNorm 0.045
+Panel: 6 dFast 0.052 dSlow 0.084 dNorm 0.096
+Panel: 7 dFast 0.027 dSlow 0.026 dNorm 0.036
+Panel: 8 dFast 0.025 dSlow 0.113 dNorm 0.114
+Panel: 9 dFast 0.011 dSlow 0.155 dNorm 0.155
+Panel: 10 dFast 0.098 dSlow 0.166 dNorm 0.155
+Panel: 11 dFast 0.067 dSlow 0.043 dNorm 0.065
+Panel: 12 dFast 0.061 dSlow 0.068 dNorm 0.086
+Panel: 13 dFast 0.014 dSlow 0.007 dNorm 0.014
+Panel: 14 dFast 0.032 dSlow 0.104 dNorm 0.105
+Panel: 15 dFast 0.040 dSlow 0.019 dNorm 0.044
+Panel: 16 dFast 0.047 dSlow 0.057 dNorm 0.057
+Panel: 17 dFast 0.040 dSlow 0.164 dNorm 0.168 *** this is a big shift
+Panel: 18 dFast 0.027 dSlow 0.115 dNorm 0.116
+Panel: 19 dFast 0.063 dSlow 0.092 dNorm 0.111
+Panel: 20 dFast 0.050 dSlow 0.023 dNorm 0.046
+Panel: 21 dFast 0.067 dSlow 0.109 dNorm 0.128
+Panel: 22 dFast 0.040 dSlow 0.056 dNorm 0.068
+Panel: 23 dFast 0.027 dSlow 0.047 dNorm 0.053
+Panel: 24 dFast 0.065 dSlow 0.009 dNorm 0.066
+Panel: 25 dFast 0.032 dSlow 0.027 dNorm 0.039
+Panel: 26 dFast 0.054 dSlow 0.027 dNorm 0.059
+Panel: 27 dFast 0.025 dSlow 0.032 dNorm 0.040
+Panel: 28 dFast 0.032 dSlow 0.026 dNorm 0.029
+Panel: 29 dFast 0.049 dSlow 0.041 dNorm 0.063
+Panel: 30 dFast 0.065 dSlow 0.025 dNorm 0.063
+Panel: 31 dFast 0.052 dSlow 0.026 dNorm 0.055
+Panel: 32 dFast 0.029 dSlow 0.035 dNorm 0.046
+Panel: 33 dFast 0.052 dSlow 0.016 dNorm 0.054
+Panel: 34 dFast 0.004 dSlow 0.068 dNorm 0.068
+Panel: 35 dFast 0.047 dSlow 0.002 dNorm 0.047
+Panel: 36 dFast 0.051 dSlow 0.020 dNorm 0.048
+Panel: 37 dFast 0.060 dSlow 0.080 dNorm 0.087
+Panel: 38 dFast 0.053 dSlow 0.044 dNorm 0.031
+Panel: 39 dFast 0.011 dSlow 0.009 dNorm 0.013
+Panel: 40 dFast 0.035 dSlow 0.120 dNorm 0.125
+Panel: 41 dFast 0.044 dSlow 0.016 dNorm 0.047
+Panel: 42 dFast 0.011 dSlow 0.098 dNorm 0.099
+Panel: 43 dFast 0.058 dSlow 0.059 dNorm 0.082
+Panel: 44 dFast 0.112 dSlow 0.131 dNorm 0.121
+Panel: 45 dFast 0.018 dSlow 0.027 dNorm 0.026
+Panel: 46 dFast 0.050 dSlow 0.011 dNorm 0.050
+Panel: 47 dFast 0.014 dSlow 0.020 dNorm 0.015
+Panel: 48 dFast 0.029 dSlow 0.046 dNorm 0.049
+Panel: 49 dFast 0.013 dSlow 0.013 dNorm 0.014
+Panel: 50 dFast 0.007 dSlow 0.022 dNorm 0.023
+Panel: 51 dFast 0.023 dSlow 0.038 dNorm 0.044
+Panel: 52 dFast 0.036 dSlow 0.096 dNorm 0.091
+Panel: 53 dFast 0.020 dSlow 0.009 dNorm 0.021
+Panel: 54 dFast 0.029 dSlow 0.055 dNorm 0.049
+Panel: 55 dFast 0.057 dSlow 0.046 dNorm 0.061
+Panel: 56 dFast 0.010 dSlow 0.013 dNorm 0.009
+Panel: 57 dFast 0.035 dSlow 0.045 dNorm 0.043
+Panel: 58 dFast 0.026 dSlow 0.036 dNorm 0.044
+Panel: 59 dFast 0.062 dSlow 0.051 dNorm 0.058
+
+Is this significant? Fix Tau2, Tau3; if the RMSD values are “the same” then we can ignore this effect.
+
+With Tau2, Tau2 free
+
+RMSDs by experiment:
+-----------------------------------------------
+| Exp | Nref   | RMSD_X  | RMSD_Y  | RMSD_Z   |
+| id  |        | (px)    | (px)    | (images) |
+-----------------------------------------------
+| 0   | 419418 | 0.23098 | 0.26289 | 0.16285  |
+-----------------------------------------------
+
+
+Without
+
+RMSDs by experiment:
+----------------------------------------------
+| Exp | Nref   | RMSD_X  | RMSD_Y | RMSD_Z   |
+| id  |        | (px)    | (px)   | (images) |
+----------------------------------------------
+| 0   | 419418 | 0.23059 | 0.2623 | 0.16289  |
+----------------------------------------------
+
+I.e. effectively … no.
+
+However setting hierarchy_level=0 with the same script…
+
+RMSDs by experiment:
+-----------------------------------------------
+| Exp | Nref   | RMSD_X  | RMSD_Y  | RMSD_Z   |
+| id  |        | (px)    | (px)    | (images) |
+-----------------------------------------------
+| 0   | 419418 | 0.26933 | 0.29146 | 0.1635   |
+-----------------------------------------------
+
+I.e. the overall improvement is fairly modest anyhow, though is in the RMSD for x, y as may be expected / hoped. Try doing both of these with scan varying refinement… computationally expensive. OK this helped a lot:
+
+RMSDs by experiment:
+----------------------------------------------
+| Exp | Nref   | RMSD_X | RMSD_Y  | RMSD_Z   |
+| id  |        | (px)   | (px)    | (images) |
+----------------------------------------------
+| 0   | 419418 | 0.1588 | 0.18567 | 0.13145  |
+----------------------------------------------
+
+For reference, fixed panels i.e. hierarchy_level=0:
+
+RMSDs by experiment:
+-----------------------------------------------
+| Exp | Nref   | RMSD_X  | RMSD_Y  | RMSD_Z   |
+| id  |        | (px)    | (px)    | (images) |
+-----------------------------------------------
+| 0   | 419418 | 0.21587 | 0.22912 | 0.13174  |
+-----------------------------------------------
+
+I.e. effect of SV metrology appears substantial if not significant.
