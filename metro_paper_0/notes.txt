@@ -65,7 +65,38 @@ Panel: 59 dFast 0.062 dSlow 0.051 dNorm 0.058
 
 Is this significant? Fix Tau2, Tau3; if the RMSD values are “the same” then we can ignore this effect.
 
-With Tau2, Tau2 free
+With Tau2, Tau2 fixed in
+
+/scratch/gw56/i03-thaum-metrology/2016-09-07-respin/001-sparse-levmar-fix-tau
+
+i.e.
+
+
+refinement {
+  parameterisation {
+    detector {
+      hierarchy_level = 1
+      fix_list = Tau2 Tau3
+      smoother {
+        interval_width_degrees = 90
+      }
+    }
+    sparse = True
+  }
+  refinery {
+    engine = SimpleLBFGS LBFGScurvs GaussNewton LevMar *SparseLevMar
+  }
+  reflections {
+    outlier {
+      separate_panels = False
+      separate_blocks = False
+    }
+  }
+}
+input {
+  experiments = bravais_setting_9.json
+  reflections = indexed.pickle
+}  
 
 RMSDs by experiment:
 -----------------------------------------------
@@ -76,7 +107,32 @@ RMSDs by experiment:
 -----------------------------------------------
 
 
-Without
+Without fixing i.e. with this input
+
+refinement {
+  parameterisation {
+    detector {
+      hierarchy_level = 1
+      smoother {
+        interval_width_degrees = 90
+      }
+    }
+    sparse = True
+  }
+  refinery {
+    engine = SimpleLBFGS LBFGScurvs GaussNewton LevMar *SparseLevMar
+  }
+  reflections {
+    outlier {
+      separate_panels = False
+      separate_blocks = False
+    }
+  }
+}
+
+in
+
+/scratch/gw56/i03-thaum-metrology/2016-09-07-respin/001-sparse-levmar
 
 RMSDs by experiment:
 ----------------------------------------------
@@ -85,6 +141,9 @@ RMSDs by experiment:
 ----------------------------------------------
 | 0   | 419418 | 0.23059 | 0.2623 | 0.16289  |
 ----------------------------------------------
+
+*** FIXME rerun this job on $big_pooter without sparse levmar to get
+    the sigmas out #fail
 
 I.e. effectively … no.
 
