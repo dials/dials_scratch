@@ -14,6 +14,8 @@ libtbx.python mp_index.py path_to_images index.phil
 """
 
 phil_str = """
+  output_dir = .
+    .type = str
   mp {
     nproc = 1
       .type = int
@@ -21,6 +23,8 @@ phil_str = """
       .type = choice
   }
   image_extension = .cbf
+    .type = str
+  reference_geometry = None
     .type = str
 """
 
@@ -63,14 +67,18 @@ print "Found %d images to index"%len(images)
 def index(item):
   image, strong = item
   base = os.path.splitext(os.path.basename(image))[0]
-  datablock = base + "_datablock.json"
+  datablock = os.path.join(params.output_dir, base + "_datablock.json")
   command = "dials.import %s output.datablock=%s"%(image, datablock)
   easy_run.fully_buffered(command).raise_if_errors().show_stdout()
 
   command = "dials.index %s %s output.experiments=%s output.reflections=%s"% (
-    datablock, strong, base + "_experiments.json", base + "_reflections.pickle")
+    datablock, strong, os.path.join(params.output_dir, base + "_experiments.json"),
+                       os.path.join(params.output_dir, base + "_indexed.pickle"))
   if indexing_phil is not None:
     command += " %s"%indexing_phil
+  if params.reference_geometry is not None:
+    command += " reference_geometry=%s"%params.reference_geometry
+
   easy_run.fully_buffered(command).show_stdout()
 
 easy_mp.parallel_map(
