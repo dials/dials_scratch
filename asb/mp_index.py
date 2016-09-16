@@ -69,6 +69,8 @@ def index(item):
   base = os.path.splitext(os.path.basename(image))[0]
   datablock = os.path.join(params.output_dir, base + "_datablock.json")
   command = "dials.import %s output.datablock=%s"%(image, datablock)
+  if params.reference_geometry is not None:
+    command += " reference_geometry=%s"%params.reference_geometry
   easy_run.fully_buffered(command).raise_if_errors().show_stdout()
 
   command = "dials.index %s %s output.experiments=%s output.reflections=%s"% (
@@ -76,8 +78,6 @@ def index(item):
                        os.path.join(params.output_dir, base + "_indexed.pickle"))
   if indexing_phil is not None:
     command += " %s"%indexing_phil
-  if params.reference_geometry is not None:
-    command += " reference_geometry=%s"%params.reference_geometry
 
   easy_run.fully_buffered(command).show_stdout()
 

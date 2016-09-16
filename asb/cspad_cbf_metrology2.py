@@ -47,9 +47,10 @@ for i in xrange(8):
   if i > 0:
     prev_level = levels[i-1]
     prev_trial = "%03d"%(i-1)
-    geom_path = os.path.join(prev_trial, "t%s_refined_experiments_level%d.json"%(prev_trial, prev_level))
+    geom_path = os.path.join(cwd, "metrology", prev_trial, "t%s_refined_experiments_level%d.json"%(prev_trial, prev_level))
     command += " reference_geometry=%s"%geom_path
 
+  print command
   easy_run.fully_buffered(command).show_stdout()
 
   os.chdir("../metrology")
@@ -58,9 +59,9 @@ for i in xrange(8):
   os.chdir(trial)
 
   command = "cspad.cbf_metrology %s tag=t%s refine_to_hierarchy_level=%d rmsd_filter.enable=False panel_filter=%s %s"%(
-    os.path.join(cwd, "indexing", trial), trial, levels[i], ",".join(["%d"%p for p in steps[i]]), refinement_file)
+    os.path.join(cwd, "indexing", trial), trial, levels[i], ",".join(["%d"%p for p in steps[i]]), refinement_phil)
 
+  print command
   easy_run.fully_buffered(command).show_stdout()
 
   os.chdir(cwd)
-
