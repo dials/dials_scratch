@@ -1,0 +1,5414 @@
+[
+  {
+    "__id__": "DataBlock", 
+    "imageset": [
+      {
+        "__id__": "ImageSweep", 
+        "template": "/dls/mx-scratch/gw56/metrology_paper/i03/data0/3/thaum_3_####.cbf.gz", 
+        "mask": null, 
+        "gain": null, 
+        "pedestal": null, 
+        "beam": 0, 
+        "detector": 0, 
+        "goniometer": 0, 
+        "scan": 0
+      }
+    ], 
+    "beam": [
+      {
+        "direction": [
+          0.0, 
+          0.0, 
+          1.0
+        ], 
+        "polarization_normal": [
+          0.0, 
+          1.0, 
+          0.0
+        ], 
+        "divergence": 0.0, 
+        "polarization_fraction": 0.999, 
+        "sigma_divergence": 0.0, 
+        "wavelength": 0.97625
+      }
+    ], 
+    "detector": [
+      {
+        "hierarchy": {
+          "origin": [
+            -215.31648, 
+            208.37628, 
+            -502.19
+          ], 
+          "fast_axis": [
+            1.0, 
+            0.0, 
+            0.0
+          ], 
+          "name": "", 
+          "raw_image_offset": [
+            0, 
+            0
+          ], 
+          "slow_axis": [
+            0.0, 
+            -1.0, 
+            0.0
+          ], 
+          "material": "", 
+          "mask": [], 
+          "thickness": 0.0, 
+          "mu": 0.0, 
+          "gain": 1.0, 
+          "trusted_range": [
+            0.0, 
+            0.0
+          ], 
+          "image_size": [
+            0, 
+            0
+          ], 
+          "px_mm_strategy": {
+            "type": "SimplePxMmStrategy"
+          }, 
+          "type": "", 
+          "children": [
+            {
+              "panel": 0
+            }, 
+            {
+              "panel": 1
+            }, 
+            {
+              "panel": 2
+            }, 
+            {
+              "panel": 3
+            }, 
+            {
+              "panel": 4
+            }, 
+            {
+              "panel": 5
+            }, 
+            {
+              "panel": 6
+            }, 
+            {
+              "panel": 7
+            }, 
+            {
+              "panel": 8
+            }, 
+            {
+              "panel": 9
+            }, 
+            {
+              "panel": 10
+            }, 
+            {
+              "panel": 11
+            }, 
+            {
+              "panel": 12
+            }, 
+            {
+              "panel": 13
+            }, 
+            {
+              "panel": 14
+            }, 
+            {
+              "panel": 15
+            }, 
+            {
+              "panel": 16
+            }, 
+            {
+              "panel": 17
+            }, 
+            {
+              "panel": 18
+            }, 
+            {
+              "panel": 19
+            }, 
+            {
+              "panel": 20
+            }, 
+            {
+              "panel": 21
+            }, 
+            {
+              "panel": 22
+            }, 
+            {
+              "panel": 23
+            }, 
+            {
+              "panel": 24
+            }, 
+            {
+              "panel": 25
+            }, 
+            {
+              "panel": 26
+            }, 
+            {
+              "panel": 27
+            }, 
+            {
+              "panel": 28
+            }, 
+            {
+              "panel": 29
+            }, 
+            {
+              "panel": 30
+            }, 
+            {
+              "panel": 31
+            }, 
+            {
+              "panel": 32
+            }, 
+            {
+              "panel": 33
+            }, 
+            {
+              "panel": 34
+            }, 
+            {
+              "panel": 35
+            }, 
+            {
+              "panel": 36
+            }, 
+            {
+              "panel": 37
+            }, 
+            {
+              "panel": 38
+            }, 
+            {
+              "panel": 39
+            }, 
+            {
+              "panel": 40
+            }, 
+            {
+              "panel": 41
+            }, 
+            {
+              "panel": 42
+            }, 
+            {
+              "panel": 43
+            }, 
+            {
+              "panel": 44
+            }, 
+            {
+              "panel": 45
+            }, 
+            {
+              "panel": 46
+            }, 
+            {
+              "panel": 47
+            }, 
+            {
+              "panel": 48
+            }, 
+            {
+              "panel": 49
+            }, 
+            {
+              "panel": 50
+            }, 
+            {
+              "panel": 51
+            }, 
+            {
+              "panel": 52
+            }, 
+            {
+              "panel": 53
+            }, 
+            {
+              "panel": 54
+            }, 
+            {
+              "panel": 55
+            }, 
+            {
+              "panel": 56
+            }, 
+            {
+              "panel": 57
+            }, 
+            {
+              "panel": 58
+            }, 
+            {
+              "panel": 59
+            }
+          ], 
+          "pixel_size": [
+            0.0, 
+            0.0
+          ]
+        }, 
+        "panels": [
+          {
+            "origin": [
+              0.0, 
+              0.0, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel0", 
+            "raw_image_offset": [
+              0, 
+              0
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              0.0, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel1", 
+            "raw_image_offset": [
+              494, 
+              0
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              0.0, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel2", 
+            "raw_image_offset": [
+              988, 
+              0
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              0.0, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel3", 
+            "raw_image_offset": [
+              1482, 
+              0
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              0.0, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel4", 
+            "raw_image_offset": [
+              1976, 
+              0
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              36.464000000000006, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel5", 
+            "raw_image_offset": [
+              0, 
+              212
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              36.464000000000006, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel6", 
+            "raw_image_offset": [
+              494, 
+              212
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              36.464000000000006, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel7", 
+            "raw_image_offset": [
+              988, 
+              212
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              36.464000000000006, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel8", 
+            "raw_image_offset": [
+              1482, 
+              212
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              36.464000000000006, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel9", 
+            "raw_image_offset": [
+              1976, 
+              212
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              72.92800000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel10", 
+            "raw_image_offset": [
+              0, 
+              424
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              72.92800000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel11", 
+            "raw_image_offset": [
+              494, 
+              424
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              72.92800000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel12", 
+            "raw_image_offset": [
+              988, 
+              424
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              72.92800000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel13", 
+            "raw_image_offset": [
+              1482, 
+              424
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              72.92800000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel14", 
+            "raw_image_offset": [
+              1976, 
+              424
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              109.39200000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel15", 
+            "raw_image_offset": [
+              0, 
+              636
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              109.39200000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel16", 
+            "raw_image_offset": [
+              494, 
+              636
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              109.39200000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel17", 
+            "raw_image_offset": [
+              988, 
+              636
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              109.39200000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel18", 
+            "raw_image_offset": [
+              1482, 
+              636
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              109.39200000000001, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel19", 
+            "raw_image_offset": [
+              1976, 
+              636
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              145.85600000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel20", 
+            "raw_image_offset": [
+              0, 
+              848
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              145.85600000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel21", 
+            "raw_image_offset": [
+              494, 
+              848
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              145.85600000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel22", 
+            "raw_image_offset": [
+              988, 
+              848
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              145.85600000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel23", 
+            "raw_image_offset": [
+              1482, 
+              848
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              145.85600000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel24", 
+            "raw_image_offset": [
+              1976, 
+              848
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              182.32000000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel25", 
+            "raw_image_offset": [
+              0, 
+              1060
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              182.32000000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel26", 
+            "raw_image_offset": [
+              494, 
+              1060
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              182.32000000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel27", 
+            "raw_image_offset": [
+              988, 
+              1060
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              182.32000000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel28", 
+            "raw_image_offset": [
+              1482, 
+              1060
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              182.32000000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel29", 
+            "raw_image_offset": [
+              1976, 
+              1060
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              218.78400000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel30", 
+            "raw_image_offset": [
+              0, 
+              1272
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              218.78400000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel31", 
+            "raw_image_offset": [
+              494, 
+              1272
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              218.78400000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel32", 
+            "raw_image_offset": [
+              988, 
+              1272
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              218.78400000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel33", 
+            "raw_image_offset": [
+              1482, 
+              1272
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              218.78400000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel34", 
+            "raw_image_offset": [
+              1976, 
+              1272
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              255.24800000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel35", 
+            "raw_image_offset": [
+              0, 
+              1484
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              255.24800000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel36", 
+            "raw_image_offset": [
+              494, 
+              1484
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              255.24800000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel37", 
+            "raw_image_offset": [
+              988, 
+              1484
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              255.24800000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel38", 
+            "raw_image_offset": [
+              1482, 
+              1484
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              255.24800000000002, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel39", 
+            "raw_image_offset": [
+              1976, 
+              1484
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              291.71200000000005, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel40", 
+            "raw_image_offset": [
+              0, 
+              1696
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              291.71200000000005, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel41", 
+            "raw_image_offset": [
+              494, 
+              1696
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              291.71200000000005, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel42", 
+            "raw_image_offset": [
+              988, 
+              1696
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              291.71200000000005, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel43", 
+            "raw_image_offset": [
+              1482, 
+              1696
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              291.71200000000005, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel44", 
+            "raw_image_offset": [
+              1976, 
+              1696
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              328.17600000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel45", 
+            "raw_image_offset": [
+              0, 
+              1908
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              328.17600000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel46", 
+            "raw_image_offset": [
+              494, 
+              1908
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              328.17600000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel47", 
+            "raw_image_offset": [
+              988, 
+              1908
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              328.17600000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel48", 
+            "raw_image_offset": [
+              1482, 
+              1908
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              328.17600000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel49", 
+            "raw_image_offset": [
+              1976, 
+              1908
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              364.64000000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel50", 
+            "raw_image_offset": [
+              0, 
+              2120
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              364.64000000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel51", 
+            "raw_image_offset": [
+              494, 
+              2120
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              364.64000000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel52", 
+            "raw_image_offset": [
+              988, 
+              2120
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              364.64000000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel53", 
+            "raw_image_offset": [
+              1482, 
+              2120
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              364.64000000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel54", 
+            "raw_image_offset": [
+              1976, 
+              2120
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              0.0, 
+              401.10400000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel55", 
+            "raw_image_offset": [
+              0, 
+              2332
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              84.968, 
+              401.10400000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel56", 
+            "raw_image_offset": [
+              494, 
+              2332
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              169.936, 
+              401.10400000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel57", 
+            "raw_image_offset": [
+              988, 
+              2332
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              254.90400000000002, 
+              401.10400000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel58", 
+            "raw_image_offset": [
+              1482, 
+              2332
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }, 
+          {
+            "origin": [
+              339.872, 
+              401.10400000000004, 
+              0.0
+            ], 
+            "fast_axis": [
+              1.0, 
+              0.0, 
+              0.0
+            ], 
+            "name": "Panel59", 
+            "raw_image_offset": [
+              1976, 
+              2332
+            ], 
+            "slow_axis": [
+              0.0, 
+              1.0, 
+              0.0
+            ], 
+            "material": "Si", 
+            "mask": [], 
+            "thickness": 1.0, 
+            "mu": 3.9220322752480934, 
+            "gain": 1.0, 
+            "trusted_range": [
+              -1.0, 
+              244795.0
+            ], 
+            "image_size": [
+              487, 
+              195
+            ], 
+            "px_mm_strategy": {
+              "mu": 3.9220322752480934, 
+              "type": "ParallaxCorrectedPxMmStrategy", 
+              "t0": 1.0
+            }, 
+            "type": "SENSOR_PAD", 
+            "pixel_size": [
+              0.17200000000000001, 
+              0.17200000000000001
+            ]
+          }
+        ]
+      }
+    ], 
+    "goniometer": [
+      {
+        "setting_rotation": [
+          1.0, 
+          0.0, 
+          0.0, 
+          0.0, 
+          1.0, 
+          0.0, 
+          0.0, 
+          0.0, 
+          1.0
+        ], 
+        "fixed_rotation": [
+          1.0, 
+          0.0, 
+          0.0, 
+          0.0, 
+          1.0, 
+          0.0, 
+          0.0, 
+          0.0, 
+          1.0
+        ], 
+        "rotation_axis": [
+          1.0, 
+          0.0, 
+          0.0
+        ]
+      }
+    ], 
+    "scan": [
+      {
+        "exposure_time": [
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025, 
+          0.025
+        ], 
+        "epochs": [
+          1400066308.85, 
+          1400066308.875, 
+          1400066308.9, 
+          1400066308.925, 
+          1400066308.95, 
+          1400066308.975, 
+          1400066309.0, 
+          1400066309.025, 
+          1400066309.05, 
+          1400066309.076, 
+          1400066309.1, 
+          1400066309.125, 
+          1400066309.15, 
+          1400066309.175, 
+          1400066309.2, 
+          1400066309.225, 
+          1400066309.25, 
+          1400066309.275, 
+          1400066309.3, 
+          1400066309.326, 
+          1400066309.35, 
+          1400066309.375, 
+          1400066309.4, 
+          1400066309.425, 
+          1400066309.45, 
+          1400066309.475, 
+          1400066309.5, 
+          1400066309.525, 
+          1400066309.55, 
+          1400066309.576, 
+          1400066309.6, 
+          1400066309.625, 
+          1400066309.65, 
+          1400066309.675, 
+          1400066309.7, 
+          1400066309.725, 
+          1400066309.75, 
+          1400066309.775, 
+          1400066309.8, 
+          1400066309.825, 
+          1400066309.85, 
+          1400066309.875, 
+          1400066309.9, 
+          1400066309.925, 
+          1400066309.95, 
+          1400066309.975, 
+          1400066310.0, 
+          1400066310.025, 
+          1400066310.05, 
+          1400066310.076, 
+          1400066310.1, 
+          1400066310.125, 
+          1400066310.15, 
+          1400066310.175, 
+          1400066310.2, 
+          1400066310.225, 
+          1400066310.25, 
+          1400066310.275, 
+          1400066310.3, 
+          1400066310.325, 
+          1400066310.35, 
+          1400066310.375, 
+          1400066310.4, 
+          1400066310.425, 
+          1400066310.45, 
+          1400066310.475, 
+          1400066310.5, 
+          1400066310.525, 
+          1400066310.55, 
+          1400066310.576, 
+          1400066310.6, 
+          1400066310.625, 
+          1400066310.65, 
+          1400066310.675, 
+          1400066310.7, 
+          1400066310.725, 
+          1400066310.75, 
+          1400066310.775, 
+          1400066310.8, 
+          1400066310.825, 
+          1400066310.85, 
+          1400066310.875, 
+          1400066310.9, 
+          1400066310.925, 
+          1400066310.95, 
+          1400066310.975, 
+          1400066311.0, 
+          1400066311.025, 
+          1400066311.05, 
+          1400066311.076, 
+          1400066311.1, 
+          1400066311.125, 
+          1400066311.15, 
+          1400066311.175, 
+          1400066311.2, 
+          1400066311.225, 
+          1400066311.25, 
+          1400066311.275, 
+          1400066311.3, 
+          1400066311.325, 
+          1400066311.35, 
+          1400066311.375, 
+          1400066311.4, 
+          1400066311.425, 
+          1400066311.45, 
+          1400066311.475, 
+          1400066311.5, 
+          1400066311.525, 
+          1400066311.55, 
+          1400066311.576, 
+          1400066311.6, 
+          1400066311.625, 
+          1400066311.65, 
+          1400066311.675, 
+          1400066311.7, 
+          1400066311.725, 
+          1400066311.75, 
+          1400066311.775, 
+          1400066311.8, 
+          1400066311.826, 
+          1400066311.85, 
+          1400066311.875, 
+          1400066311.9, 
+          1400066311.924, 
+          1400066311.949, 
+          1400066311.975, 
+          1400066312.0, 
+          1400066312.025, 
+          1400066312.05, 
+          1400066312.076, 
+          1400066312.1, 
+          1400066312.125, 
+          1400066312.15, 
+          1400066312.175, 
+          1400066312.2, 
+          1400066312.225, 
+          1400066312.25, 
+          1400066312.275, 
+          1400066312.3, 
+          1400066312.325, 
+          1400066312.35, 
+          1400066312.375, 
+          1400066312.4, 
+          1400066312.425, 
+          1400066312.45, 
+          1400066312.475, 
+          1400066312.5, 
+          1400066312.525, 
+          1400066312.55, 
+          1400066312.575, 
+          1400066312.6, 
+          1400066312.625, 
+          1400066312.65, 
+          1400066312.675, 
+          1400066312.7, 
+          1400066312.725, 
+          1400066312.75, 
+          1400066312.775, 
+          1400066312.8, 
+          1400066312.826, 
+          1400066312.85, 
+          1400066312.875, 
+          1400066312.9, 
+          1400066312.924, 
+          1400066312.95, 
+          1400066312.975, 
+          1400066313.0, 
+          1400066313.025, 
+          1400066313.05, 
+          1400066313.076, 
+          1400066313.1, 
+          1400066313.125, 
+          1400066313.15, 
+          1400066313.175, 
+          1400066313.2, 
+          1400066313.225, 
+          1400066313.25, 
+          1400066313.275, 
+          1400066313.3, 
+          1400066313.326, 
+          1400066313.35, 
+          1400066313.375, 
+          1400066313.4, 
+          1400066313.425, 
+          1400066313.45, 
+          1400066313.475, 
+          1400066313.5, 
+          1400066313.525, 
+          1400066313.55, 
+          1400066313.575, 
+          1400066313.6, 
+          1400066313.625, 
+          1400066313.65, 
+          1400066313.675, 
+          1400066313.7, 
+          1400066313.725, 
+          1400066313.75, 
+          1400066313.775, 
+          1400066313.8, 
+          1400066313.826, 
+          1400066313.85, 
+          1400066313.875, 
+          1400066313.899, 
+          1400066313.925, 
+          1400066313.95, 
+          1400066313.975, 
+          1400066314.0, 
+          1400066314.025, 
+          1400066314.05, 
+          1400066314.076, 
+          1400066314.1, 
+          1400066314.125, 
+          1400066314.15, 
+          1400066314.175, 
+          1400066314.2, 
+          1400066314.225, 
+          1400066314.25, 
+          1400066314.275, 
+          1400066314.299, 
+          1400066314.325, 
+          1400066314.35, 
+          1400066314.375, 
+          1400066314.4, 
+          1400066314.425, 
+          1400066314.45, 
+          1400066314.475, 
+          1400066314.5, 
+          1400066314.525, 
+          1400066314.55, 
+          1400066314.575, 
+          1400066314.6, 
+          1400066314.625, 
+          1400066314.65, 
+          1400066314.675, 
+          1400066314.7, 
+          1400066314.725, 
+          1400066314.75, 
+          1400066314.775, 
+          1400066314.8, 
+          1400066314.825, 
+          1400066314.85, 
+          1400066314.875, 
+          1400066314.9, 
+          1400066314.925, 
+          1400066314.95, 
+          1400066314.975, 
+          1400066315.0, 
+          1400066315.025, 
+          1400066315.05, 
+          1400066315.076, 
+          1400066315.1, 
+          1400066315.125, 
+          1400066315.15, 
+          1400066315.175, 
+          1400066315.2, 
+          1400066315.225, 
+          1400066315.25, 
+          1400066315.275, 
+          1400066315.3, 
+          1400066315.326, 
+          1400066315.35, 
+          1400066315.375, 
+          1400066315.4, 
+          1400066315.425, 
+          1400066315.45, 
+          1400066315.475, 
+          1400066315.5, 
+          1400066315.525, 
+          1400066315.549, 
+          1400066315.576, 
+          1400066315.6, 
+          1400066315.625, 
+          1400066315.649, 
+          1400066315.675, 
+          1400066315.7, 
+          1400066315.725, 
+          1400066315.75, 
+          1400066315.775, 
+          1400066315.8, 
+          1400066315.825, 
+          1400066315.85, 
+          1400066315.875, 
+          1400066315.9, 
+          1400066315.925, 
+          1400066315.95, 
+          1400066315.975, 
+          1400066316.0, 
+          1400066316.025, 
+          1400066316.05, 
+          1400066316.075, 
+          1400066316.1, 
+          1400066316.125, 
+          1400066316.15, 
+          1400066316.175, 
+          1400066316.2, 
+          1400066316.225, 
+          1400066316.25, 
+          1400066316.275, 
+          1400066316.3, 
+          1400066316.326, 
+          1400066316.35, 
+          1400066316.374, 
+          1400066316.4, 
+          1400066316.425, 
+          1400066316.45, 
+          1400066316.475, 
+          1400066316.5, 
+          1400066316.525, 
+          1400066316.55, 
+          1400066316.575, 
+          1400066316.6, 
+          1400066316.625, 
+          1400066316.65, 
+          1400066316.675, 
+          1400066316.7, 
+          1400066316.725, 
+          1400066316.75, 
+          1400066316.775, 
+          1400066316.8, 
+          1400066316.825, 
+          1400066316.85, 
+          1400066316.875, 
+          1400066316.9, 
+          1400066316.925, 
+          1400066316.95, 
+          1400066316.975, 
+          1400066317.0, 
+          1400066317.024, 
+          1400066317.05, 
+          1400066317.075, 
+          1400066317.1, 
+          1400066317.125, 
+          1400066317.15, 
+          1400066317.175, 
+          1400066317.2, 
+          1400066317.225, 
+          1400066317.25, 
+          1400066317.275, 
+          1400066317.3, 
+          1400066317.326, 
+          1400066317.35, 
+          1400066317.375, 
+          1400066317.4, 
+          1400066317.425, 
+          1400066317.45, 
+          1400066317.474, 
+          1400066317.5, 
+          1400066317.525, 
+          1400066317.55, 
+          1400066317.575, 
+          1400066317.6, 
+          1400066317.625, 
+          1400066317.65, 
+          1400066317.675, 
+          1400066317.7, 
+          1400066317.725, 
+          1400066317.75, 
+          1400066317.775, 
+          1400066317.8, 
+          1400066317.825, 
+          1400066317.85, 
+          1400066317.875, 
+          1400066317.9, 
+          1400066317.925, 
+          1400066317.95, 
+          1400066317.975, 
+          1400066318.0, 
+          1400066318.025, 
+          1400066318.05, 
+          1400066318.076, 
+          1400066318.1, 
+          1400066318.125, 
+          1400066318.15, 
+          1400066318.175, 
+          1400066318.2, 
+          1400066318.225, 
+          1400066318.25, 
+          1400066318.275, 
+          1400066318.3, 
+          1400066318.326, 
+          1400066318.35, 
+          1400066318.375, 
+          1400066318.4, 
+          1400066318.425, 
+          1400066318.45, 
+          1400066318.475, 
+          1400066318.5, 
+          1400066318.525, 
+          1400066318.55, 
+          1400066318.575, 
+          1400066318.6, 
+          1400066318.625, 
+          1400066318.65, 
+          1400066318.675, 
+          1400066318.7, 
+          1400066318.725, 
+          1400066318.75, 
+          1400066318.775, 
+          1400066318.8, 
+          1400066318.826, 
+          1400066318.85, 
+          1400066318.874, 
+          1400066318.9, 
+          1400066318.925, 
+          1400066318.95, 
+          1400066318.975, 
+          1400066319.0, 
+          1400066319.025, 
+          1400066319.05, 
+          1400066319.076, 
+          1400066319.1, 
+          1400066319.124, 
+          1400066319.15, 
+          1400066319.175, 
+          1400066319.2, 
+          1400066319.225, 
+          1400066319.25, 
+          1400066319.275, 
+          1400066319.3, 
+          1400066319.326, 
+          1400066319.35, 
+          1400066319.375, 
+          1400066319.4, 
+          1400066319.425, 
+          1400066319.45, 
+          1400066319.475, 
+          1400066319.5, 
+          1400066319.525, 
+          1400066319.55, 
+          1400066319.575, 
+          1400066319.6, 
+          1400066319.625, 
+          1400066319.65, 
+          1400066319.675, 
+          1400066319.7, 
+          1400066319.725, 
+          1400066319.75, 
+          1400066319.775, 
+          1400066319.8, 
+          1400066319.826, 
+          1400066319.85, 
+          1400066319.875, 
+          1400066319.9, 
+          1400066319.925, 
+          1400066319.95, 
+          1400066319.975, 
+          1400066320.0, 
+          1400066320.025, 
+          1400066320.05, 
+          1400066320.076, 
+          1400066320.1, 
+          1400066320.125, 
+          1400066320.15, 
+          1400066320.175, 
+          1400066320.2, 
+          1400066320.225, 
+          1400066320.25, 
+          1400066320.275, 
+          1400066320.3, 
+          1400066320.325, 
+          1400066320.35, 
+          1400066320.375, 
+          1400066320.4, 
+          1400066320.425, 
+          1400066320.449, 
+          1400066320.475, 
+          1400066320.5, 
+          1400066320.525, 
+          1400066320.55, 
+          1400066320.575, 
+          1400066320.599, 
+          1400066320.625, 
+          1400066320.649, 
+          1400066320.675, 
+          1400066320.7, 
+          1400066320.725, 
+          1400066320.75, 
+          1400066320.775, 
+          1400066320.799, 
+          1400066320.825, 
+          1400066320.85, 
+          1400066320.875, 
+          1400066320.9, 
+          1400066320.925, 
+          1400066320.949, 
+          1400066320.975, 
+          1400066321.0, 
+          1400066321.025, 
+          1400066321.049, 
+          1400066321.076, 
+          1400066321.1, 
+          1400066321.125, 
+          1400066321.15, 
+          1400066321.175, 
+          1400066321.2, 
+          1400066321.225, 
+          1400066321.25, 
+          1400066321.275, 
+          1400066321.299, 
+          1400066321.325, 
+          1400066321.349, 
+          1400066321.375, 
+          1400066321.399, 
+          1400066321.424, 
+          1400066321.45, 
+          1400066321.475, 
+          1400066321.5, 
+          1400066321.524, 
+          1400066321.55, 
+          1400066321.576, 
+          1400066321.6, 
+          1400066321.624, 
+          1400066321.65, 
+          1400066321.675, 
+          1400066321.7, 
+          1400066321.725, 
+          1400066321.749, 
+          1400066321.775, 
+          1400066321.8, 
+          1400066321.825, 
+          1400066321.85, 
+          1400066321.875, 
+          1400066321.9, 
+          1400066321.925, 
+          1400066321.95, 
+          1400066321.975, 
+          1400066322.0, 
+          1400066322.025, 
+          1400066322.05, 
+          1400066322.076, 
+          1400066322.1, 
+          1400066322.125, 
+          1400066322.15, 
+          1400066322.175, 
+          1400066322.2, 
+          1400066322.225, 
+          1400066322.25, 
+          1400066322.275, 
+          1400066322.299, 
+          1400066322.325, 
+          1400066322.35, 
+          1400066322.374, 
+          1400066322.4, 
+          1400066322.424, 
+          1400066322.45, 
+          1400066322.475, 
+          1400066322.499, 
+          1400066322.525, 
+          1400066322.55, 
+          1400066322.575, 
+          1400066322.599, 
+          1400066322.625, 
+          1400066322.65, 
+          1400066322.675, 
+          1400066322.7, 
+          1400066322.725, 
+          1400066322.75, 
+          1400066322.774, 
+          1400066322.799, 
+          1400066322.826, 
+          1400066322.85, 
+          1400066322.875, 
+          1400066322.899, 
+          1400066322.925, 
+          1400066322.95, 
+          1400066322.975, 
+          1400066322.999, 
+          1400066323.025, 
+          1400066323.05, 
+          1400066323.075, 
+          1400066323.1, 
+          1400066323.125, 
+          1400066323.149, 
+          1400066323.175, 
+          1400066323.2, 
+          1400066323.225, 
+          1400066323.25, 
+          1400066323.275, 
+          1400066323.3, 
+          1400066323.325, 
+          1400066323.35, 
+          1400066323.375, 
+          1400066323.4, 
+          1400066323.425, 
+          1400066323.45, 
+          1400066323.475, 
+          1400066323.5, 
+          1400066323.525, 
+          1400066323.55, 
+          1400066323.576, 
+          1400066323.599, 
+          1400066323.625, 
+          1400066323.65, 
+          1400066323.675, 
+          1400066323.7, 
+          1400066323.725, 
+          1400066323.749, 
+          1400066323.775, 
+          1400066323.8, 
+          1400066323.825, 
+          1400066323.849, 
+          1400066323.875, 
+          1400066323.9, 
+          1400066323.925, 
+          1400066323.949, 
+          1400066323.975, 
+          1400066324.0, 
+          1400066324.025, 
+          1400066324.05, 
+          1400066324.075, 
+          1400066324.099, 
+          1400066324.125, 
+          1400066324.15, 
+          1400066324.174, 
+          1400066324.199, 
+          1400066324.225, 
+          1400066324.25, 
+          1400066324.275, 
+          1400066324.3, 
+          1400066324.326, 
+          1400066324.35, 
+          1400066324.375, 
+          1400066324.4, 
+          1400066324.425, 
+          1400066324.45, 
+          1400066324.475, 
+          1400066324.5, 
+          1400066324.524, 
+          1400066324.55, 
+          1400066324.576, 
+          1400066324.6, 
+          1400066324.625, 
+          1400066324.65, 
+          1400066324.675, 
+          1400066324.7, 
+          1400066324.725, 
+          1400066324.75, 
+          1400066324.775, 
+          1400066324.8, 
+          1400066324.825, 
+          1400066324.849, 
+          1400066324.875, 
+          1400066324.9, 
+          1400066324.925, 
+          1400066324.95, 
+          1400066324.974, 
+          1400066325.0, 
+          1400066325.025, 
+          1400066325.05, 
+          1400066325.076, 
+          1400066325.1, 
+          1400066325.125, 
+          1400066325.15, 
+          1400066325.175, 
+          1400066325.2, 
+          1400066325.225, 
+          1400066325.25, 
+          1400066325.275, 
+          1400066325.299, 
+          1400066325.326, 
+          1400066325.35, 
+          1400066325.374, 
+          1400066325.399, 
+          1400066325.425, 
+          1400066325.449, 
+          1400066325.475, 
+          1400066325.5, 
+          1400066325.525, 
+          1400066325.55, 
+          1400066325.575, 
+          1400066325.599, 
+          1400066325.625, 
+          1400066325.65, 
+          1400066325.675, 
+          1400066325.699, 
+          1400066325.725, 
+          1400066325.75, 
+          1400066325.775, 
+          1400066325.8, 
+          1400066325.825, 
+          1400066325.85, 
+          1400066325.875, 
+          1400066325.9, 
+          1400066325.924, 
+          1400066325.95, 
+          1400066325.975, 
+          1400066325.999, 
+          1400066326.025, 
+          1400066326.05, 
+          1400066326.076, 
+          1400066326.1, 
+          1400066326.124, 
+          1400066326.15, 
+          1400066326.175, 
+          1400066326.2, 
+          1400066326.224, 
+          1400066326.25, 
+          1400066326.275, 
+          1400066326.3, 
+          1400066326.326, 
+          1400066326.35, 
+          1400066326.375, 
+          1400066326.4, 
+          1400066326.425, 
+          1400066326.45, 
+          1400066326.475, 
+          1400066326.499, 
+          1400066326.525, 
+          1400066326.55, 
+          1400066326.575, 
+          1400066326.599, 
+          1400066326.625, 
+          1400066326.65, 
+          1400066326.675, 
+          1400066326.7, 
+          1400066326.725, 
+          1400066326.75, 
+          1400066326.774, 
+          1400066326.8, 
+          1400066326.826, 
+          1400066326.85, 
+          1400066326.875, 
+          1400066326.9, 
+          1400066326.925, 
+          1400066326.949, 
+          1400066326.975, 
+          1400066327.0, 
+          1400066327.024, 
+          1400066327.05, 
+          1400066327.076, 
+          1400066327.099, 
+          1400066327.125, 
+          1400066327.15, 
+          1400066327.175, 
+          1400066327.2, 
+          1400066327.225, 
+          1400066327.25, 
+          1400066327.275, 
+          1400066327.3, 
+          1400066327.326, 
+          1400066327.349, 
+          1400066327.375, 
+          1400066327.399, 
+          1400066327.424, 
+          1400066327.45, 
+          1400066327.475, 
+          1400066327.5, 
+          1400066327.524, 
+          1400066327.55, 
+          1400066327.575, 
+          1400066327.599, 
+          1400066327.625, 
+          1400066327.65, 
+          1400066327.674, 
+          1400066327.7, 
+          1400066327.724, 
+          1400066327.75, 
+          1400066327.775, 
+          1400066327.8, 
+          1400066327.825, 
+          1400066327.849, 
+          1400066327.875, 
+          1400066327.9, 
+          1400066327.925, 
+          1400066327.95, 
+          1400066327.974, 
+          1400066327.999, 
+          1400066328.024, 
+          1400066328.05, 
+          1400066328.075, 
+          1400066328.1, 
+          1400066328.124, 
+          1400066328.15, 
+          1400066328.175, 
+          1400066328.199, 
+          1400066328.224, 
+          1400066328.25, 
+          1400066328.275, 
+          1400066328.3, 
+          1400066328.325, 
+          1400066328.349, 
+          1400066328.375, 
+          1400066328.4, 
+          1400066328.424, 
+          1400066328.449, 
+          1400066328.475, 
+          1400066328.5, 
+          1400066328.525, 
+          1400066328.55, 
+          1400066328.575, 
+          1400066328.599, 
+          1400066328.625, 
+          1400066328.649, 
+          1400066328.674, 
+          1400066328.7, 
+          1400066328.724, 
+          1400066328.75, 
+          1400066328.775, 
+          1400066328.8, 
+          1400066328.825, 
+          1400066328.85, 
+          1400066328.875, 
+          1400066328.899, 
+          1400066328.925, 
+          1400066328.949, 
+          1400066328.974, 
+          1400066328.999, 
+          1400066329.024, 
+          1400066329.05, 
+          1400066329.075, 
+          1400066329.1, 
+          1400066329.125, 
+          1400066329.149, 
+          1400066329.175, 
+          1400066329.2, 
+          1400066329.225, 
+          1400066329.249, 
+          1400066329.274, 
+          1400066329.3, 
+          1400066329.325, 
+          1400066329.349, 
+          1400066329.375, 
+          1400066329.399, 
+          1400066329.424, 
+          1400066329.45, 
+          1400066329.475, 
+          1400066329.5, 
+          1400066329.525, 
+          1400066329.549, 
+          1400066329.575, 
+          1400066329.6, 
+          1400066329.625, 
+          1400066329.649, 
+          1400066329.675, 
+          1400066329.7, 
+          1400066329.725, 
+          1400066329.749, 
+          1400066329.774, 
+          1400066329.799, 
+          1400066329.826, 
+          1400066329.849, 
+          1400066329.874, 
+          1400066329.9, 
+          1400066329.925, 
+          1400066329.95, 
+          1400066329.975, 
+          1400066329.999, 
+          1400066330.024, 
+          1400066330.05, 
+          1400066330.075, 
+          1400066330.099, 
+          1400066330.125, 
+          1400066330.15, 
+          1400066330.174, 
+          1400066330.2, 
+          1400066330.224, 
+          1400066330.249, 
+          1400066330.275, 
+          1400066330.299, 
+          1400066330.325, 
+          1400066330.35, 
+          1400066330.375, 
+          1400066330.4, 
+          1400066330.425, 
+          1400066330.449, 
+          1400066330.475, 
+          1400066330.499, 
+          1400066330.525, 
+          1400066330.549, 
+          1400066330.576, 
+          1400066330.599, 
+          1400066330.625, 
+          1400066330.65, 
+          1400066330.675, 
+          1400066330.7, 
+          1400066330.724, 
+          1400066330.75, 
+          1400066330.774, 
+          1400066330.799, 
+          1400066330.825, 
+          1400066330.85, 
+          1400066330.875, 
+          1400066330.899, 
+          1400066330.924, 
+          1400066330.949, 
+          1400066330.974, 
+          1400066330.999, 
+          1400066331.025, 
+          1400066331.05, 
+          1400066331.075, 
+          1400066331.1, 
+          1400066331.125, 
+          1400066331.149, 
+          1400066331.175, 
+          1400066331.2, 
+          1400066331.224, 
+          1400066331.249, 
+          1400066331.275, 
+          1400066331.3, 
+          1400066331.325, 
+          1400066331.349, 
+          1400066331.375, 
+          1400066331.399, 
+          1400066331.424, 
+          1400066331.449, 
+          1400066331.475, 
+          1400066331.499, 
+          1400066331.524, 
+          1400066331.549, 
+          1400066331.575, 
+          1400066331.599, 
+          1400066331.625, 
+          1400066331.649, 
+          1400066331.674, 
+          1400066331.699, 
+          1400066331.724, 
+          1400066331.75, 
+          1400066331.774, 
+          1400066331.8, 
+          1400066331.825, 
+          1400066331.849, 
+          1400066331.874, 
+          1400066331.899, 
+          1400066331.925, 
+          1400066331.95, 
+          1400066331.974, 
+          1400066331.999, 
+          1400066332.024, 
+          1400066332.049, 
+          1400066332.075, 
+          1400066332.099, 
+          1400066332.124, 
+          1400066332.149, 
+          1400066332.175, 
+          1400066332.2, 
+          1400066332.224, 
+          1400066332.25, 
+          1400066332.274, 
+          1400066332.299, 
+          1400066332.325, 
+          1400066332.349, 
+          1400066332.374, 
+          1400066332.399, 
+          1400066332.424, 
+          1400066332.45, 
+          1400066332.474, 
+          1400066332.499, 
+          1400066332.524, 
+          1400066332.549, 
+          1400066332.575, 
+          1400066332.599, 
+          1400066332.624, 
+          1400066332.649, 
+          1400066332.674, 
+          1400066332.7, 
+          1400066332.724, 
+          1400066332.749, 
+          1400066332.774, 
+          1400066332.799, 
+          1400066332.825, 
+          1400066332.85, 
+          1400066332.874, 
+          1400066332.899, 
+          1400066332.924, 
+          1400066332.95, 
+          1400066332.974, 
+          1400066332.999, 
+          1400066333.024, 
+          1400066333.049, 
+          1400066333.075, 
+          1400066333.099, 
+          1400066333.124, 
+          1400066333.15, 
+          1400066333.174, 
+          1400066333.199, 
+          1400066333.224, 
+          1400066333.249, 
+          1400066333.275, 
+          1400066333.299, 
+          1400066333.325, 
+          1400066333.349, 
+          1400066333.374, 
+          1400066333.399, 
+          1400066333.424, 
+          1400066333.449, 
+          1400066333.474, 
+          1400066333.499, 
+          1400066333.524, 
+          1400066333.55, 
+          1400066333.575, 
+          1400066333.599, 
+          1400066333.624, 
+          1400066333.649, 
+          1400066333.674, 
+          1400066333.699, 
+          1400066333.724, 
+          1400066333.75, 
+          1400066333.774, 
+          1400066333.799, 
+          1400066333.825, 
+          1400066333.849, 
+          1400066333.874, 
+          1400066333.899, 
+          1400066333.924, 
+          1400066333.949, 
+          1400066333.974, 
+          1400066333.999, 
+          1400066334.024, 
+          1400066334.049, 
+          1400066334.075, 
+          1400066334.099, 
+          1400066334.124, 
+          1400066334.15, 
+          1400066334.174, 
+          1400066334.199, 
+          1400066334.225, 
+          1400066334.249, 
+          1400066334.274, 
+          1400066334.299, 
+          1400066334.325, 
+          1400066334.35, 
+          1400066334.375, 
+          1400066334.399, 
+          1400066334.425, 
+          1400066334.449, 
+          1400066334.475, 
+          1400066334.5, 
+          1400066334.525, 
+          1400066334.55, 
+          1400066334.575, 
+          1400066334.599, 
+          1400066334.624, 
+          1400066334.649, 
+          1400066334.675, 
+          1400066334.699, 
+          1400066334.724, 
+          1400066334.749, 
+          1400066334.775, 
+          1400066334.799, 
+          1400066334.825, 
+          1400066334.849, 
+          1400066334.874, 
+          1400066334.899, 
+          1400066334.924, 
+          1400066334.949, 
+          1400066334.974, 
+          1400066334.999, 
+          1400066335.024, 
+          1400066335.05, 
+          1400066335.076, 
+          1400066335.099, 
+          1400066335.124, 
+          1400066335.15, 
+          1400066335.175, 
+          1400066335.199, 
+          1400066335.224, 
+          1400066335.249, 
+          1400066335.274, 
+          1400066335.299, 
+          1400066335.325, 
+          1400066335.349, 
+          1400066335.374, 
+          1400066335.399, 
+          1400066335.424, 
+          1400066335.449, 
+          1400066335.474, 
+          1400066335.499, 
+          1400066335.524, 
+          1400066335.549, 
+          1400066335.575, 
+          1400066335.599, 
+          1400066335.625, 
+          1400066335.649, 
+          1400066335.674, 
+          1400066335.699, 
+          1400066335.724, 
+          1400066335.749, 
+          1400066335.774, 
+          1400066335.8, 
+          1400066335.825, 
+          1400066335.849, 
+          1400066335.874, 
+          1400066335.899, 
+          1400066335.924, 
+          1400066335.949, 
+          1400066335.974, 
+          1400066335.999, 
+          1400066336.024, 
+          1400066336.049, 
+          1400066336.076, 
+          1400066336.099, 
+          1400066336.124, 
+          1400066336.149, 
+          1400066336.174, 
+          1400066336.199, 
+          1400066336.224, 
+          1400066336.249, 
+          1400066336.274, 
+          1400066336.299, 
+          1400066336.325, 
+          1400066336.349, 
+          1400066336.375, 
+          1400066336.4, 
+          1400066336.424, 
+          1400066336.449, 
+          1400066336.474, 
+          1400066336.499, 
+          1400066336.525, 
+          1400066336.549, 
+          1400066336.575, 
+          1400066336.6, 
+          1400066336.624, 
+          1400066336.65, 
+          1400066336.674, 
+          1400066336.699, 
+          1400066336.724, 
+          1400066336.75, 
+          1400066336.774, 
+          1400066336.8, 
+          1400066336.825, 
+          1400066336.849, 
+          1400066336.874, 
+          1400066336.899, 
+          1400066336.924, 
+          1400066336.949, 
+          1400066336.975, 
+          1400066336.999, 
+          1400066337.024, 
+          1400066337.049, 
+          1400066337.075, 
+          1400066337.099, 
+          1400066337.124, 
+          1400066337.149, 
+          1400066337.174, 
+          1400066337.199, 
+          1400066337.224, 
+          1400066337.249, 
+          1400066337.274, 
+          1400066337.299, 
+          1400066337.325, 
+          1400066337.35, 
+          1400066337.374, 
+          1400066337.399, 
+          1400066337.424, 
+          1400066337.449, 
+          1400066337.474, 
+          1400066337.499, 
+          1400066337.524, 
+          1400066337.549, 
+          1400066337.575, 
+          1400066337.599, 
+          1400066337.624, 
+          1400066337.649, 
+          1400066337.674, 
+          1400066337.699, 
+          1400066337.724, 
+          1400066337.749, 
+          1400066337.775, 
+          1400066337.799, 
+          1400066337.825, 
+          1400066337.849, 
+          1400066337.874, 
+          1400066337.899, 
+          1400066337.924, 
+          1400066337.949, 
+          1400066337.975, 
+          1400066337.999, 
+          1400066338.024, 
+          1400066338.049, 
+          1400066338.075, 
+          1400066338.099, 
+          1400066338.124, 
+          1400066338.149, 
+          1400066338.174, 
+          1400066338.199, 
+          1400066338.225, 
+          1400066338.249, 
+          1400066338.274, 
+          1400066338.3, 
+          1400066338.325, 
+          1400066338.349, 
+          1400066338.374, 
+          1400066338.399, 
+          1400066338.424, 
+          1400066338.449, 
+          1400066338.474, 
+          1400066338.499, 
+          1400066338.524, 
+          1400066338.549, 
+          1400066338.575, 
+          1400066338.599, 
+          1400066338.624, 
+          1400066338.649, 
+          1400066338.674, 
+          1400066338.699, 
+          1400066338.724, 
+          1400066338.749, 
+          1400066338.774, 
+          1400066338.799, 
+          1400066338.825
+        ], 
+        "image_range": [
+          3601, 
+          4800
+        ], 
+        "oscillation": [
+          360.0, 
+          0.1
+        ]
+      }
+    ]
+  }
+]
