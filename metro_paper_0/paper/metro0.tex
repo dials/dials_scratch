@@ -165,11 +165,38 @@ Abstract goes here.
      % Now enter the text of the document in multiple \section's, \subsection's
      % and \subsubsection's as required.
 
-\section{Section title}
+\section{Introduction}
 
 \fixme{author list just copied from \dialsrefine paper so far}
 
 \fixme{ref this https://www.osapublishing.org/oe/abstract.cfm?uri=oe-23-22-28459}
+
+Start by brief discussion of area detectors in crystallography:
+
+\begin{itemize}
+  \item Bigger is better
+  \item For fast detectors (i.e. faster than image plates) this has been
+  achieved by constructing detectors as modular arrays of units
+  \item For CCD detectors significant distortions caused by coupling to
+  phosphor required correction in software. The modular structure is no
+  longer obvious in the stitched-together corrected images
+  \item For PADs (Si bump-bonded onto large CMOS chips) the array of pixels
+  within a panel has a regular size (to what tolerance?) so that the
+  position of photons impinging upon the front surface of the panel can be
+  inferred from the counts present in the image file, once the parallax
+  correction effect is taken into account.
+  \item The arrangement of whole modules has tolerances on a different scale
+  to the bump bonding process - macroscopic engineering problem rather than
+  microscopic (how can this be expressed nicely?)
+  \item Shifts of significant fractions of a pixel may be present between a
+  panel's real and its canonical position.
+  \item Discuss how these whole module offsets can be measured at the
+  factory (this is the true meaning of 'metrology') and correction tables
+  may be supplied by the detector manufacturer
+  \item But here we discuss an alternative procedure in which the
+  appropriate corrections can be discovered by an analysis of diffraction
+  data as a part of commissioning.
+\end{itemize}
 
 Refinement is good \cite{Waterman2016}.
 
