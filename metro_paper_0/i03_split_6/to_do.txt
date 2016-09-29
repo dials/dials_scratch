@@ -1,0 +1,5 @@
+ - perform this analysis with no parallax correction i.e. show detector becomes distorted
+ - measure more data i.e. loads of 720's good xtals at > 1 distance
+ - perform all analysis in lab frame (i.e. absolute coordinate system)
+ - fix limits in plots in plot_detector_shifts i.e. give uniform colouring
+ 
