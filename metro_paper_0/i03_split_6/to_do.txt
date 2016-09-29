@@ -1,5 +1,10 @@
- - perform this analysis with no parallax correction i.e. show detector becomes distorted
+ - perform this analysis with no parallax correction i.e. show detector becomes
+   distorted
  - measure more data i.e. loads of 720's good xtals at > 1 distance
  - perform all analysis in lab frame (i.e. absolute coordinate system)
  - fix limits in plots in plot_detector_shifts i.e. give uniform colouring
- 
+
+ - index off all 720 degrees of data, refine detector
+ - split big sweep or copy detector in 
+ - index fixing detector model - detector.fix = all
+ - rerun metrology refinement then should have apples / apples comparison
