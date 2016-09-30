@@ -8,3 +8,6 @@
  - split big sweep or copy detector in 
  - index fixing detector model - detector.fix = all
  - rerun metrology refinement then should have apples / apples comparison
+
+ - get hold of original DECTRIS-supplied correction tables for comparison
+
