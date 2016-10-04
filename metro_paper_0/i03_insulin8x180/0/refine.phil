@@ -1,0 +1,15 @@
+refinement {
+  parameterisation {
+    detector {
+      hierarchy_level = 1
+      fix_list = Tau2 Tau3 Dist
+    }
+  }
+  reflections {
+    outlier {
+      separate_panels = False
+      separate_blocks = False
+    }
+  }
+}
+
