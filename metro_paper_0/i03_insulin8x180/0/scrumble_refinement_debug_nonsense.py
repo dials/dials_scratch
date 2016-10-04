@@ -49,8 +49,22 @@ for refinement_debug_log in refinement_debug_logs:
     values, sigmas = scrape_Detector(refinement_debug_log, parameters)
     results[refinement_debug_log] = values, sigmas
 
+all_values = { }
 for k in detector_parameters:
-    print '%8s' % k.replace('Group', 'G').replace('Shift', 'S'),
+    all_values[k] = []
     for j, log in enumerate(refinement_debug_logs):
-        print ' %8.3f %7.3f' % (results[log][0][k], results[log][1][k]),
-    print
+        all_values[k].append(results[log][0][k])
+
+# convert milliradians to degrees
+import math
+mr2d = 180 / (1000 * math.pi)
+
+for k in detector_parameters:
+    values = all_values[k]
+    mean = sum(values) / len(values)
+    if 'Tau' in k:
+        diffs = [mr2d * (v - mean) for v in values]
+    else:
+        diffs = [(v - mean) for v in values]
+    print '%14s' % k,
+    print ' '.join(['%6.3f' % d for d in diffs])
