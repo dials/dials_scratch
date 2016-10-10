@@ -16,18 +16,16 @@ def run(args):
   imagesets = datablocks[0].extract_imagesets()
 
   img_count = 0
-  from libtbx.utils import time_log
-  timer = time_log('time_reading')
-  timer.start()
+  import time
+  t0 = time.time()
   for imgset in imagesets:
     for img in imgset:
       img_count += 1
       print "Read %i images" %img_count
-  timer.stop()
-  print timer.legend
-  print timer.report()
+  t1 = time.time()
+  t = t1 - t0
   print "Read %i images in %.2fs (%.1f images/s)" %(
-    img_count, timer.accumulation, img_count/timer.accumulation)
+    img_count, t, img_count/t)
 
   return
 
