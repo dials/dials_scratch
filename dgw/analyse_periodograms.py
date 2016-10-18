@@ -93,7 +93,7 @@ class Script(object):
     # Do analysis for the files in filelist
     for i, f in enumerate(self.filelist):
       s = '{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now())
-      s += 'Processing file {0}: '.format(i) + f
+      s += 'Processing file {0}: '.format(i) + f.rstrip()
       print s
       self.process(f, i)
 
