@@ -25,6 +25,7 @@ experiments.jsons will be determined by matching expected filenames."""
 
 from __future__ import division
 import os
+import datetime
 from libtbx.utils import Sorry
 from libtbx import easy_run
 import libtbx.load_env
@@ -89,19 +90,28 @@ class Script(object):
     ensure_directory(self._directory)
     print "Analysis will be performed in {0}".format(self._directory)
 
-    # TODO loop through files in filelist, do analysis. Skip existing analyses,
-    # unless force_analysis is True
+    # Do analysis for the files in filelist
     for i, f in enumerate(self.filelist):
+      s = '{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now())
+      s += 'Processing file {0}: '.format(i) + f
+      print s
       self.process(f, i)
 
     return
 
-  def process(self, filename, i):
+  def process(self, idx_path, i):
     '''Perform processing tasks for one indexed.pickle'''
+
+    cwd = os.path.abspath(os.curdir)
+    status = self._process_core(idx_path, i)
+    os.chdir(cwd)
+    return status
+
+  def _process_core(self, idx_path, i):
 
     status = {'skipped':True,
               'spectra':False,
-              'refinement':False,
+              'refined':False,
               'refined_spectra':False}
 
     directory = os.path.join(self._directory, 'run%05d' % i)
@@ -112,8 +122,6 @@ class Script(object):
         print 'Skipping ' + directory + ' that already exists'
         return status
     status['skipped'] = False
-
-    cwd = os.path.abspath(os.curdir)
     os.chdir(directory)
 
     # locate centroid_analysis script
@@ -122,19 +130,67 @@ class Script(object):
       'centroid_analysis.py')
 
     # run analysis
-    cmd = "dials.python {0} {1}".format(ca, filename)
+    cmd = "dials.python {0} {1}".format(ca, idx_path)
     result = easy_run.fully_buffered(command=cmd)
+    with open('cmd.txt', 'w') as f:
+      f.write(result.command)
 
     if result.return_code != 0:
       return status
     status['spectra'] = True
 
-    # TODO refinement and re-running analysis - in a subdirectory?
+    # try to find an associated experiment.json
+    exp_path = self.find_experiments_json(idx_path)
+    if exp_path is None:
+      return status
 
-    # change back to original directory
-    os.chdir(cwd)
+    # refine, static then scan-varying
+    try:
+      os.mkdir('refined')
+    except OSError:
+      if not self.params.force_analysis:
+        return status
+    os.chdir('refined')
+    cmd = 'dials.refine {0} {1}'.format(exp_path, idx_path)
+    result = easy_run.fully_buffered(command=cmd)
+    with open('cmd.txt', 'w') as f:
+      f.write(result.command)
+    tst = [os.path.exists(p) for p in ['refined.pickle',
+                                       'refined_experiments.json']]
+    if tst.count(True) != 2:
+      return status
+    cmd = 'dials.refine refined.pickle refined_experiments.json scan_varying=True'
+    result = easy_run.fully_buffered(command=cmd)
+    with open('cmd.txt', 'a') as f:
+      f.write(result.command)
+    if result.return_code != 0:
+      return status
+    status['refined'] = True
+
+    # second round of analysis
+    cmd = "dials.python {0} {1}".format(ca, 'refined.pickle')
+    result = easy_run.fully_buffered(command=cmd)
+    with open('cmd.txt', 'a') as f:
+      f.write(result.command)
+
+    if result.return_code != 0:
+      return status
+    status['refined_spectra'] = True
 
     return status
+
+  def find_experiments_json(self, idx_path):
+    '''Given the path to an indexed.pickle, try to identify an associated
+    experiments.json in the same directory assuming xia2's naming convention'''
+
+    head, tail = os.path.split(idx_path)
+    root, ext = os.path.splitext(tail)
+    exp_path = os.path.join(head,
+      root.replace('indexed', 'experiments') + '.json')
+    if os.path.exists(exp_path):
+      return exp_path
+    else:
+      return None
 
 if __name__ == '__main__':
   from dials.util import halraiser
