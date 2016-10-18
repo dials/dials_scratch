@@ -95,7 +95,9 @@ class Script(object):
       s = '{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now())
       s += 'Processing file {0}: '.format(i) + f.rstrip()
       print s
-      self.process(f, i)
+      status = self.process(f, i)
+      if status['refined_spectra'] is False:
+        print "Incomplete:", status
 
     return
 
@@ -133,7 +135,7 @@ class Script(object):
     cmd = "dials.python {0} {1}".format(ca, idx_path)
     result = easy_run.fully_buffered(command=cmd)
     with open('cmd.txt', 'w') as f:
-      f.write(result.command)
+      f.write(result.command.rstrip() + '\n')
 
     if result.return_code != 0:
       return status
@@ -154,7 +156,7 @@ class Script(object):
     cmd = 'dials.refine {0} {1}'.format(exp_path, idx_path)
     result = easy_run.fully_buffered(command=cmd)
     with open('cmd.txt', 'w') as f:
-      f.write(result.command)
+      f.write(result.command.rstrip() + '\n')
     tst = [os.path.exists(p) for p in ['refined.pickle',
                                        'refined_experiments.json']]
     if tst.count(True) != 2:
@@ -162,7 +164,7 @@ class Script(object):
     cmd = 'dials.refine refined.pickle refined_experiments.json scan_varying=True'
     result = easy_run.fully_buffered(command=cmd)
     with open('cmd.txt', 'a') as f:
-      f.write(result.command)
+      f.write(result.command.rstrip() + '\n')
     if result.return_code != 0:
       return status
     status['refined'] = True
@@ -171,7 +173,7 @@ class Script(object):
     cmd = "dials.python {0} {1}".format(ca, 'refined.pickle')
     result = easy_run.fully_buffered(command=cmd)
     with open('cmd.txt', 'a') as f:
-      f.write(result.command)
+      f.write(result.command.rstrip() + '\n')
 
     if result.return_code != 0:
       return status
