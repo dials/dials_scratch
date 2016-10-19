@@ -99,6 +99,11 @@ class Script(object):
     ensure_directory(self._directory)
     print "Analysis will be performed in {0}".format(self._directory)
 
+    # locate centroid_analysis script
+    dials_dir = libtbx.env.find_in_repositories('dials')
+    self._ca = os.path.join(dials_dir, 'algorithms', 'refinement', 'analysis',
+      'centroid_analysis.py')
+
     # Do analysis for the files in filelist
     for i, f in enumerate(self.filelist):
       # strip newline from the filenames
@@ -131,44 +136,26 @@ class Script(object):
     except OSError:
       if not self.params.force_analysis:
         return 'Skipping ' + directory + ' that already exists'
-
     os.chdir(directory)
-
-    # locate centroid_analysis script
-    dials_dir = libtbx.env.find_in_repositories('dials')
-    ca = os.path.join(dials_dir, 'algorithms', 'refinement', 'analysis',
-      'centroid_analysis.py')
-
-    # run analysis
-    existing_pngs = set(glob.glob('*.png'))
-    cmd = "dials.python {0} {1}".format(ca, idx_path)
-    result = easy_run.fully_buffered(command=cmd)
-    if result.return_code != 0:
-      return "Failed to run analysis"
-
-    # append _01 to the plots as this was initial analysis
-    pngs = set(glob.glob('*.png'))
-    new_pngs = pngs.difference(existing_pngs)
-    for f in new_pngs:
-      root, ext = os.path.splitext(f)
-      os.rename(f, root + '_01' + ext)
 
     # try to find an associated experiment.json
     exp_path = self.find_experiments_json(idx_path)
     if exp_path is None:
       return "Cannot find an experiments.json for refinement"
 
-    # refine, static then scan-varying with 36 and 18 degree interval widths
+    # do refinement in a temporary directory
     tmp_dir = open_tmp_directory(suffix="_working_dir")
     self._working_dir = os.path.abspath(tmp_dir)
     os.chdir(tmp_dir)
+
+    # refine static model first
     cmd = ('dials.refine {0} {1} '
            'output.experiments=refined_static.json '
            'output.reflections=refined_static.pickle').format(exp_path, idx_path)
     result = easy_run.fully_buffered(command=cmd)
     tst = [os.path.exists('refined_static' + e) for e in ['.json', '.pickle']]
     if tst.count(True) != 2:
-      return "Refinement output was not found"
+      return "Static refinement output was not found"
 
     # refine scan-varying, 36 degrees interval width
     args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
@@ -179,8 +166,9 @@ class Script(object):
             'output.reflections=sv_refined_36deg.pickle']
     cmd = ' '.join(args)
     result = easy_run.fully_buffered(command=cmd)
-    if result.return_code != 0:
-      return "First scan-varying refinement failed"
+    tst = [os.path.exists('sv_refined_36deg' + e) for e in ['.json', '.pickle']]
+    if tst.count(True) != 2:
+      return "First scan-varying refinement output was not found"
 
     # refine scan-varying, 18 degrees interval width
     args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
@@ -191,46 +179,40 @@ class Script(object):
             'output.reflections=sv_refined_18deg.pickle']
     cmd = ' '.join(args)
     result = easy_run.fully_buffered(command=cmd)
-    if result.return_code != 0:
-      return "Second scan-varying refinement failed"
+    tst = [os.path.exists('sv_refined_18deg' + e) for e in ['.json', '.pickle']]
+    if tst.count(True) != 2:
+      return "Second scan-varying refinement output was not found"
+
+    # run analysis for static refinement job
+    os.chdir(directory)
+    if not self._centroid_analysis('refined_static.pickle'):
+      return "Failed to run analysis on static refinement job"
 
     # run analysis for first scan-varying refinement job
-    os.chdir(directory)
-    existing_pngs = set(glob.glob('*.png'))
-    cmd = "dials.python {0} {1}".format(ca, os.path.join(
-      tmp_dir, 'sv_refined_36deg.pickle'))
-    result = easy_run.fully_buffered(command=cmd)
-    if result.return_code != 0:
+    if not self._centroid_analysis('sv_refined_36deg.pickle', '_02'):
       return "Failed to run analysis on sv_refined_36deg.pickle"
 
-    # append _02 to the plot filenames, and move them to the parent directory
-    pngs = set(glob.glob('*.png'))
-    new_pngs = pngs.difference(existing_pngs)
-    for f in new_pngs:
-      head, tail = os.path.split(f)
-      root, ext = os.path.splitext(tail)
-      new_path = os.path.join(directory, root + '_02' + ext)
-      os.rename(f, new_path)
-
     # run analysis for second scan-varying refinement job
-    existing_pngs = set(glob.glob('*.png'))
-    cmd = "dials.python {0} {1}".format(ca, os.path.join(
-      tmp_dir, 'sv_refined_18deg.pickle'))
-    result = easy_run.fully_buffered(command=cmd)
-    if result.return_code != 0:
+    if not self._centroid_analysis('sv_refined_18deg.pickle', '_03'):
       return "Failed to run analysis on sv_refined_18deg.pickle"
-
-    # append _03 to the plot filenames, and move them to the parent directory
-    pngs = set(glob.glob('*.png'))
-    new_pngs = pngs.difference(existing_pngs)
-    for f in new_pngs:
-      head, tail = os.path.split(f)
-      root, ext = os.path.splitext(tail)
-      new_path = os.path.join(directory, root + '_03' + ext)
-      os.rename(f, new_path)
 
     # Return empty status for success
     return ""
+
+  def _centroid_analysis(self, filename, tag='_01'):
+    existing_pngs = set(glob.glob('*.png'))
+    cmd = "dials.python {0} {1}".format(self._ca, os.path.join(
+      self._working_dir, filename))
+    result = easy_run.fully_buffered(command=cmd)
+    if result.return_code != 0:
+      return False
+    # append tag to the plot filenames
+    pngs = set(glob.glob('*.png'))
+    new_pngs = pngs.difference(existing_pngs)
+    for f in new_pngs:
+      root, ext = os.path.splitext(f)
+      os.rename(f, root + tag + ext)
+    return True
 
   def find_experiments_json(self, idx_path):
     '''Given the path to an indexed.pickle, try to identify an associated
