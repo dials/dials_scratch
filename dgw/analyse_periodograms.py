@@ -24,11 +24,13 @@ where filelist consists of paths to indexed.pickles. Associated
 experiments.jsons will be determined by matching expected filenames."""
 
 from __future__ import division
-import os
+import os, shutil
 import datetime
+import glob
 from libtbx.utils import Sorry
 from libtbx import easy_run
 import libtbx.load_env
+from libtbx.test_utils import open_tmp_directory
 from dials.command_line.analyse_output import ensure_directory
 
 class Script(object):
@@ -47,6 +49,11 @@ class Script(object):
         .help = "Set True to force overwriting of previous analysis results."
                 "Otherwise subdirectories for jobs that already exist will be"
                 "skipped."
+
+      remove_working_dir = True
+        .type = bool
+        .help = "Set False to keep working directories containing refinement"
+                "results, otherwise these will be deleted."
 
       output {
         directory = analyse_periodograms
@@ -78,12 +85,14 @@ class Script(object):
     if len(filelist) != 1:
       raise Sorry('Please provide input in the form:\n  {0}'.format(self.parser.usage))
 
-    # Read the filelist
+    # Read the filelist and tidy it up
     try:
       with open(filelist[0] ,'r') as f:
         self.filelist = f.readlines()
     except IOError:
       raise Sorry('Cannot read the specified file list')
+    self.filelist = [l.rstrip() for l in self.filelist]
+    self.filelist = [l for l in self.filelist if l != '']
 
     # Create output directory if it does not already exist
     self._directory = os.path.abspath(self.params.output.directory)
@@ -92,11 +101,12 @@ class Script(object):
 
     # Do analysis for the files in filelist
     for i, f in enumerate(self.filelist):
+      # strip newline from the filenames
       s = '{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now())
-      s += 'Processing file {0}: '.format(i) + f.rstrip()
+      s += 'Processing file {0}: '.format(i) + f
       print s
       status = self.process(f, i)
-      if status['refined_spectra'] is False:
+      if status:
         print "Incomplete:", status
 
     return
@@ -105,25 +115,23 @@ class Script(object):
     '''Perform processing tasks for one indexed.pickle'''
 
     cwd = os.path.abspath(os.curdir)
+    self._working_dir = None
     status = self._process_core(idx_path, i)
     os.chdir(cwd)
+    # clean up working directory
+    if self._working_dir is not None and self.params.remove_working_dir:
+      shutil.rmtree(self._working_dir)
     return status
 
   def _process_core(self, idx_path, i):
-
-    status = {'skipped':True,
-              'spectra':False,
-              'refined':False,
-              'refined_spectra':False}
 
     directory = os.path.join(self._directory, 'run%05d' % i)
     try:
       os.mkdir(directory)
     except OSError:
       if not self.params.force_analysis:
-        print 'Skipping ' + directory + ' that already exists'
-        return status
-    status['skipped'] = False
+        return 'Skipping ' + directory + ' that already exists'
+
     os.chdir(directory)
 
     # locate centroid_analysis script
@@ -132,54 +140,97 @@ class Script(object):
       'centroid_analysis.py')
 
     # run analysis
+    existing_pngs = set(glob.glob('*.png'))
     cmd = "dials.python {0} {1}".format(ca, idx_path)
     result = easy_run.fully_buffered(command=cmd)
-    with open('cmd.txt', 'w') as f:
-      f.write(result.command.rstrip() + '\n')
-
     if result.return_code != 0:
-      return status
-    status['spectra'] = True
+      return "Failed to run analysis"
+
+    # append _01 to the plots as this was initial analysis
+    pngs = set(glob.glob('*.png'))
+    new_pngs = pngs.difference(existing_pngs)
+    for f in new_pngs:
+      root, ext = os.path.splitext(f)
+      os.rename(f, root + '_01' + ext)
 
     # try to find an associated experiment.json
     exp_path = self.find_experiments_json(idx_path)
     if exp_path is None:
-      return status
+      return "Cannot find an experiments.json for refinement"
 
-    # refine, static then scan-varying
-    try:
-      os.mkdir('refined')
-    except OSError:
-      if not self.params.force_analysis:
-        return status
-    os.chdir('refined')
-    cmd = 'dials.refine {0} {1}'.format(exp_path, idx_path)
+    # refine, static then scan-varying with 36 and 18 degree interval widths
+    tmp_dir = open_tmp_directory(suffix="_working_dir")
+    self._working_dir = os.path.abspath(tmp_dir)
+    os.chdir(tmp_dir)
+    cmd = ('dials.refine {0} {1} '
+           'output.experiments=refined_static.json '
+           'output.reflections=refined_static.pickle').format(exp_path, idx_path)
     result = easy_run.fully_buffered(command=cmd)
-    with open('cmd.txt', 'w') as f:
-      f.write(result.command.rstrip() + '\n')
-    tst = [os.path.exists(p) for p in ['refined.pickle',
-                                       'refined_experiments.json']]
+    tst = [os.path.exists('refined_static' + e) for e in ['.json', '.pickle']]
     if tst.count(True) != 2:
-      return status
-    cmd = 'dials.refine refined.pickle refined_experiments.json scan_varying=True'
+      return "Refinement output was not found"
+
+    # refine scan-varying, 36 degrees interval width
+    args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
+            'scan_varying=true',
+            'unit_cell.smoother.interval_width_degrees=36',
+            'orientation.smoother.interval_width_degrees=36',
+            'output.experiments=sv_refined_36deg.json',
+            'output.reflections=sv_refined_36deg.pickle']
+    cmd = ' '.join(args)
     result = easy_run.fully_buffered(command=cmd)
-    with open('cmd.txt', 'a') as f:
-      f.write(result.command.rstrip() + '\n')
     if result.return_code != 0:
-      return status
-    status['refined'] = True
+      return "First scan-varying refinement failed"
 
-    # second round of analysis
-    cmd = "dials.python {0} {1}".format(ca, 'refined.pickle')
+    # refine scan-varying, 18 degrees interval width
+    args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
+            'scan_varying=true',
+            'unit_cell.smoother.interval_width_degrees=18',
+            'orientation.smoother.interval_width_degrees=18',
+            'output.experiments=sv_refined_18deg.json',
+            'output.reflections=sv_refined_18deg.pickle']
+    cmd = ' '.join(args)
     result = easy_run.fully_buffered(command=cmd)
-    with open('cmd.txt', 'a') as f:
-      f.write(result.command.rstrip() + '\n')
-
     if result.return_code != 0:
-      return status
-    status['refined_spectra'] = True
+      return "Second scan-varying refinement failed"
 
-    return status
+    # run analysis for first scan-varying refinement job
+    os.chdir(directory)
+    existing_pngs = set(glob.glob('*.png'))
+    cmd = "dials.python {0} {1}".format(ca, os.path.join(
+      tmp_dir, 'sv_refined_36deg.pickle'))
+    result = easy_run.fully_buffered(command=cmd)
+    if result.return_code != 0:
+      return "Failed to run analysis on sv_refined_36deg.pickle"
+
+    # append _02 to the plot filenames, and move them to the parent directory
+    pngs = set(glob.glob('*.png'))
+    new_pngs = pngs.difference(existing_pngs)
+    for f in new_pngs:
+      head, tail = os.path.split(f)
+      root, ext = os.path.splitext(tail)
+      new_path = os.path.join(directory, root + '_02' + ext)
+      os.rename(f, new_path)
+
+    # run analysis for second scan-varying refinement job
+    existing_pngs = set(glob.glob('*.png'))
+    cmd = "dials.python {0} {1}".format(ca, os.path.join(
+      tmp_dir, 'sv_refined_18deg.pickle'))
+    result = easy_run.fully_buffered(command=cmd)
+    if result.return_code != 0:
+      return "Failed to run analysis on sv_refined_18deg.pickle"
+
+    # append _03 to the plot filenames, and move them to the parent directory
+    pngs = set(glob.glob('*.png'))
+    new_pngs = pngs.difference(existing_pngs)
+    for f in new_pngs:
+      head, tail = os.path.split(f)
+      root, ext = os.path.splitext(tail)
+      new_path = os.path.join(directory, root + '_03' + ext)
+      os.rename(f, new_path)
+
+    # Return empty status for success
+    return ""
 
   def find_experiments_json(self, idx_path):
     '''Given the path to an indexed.pickle, try to identify an associated
