@@ -8,10 +8,11 @@
 #  This code is distributed under the BSD license, a copy of which is
 #  included in the root directory of this package.
 
-"""Work through a list of indexed.pickles and perform centroid analysis on
-each to produce periodograms of the residuals. Save these plots and also do
-scan-varying refinement, followed by a second round of centroid analysis to see
-if the varying model accounts for the main features of the residuals.
+"""Work through a list of indexed.pickles and do refinement of a static model
+and scan-varying models with various interval widths (i.e. smoothness). Perform
+centroid analysis on each to produce periodograms of the refined residuals.
+Save the plots to see if the varying model accounts for the main features of
+the residuals.
 
 This will be run on datasets from the Metrix database. The idea is to explore
 datasets with many different features, to investigate in which situations it is
@@ -157,6 +158,19 @@ class Script(object):
     if tst.count(True) != 2:
       return "Static refinement output was not found"
 
+    # refine scan-varying, 54 degrees interval width
+    args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
+            'scan_varying=true',
+            'unit_cell.smoother.interval_width_degrees=54',
+            'orientation.smoother.interval_width_degrees=54',
+            'output.experiments=sv_refined_54deg.json',
+            'output.reflections=sv_refined_54deg.pickle']
+    cmd = ' '.join(args)
+    result = easy_run.fully_buffered(command=cmd)
+    tst = [os.path.exists('sv_refined_54deg' + e) for e in ['.json', '.pickle']]
+    if tst.count(True) != 2:
+      return "54 deg interval width scan-varying refinement output was not found"
+
     # refine scan-varying, 36 degrees interval width
     args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
             'scan_varying=true',
@@ -168,7 +182,7 @@ class Script(object):
     result = easy_run.fully_buffered(command=cmd)
     tst = [os.path.exists('sv_refined_36deg' + e) for e in ['.json', '.pickle']]
     if tst.count(True) != 2:
-      return "First scan-varying refinement output was not found"
+      return "36 deg interval width scan-varying refinement output was not found"
 
     # refine scan-varying, 18 degrees interval width
     args = ['dials.refine', 'refined_static.pickle', 'refined_static.json',
@@ -181,19 +195,23 @@ class Script(object):
     result = easy_run.fully_buffered(command=cmd)
     tst = [os.path.exists('sv_refined_18deg' + e) for e in ['.json', '.pickle']]
     if tst.count(True) != 2:
-      return "Second scan-varying refinement output was not found"
+      return "18 deg interval width scan-varying refinement output was not found"
 
     # run analysis for static refinement job
     os.chdir(directory)
     if not self._centroid_analysis('refined_static.pickle'):
       return "Failed to run analysis on static refinement job"
 
-    # run analysis for first scan-varying refinement job
-    if not self._centroid_analysis('sv_refined_36deg.pickle', '_02'):
+    # run analysis for 54 deg scan-varying refinement job
+    if not self._centroid_analysis('sv_refined_54deg.pickle', '_02'):
+      return "Failed to run analysis on sv_refined_54deg.pickle"
+
+    # run analysis for 36 deg scan-varying refinement job
+    if not self._centroid_analysis('sv_refined_36deg.pickle', '_03'):
       return "Failed to run analysis on sv_refined_36deg.pickle"
 
-    # run analysis for second scan-varying refinement job
-    if not self._centroid_analysis('sv_refined_18deg.pickle', '_03'):
+    # run analysis for 18 deg scan-varying refinement job
+    if not self._centroid_analysis('sv_refined_18deg.pickle', '_04'):
       return "Failed to run analysis on sv_refined_18deg.pickle"
 
     # Return empty status for success
