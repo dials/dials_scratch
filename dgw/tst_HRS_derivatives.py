@@ -62,7 +62,7 @@ def fd_grad_av_I(I, w, g, iparam):
   index.'''
 
   p = list(g)
-  delta = 1.e-6
+  delta = 1.e-7
   assert iparam < len(p)
 
   p[iparam] -= 0.5 * delta
@@ -70,6 +70,53 @@ def fd_grad_av_I(I, w, g, iparam):
 
   p[iparam] += delta
   fwd_state = av_I(I, w, p)
+
+  fd_grad = (fwd_state - rev_state) / delta
+
+  return fd_grad
+
+def residual(I, w, g, iparam):
+  '''Calculate a residual of the HRS target'''
+
+  wl = w[iparam]
+  gl = g[iparam]
+  Il = I[iparam]
+  mrgI = av_I(I, w, g)
+
+  return wl * (Il - gl * mrgI)
+
+def grad_r(I, w, g, iparam):
+  '''Calculate the first derivative of the residual of the HRS target with
+  respect to a parameter of the model, specified by its index.'''
+
+  dg = dg_dp(g, iparam)
+  dgl = dg[iparam]
+  wl = w[iparam]
+  gl = g[iparam]
+  mrgI = av_I(I, w, g)
+
+  term1 = -1. * wl * mrgI * dgl
+  term2a = sum([2.*a*b*c for (a,b,c) in zip(w, g, dg)]) * mrgI
+  term2b = sum([a*b*c for (a,b,c) in zip(w, dg, I)])
+  term2c = sum([a*b*b for (a,b) in zip(w, g)])
+
+  result = term1 + wl * gl * (term2a - term2b) / term2c
+  return result
+
+def fd_grad_r(I, w, g, iparam):
+  '''Calculate the finite difference approximation to the first derivative of
+  the residual of the HRS target with respect to a parameter of the model,
+  specified by its index.'''
+
+  p = list(g)
+  delta = 1.e-7
+  assert iparam < len(p)
+
+  p[iparam] -= 0.5 * delta
+  rev_state = residual(I, w, p, iparam)
+
+  p[iparam] += delta
+  fwd_state = residual(I, w, p, iparam)
 
   fd_grad = (fwd_state - rev_state) / delta
 
@@ -98,8 +145,17 @@ if __name__ == '__main__':
   mrgI = av_I(I, w, g)
 
   for iparam in range(nobs):
-    dmrgI_dp0 = grad_av_I(I, w, g, iparam)
-    fd_dmrgI_dp0 = fd_grad_av_I(I, w, g, iparam)
+    dmrgI_dp = grad_av_I(I, w, g, iparam)
+    fd_dmrgI_dp = fd_grad_av_I(I, w, g, iparam)
 
-    assert approx_equal(dmrgI_dp0, fd_dmrgI_dp0)
+    assert approx_equal(dmrgI_dp, fd_dmrgI_dp)
+  print "OK"
+
+  # Now test the complete expression for the first derivative of the residuals
+  # of the HRS target.
+  for iparam in range(nobs):
+    dr_dp = grad_r(I, w, g, iparam)
+    fd_dr_dp = fd_grad_r(I, w, g, iparam)
+
+    assert approx_equal(dr_dp, fd_dr_dp)
   print "OK"
