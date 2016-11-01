@@ -83,7 +83,6 @@ def run(args):
       for ref in shadowed:
         p = detector[ref['panel']]
         ox, oy = p.get_raw_image_offset()
-        print ref['panel'], ox, oy
         h, k, l = ref['miller_index']
         x, y, z = ref['xyzcal.px']
         dx, dy, dz = (2, 2, 2)
