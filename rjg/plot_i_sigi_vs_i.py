@@ -58,8 +58,6 @@ def run(args):
   pyplot.savefig('i_sigi_vs_i.png')
   pyplot.clf()
 
-  return
-
 
 if __name__ == '__main__':
   import sys
