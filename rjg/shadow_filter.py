@@ -53,6 +53,8 @@ def run(args):
 
   from dials.command_line.check_strategy import filter_shadowed_reflections
   sel = filter_shadowed_reflections(experiments, reflections)
+  print "%i/%i (%.2f%%) shadowed reflections" %(
+    sel.count(True), sel.size(), 100*sel.count(True)/sel.size())
 
   if params.negate:
     sel = ~sel
@@ -79,12 +81,14 @@ def run(args):
     with open(params.output.filter_hkl, 'wb') as f:
 
       for ref in shadowed:
+        p = detector[ref['panel']]
+        ox, oy = p.get_raw_image_offset()
+        print ref['panel'], ox, oy
         h, k, l = ref['miller_index']
         x, y, z = ref['xyzcal.px']
         dx, dy, dz = (2, 2, 2)
         print >> f, "%i %i %i %.1f %.1f %.1f %.1f %.1f %.1f" %(
-          h, k, l, x, y, z, dx, dy, dz)
-
+          h, k, l, x+ox, y+oy, z, dx, dy, dz)
 
 
 if __name__ == '__main__':
