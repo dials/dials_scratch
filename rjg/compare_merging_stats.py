@@ -96,7 +96,10 @@ def plot_merging_stats(results, labels=None, plots=None, prefix=None,
       pyplot.plot(x, y, label=label)
     pyplot.xlabel('d spacing')
     pyplot.ylabel(k)
-    pyplot.ylim(0, pyplot.ylim()[1])
+    if k == 'cc_one_half':
+      pyplot.ylim(0, 1.05)
+    else:
+      pyplot.ylim(0, pyplot.ylim()[1])
     ax = pyplot.gca()
     xticks = ax.get_xticks()
     xticks_d = [
