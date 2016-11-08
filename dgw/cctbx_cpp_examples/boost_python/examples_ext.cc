@@ -7,10 +7,12 @@ using namespace boost::python;
 namespace dials_scratch { namespace examples { namespace boost_python {
 
   void export_bad_bucket();
+  void export_print_array();
 
   BOOST_PYTHON_MODULE(dials_scratch_cctbx_cpp_examples_ext)
   {
     export_bad_bucket();
+    export_print_array();
   }
 
 }}} // namespace dials_scratch::examples::boost_python
