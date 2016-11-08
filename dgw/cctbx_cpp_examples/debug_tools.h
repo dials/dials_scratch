@@ -1,5 +1,5 @@
 /*
- * array_gotchas.h
+ * debug_tools.h
  *
  *  Copyright (C) (2016) STFC Rutherford Appleton Laboratory, UK.
  *
