@@ -1,0 +1,8 @@
+
+Import('env')
+
+env.SharedLibrary(
+  target='#/lib/dials_scratch_cctbx_cpp_examples_ext',
+  source=['boost_python/array_gotchas.cc',
+          'boost_python/examples_ext.cc'],
+  LIBS=env["LIBS"])
