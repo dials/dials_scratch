@@ -143,6 +143,8 @@ class Script(DCScript):
     return sm, color_vals
 
   def plot_obs_colored_by_deltapsi(self, reflections, panel = None, ax = None, bounds = None):
+    if 'delpsical.rad' not in reflections:
+      return
     assert panel is not None and ax is not None and bounds is not None
     data = reflections['delpsical.rad'] * (180/math.pi)
     norm, cmap, color_vals, sm = self.get_normalized_colors(data, vmin=-0.1, vmax=0.1)
@@ -160,6 +162,8 @@ class Script(DCScript):
     return sm, color_vals
 
   def plot_radial_displacements_vs_deltapsi(self, reflections, panel = None, ax = None, bounds = None):
+    if 'delpsical.rad' not in reflections:
+      return
     assert panel is not None and ax is not None and bounds is not None
     data = reflections['difference_vector_norms']
     norm, cmap, color_vals, sm = self.get_normalized_colors(data)
@@ -393,19 +397,20 @@ class Script(DCScript):
     else:
       tag = '%s '%params.tag
 
-    # set up delta-psi ratio heatmap
-    p = flex.int() # positive
-    n = flex.int() # negative
-    for i in set(reflections['id']):
-      exprefls = reflections.select(reflections['id']==i)
-      p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
-      n.append(len(exprefls.select(exprefls['delpsical.rad']<0)))
-    plt.hist2d(p, n, bins=30)
-    cb = plt.colorbar()
-    cb.set_label("N images")
-    plt.title(r"%s2D histogram of pos vs. neg $\Delta\Psi$ per image"%tag)
-    plt.xlabel(r"N reflections with $\Delta\Psi$ > 0")
-    plt.ylabel(r"N reflections with $\Delta\Psi$ < 0")
+    if 'delpsical.rad' in reflections:
+      # set up delta-psi ratio heatmap
+      p = flex.int() # positive
+      n = flex.int() # negative
+      for i in set(reflections['id']):
+	exprefls = reflections.select(reflections['id']==i)
+	p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
+	n.append(len(exprefls.select(exprefls['delpsical.rad']<0)))
+      plt.hist2d(p, n, bins=30)
+      cb = plt.colorbar()
+      cb.set_label("N images")
+      plt.title(r"%s2D histogram of pos vs. neg $\Delta\Psi$ per image"%tag)
+      plt.xlabel(r"N reflections with $\Delta\Psi$ > 0")
+      plt.ylabel(r"N reflections with $\Delta\Psi$ < 0")
 
     self.delta_scalar = 50
 
@@ -473,7 +478,12 @@ class Script(DCScript):
     reflections['transverse_displacements'] = reflections['delta_lab_coords'].dot(transverse_vectors)
 
     # Iterate through the detector at the specified hierarchy level
-    for pg_id, pg in enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level)):
+    if hasattr(detector, 'hierarchy'):
+      iterable = enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level))
+    else:
+      iterable = enumerate(detector)
+      
+    for pg_id, pg in iterable:
       pg_msd_sum = 0
       pg_r_msd_sum = 0
       pg_t_msd_sum = 0
