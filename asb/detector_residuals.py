@@ -85,6 +85,7 @@ class Script(DCScript):
       read_experiments=True,
       read_datablocks=True,
       read_reflections=True,
+      check_format=False,
       epilog=help_message)
 
   def get_normalized_colors(self, data, vmin=None, vmax=None):
@@ -402,9 +403,9 @@ class Script(DCScript):
       p = flex.int() # positive
       n = flex.int() # negative
       for i in set(reflections['id']):
-	exprefls = reflections.select(reflections['id']==i)
-	p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
-	n.append(len(exprefls.select(exprefls['delpsical.rad']<0)))
+        exprefls = reflections.select(reflections['id']==i)
+        p.append(len(exprefls.select(exprefls['delpsical.rad']>0)))
+        n.append(len(exprefls.select(exprefls['delpsical.rad']<0)))
       plt.hist2d(p, n, bins=30)
       cb = plt.colorbar()
       cb.set_label("N images")
@@ -482,7 +483,7 @@ class Script(DCScript):
       iterable = enumerate(iterate_detector_at_level(detector.hierarchy(), 0, params.hierarchy_level))
     else:
       iterable = enumerate(detector)
-      
+
     for pg_id, pg in iterable:
       pg_msd_sum = 0
       pg_r_msd_sum = 0
@@ -704,7 +705,7 @@ class Script(DCScript):
 
     y1 = ygroups[0]
     ygroups = ygroups[1:]
-    current_offset = 60
+    current_offset = 0
     offset = 60
 
     host.set_title(title)
@@ -730,8 +731,7 @@ class Script(DCScript):
         par.axis["right"].label.set_color(p.get_color())
       par.set_ylabel(ylabel)
 
-    host.legend(loc='lower center', bbox_to_anchor=(0.6, 0.0),
-                ncol=3, fancybox=True, shadow=True)
+    host.legend(loc='upper center', ncol=2, fancybox=True, shadow=True, fontsize=8)
     plt.draw()
 
   def plot_data_by_two_theta(self, reflections, tag):
@@ -770,12 +770,12 @@ class Script(DCScript):
     self.plot_multi_data(x_centers,
                          [rt_ratio, (rmsds, radial_rmsds, transverse_rmsds), rmsd_delta_two_theta],
                          "Two theta (degrees)",
-                         ["R/T RMSD ratio",
-                          ("Overall RMSD","Radial RMSD","Transverse RMSD"),
-                          "RMSD delta two theta"],
+                         ["R/T RMSD",
+                          ("RMSD","R RMSD","T RMSD"),
+                          r"RMSD $\Delta2\Theta$"],
                          ["R/T RMSD ratio",
                           "Overall, radial, transverse RMSD (microns)",
-                          "Delta two theta RMSD (degrees)"],
+                          r'$\Delta2\Theta RMSD (\circ)$'],
                          title)
 
   def histogram(self, reflections, title):
