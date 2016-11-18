@@ -31,6 +31,8 @@ def run(args):
     parser.print_help()
     return
   reflections = reflections[0]
+  reflections = reflections.select(
+    reflections.get_flags(reflections.flags.used_in_refinement))
 
   from dials.algorithms.shoebox import MaskCode
   bg_code = MaskCode.Valid | MaskCode.BackgroundUsed
@@ -45,11 +47,10 @@ def run(args):
   for npix in range(1, flex.max(reflection_size)):
     ref_by_npix[npix] = reflections.select(reflection_size == npix)
 
-  print reflections.size()
-
-
-  x = flex.size_t()
+  n_pixels = flex.size_t()
   rmsds = flex.vec3_double()
+  mean_var = flex.vec3_double()
+  n_ref = flex.size_t()
 
   for npix in range(1, flex.max(reflection_size)):
     refl = reflections.select(reflection_size == npix)
@@ -67,14 +68,28 @@ def run(args):
     #print '%i (%i refs): (%.2f, %.2f, %.2f)' %(
       #npix, refl.size(), rmsdx, rmsdy, rmsdz)
 
-    x.append(npix)
+    n_pixels.append(npix)
     rmsds.append((rmsdx, rmsdy, rmsdz))
+    n_ref.append(refl.size())
+    mean_var.append(refl['xyzobs.mm.variance'].mean())
 
   from matplotlib import pyplot
-  y1, y2, y3 = rmsds.parts()
-  pyplot.plot(x, y1)
-  pyplot.plot(x, y2)
-  #pyplot.plot(x, y3)
+  pyplot.style.use('ggplot')
+  rmsdx, rmsdy, rmsdz = rmsds.parts()
+  varx, vary, varz = mean_var.parts()
+  fig = pyplot.figure()
+  ax = fig.add_subplot(111)
+  linex, = ax.plot(n_pixels, rmsdx, label='rmsd_x')
+  liney, = ax.plot(n_pixels, rmsdy, label='rmsd_y')
+  ax.plot(n_pixels, flex.sqrt(varx), label='sd_x', color=linex.get_color(), linestyle='-.')
+  ax.plot(n_pixels, flex.sqrt(varx), label='sd_y', color=liney.get_color(), linestyle=':')
+  ax2 = ax.twinx()
+  ax2.plot(n_pixels, n_ref, label='# reflections', color='grey', linestyle='--')
+  ax.set_xlabel('# pixels')
+  ax.set_ylabel('rmsd (mm)')
+  ax2.set_ylabel('# reflections')
+  ax.legend(loc='best')
+
   pyplot.show()
 
 
