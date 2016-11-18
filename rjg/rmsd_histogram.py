@@ -10,6 +10,8 @@ help_message = '''
 '''
 
 phil_scope = iotbx.phil.parse('''
+min_reflections = 1
+  .type = int(value_min=1)
 ''', process_includes=True)
 
 
@@ -51,7 +53,7 @@ def run(args):
 
   for npix in range(1, flex.max(reflection_size)):
     refl = reflections.select(reflection_size == npix)
-    if refl.size() == 0: continue
+    if refl.size() < params.min_reflections: continue
     sel = refl['xyzcal.mm'].norms() > 0
     if sel.count(True) == 0: continue
     refl = refl.select(sel)
