@@ -46,7 +46,7 @@ def demo_print_array_head():
   v = flex.double(range(100))
 
   print "Print array head, default head length of 10:"
-  print_array_head(v, 10)
+  print_array_head(v)
 
   print "Print array head, set head length to 5"
   print_array_head(v, 5)
