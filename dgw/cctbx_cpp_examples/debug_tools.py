@@ -38,8 +38,22 @@ def demo_print_array():
 
   return
 
+def demo_print_array_head():
+  '''Demonstrate simple array slicing from C++'''
+
+  from dials_scratch_cctbx_cpp_examples_ext import print_array_head
+  from cctbx.array_family import flex
+  v = flex.double(range(100))
+
+  print "Print array head, default head length of 10:"
+  print_array_head(v, 10)
+
+  print "Print array head, set head length to 5"
+  print_array_head(v, 5)
+
 if __name__ == '__main__':
 
   runner(demo_print_array)
+  runner(demo_print_array_head)
 
 
