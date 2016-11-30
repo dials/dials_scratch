@@ -24,5 +24,10 @@ namespace dials_scratch { namespace examples { namespace boost_python {
     def("create_sparse_matrix", &create_sparse_matrix);
   }
 
+  void export_mat_sum()
+  {
+    def("mat_sum", &mat_sum);
+  }
+
 }}} // namespace = dials_scratch::examples::boost_python
 
