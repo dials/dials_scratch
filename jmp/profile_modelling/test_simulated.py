@@ -21,15 +21,15 @@ if __name__ == '__main__':
   N = []
   I = []
 
-  for j in range(100):
+  for j in range(1000):
     from random import uniform, randint
     # XMIN = mu-4*sigma
     # XMAX = mu+4*sigma
     # NUM = 10
     # COUNTS = 10000
-    XMIN = uniform(mu-3*sigma, mu-0.1*sigma)
-    XMAX = uniform(mu+3*sigma, mu+0.1*sigma)
-    NUM = randint(1, 5)
+    XMIN = uniform(mu-4*sigma, mu-0.1*sigma)
+    XMAX = uniform(mu+4*sigma, mu+0.1*sigma)
+    NUM = randint(1, 3)
     COUNTS = uniform(100, 10000)
 
     AA = [XMIN + i*(XMAX-XMIN)/(NUM) for i in range(NUM)]
@@ -44,6 +44,7 @@ if __name__ == '__main__':
   
 
   from truncated_normal import compute_all_derivatives, estimate
+  from normal import compute_all_derivatives, estimate
   
   USE = [True] * len(A)
 
@@ -83,8 +84,7 @@ if __name__ == '__main__':
 
   from matplotlib import pylab
 
-  D = [abs(dy) for dy in DY]
-  minimum = X[D.index(min(D))]
+  minimum = X[Y.index(min(Y))]
   print minimum
 
   # pylab.plot(N)

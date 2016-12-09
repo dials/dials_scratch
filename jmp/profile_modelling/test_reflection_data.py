@@ -71,6 +71,7 @@ if __name__ == '__main__':
   import sys
 
   from truncated_normal import compute_all_derivatives, estimate
+  from normal import compute_all_derivatives, estimate
 
   reflections = flex.reflection_table.from_pickle(sys.argv[1])
   experiments = ExperimentListFactory.from_json_file(sys.argv[2],
@@ -162,56 +163,56 @@ if __name__ == '__main__':
   I = i_list
   USE = [True] * len(A)
 
-  # X = []
-  # Y = []
-  # DY = []
-  # D2Y = []
+  X = []
+  Y = []
+  DY = []
+  D2Y = []
 
-  # min_sigma = 2.0
-  # max_sigma = 20.0
-  # num = 1000
-  # for j in range(num):
+  min_sigma = 0.01 * pi / 180.0
+  max_sigma = 2.0 * pi / 180.0
+  num = 100
+  for j in range(num):
+    print j
+    sigma = min_sigma + j * (max_sigma - min_sigma) / (num - 1)
 
-  #   sigma = min_sigma + j * (max_sigma - min_sigma) / (num - 1)
-
-  #   X.append(sigma)
+    X.append(sigma*180/pi)
 
 
-  #   ntot = sum(N)
+    ntot = sum(N)
 
-  #   L, dL, d2L = compute_all_derivatives(A, B, N, I, mu, sigma, USE)
+    L, dL, d2L = compute_all_derivatives(A, B, N, I, mu, sigma, USE)
 
-  #   # Y.append(vtot)
-  #   # DY.append(dvtot)
-  #   # Y.append(sum_lnvi)
-  #   # DY.append(dsum_lnvi)
-  #   Y.append(L)
-  #   DY.append(dL)
-  #   D2Y.append(d2L)
+    # Y.append(vtot)
+    # DY.append(dvtot)
+    # Y.append(sum_lnvi)
+    # DY.append(dsum_lnvi)
+    Y.append(L)
+    DY.append(dL)
+    D2Y.append(d2L)
 
-  # print USE.count(False)
+  print USE.count(False)
 
-  # from numpy import gradient
+  from numpy import gradient
 
-  # DY2 = gradient(Y, gradient(X))
-  # D2Y2 = gradient(DY, gradient(X))
+  DY2 = gradient(Y, gradient(X))
+  D2Y2 = gradient(DY, gradient(X))
 
-  # from matplotlib import pylab
+  from matplotlib import pylab
 
-  # D = [abs(dy) for dy in DY]
-  # minimum = X[D.index(min(D))]
-  # print minimum
+  D = [abs(dy) for dy in DY]
+  minimum = X[Y.index(min(Y))]
+  print minimum
 
-  # # pylab.plot(N)
-  # # pylab.ylim((0, max(N)))
-  # # pylab.show()
-
-  # pylab.plot(X, Y, color='black')
-  # pylab.axvline(minimum)
-  # pylab.plot(X, DY, color='blue')
-  # # pylab.plot(X, DY2, color='orange')
-  # pylab.plot(X, D2Y, color='red')
-  # # pylab.plot(X, D2Y2, color='purple')
+  # pylab.plot(N)
+  # pylab.ylim((0, max(N)))
   # pylab.show()
+
+  pylab.plot(X, Y, color='black')
+  pylab.axvline(minimum)
+  # pylab.plot(X, DY, color='blue')
+  # pylab.plot(X, DY2, color='orange')
+  # pylab.plot(X, D2Y, color='red')
+  # pylab.plot(X, D2Y2, color='purple')
+  pylab.show()
   
   estimate(A, B, N, I, mu, sigma)
