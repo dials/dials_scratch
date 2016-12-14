@@ -27,39 +27,13 @@ matplotlib.use('Agg')
 help_message = '''
 '''
 
+from dials.algorithms.indexing.indexer import max_cell_phil_str
+
 phil_scope = iotbx.phil.parse('''\
 figsize = 12, 8
   .type = floats(size=2, value_min=0)
-max_cell_estimation
-    .expert_level = 1
-{
-  filter_ice = True
-    .type = bool
-    .help = "Filter out reflections at typical ice ring resolutions"
-            "before max_cell estimation."
-  filter_overlaps = True
-    .type = bool
-    .help = "Filter out reflections with overlapping bounding boxes before"
-            "max_cell estimation."
-  overlaps_border = 0
-    .type = int(value_min=0)
-    .help = "Optionally add a border around the bounding boxes before finding"
-            "overlaps."
-  multiplier = 1.3
-    .type = float(value_min=0)
-    .help = "Multiply the estimated maximum basis vector length by this value."
-    .expert_level = 2
-  step_size = 45
-    .type = float(value_min=0)
-    .help = "Step size, in degrees, of the blocks used to peform the max_cell "
-            "estimation."
-    .expert_level = 2
-  nearest_neighbor_percentile = 0.05
-    .type = float(value_min=0)
-    .help = "Percentile of NN histogram to use for max cell determination."
-    .expert_level = 2
-}
-''', process_includes=True)
+%s
+''' %max_cell_phil_str)
 
 
 def run(args):
@@ -147,6 +121,7 @@ def run(args):
     reflections, max_cell_multiplier=params.max_cell_estimation.multiplier,
     step_size=params.max_cell_estimation.step_size,
     nearest_neighbor_percentile=params.max_cell_estimation.nearest_neighbor_percentile,
+    histogram_binning=params.max_cell_estimation.histogram_binning,
     filter_ice=params.max_cell_estimation.filter_ice,
     filter_overlaps=params.max_cell_estimation.filter_overlaps,
     overlaps_border=params.max_cell_estimation.overlaps_border)
