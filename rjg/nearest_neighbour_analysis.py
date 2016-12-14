@@ -21,10 +21,15 @@ from dials.util.options import flatten_reflections
 from dials.util.options import flatten_datablocks
 from dials.array_family import flex
 
+import matplotlib
+matplotlib.use('Agg')
+
 help_message = '''
 '''
 
 phil_scope = iotbx.phil.parse('''\
+figsize = 12, 8
+  .type = floats(size=2, value_min=0)
 max_cell_estimation
     .expert_level = 1
 {
@@ -137,26 +142,25 @@ def run(args):
       goniometer=imageset.get_goniometer())
     reflections.extend(refl)
 
-  params = params.max_cell_estimation
   from dials.algorithms.indexing.indexer import find_max_cell
   result = find_max_cell(
-    reflections, max_cell_multiplier=params.multiplier,
-    step_size=params.step_size,
-    nearest_neighbor_percentile=params.nearest_neighbor_percentile,
-    filter_ice=params.filter_ice,
-    filter_overlaps=params.filter_overlaps,
-    overlaps_border=params.overlaps_border)
+    reflections, max_cell_multiplier=params.max_cell_estimation.multiplier,
+    step_size=params.max_cell_estimation.step_size,
+    nearest_neighbor_percentile=params.max_cell_estimation.nearest_neighbor_percentile,
+    filter_ice=params.max_cell_estimation.filter_ice,
+    filter_overlaps=params.max_cell_estimation.filter_overlaps,
+    overlaps_border=params.max_cell_estimation.overlaps_border)
   max_cell = result.max_cell
   print "Found max_cell: %.1f Angstrom" %max_cell
-  result.plot_histogram()
-  plot_d_spacings(reflections)
-  plot_direct_space_distances(result.direct, result.d_spacings)
+  result.plot_histogram(figsize=params.figsize)
+  plot_d_spacings(reflections, figsize=params.figsize)
+  plot_direct_space_distances(result.direct, result.d_spacings, figsize=params.figsize)
   #logger.info("Found max_cell: %.1f Angstrom" %(max_cell))
 
   return
 
 
-def plot_d_spacings(reflections):
+def plot_d_spacings(reflections, figsize=(12,8)):
   from cctbx import miller, sgtbx, uctbx
   from matplotlib import pyplot as plt
 
@@ -178,49 +182,66 @@ def plot_d_spacings(reflections):
   cubic_ice_d_star_sq = uctbx.d_as_d_star_sq(cubic_ice_d_spacings)
 
   perm = flex.sort_permutation(d_star_sq)
+  fig = plt.figure(figsize=figsize)
   plt.plot(d_star_sq.select(perm), flex.int_range(perm.size()), zorder=10)
   for dss in ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0)
+    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3)
   for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='g', zorder=1)
+    plt.plot([dss, dss], plt.ylim(), c='g', zorder=1, linestyle=':', alpha=0.3)
   ax = plt.gca()
   xticks = ax.get_xticks()
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
   plt.xlabel('d spacing (A^-1)')
   plt.ylabel('Cumulative frequency')
+  plt.tight_layout()
   plt.savefig('d_spacings.png')
   plt.clf()
 
   intensities = reflections['intensity.sum.value']
+  fig = plt.figure(figsize=figsize)
   plt.scatter(uctbx.d_as_d_star_sq(d_spacings), intensities, marker='.',
-              c='black', s=1)
+              c='black', s=1, zorder=10)
+  ylim = plt.ylim()
+  for dss in ice_d_star_sq:
+    plt.plot([dss, dss], (0, ylim[1]), c='r', zorder=0, linestyle=':', alpha=0.3)
+  for dss in cubic_ice_d_star_sq:
+    plt.plot([dss, dss], (0, ylim[1]), c='g', zorder=1, linestyle=':', alpha=0.3)
+  plt.ylim(ylim)
   ax = plt.gca()
   xticks = ax.get_xticks()
+  xticks = [x for x in xticks if x >= 0]
+  ax.set_xticks(xticks)
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
+  yticks = ax.get_yticks()
+  yticks = [y for y in yticks if y >= 0]
+  ax.set_yticks(yticks)
   plt.xlabel('d spacing (A^-1)')
   plt.ylabel('Intensity')
+  plt.tight_layout()
   plt.savefig('d_vs_intensity.png')
   plt.clf()
 
   hist = flex.histogram(d_star_sq, n_slots=200)
+  fig = plt.figure(figsize=figsize)
   plt.bar(hist.slot_centers(), hist.slots(), align="center",
           width=hist.slot_width(), zorder=10, color='black', edgecolor=None)
   for dss in ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0)
+    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3)
   for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='g', zorder=0)
+    plt.plot([dss, dss], plt.ylim(), c='g', zorder=0, linestyle=':', alpha=0.3)
   ax = plt.gca()
   xticks = ax.get_xticks()
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
   plt.xlabel('d spacing (A^-1)')
   plt.ylabel('Frequency')
+  plt.tight_layout()
   plt.savefig('d_spacings_hist.png')
   plt.clf()
 
-def plot_direct_space_distances(direct, d_spacings):
+def plot_direct_space_distances(direct, d_spacings, figsize=(12,8)):
   from cctbx import uctbx
   from matplotlib import pyplot as plt
   plt.plot(direct, flex.double_range(direct.size())/direct.size())
@@ -228,18 +249,22 @@ def plot_direct_space_distances(direct, d_spacings):
   ax.set_xscale('log')
   plt.xlabel('Direct space distance (A)')
   plt.ylabel('Percentile')
+  plt.tight_layout()
   plt.savefig('ordered.png')
   plt.clf()
 
-  fig = plt.figure(figsize=(12,8))
+  fig = plt.figure(figsize=figsize)
   plt.scatter(uctbx.d_as_d_star_sq(d_spacings), direct, marker='.', c='black', s=1)
   ax = plt.gca()
   ax.set_yscale('log')
   xticks = ax.get_xticks()
+  xticks = [x for x in xticks if x >= 0]
+  ax.set_xticks(xticks)
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
   plt.ylabel('Direct space distance (A)')
   plt.xlabel('d spacing(A^-1)')
+  plt.tight_layout()
   plt.savefig('d_vs_direct.png')
   plt.clf()
 
