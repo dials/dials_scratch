@@ -70,9 +70,8 @@ if __name__ == '__main__':
   from dxtbx.model.experiment.experiment_list import ExperimentListFactory
   import sys
 
-  from truncated_normal import compute_all_derivatives, estimate
-  from normal import compute_all_derivatives, estimate
-  from normal_known_scale import compute_all_derivatives, estimate
+
+  from xds import FractionOfObservedIntensity
 
   reflections = flex.reflection_table.from_pickle(sys.argv[1])
   experiments = ExperimentListFactory.from_json_file(sys.argv[2],
@@ -89,113 +88,85 @@ if __name__ == '__main__':
   # reflections = reflections.select(selection)
   reflections.compute_zeta(experiments[0])
 
-  phi = reflections['xyzcal.mm'].parts()[2]
-  sbox = reflections['shoebox']
-  zeta = reflections['zeta']
+  func = FractionOfObservedIntensity(None, beam, detector, goniometer, scan,
+                                     reflections)
 
-  dphi2 = scan.get_oscillation(deg=False)[1] / 2.0
-  # selection = flex.abs(zeta) > 0.05
-  # print selection.count(False)
-  # reflections = reflections.select(selection)
+  # phi = reflections['xyzcal.mm'].parts()[2]
+  # sbox = reflections['shoebox']
+  # zeta = reflections['zeta']
+
+  # # selection = flex.abs(zeta) > 0.05
+  # # print selection.count(False)
+  # # reflections = reflections.select(selection)
   
                                     
-  #print "Num Refl: ", len(reflections)
+  # #print "Num Refl: ", len(reflections)
 
-  a_list = []
-  b_list = []
-  n_list = []
-  i_list = []
-  for p, s, z in zip(phi, sbox, zeta):
-    z0 = s.bbox[4]
-    z1 = s.bbox[5]
-    phi0 = scan.get_angle_from_array_index(z0, deg=False)
-    phi1 = scan.get_angle_from_array_index(z1, deg=False)
-    # if phi0 > p or phi1 < p or (z1 -z0) == 1:
-    #   print "Skipping"
-    #   continue
+  # a_list = []
+  # b_list = []
+  # n_list = []
+  # i_list = []
+  # for p, s, z in zip(phi, sbox, zeta):
+  #   z0 = s.bbox[4]
 
-    # if s.data.all()[0] == 1:
-    #   continue
+  #   # if s.data.all()[0] == 1:
+  #   #   continue
 
-    a_temp = []
-    b_temp = []
-    n_temp = []
-    for k in range(s.data.all()[0]):
-      phi0 = scan.get_angle_from_array_index(z0+k, deg=False)
-      phi1 = scan.get_angle_from_array_index(z0+k+1, deg=False)
+  #   a_temp = []
+  #   b_temp = []
+  #   n_temp = []
+  #   for k in range(s.data.all()[0]):
+  #     phi0 = scan.get_angle_from_array_index(z0+k, deg=False)
+  #     phi1 = scan.get_angle_from_array_index(z0+k+1, deg=False)
 
-      t = (phi1 + phi0)/2.0 - p
-      b = (t + dphi2) * abs(z)
-      a = (t - dphi2) * abs(z)
+  #     if z < 0:
+  #       a = (p - phi0) * z#abs(z)
+  #       b = (p - phi1) * z#abs(z)
+  #     else:
+  #       b = (p - phi0) * z#abs(z)
+  #       a = (p - phi1) * z#abs(z)
 
-      sum_frames = 0
-      for j in range(s.data.all()[1]):
-        for i in range(s.data.all()[2]):
-          if s.mask[k,j,i] != 0:
-            sum_frames += s.data[k,j,i]
-            #n_list.append(s.data[k,j,i])
-      n_temp.append(sum_frames)
-      a_temp.append(a)
-      b_temp.append(b)
-      assert a < b
+  #     sum_frames = 0
+  #     for j in range(s.data.all()[1]):
+  #       for i in range(s.data.all()[2]):
+  #         if s.mask[k,j,i] != 0:
+  #           sum_frames += s.data[k,j,i]
+  #           #n_list.append(s.data[k,j,i])
+  #     n_temp.append(sum_frames)
+  #     a_temp.append(a)
+  #     b_temp.append(b)
+  #     assert a < b
 
-    # a_temp = list(reversed(a_temp))
-    # b_temp = list(reversed(b_temp))
+  #   if z > 0:
+  #     a_temp = list(reversed(a_temp))
+  #     b_temp = list(reversed(b_temp))
 
-    assert all(abs(bb-aa) < 1e-7 for aa, bb in zip(a_temp[1:], b_temp[:-1]))
-      # phi0 = scan.get_angle_from_array_index(z0+k, deg=False)
-      # phi1 = scan.get_angle_from_array_index(z0+k+1, deg=False)
+  #   assert all(abs(bb-aa) < 1e-7 for aa, bb in zip(a_temp[1:], b_temp[:-1]))
 
-      # if z < 0:
-      #   a = (p - phi0) * z#abs(z)
-      #   b = (p - phi1) * z#abs(z)
-      # else:
-      #   b = (p - phi0) * z#abs(z)
-      #   a = (p - phi1) * z#abs(z)
+  #   a_list.extend(a_temp)
+  #   b_list.extend(b_temp)
+  #   n_list.extend(n_temp)
+  #   i_list.append(s.data.all()[0])
 
-      # sum_frames = 0
-      # for j in range(s.data.all()[1]):
-      #   for i in range(s.data.all()[2]):
-      #     if s.mask[k,j,i] != 0:
-      #       sum_frames += s.data[k,j,i]
-      #       #n_list.append(s.data[k,j,i])
-      # n_temp.append(sum_frames)
-      # a_temp.append(a)
-      # b_temp.append(b)
-      # assert a < b
+  # a_list = flex.double(a_list)
+  # b_list = flex.double(b_list)
+  # n_list = flex.double(n_list)
+  # i_list = flex.size_t(i_list)
 
-    # if z > 0:
-      # a_temp = list(reversed(a_temp))
-      # b_temp = list(reversed(b_temp))
+  # assert sum(i_list) == len(a_list)
 
-    # assert all(abs(bb-aa) < 1e-7 for aa, bb in zip(a_temp[1:], b_temp[:-1]))
-
-    a_list.extend(a_temp)
-    b_list.extend(b_temp)
-    n_list.extend(n_temp)
-    i_list.append(s.data.all()[0])
-
-  a_list = flex.double(a_list)
-  b_list = flex.double(b_list)
-  n_list = flex.double(n_list)
-  i_list = flex.size_t(i_list)
-
-  print len(a_list)
-
-  assert sum(i_list) == len(a_list)
-  from math import pi 
-  mu = 0
-  sigma = 1.0 * pi / 180
+  # from math import pi 
+  # mu = 0
+  # sigma = 1.0 * pi / 180
 
  
-  A = a_list
-  B = b_list
-  N = n_list
-  I = i_list
+  # A = a_list
+  # B = b_list
+  # N = n_list
+  # I = i_list
 
   if True:
-
-    #USE = [True] * len(A)
+    from math import pi
 
     X = []
     Y = []
@@ -203,19 +174,20 @@ if __name__ == '__main__':
     D2Y = []
 
     min_sigma = 0.01 * pi / 180.0
-    max_sigma = 0.3 * pi / 180.0
+    max_sigma = 1.0 * pi / 180.0
     num = 100
     for j in range(num):
-      USE = [True] * len(A)
-      print j
+      #print j
       sigma = min_sigma + j * (max_sigma - min_sigma) / (num - 1)
 
       X.append(sigma*180/pi)
 
 
-      ntot = sum(N)
 
-      L, dL, d2L = compute_all_derivatives(A, B, N, I, mu, sigma, USE)
+      R = func(sigma)
+      L = -sum(R)
+      dL = 0
+      d2L =0
 
       # Y.append(vtot)
       # DY.append(dvtot)
@@ -225,12 +197,7 @@ if __name__ == '__main__':
       DY.append(dL)
       D2Y.append(d2L)
 
-    # with open("sum.txt", "w") as outfile:
-    #   for x, y in zip(X,Y):
-    #     print >>outfile, x, y
-    # exit(0)
-
-    print USE.count(False)
+    # print USE.count(False)
 
     from numpy import gradient
 
@@ -253,6 +220,4 @@ if __name__ == '__main__':
     # pylab.plot(X, DY2, color='orange')
     # pylab.plot(X, D2Y, color='red')
     # pylab.plot(X, D2Y2, color='purple')
-    pylab.show()
-  
-  print estimate(A, B, N, I, mu, 0.01*pi/180, 2.0*pi/180) * 180.0/pi
+    #pylab.show()

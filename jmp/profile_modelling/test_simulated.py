@@ -99,4 +99,4 @@ if __name__ == '__main__':
   # pylab.plot(X, D2Y2, color='purple')
   pylab.show()
   
-  estimate(A, B, N, I, mu, 0.1)
+  estimate(A, B, N, I, mu, 0.1, 10)
