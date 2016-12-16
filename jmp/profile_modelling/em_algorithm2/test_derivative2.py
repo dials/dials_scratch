@@ -62,7 +62,7 @@ def compute_derivatives(A, B, N, mu, sigma, USE):
   dL = dsum_lnvi - dvtot
 
   return vtot, dvtot, sum_lnvi, dsum_lnvi, L, dL
-  
+
 def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
   i0 = 0
   DL = 0
@@ -85,7 +85,7 @@ def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
 
 def estimate(A, B, N, I, mu, sigma):
   from scipy.optimize import minimize
-  
+
   USE = [True] * len(A)
 
   def func(sigma):
@@ -93,7 +93,7 @@ def estimate(A, B, N, I, mu, sigma):
 
 
   # for i in range(100):
-    
+
   #   DL = func(sigma)
 
 
@@ -132,11 +132,11 @@ if __name__ == '__main__':
     N.extend(NN)
     I.append(len(AA))
 
-  
+
 
   # estimate(A, B, N, I, mu, 5.0)
 
-  
+
   USE = [True] * len(A)
 
   X = []

@@ -52,7 +52,7 @@ def compute_derivatives(A, B, N, mu, sigma, USE):
       d2L = 0
 
   return -L, dL, d2L, bad_count
-  
+
 def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
   i0 = 0
   DL = 0
@@ -81,9 +81,9 @@ def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
 def estimate(A, B, N, I, mu, a, b):
   from scipy.optimize import minimize
   #print "ESTIMATE"
-  
+
   USE = [True] * len(A)
-  
+
   def f(sigma):
     L, DL, D2L = compute_all_derivatives(A, B, N, I, mu, sigma, USE)
     return L
@@ -100,7 +100,7 @@ def estimate(A, B, N, I, mu, a, b):
     a = a_start
     b = b_start
     c = b - (b - a) / gr
-    d = a + (b - a) / gr 
+    d = a + (b - a) / gr
     while abs(c - d) > tol:
       if f(c) < f(d):
         b = d
@@ -120,7 +120,7 @@ def estimate(A, B, N, I, mu, a, b):
 
   return (b + a) / 2
   # for i in range(100):
-    
+
   #   L, DL, D2L = func(sigma)
 
   #   delta = DL / abs(D2L) # abs ensures that we always go down hill
@@ -131,6 +131,3 @@ def estimate(A, B, N, I, mu, a, b):
 
   #   if sigma < 0.0001:
   #      sigma = 0.0001
-
-
-

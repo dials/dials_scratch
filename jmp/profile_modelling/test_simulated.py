@@ -41,11 +41,11 @@ if __name__ == '__main__':
     N.extend(NN)
     I.append(len(AA))
 
-  
+
 
   from truncated_normal import compute_all_derivatives, estimate
   from normal import compute_all_derivatives, estimate
-  
+
   USE = [True] * len(A)
 
   X = []
@@ -98,5 +98,5 @@ if __name__ == '__main__':
   pylab.plot(X, D2Y, color='red')
   # pylab.plot(X, D2Y2, color='purple')
   pylab.show()
-  
+
   estimate(A, B, N, I, mu, 0.1, 10)

@@ -26,7 +26,7 @@ def minimize(a_list, b_list, n_list, i_list, mu, sigma):
   #   vtot = function_vtot(ntot, A, B, mu, sigma)
   #   df = derivative_f(ntot, A, B, mu, sigma)
   #   f = function_f(ntot, A, B, mu, sigma)
-  
+
   # def function_vtot(ntot, A, B, mu, sigma):
   #   Pr = integral(A[0], B[-1])
   #   Pv = 1.0 - Pr
@@ -34,7 +34,7 @@ def minimize(a_list, b_list, n_list, i_list, mu, sigma):
 
   # def function_vi(ntot, A, B, mu, sigma):
   #   return function_vtot(ntot, A, B, mu, sigma) * 0.5 * (erf((B - mu)/(sqrt(2)*sigma)) - erf((A - mu)/(sqrt(2)*sigma)))
-  
+
   # def derivative_lnvi(ntot, A, B, mu, sigma):
   #   return derivative_vi(ntot, A, B, mu, sigma) / function_vi(ntot, A, B, mu, sigma)
 
@@ -54,11 +54,11 @@ def minimize(a_list, b_list, n_list, i_list, mu, sigma):
       erf_B = erf((B[-1] - mu) / (sqrt(2) * sigma))
       exp_A = exp(-(A[0] - mu)**2 / (2 * sigma**2))
       exp_B = exp(-(B[-1] - mu)**2 / (2 * sigma**2))
-  
+
       ntot = sum(N)
       vtot = ntot / (0.5 * (erf_B - erf_A))
       dvtot = 2.0*ntot*(sqrt(2/pi)/sigma**2)*((B[-1]-mu)*exp_B - (A[0]-mu)*exp_A) / (erf_B - erf_A)**2
-      
+
       sum_dvtot += dvtot
 
       for j, (a, b, n) in enumerate(zip(A, B, N)):
@@ -88,7 +88,7 @@ def minimize(a_list, b_list, n_list, i_list, mu, sigma):
     print sum_dlnvi, sum_dvtot, df
 
     sigma += -0.1 * df
-      
+
     print sigma * 180 / pi
 
   return -lnL
@@ -124,7 +124,7 @@ def compute_L(a_list, b_list, n_list, i_list, mu, sigma, USE=[]):
       Pr = integral(A[0], B[-1])#1.0#romberg(function, A[0], B[-1])
       Pv = 1.0 - Pr
       # M = sum_n * res / tot
-      # norm = sum_n * (1.0 + res / tot) 
+      # norm = sum_n * (1.0 + res / tot)
       # norm = sum_n / tot
       vtot = sum_n * (1.0 + Pv / Pr)
       # if tot < 1e-3:
@@ -146,7 +146,7 @@ def compute_L(a_list, b_list, n_list, i_list, mu, sigma, USE=[]):
   return -lnL
 
 
-    
+
 
 def select_reflections(reference, experiments):
   ''' Load the reference spots. '''
@@ -189,7 +189,7 @@ def select_reflections(reference, experiments):
   print(' using %d indexed reflections' % len(reference))
   print(' found %d junk reflections' % len(rubbish))
   print(' time taken: %g' % (time() - st))
-    
+
   predicted = flex.reflection_table.from_predictions_multi(
     experiments)
 
@@ -227,8 +227,8 @@ if __name__ == '__main__':
   # selection = flex.abs(zeta) > 0.05
   # print selection.count(False)
   # reflections = reflections.select(selection)
-  
-                                    
+
+
   #print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -323,4 +323,3 @@ if __name__ == '__main__':
   from matplotlib import pylab
   pylab.plot([xx*180.0/pi for xx in x], y)
   pylab.show()
-

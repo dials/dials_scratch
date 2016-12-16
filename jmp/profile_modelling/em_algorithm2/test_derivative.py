@@ -27,7 +27,7 @@ def compute_derivatives(A, B, N, mu, sigma, USE):
   restart = True
   while restart:
     sum_lnvi = 0
-    dsum_lnvi = 0 
+    dsum_lnvi = 0
     restart = False
     for j, (a, b, n) in enumerate(zip(A, B, N)):
       if USE[j]:
@@ -60,7 +60,7 @@ def estimate(A, B, N, mu, sigma):
 
   for i in range(100):
     v,dv,s,ds,l,dl = compute_derivatives(A, B, N, mu, sigma, USE)
-    
+
     sigma += 0.01 * dl
     print dl, sigma
 

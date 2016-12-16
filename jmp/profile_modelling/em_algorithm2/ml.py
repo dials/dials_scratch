@@ -57,7 +57,7 @@ def compute_L(a_list, b_list, n_list, i_list, mu, sigma, USE=[]):
       Pr = integral(A[0], B[-1])#1.0#romberg(function, A[0], B[-1])
       Pv = 1.0 - Pr
       # M = sum_n * res / tot
-      # norm = sum_n * (1.0 + res / tot) 
+      # norm = sum_n * (1.0 + res / tot)
       # norm = sum_n / tot
       vtot = sum_n * (1.0 + Pv / Pr)
       # if tot < 1e-3:
@@ -119,7 +119,7 @@ def select_reflections(reference, experiments):
   print(' using %d indexed reflections' % len(reference))
   print(' found %d junk reflections' % len(rubbish))
   print(' time taken: %g' % (time() - st))
-    
+
   predicted = flex.reflection_table.from_predictions_multi(
     experiments)
 
@@ -157,8 +157,8 @@ if __name__ == '__main__':
   # selection = flex.abs(zeta) > 0.05
   # print selection.count(False)
   # reflections = reflections.select(selection)
-  
-                                    
+
+
   #print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -251,4 +251,3 @@ if __name__ == '__main__':
   from matplotlib import pylab
   pylab.plot([xx*180.0/pi for xx in x], y)
   pylab.show()
-

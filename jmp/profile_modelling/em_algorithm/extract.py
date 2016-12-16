@@ -22,7 +22,7 @@ if __name__ == '__main__':
   phi = reflections['xyzcal.mm'].parts()[2]
   sbox = reflections['shoebox']
   zeta = reflections['zeta']
-  
+
   print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -31,7 +31,7 @@ if __name__ == '__main__':
   i_list = []
   for p, s, z in zip(phi, sbox, zeta):
     z0 = s.bbox[4]
-    
+
     for k in range(s.data.all()[0]):
       phi0 = scan.get_angle_from_array_index(z0+k, deg=False)
       phi1 = scan.get_angle_from_array_index(z0+k+1, deg=False)

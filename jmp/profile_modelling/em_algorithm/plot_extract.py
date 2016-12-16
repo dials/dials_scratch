@@ -24,7 +24,7 @@ def compute_mean_centroid(A, B, N, I):
 
 if __name__ == '__main__':
 
-  
+
   def gaussian(x, mu, sigma):
     from math import pi, sqrt, exp
     return [(1.0 / (sqrt(2.0*pi) * sigma)) * exp(-(xx - mu)**2 / (2*sigma**2)) for xx in x]
@@ -34,23 +34,23 @@ if __name__ == '__main__':
   import sys
 
   A, B, N, I = pickle.load(open(sys.argv[1]))
-  
+
   mean0, sigma0 = compute_centroid((B+A)/2.0, N)
-  
+
   print mean0, sigma0
-  
+
   mean1, sigma1 = compute_mean_centroid(A, B, N, I)
-  
+
   print mean1, sigma1
 
-  from dials.algorithms.statistics import BinnedGMMSingle1DFixedMean 
+  from dials.algorithms.statistics import BinnedGMMSingle1DFixedMean
   from dials.algorithms.statistics import BinnedGMMSingle1D
   from dials.array_family import flex
 
   result = BinnedGMMSingle1DFixedMean(
-    A, B, N, 
-    mean0, 
-    sigma0, 
+    A, B, N,
+    mean0,
+    sigma0,
     1e-12,
     10000)
 

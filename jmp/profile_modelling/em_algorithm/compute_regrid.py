@@ -21,7 +21,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
   pi1 = 1.0# - pi0
 
   def expectation(a, b, mu, si):
-    e1 = erf((b-mu)/(sqrt(2)*si)) 
+    e1 = erf((b-mu)/(sqrt(2)*si))
     e2 = erf((a-mu)/(sqrt(2)*si))
     e3 = exp(-(a-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
     e4 = exp(-(b-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
@@ -78,7 +78,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
       U = [USE[i0+j] for j in range(len(a))]
       if not any(U):
         continue
-      
+
       P = sum(Pj[j] for j in range(len(a)) if USE[i0+j])
       N = sum(n[j] for j in range(len(a)) if USE[i0+j])
 
@@ -106,7 +106,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
         mu_sum += mv*pi1*E1v / Pv
         va_sum += mv*pi1*E2v / Pv
         m_sum += mv
-      
+
       i0 = i1
 
     #print c0_sum, c1_sum
@@ -132,9 +132,9 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
     if (i > 0 and abs((lnL - lnL0) / lnL0) < tolerance):
       break
     #print P, pi0, pi1, lnL, lnL0, lnL - lnL0, mu, si * 180 / pi
-    
+
     lnL0 = lnL
-  
+
   return mu, si
 
 if __name__ == '__main__':
@@ -160,5 +160,3 @@ if __name__ == '__main__':
 
   #print "Mean1, Sigma1", mean, sigma * 180 / pi
   print sigma0, sigma
-
-

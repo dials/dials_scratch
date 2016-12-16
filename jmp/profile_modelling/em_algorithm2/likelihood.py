@@ -11,7 +11,7 @@ def regrid(a_list, b_list, n_list):
   x2 = [min_a + (i+1) * (max_b-min_a) / num_bins for i in range(num_bins)]
   y = [0] * num_bins
   for a, b, n in zip(a_list, b_list, n_list):
-    i0 = s0 + s1 * a 
+    i0 = s0 + s1 * a
     i1 = s0 + s1 * b
     assert i0 < i1
     for i in range(int(floor(i0)), int(ceil(i1))):
@@ -45,11 +45,11 @@ def compute_likelihood(a, b, n, index, mean0, sigma0, USE=None):
   pi1 = 1.0 - pi0
 
   def expectation(a, b, mu, si):
-    e1 = erf((b-mu)/(sqrt(2)*si)) 
+    e1 = erf((b-mu)/(sqrt(2)*si))
     e2 = erf((a-mu)/(sqrt(2)*si))
     e3 = exp(-(a-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
     e4 = exp(-(b-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
-    exp0 = 0.5 * (e1 - e2) 
+    exp0 = 0.5 * (e1 - e2)
     exp1 = exp0 * mu + (si*si)*(e3 - e4)
     exp2 = exp0 * si*si + si*si*((a-mu)*e3 - (b-mu)*e4)
     return exp0, exp1, exp2
@@ -101,7 +101,7 @@ def compute_likelihood(a, b, n, index, mean0, sigma0, USE=None):
 
     U = [USE[i0+j] for j in range(len(a))]
     if any(U):
-    
+
       P0 = sum(Pj0[j] for j in range(len(a)) if USE[i0+j])
       P1 = sum(Pj1[j] for j in range(len(a)) if USE[i0+j])
       P = sum(Pj[j] for j in range(len(a)) if USE[i0+j])
@@ -133,7 +133,7 @@ def compute_likelihood(a, b, n, index, mean0, sigma0, USE=None):
       mu_sum += N*pi1*E1v / P #mv*pi1*E1v / Pv
       va_sum += N*pi1*E2v / P #mv*pi1*E2v / Pv
       m_sum += mv
-    
+
     i0 = i1
   assert i0 == len(USE)
 
@@ -161,7 +161,7 @@ def compute_likelihood(a, b, n, index, mean0, sigma0, USE=None):
   #if (i > 0 and abs((lnL - lnL0) / lnL0) < tolerance):
   #  break
   #print P, pi0, pi1, lnL, lnL0, lnL - lnL0, mu, si * 180 / pi
-  
+
   return lnL, USE
 
 if __name__ == '__main__':
@@ -186,7 +186,7 @@ if __name__ == '__main__':
   phi = reflections['xyzcal.mm'].parts()[2]
   sbox = reflections['shoebox']
   zeta = reflections['zeta']
-  
+
   #print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -277,5 +277,3 @@ if __name__ == '__main__':
   from matplotlib import pylab
   pylab.plot([xx*180.0/pi for xx in x], y)
   pylab.show()
-
-

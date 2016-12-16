@@ -20,7 +20,7 @@ def make_plot(filename, title):
 
     from matplotlib import pylab
     max_x = 2.0
-   
+
     fig = pylab.figure(figsize=(6,6/1.6), dpi=300)
     for key in sorted(data.keys()):
       x = data[key].x

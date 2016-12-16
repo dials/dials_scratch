@@ -82,7 +82,7 @@ class FractionOfObservedIntensity(object):
 
     # Calculate the fraction of observed reflection intensity
     R = (a - b) / 2.0
-    
+
 
     # Set any points <= 0 to 1e-10 (otherwise will get a floating
     # point error in log calculation below).
@@ -94,6 +94,3 @@ class FractionOfObservedIntensity(object):
 
     # Return the logarithm of r
     return flex.log(R)
-
-
- 

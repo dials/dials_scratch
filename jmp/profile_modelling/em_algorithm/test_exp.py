@@ -25,16 +25,16 @@ def func(a, b, mu, sigma):
 
   exp3 = exp1_ / exp0_
   exp4 = exp2_ / exp0_
-  
+
   # exp3 = mu+ 1.0 + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2 + (b-a)*1e-10)
   #exp3 = mu+exp(abs(log(2.0*sigma*sigma*(e3 - e4))- log((e1 - e2))))
-  # exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2 + 1e-9) 
+  # exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2 + 1e-9)
   # exp4 = sigma*sigma + 2.0*sigma*sigma*((a-mu)*e3 - (b-mu)*e4) / (e1 - e2 + 1e-9)
 
-  # exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2 + 1e-9) 
+  # exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2 + 1e-9)
   # exp4 = sigma*sigma + 2.0*sigma*sigma*((a-mu)*e3 - (b-mu)*e4) / (e1 - e2 + 1e-9)
   # if (exp0_ > 1e-9):
-  #   exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2) 
+  #   exp3 = mu + 2.0*sigma*sigma*(e3 - e4) / (e1 - e2)
   #   exp4 = sigma*sigma + 2.0*sigma*sigma*((a-mu)*e3 - (b-mu)*e4) / (e1 - e2)
   # else:
   #   d = exp(-(b-a)**2 / 2)
@@ -51,16 +51,16 @@ mu = (0)
 sigma = (1.0)
 
 def func1(x):
-	from math import erf, exp, sqrt, pi
-	return ((1.0)/((sqrt(2*pi))*sigma)) * exp(-(x - mu)**2 / ((2.0)*sigma**2))
+        from math import erf, exp, sqrt, pi
+        return ((1.0)/((sqrt(2*pi))*sigma)) * exp(-(x - mu)**2 / ((2.0)*sigma**2))
 
 def func2(x):
-	from math import erf, exp, sqrt, pi
-	return x*(1.0/(sqrt(2*pi)*sigma)) * exp(-(x - mu)**2 / (2.0*sigma**2))
+        from math import erf, exp, sqrt, pi
+        return x*(1.0/(sqrt(2*pi)*sigma)) * exp(-(x - mu)**2 / (2.0*sigma**2))
 
 def func3(x):
-	from math import erf, exp, sqrt, pi
-	return (x-mu)**2 * (1.0/(sqrt(2*pi)*sigma)) * exp(-(x - mu)**2 / (2.0*sigma**2))
+        from math import erf, exp, sqrt, pi
+        return (x-mu)**2 * (1.0/(sqrt(2*pi)*sigma)) * exp(-(x - mu)**2 / (2.0*sigma**2))
 
 X = []
 Y1 = []
@@ -98,12 +98,12 @@ for i in range(N):
 # Z2.append(z2)
 # Z3.append(z3)
 # if y1 > 0:
-# 	Q2.append(y2 / y1)
-# 	Q3.append(y3 / y1)
+#       Q2.append(y2 / y1)
+#       Q3.append(y3 / y1)
 # else:
-# 	print "NOOO"
-# 	Q2.append(0)	
-# 	Q3.append(0)	
+#       print "NOOO"
+#       Q2.append(0)
+#       Q3.append(0)
 
 from math import exp
 print X[1] - X[0]

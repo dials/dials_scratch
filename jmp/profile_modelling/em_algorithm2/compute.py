@@ -21,7 +21,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
   pi1 = 1.0 - pi0
 
   def expectation(a, b, mu, si):
-    e1 = erf((b-mu)/(sqrt(2)*si)) 
+    e1 = erf((b-mu)/(sqrt(2)*si))
     e2 = erf((a-mu)/(sqrt(2)*si))
     e3 = exp(-(a-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
     e4 = exp(-(b-mu)**2 / (2 * si**2)) / (sqrt(2.0*pi)*si)
@@ -80,7 +80,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
 
       U = [USE[i0+j] for j in range(len(a))]
       if any(U):
-        
+
         P0 = sum(Pj0[j] for j in range(len(a)) if USE[i0+j])
         P1 = sum(Pj1[j] for j in range(len(a)) if USE[i0+j])
         P = sum(Pj[j] for j in range(len(a)) if USE[i0+j])
@@ -106,7 +106,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
             m_sum += m[j]
             lnL_sum += n[j] * log(Pj[j])
         lnL_sum -= N * log(P)
-      
+
         c0_sum += N*pi0*Pv0 / P
         c1_sum += N*pi1*Pv1 / P #mv*pi1*Pv1 / Pv
         mu_sum += N*pi1*E1v / P #mv*pi1*E1v / Pv
@@ -118,7 +118,7 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
         #   mu_sum += mv*pi1*E1v / Pv
         #   va_sum += mv*pi1*E2v / Pv
         #   m_sum += mv
-        
+
       i0 = i1
     assert i0 == len(USE)
 
@@ -146,9 +146,9 @@ def estimate_parameters(a, b, n, index, mean0, sigma0i, tolerance=1e-7):
     #if (i > 0 and abs((lnL - lnL0) / lnL0) < tolerance):
     #  break
     #print P, pi0, pi1, lnL, lnL0, lnL - lnL0, mu, si * 180 / pi
-    
+
     lnL0 = lnL
-  
+
   return mu, si
 
 if __name__ == '__main__':
@@ -173,7 +173,7 @@ if __name__ == '__main__':
   phi = reflections['xyzcal.mm'].parts()[2]
   sbox = reflections['shoebox']
   zeta = reflections['zeta']
-  
+
   #print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -182,7 +182,7 @@ if __name__ == '__main__':
   i_list = []
   for p, s, z in zip(phi, sbox, zeta):
     z0 = s.bbox[4]
-    
+
     a_temp = []
     b_temp = []
     n_temp = []
@@ -244,12 +244,10 @@ if __name__ == '__main__':
 
   mean0, sigma0 = compute_centroid(a_list, b_list, n_list)
   print "Mean0, Sigma0", mean0, sigma0 * 180 / pi
-  
+
   mean = mean0
   sigma = sigma0
   mean, sigma = estimate_parameters(a_list, b_list, n_list, i_list, mean0, sigma0)
 
   #print "Mean1, Sigma1", mean, sigma * 180 / pi
   print sigma0 * 180.0 / pi, sigma * 180.0 / pi
-
-

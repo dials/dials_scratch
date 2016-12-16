@@ -55,7 +55,7 @@ def select_reflections(reference, experiments):
   #print(' using %d indexed reflections' % len(reference))
   #print(' found %d junk reflections' % len(rubbish))
   #print(' time taken: %g' % (time() - st))
-    
+
   predicted = flex.reflection_table.from_predictions_multi(
     experiments)
 
@@ -98,8 +98,8 @@ if __name__ == '__main__':
   # # selection = flex.abs(zeta) > 0.05
   # # print selection.count(False)
   # # reflections = reflections.select(selection)
-  
-                                    
+
+
   # #print "Num Refl: ", len(reflections)
 
   # a_list = []
@@ -155,11 +155,11 @@ if __name__ == '__main__':
 
   # assert sum(i_list) == len(a_list)
 
-  # from math import pi 
+  # from math import pi
   # mu = 0
   # sigma = 1.0 * pi / 180
 
- 
+
   # A = a_list
   # B = b_list
   # N = n_list

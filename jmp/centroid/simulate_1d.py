@@ -12,7 +12,7 @@ def generate_gaussian(xc, sx, width, scale=1000, random=False):
     x = int(floor(xc))
     xcomp = flex.double(width, 0)
     xcomp[x] = 1
-  
+
   data = scale * xcomp
   if random == True:
     data = flex.double(map(poisson, data))
@@ -66,7 +66,7 @@ def compute_centroid(profile):
   xv = flex.sum(W * (X - xc)**2) / (flex.sum(W)-1)
   xv1 = xv
   xv2 = xv / flex.sum(profile)
-  
+
   xv3 = flex.sum(W * ((X - xc)**2 + 1/12.0)) / flex.sum(W)
 
   xv3 = (1.0/12.0)*(1.0/flex.sum(profile)**2)*flex.sum(profile**2)
@@ -74,7 +74,7 @@ def compute_centroid(profile):
   return xc, xv, xv2, xv2 + xv3
 
 def generate_and_compute_centroid(xc, sx, width, random=True):
-  
+
   profile = generate_gaussian(xc, sx, width, random=random)
 
 
@@ -84,7 +84,7 @@ def generate_and_compute_centroid(xc, sx, width, random=True):
 def compute_bias(sigma):
   if sigma <= 0:
     return 1.0/12.0
-  def func2(C, S, N=1000): 
+  def func2(C, S, N=1000):
     from math import sqrt, erf
     sum1 = 0
     sum2 = N * erf((N+1-C)/(sqrt(2)*S))
@@ -100,7 +100,7 @@ def compute_bias(sigma):
     v = (func2(c, sigma) - c + 0.5)**2
     C.append(c)
     V.append(v)
- 
+
   b = 1.0
   a = 0.0
   n = len(V)-2
@@ -118,9 +118,9 @@ def compute_variance(sigma, num, width, random=True):
 
   for i in range(num):
     x = uniform(-2, 3)
-    
+
     xt = int(floor(width / 2)) + float(x)
-  
+
     xc, xv, xv2, xv3 = generate_and_compute_centroid(
       xt, sigma, width, random=random)
 
@@ -135,7 +135,7 @@ def compute_variance(sigma, num, width, random=True):
   var_obs2 = sum((xc - mu_obs)**2 for xc in xc_list) / len(xc_list)
 
   sigma_cal = sqrt((sum(xv0_list)/len(xv0_list)))
-  
+
   #var_cal = sum(compute_bias(sqrt(v)) for v in xv_list) / len(xv_list)
   var_cal = 1.0/12.0 + sum(xv_list) / len(xc_list)
   var_cal2 = compute_bias(sigma) + sum(xv_list) / len(xv_list)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
   for sigma in [ 0.1 * i for i in range(50) ]:
 
     var_obs, var_cal1, var_cal2, var_cal3 = compute_variance(sigma, num, width, random=random)
-    
+
     sigma_list.append(sigma)
     var_obs_list.append(var_obs)
     var_cal1_list.append(var_cal1)
@@ -180,6 +180,3 @@ if __name__ == '__main__':
   pylab.legend()
   pylab.savefig("variance_vs_sigma.png")
   #pylab.show()
-
-
-

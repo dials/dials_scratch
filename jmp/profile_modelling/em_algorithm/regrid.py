@@ -30,7 +30,7 @@ if __name__ == '__main__':
   phi = reflections['xyzcal.mm'].parts()[2]
   sbox = reflections['shoebox']
   zeta = reflections['zeta']
-  
+
   print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -40,7 +40,7 @@ if __name__ == '__main__':
   i0 = 0
   for p, s, z in zip(phi, sbox, zeta):
     z0 = s.bbox[4]
-    
+
     for k in range(s.data.all()[0]):
       phi0 = scan.get_angle_from_array_index(z0+k, deg=False)
       phi1 = scan.get_angle_from_array_index(z0+k+1, deg=False)
@@ -90,7 +90,7 @@ x1 = [xx * 180 / pi for xx in x1]
 x2 = [xx * 180 / pi for xx in x2]
 y = [0] * num_bins
 for a, b, n in zip(a_list, b_list, n_list):
-  i0 = s0 + s1 * a 
+  i0 = s0 + s1 * a
   i1 = s0 + s1 * b
   assert i0 < i1
   for i in range(int(floor(i0)), int(ceil(i1))):

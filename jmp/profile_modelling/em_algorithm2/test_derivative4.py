@@ -58,21 +58,21 @@ def compute_derivatives(A, B, N, mu, sigma, USE):
 
         sum_lnvi += n * (log(kt) + log(zi) - log(erf_B - erf_A))
         dsum_lnvi += n* sqrt(2/pi)*(1/sigma**2)*((b-mu)*exp_b - (a-mu)*exp_a)/zi
-        dsum2 += n * sqrt(2/pi) * (A1 - A2 + A3) 
+        dsum2 += n * sqrt(2/pi) * (A1 - A2 + A3)
 
   zi = erf_B - erf_A
   A1 = sqrt(2/pi)*(((B[-1]-mu)*exp_B - (A[0]-mu)*exp_A)**2 / sigma**4) / zi**2
   A2 = (2.0*((B[-1]-mu)*exp_B - (A[0]-mu)*exp_A)/(sigma**3)) / zi
   A3 = (((B[-1]-mu)**3 * exp_B - (A[0]-mu)**3 * exp_A) / sigma**5) / zi
 
-  dsum_tot2 = ntot * sqrt(2/pi) * (A1 - A2 + A3) 
+  dsum_tot2 = ntot * sqrt(2/pi) * (A1 - A2 + A3)
   dsum_tot = ntot* sqrt(2/pi)*(1/sigma**2)*((B[-1]-mu)*exp_B - (A[0]-mu)*exp_A)/zi
   L = sum_lnvi - kt
   dL = dsum_lnvi - dsum_tot
   d2L = dsum2 - dsum_tot2
 
   return -L, dL, d2L
-  
+
 def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
   i0 = 0
   DL = 0
@@ -97,7 +97,7 @@ def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
 
 def estimate(A, B, N, I, mu, sigma):
   from scipy.optimize import minimize
-  
+
   USE = [True] * len(A)
 
   def func(sigma):
@@ -106,7 +106,7 @@ def estimate(A, B, N, I, mu, sigma):
 
 
   for i in range(100):
-    
+
     L, DL, D2L = func(sigma)
 
     delta = DL / abs(D2L)
@@ -164,7 +164,7 @@ def select_reflections(reference, experiments):
   print(' using %d indexed reflections' % len(reference))
   print(' found %d junk reflections' % len(rubbish))
   print(' time taken: %g' % (time() - st))
-    
+
   predicted = flex.reflection_table.from_predictions_multi(
     experiments)
 
@@ -201,8 +201,8 @@ if __name__ == '__main__':
   # selection = flex.abs(zeta) > 0.05
   # print selection.count(False)
   # reflections = reflections.select(selection)
-  
-                                    
+
+
   #print "Num Refl: ", len(reflections)
 
   a_list = []
@@ -258,11 +258,11 @@ if __name__ == '__main__':
 
   assert sum(i_list) == len(a_list)
 
-  from math import pi 
+  from math import pi
   mu = 0
   sigma = 1.0 * pi / 180
 
- 
+
   A = a_list
   B = b_list
   N = n_list
@@ -320,5 +320,5 @@ if __name__ == '__main__':
   # pylab.plot(X, D2Y, color='red')
   # # pylab.plot(X, D2Y2, color='purple')
   # pylab.show()
-  
+
   estimate(A, B, N, I, mu, sigma)

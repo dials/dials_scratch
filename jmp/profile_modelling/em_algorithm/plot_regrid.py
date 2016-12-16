@@ -8,7 +8,7 @@ def compute_centroid(X, Y):
 
 if __name__ == '__main__':
 
-  
+
   def gaussian(x, mu, sigma):
     from math import pi, sqrt, exp
     return [(1.0 / (sqrt(2.0*pi) * sigma)) * exp(-(xx - mu)**2 / (2*sigma**2)) for xx in x]
@@ -18,12 +18,12 @@ if __name__ == '__main__':
   import sys
 
   X, Y = pickle.load(open(sys.argv[1]))
-  
+
   mean0, sigma0 = compute_centroid(X, Y)
-  
+
   print mean0, sigma0
 
-  from dials.algorithms.statistics import BinnedGMMSingle1DFixedMean 
+  from dials.algorithms.statistics import BinnedGMMSingle1DFixedMean
   from dials.algorithms.statistics import BinnedGMMSingle1D
   from dials.array_family import flex
   a_list = flex.double(X)
@@ -31,11 +31,11 @@ if __name__ == '__main__':
   n_list = flex.double(Y)
 
   result = BinnedGMMSingle1DFixedMean(
-    a_list, 
-    b_list, 
-    n_list, 
-    mean0, 
-    sigma0, 
+    a_list,
+    b_list,
+    n_list,
+    mean0,
+    sigma0,
     1e-7,
     100)
 
