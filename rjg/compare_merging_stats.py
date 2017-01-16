@@ -84,16 +84,21 @@ def plot_merging_stats(results, labels=None, plots=None, prefix=None,
   if image_dir is None:
     image_dir = '.'
   for k in plots:
-    for i, result in enumerate(results):
-      if labels is not None:
-        label = labels[i]
-      else:
-        label = None
-      bins = result.bins
-      x = [bins[i].d_min for i in range(len(bins))]
-      x = [uctbx.d_as_d_star_sq(d) for d in x]
-      y = [getattr(bins[i], k) for i in range(len(bins))]
-      pyplot.plot(x, y, label=label)
+    def plot_data(results, k, labels, linestyle):
+      for i, result in enumerate(results):
+        if labels is not None:
+          label = labels[i]
+        else:
+          label = None
+        bins = result.bins
+        x = [bins[i].d_min for i in range(len(bins))]
+        x = [uctbx.d_as_d_star_sq(d) for d in x]
+        y = [getattr(bins[i], k) for i in range(len(bins))]
+        pyplot.plot(x, y, label=label, linestyle=linestyle)
+    plot_data(results, k, labels, linestyle='-')
+    if k == 'cc_one_half':
+      pyplot.gca().set_prop_cycle(None)
+      plot_data(results, 'cc_one_half_sigma_tau', labels, linestyle='--')
     pyplot.xlabel('d spacing')
     pyplot.ylabel(k)
     if k == 'cc_one_half':
