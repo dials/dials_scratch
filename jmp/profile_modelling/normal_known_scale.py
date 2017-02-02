@@ -7,8 +7,9 @@ def compute_derivatives(A, B, N, K, mu, sigma, USE):
   erf_B = erf((B[-1] - mu) / (sqrt(2) * sigma))
   exp_A = exp(-(A[0] - mu)**2 / (2 * sigma**2))
   exp_B = exp(-(B[-1] - mu)**2 / (2 * sigma**2))
-  #Z = 0.5*(erf_B - erf_A)
-  # if Z < 1e-100:
+  Z = 0.5*(erf_B - erf_A)
+  if Z < 1e-10:
+    Z = 1e-10
   #   for j in range(len(USE)):
   #     USE[j] = False
   #   print "ARG"
@@ -28,7 +29,7 @@ def compute_derivatives(A, B, N, K, mu, sigma, USE):
     restart = False
     sum1 = 0
     ntot = 0
-    Z = 0
+    #Z = 0
     use_count = 0
     bad_count = 0
     for j, (a, b, n) in enumerate(zip(A, B, N)):
@@ -46,13 +47,14 @@ def compute_derivatives(A, B, N, K, mu, sigma, USE):
           # restart =True
           # print "RESTART"
           # break
-        Z += zi
+        #Z += zi
         sum1 += n * log(K*zi)
         use_count += 1
         ntot += n
         assert n > 0
     if use_count > 0:
-      L = sum1 - K * Z
+      L = Z
+      #L = sum1 - K * Z
       #L = sum1 - K * log(Z)
       dL= 0
       d2L = 0
@@ -61,7 +63,7 @@ def compute_derivatives(A, B, N, K, mu, sigma, USE):
       dL = 0
       d2L = 0
 
-  return -L, dL, d2L, bad_count
+  return L, dL, d2L, bad_count
 
 def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
   i0 = 0
@@ -86,6 +88,8 @@ def compute_all_derivatives(A, B, N, I, mu, sigma, USE):
     bad_count += bc
 
     i0 = i1
+
+  L /= len(I)
   from math import pi
   print "Num: ", sigma * 180 / pi, bad_count
   return L, DL, D2L

@@ -24,13 +24,13 @@ def select_reflections(reference, experiments):
   st = time()
   assert("miller_index" in reference)
   assert("id" in reference)
-  #print('Processing reference reflections')
-  #print(' read %d strong spots' % len(reference))
+  print('Processing reference reflections')
+  print(' read %d strong spots' % len(reference))
   mask = reference.get_flags(reference.flags.indexed)
   rubbish = reference.select(mask == False)
   if mask.count(False) > 0:
     reference.del_selected(mask == False)
-    #print(' removing %d unindexed reflections' %  mask.count(False))
+    print(' removing %d unindexed reflections' %  mask.count(False))
   if len(reference) == 0:
     raise Sorry('''
       Invalid input for reference reflections.
@@ -40,21 +40,21 @@ def select_reflections(reference, experiments):
   if mask.count(True) > 0:
     rubbish.extend(reference.select(mask))
     reference.del_selected(mask)
-    #print(' removing %d reflections marked as centroid outliers' %  mask.count(True))
+    print(' removing %d reflections marked as centroid outliers' %  mask.count(True))
   mask = reference['miller_index'] == (0, 0, 0)
   if mask.count(True) > 0:
     rubbish.extend(reference.select(mask))
     reference.del_selected(mask)
-    #print(' removing %d reflections with hkl (0,0,0)' %  mask.count(True))
+    print(' removing %d reflections with hkl (0,0,0)' %  mask.count(True))
   mask = reference['id'] < 0
   if mask.count(True) > 0:
     raise Sorry('''
       Invalid input for reference reflections.
       %d reference spots have an invalid experiment id
     ''' % mask.count(True))
-  #print(' using %d indexed reflections' % len(reference))
-  #print(' found %d junk reflections' % len(rubbish))
-  #print(' time taken: %g' % (time() - st))
+  print(' using %d indexed reflections' % len(reference))
+  print(' found %d junk reflections' % len(rubbish))
+  print(' time taken: %g' % (time() - st))
 
   predicted = flex.reflection_table.from_predictions_multi(
     experiments)
@@ -74,7 +74,10 @@ if __name__ == '__main__':
   from normal import compute_all_derivatives, estimate
   from normal_known_scale import compute_all_derivatives, estimate
 
+  print "Load reflections"
   reflections = flex.reflection_table.from_pickle(sys.argv[1])
+
+  print "Load experiments"
   experiments = ExperimentListFactory.from_json_file(sys.argv[2],
                                                      check_format=False)
 
@@ -101,11 +104,14 @@ if __name__ == '__main__':
 
   #print "Num Refl: ", len(reflections)
 
+  reflections.compute_background(experiments)
+  print "Get data"
   a_list = []
   b_list = []
   n_list = []
   i_list = []
-  for p, s, z in zip(phi, sbox, zeta):
+  for i, (p, s, z) in enumerate(zip(phi, sbox, zeta)):
+    print i, len(phi)
     z0 = s.bbox[4]
     z1 = s.bbox[5]
     phi0 = scan.get_angle_from_array_index(z0, deg=False)
@@ -127,13 +133,14 @@ if __name__ == '__main__':
       t = (phi1 + phi0)/2.0 - p
       b = (t + dphi2) * abs(z)
       a = (t - dphi2) * abs(z)
-
       sum_frames = 0
       for j in range(s.data.all()[1]):
         for i in range(s.data.all()[2]):
           if s.mask[k,j,i] != 0:
-            sum_frames += s.data[k,j,i]
+            sum_frames += s.data[k,j,i]# - s.background[k,j,i]
             #n_list.append(s.data[k,j,i])
+      # if sum_frames <= 0:
+      #   sum_frames=1
       n_temp.append(sum_frames)
       a_temp.append(a)
       b_temp.append(b)
@@ -254,5 +261,5 @@ if __name__ == '__main__':
     # pylab.plot(X, D2Y, color='red')
     # pylab.plot(X, D2Y2, color='purple')
     pylab.show()
-
+  exit(0)
   print estimate(A, B, N, I, mu, 0.01*pi/180, 2.0*pi/180) * 180.0/pi
