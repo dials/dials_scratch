@@ -5,9 +5,8 @@
  - fix limits in plots in plot_detector_shifts i.e. give uniform colouring
 
  - index off all 720 degrees of data, refine detector
- - split big sweep or copy detector in 
+ - split big sweep or copy detector in
  - index fixing detector model - detector.fix = all
  - rerun metrology refinement then should have apples / apples comparison
 
  - get hold of original DECTRIS-supplied correction tables for comparison
-

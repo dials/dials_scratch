@@ -84,5 +84,3 @@ if __name__ == '__main__':
 
   runner(demo_no_converter_for_const_ref)
   runner(demo_data_loss_with_const_ref_storage)
-
-

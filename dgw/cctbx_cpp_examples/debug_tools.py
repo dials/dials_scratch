@@ -55,5 +55,3 @@ if __name__ == '__main__':
 
   runner(demo_print_array)
   runner(demo_print_array_head)
-
-

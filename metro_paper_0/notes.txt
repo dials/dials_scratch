@@ -96,7 +96,7 @@ refinement {
 input {
   experiments = bravais_setting_9.json
   reflections = indexed.pickle
-}  
+}
 
 RMSDs by experiment:
 -----------------------------------------------
