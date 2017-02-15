@@ -429,27 +429,28 @@ class Apple(object):
 
     return reflections
 
-apple = Apple(sys.argv[1], sys.argv[2])
-hklout = sys.argv[3]
-distance_map = apple.render_distance()
+if __name__ == '__main__':
+  apple = Apple(sys.argv[1], sys.argv[2])
+  hklout = sys.argv[3]
+  distance_map = apple.render_distance()
 
-# FIXME at this point subtract background from every pixel - estimate the
-# background from a summed area table - will need to mash around the
-# definitions of foreground and background to do this, and will have to have
-# some idea of the typical size of spots (in order to be able to assign a
-# sensible kernel size)
+  # FIXME at this point subtract background from every pixel - estimate the
+  # background from a summed area table - will need to mash around the
+  # definitions of foreground and background to do this, and will have to have
+  # some idea of the typical size of spots (in order to be able to assign a
+  # sensible kernel size)
 
-mask = apple.get_signal_mask()
-background = apple.make_background()
-spot = apple.get_background_subtracted_spots()
+  mask = apple.get_signal_mask()
+  background = apple.make_background()
+  spot = apple.get_background_subtracted_spots()
 
-apple.plot_log_map(spot, 'spot.png')
-apple.plot_log_map(background, 'background.png')
-apple.plot_map(mask, 'mask.png')
+  apple.plot_log_map(spot, 'spot.png')
+  apple.plot_log_map(background, 'background.png')
+  apple.plot_map(mask, 'mask.png')
 
-# FIXME at this stage iterate over the image discovering all of the connected
-# components (also known as spots) - integrate them and then determine the
-# Miller index; create an integrated.pickle; shoebox etc.
+  # FIXME at this stage iterate over the image discovering all of the connected
+  # components (also known as spots) - integrate them and then determine the
+  # Miller index; create an integrated.pickle; shoebox etc.
 
-reflections = apple.integrate()
-reflections.as_pickle(hklout)
+  reflections = apple.integrate()
+  reflections.as_pickle(hklout)

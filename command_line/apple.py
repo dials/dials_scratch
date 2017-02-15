@@ -1,4 +1,5 @@
 from dials_scratch.lbl_feb_2017.apple import Apple
+import sys
 
 apple = Apple(sys.argv[1], sys.argv[2])
 hklout = sys.argv[3]
