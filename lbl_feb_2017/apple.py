@@ -161,7 +161,7 @@ class Apple(object):
     UB = matrix.sqr(self.crystal.get_A())
     UBi = UB.inverse()
 
-    from xia2_regression import q_map
+    from dials_scratch import q_map
     distance_map = q_map(self.panel, self.beam, UB, 1)
     return distance_map
 

@@ -21,6 +21,10 @@ if (not env_etc.no_boost_python and hasattr(env_etc, "boost_adaptbx_include")):
             env_etc.python_include,
             env_etc.dxtbx_include,
             env_etc.dials_include])
+    env.SharedLibrary(
+      target="#lib/dials_scratch_ext",
+      source=["ext.cpp"])
+	    
     env.Append(
                 LIBS=env_etc.libm + [
                 "scitbx_boost_python",
