@@ -57,6 +57,8 @@ class Apple(object):
     s = flex.sqrt(v)
     self.i_s = i/s
 
+    self.scale = 2
+
     from dxtbx.model.experiment.experiment_list import ExperimentListFactory
     expt = ExperimentListFactory.from_json_file(experiment_file)
     panel = expt.detectors()[0][0]
@@ -265,12 +267,12 @@ class Apple(object):
 
     return
 
-  def get_signal_mask(self, scale=2):
+  def get_signal_mask(self):
     if hasattr(self, 'signal_mask'):
       return self.signal_mask
     distance_map = self.render_distance()
     maxq = self.get_maxq()
-    self.signal_mask = (distance_map.as_1d() < (2 * maxq))
+    self.signal_mask = (distance_map.as_1d() < (self.scale * maxq))
     self.signal_mask.reshape(self.raw_data.accessor())
     return self.signal_mask
 
@@ -353,6 +355,7 @@ class Apple(object):
     intensity_sum_variance = flex.double()
     miller_index = flex.miller_index()
     xyzcal_px = flex.vec3_double()
+    xyzobs_px = flex.vec3_double()
     bbox = flex.int6()
     dq = flex.double()
 
@@ -368,31 +371,45 @@ class Apple(object):
         slow[(j, i)] = j
 
     for j in range(flood_fill.n_voids()):
-      # FIXME is this the best centre of mass?
-      xy = coms[j][2], coms[j][1]
-      p = matrix.col(self.panel.get_pixel_lab_coord(xy)).normalize() * winv
-      q = p - matrix.col(self.beam.get_s0())
-      hkl = UBi * q
-      ihkl = [int(round(h)) for h in hkl]
       sel = binary_map == (j + 2)
       pixels = data.select(sel)
       if flex.min(pixels) < 0:
         continue
 
-      dq.append((q - UB * ihkl).length())
+      bg_pixels = background.select(sel)
       n = pixels.size()
       d = flex.sum(pixels)
-      b = flex.sum(background.select(sel))
+      b = flex.sum(bg_pixels)
       s = d - b
+
+      # FIXME is this the best centre of mass? if this spot is actually
+      # there, probably no, but if not there (i.e. no spot) then background
+      # subtracted centre of mass likely to be very noisy - keeping the
+      # background in likely to make this a little more stable
+      xy = coms[j][2], coms[j][1]
+
+      fs = fast.select(sel)
+      ss = slow.select(sel)
+
+      fd = fs.as_double()
+      sd = ss.as_double()
+
+      _x = flex.sum(fd * pixels) / flex.sum(pixels)
+      _y = flex.sum(sd * pixels) / flex.sum(pixels)
+
+      p = matrix.col(self.panel.get_pixel_lab_coord(xy)).normalize() * winv
+      q = p - matrix.col(self.beam.get_s0())
+      hkl = UBi * q
+      ihkl = [int(round(h)) for h in hkl]
+
+      dq.append((q - UB * ihkl).length())
 
       # puzzle out the bounding boxes - hack here, we have maps with the
       # fast and slow positions in; select from these then find max, min of
       # this selection
-      fs = fast.select(sel)
       f_min = flex.min(fs)
       f_max = flex.max(fs)
 
-      ss = slow.select(sel)
       s_min = flex.min(ss)
       s_max = flex.max(ss)
 
@@ -406,6 +423,7 @@ class Apple(object):
       intensity_sum_variance.append(d+b)
       miller_index.append(ihkl)
       xyzcal_px.append((xy[0], xy[1], 0.0))
+      xyzobs_px.append((_x, _y, 0.0))
 
     reflections['num_pixels.foreground'] = num_pixels_foreground
     reflections['background.mean'] = background_mean
@@ -415,6 +433,7 @@ class Apple(object):
     reflections['intensity.sum.variance'] = intensity_sum_variance
     reflections['miller_index'] = miller_index
     reflections['xyzcal.px'] = xyzcal_px
+    reflections['xyzobs.px'] = xyzobs_px
     reflections['id'] = flex.int(miller_index.size(), 0)
     reflections['panel'] = flex.size_t(miller_index.size(), 0)
     reflections['bbox'] = bbox

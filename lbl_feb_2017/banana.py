@@ -7,6 +7,8 @@ data = pickle.load(open(reflection_file, 'rb'))
 
 i = data['intensity.sum.value']
 v = data['intensity.sum.variance']
+obs = data['xyzobs.px']
+cal = data['xyzcal.px']
 s = flex.sqrt(v)
 i_s = i / s
 dq = data['dq']
@@ -21,6 +23,6 @@ def histogram():
 
 def scatter():
   for j in range(i_s.size()):
-    print i_s[j], dq[j]
+    print dq[j], i[j], i_s[j], cal[j][0], cal[j][1], obs[j][0], obs[j][1]
 
 scatter()
