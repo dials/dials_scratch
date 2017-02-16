@@ -9,7 +9,7 @@ def find_spots(image, mask, min_spot_size=1, max_spot_size=1000):
 
   threshold_mask = threshold_image(image, mask)
   plist = PixelList(0, image, threshold_mask)
-    
+
   pixel_labeller = PixelListLabeller()
 
   pixel_labeller.add(plist)
