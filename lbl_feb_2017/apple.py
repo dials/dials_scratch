@@ -81,6 +81,7 @@ class Apple(object):
 
     imageset = expt.imagesets()[0]
     self.raw_data = imageset.get_raw_data(0)[0]
+    self.imageset = imageset
 
     from dials.algorithms.refinement.parameterisation.crystal_parameters \
       import CrystalUnitCellParameterisation, \
@@ -411,8 +412,33 @@ class Apple(object):
     reflections['miller_index'] = miller_index
     reflections['xyzcal.px'] = xyzcal_px
     reflections['id'] = flex.int(miller_index.size(), 0)
-    reflections['panel'] = flex.int(miller_index.size(), 0)
+    reflections['panel'] = flex.size_t(miller_index.size(), 0)
     reflections['bbox'] = bbox
+
+    from dials.algorithms.shoebox import MaskCode
+
+    reflections["shoebox"] = flex.shoebox(
+      reflections["panel"],
+      reflections["bbox"],
+      allocate=True)
+
+    reflections.extract_shoeboxes(self.imageset, verbose=True)
+
+    # now iterate through these (how?!) and assign mask values
+    fg = self.get_signal_mask()
+    for reflection in reflections:
+      s = reflection['shoebox']
+      b = reflection['bbox']
+      dz, dy, dx = s.mask.focus()
+      for j in range(dy):
+        for i in range(dx):
+          _i = b[0]
+          _j = b[2]
+          if fg[(j+_j,i+_i)]:
+            m = MaskCode.Valid|MaskCode.Foreground
+          else:
+            m = MaskCode.Valid|MaskCode.Background
+          s.mask[(0,j,i)] = m
 
     return reflections
 
