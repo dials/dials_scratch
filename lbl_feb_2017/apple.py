@@ -354,6 +354,7 @@ class Apple(object):
     miller_index = flex.miller_index()
     xyzcal_px = flex.vec3_double()
     bbox = flex.int6()
+    dq = flex.double()
 
     fast = flex.int(self.raw_data.size(), -1)
     fast.reshape(self.raw_data.accessor())
@@ -367,6 +368,7 @@ class Apple(object):
         slow[(j, i)] = j
 
     for j in range(flood_fill.n_voids()):
+      # FIXME is this the best centre of mass?
       xy = coms[j][2], coms[j][1]
       p = matrix.col(self.panel.get_pixel_lab_coord(xy)).normalize() * winv
       q = p - matrix.col(self.beam.get_s0())
@@ -376,6 +378,8 @@ class Apple(object):
       pixels = data.select(sel)
       if flex.min(pixels) < 0:
         continue
+
+      dq.append((q - UB * ihkl).length())
       n = pixels.size()
       d = flex.sum(pixels)
       b = flex.sum(background.select(sel))
@@ -414,6 +418,7 @@ class Apple(object):
     reflections['id'] = flex.int(miller_index.size(), 0)
     reflections['panel'] = flex.size_t(miller_index.size(), 0)
     reflections['bbox'] = bbox
+    reflections['dq'] = dq
 
     from dials.algorithms.shoebox import MaskCode
 
