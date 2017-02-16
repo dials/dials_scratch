@@ -2,6 +2,7 @@ from dials_scratch.lbl_feb_2017.apple import Apple
 import sys
 
 apple = Apple(sys.argv[1], sys.argv[2])
+apple.refine(do_print=True)
 hklout = sys.argv[3]
 distance_map = apple.render_distance()
 
