@@ -9,18 +9,6 @@ import json
 def nint(a):
   return int(round(a))
 
-def scorify(params):
-  rx, ry, rz = params
-  R = matrix.sqr(smath.euler_angles_as_matrix((rx, ry, rz), deg=True))
-  score = 0.0
-  for j in range(data.size()):
-    if i_s[j] < 3:
-      continue
-    hkl = data['miller_index'][j]
-    q = R * UB * hkl
-    score += i_s[j] * abs((q + s0).length() - matrix.col(data['s1'][j]).length())
-  return score
-
 from scitbx import simplex
 
 def generate_start(values, offset):
@@ -58,7 +46,6 @@ class simple_simplex(object):
 class Apple(object):
 
   def __init__(self, reflection_file, experiment_file):
-    # make a pie
 
     data = pickle.load(open(reflection_file, 'rb'))
     print '%d reflections' % data.size()
