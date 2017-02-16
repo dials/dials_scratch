@@ -78,6 +78,7 @@ class Apple(object):
     self.wavelength = wavelength
     self.panel = panel
     self.beam = expt.beams()[0]
+    self.crystal = crystal
 
     # slurp data from $somewhere
 
@@ -85,11 +86,15 @@ class Apple(object):
     self.raw_data = imageset.get_raw_data(0)[0]
     self.imageset = imageset
 
+    return
+
+  def refine(self):
+
+    crystal = self.crystal
     from dials.algorithms.refinement.parameterisation.crystal_parameters \
       import CrystalUnitCellParameterisation, \
       CrystalOrientationParameterisation
 
-    self.crystal = crystal
     self.cucp = CrystalUnitCellParameterisation(crystal)
     self.cop = CrystalOrientationParameterisation(crystal)
 
@@ -355,7 +360,6 @@ class Apple(object):
     intensity_sum_variance = flex.double()
     miller_index = flex.miller_index()
     xyzcal_px = flex.vec3_double()
-    xyzobs_px = flex.vec3_double()
     bbox = flex.int6()
     dq = flex.double()
 
@@ -394,9 +398,6 @@ class Apple(object):
       fd = fs.as_double()
       sd = ss.as_double()
 
-      _x = flex.sum(fd * pixels) / flex.sum(pixels)
-      _y = flex.sum(sd * pixels) / flex.sum(pixels)
-
       p = matrix.col(self.panel.get_pixel_lab_coord(xy)).normalize() * winv
       q = p - matrix.col(self.beam.get_s0())
       hkl = UBi * q
@@ -423,7 +424,6 @@ class Apple(object):
       intensity_sum_variance.append(d+b)
       miller_index.append(ihkl)
       xyzcal_px.append((xy[0], xy[1], 0.0))
-      xyzobs_px.append((_x, _y, 0.0))
 
     reflections['num_pixels.foreground'] = num_pixels_foreground
     reflections['background.mean'] = background_mean
@@ -433,7 +433,6 @@ class Apple(object):
     reflections['intensity.sum.variance'] = intensity_sum_variance
     reflections['miller_index'] = miller_index
     reflections['xyzcal.px'] = xyzcal_px
-    reflections['xyzobs.px'] = xyzobs_px
     reflections['id'] = flex.int(miller_index.size(), 0)
     reflections['panel'] = flex.size_t(miller_index.size(), 0)
     reflections['bbox'] = bbox
@@ -465,6 +464,36 @@ class Apple(object):
           s.mask[(0,j,i)] = m
 
     return reflections
+
+  def find_spots(self, min_spot_size=2, max_spot_size=100):
+    from dials.algorithms.spot_finding.threshold import XDSThresholdStrategy
+    from dials.model.data import PixelList
+    from dials.model.data import PixelListLabeller
+
+    image = self.raw_data
+    mask = self.imageset.get_mask(0)[0]
+
+    threshold_image = XDSThresholdStrategy()
+
+    threshold_mask = threshold_image(image, mask)
+    plist = PixelList(0, image, threshold_mask)
+
+    pixel_labeller = PixelListLabeller()
+    pixel_labeller.add(plist)
+
+    creator = flex.PixelListShoeboxCreator(
+      pixel_labeller, 0, 0, True, min_spot_size, max_spot_size, False)
+    shoeboxes = creator.result()
+
+    centroid = shoeboxes.centroid_valid()
+    intensity = shoeboxes.summed_intensity()
+    observed = flex.observation(shoeboxes.panels(), centroid, intensity)
+
+    return flex.reflection_table(observed, shoeboxes)
+
+  def index(self, UB, reflections):
+    '''Index a list of reflections; prior to running refinement'''
+    pass
 
 if __name__ == '__main__':
   apple = Apple(sys.argv[1], sys.argv[2])
