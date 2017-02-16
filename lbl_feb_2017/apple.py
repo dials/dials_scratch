@@ -48,7 +48,6 @@ class Apple(object):
   def __init__(self, reflection_file, experiment_file):
 
     data = pickle.load(open(reflection_file, 'rb'))
-    print '%d reflections' % data.size()
 
     self.data = data.select(data['intensity.sum.variance'] > 0)
 
@@ -88,8 +87,13 @@ class Apple(object):
 
     return
 
-  def refine(self):
+  def load(self, filename):
+    from dxtbx import load
+    i = load(filename)
+    self.raw_data = i.get_raw_data()
+    return
 
+  def refine(self, do_print=False):
     crystal = self.crystal
     from dials.algorithms.refinement.parameterisation.crystal_parameters \
       import CrystalUnitCellParameterisation, \
@@ -112,9 +116,10 @@ class Apple(object):
     initial_score = self.target(values)
     doohicky = simple_simplex(values, offset, self, 2000)
     best = doohicky.get_solution()
-    print 'Initial cell:', initial
-    print 'Final cell:  ', crystal.get_unit_cell()
-    print 'Score change', initial_score, self.target(best, do_print=False)
+    if do_print:
+      print 'Initial cell:', initial
+      print 'Final cell:  ', crystal.get_unit_cell()
+      print 'Score change', initial_score, self.target(best, do_print=False)
     self.best = best
 
   def plot_map(self, map, filename):
@@ -185,15 +190,6 @@ class Apple(object):
     if score < self.best_score:
       self.best_score = score
       self.cells.append(self.crystal.get_unit_cell().parameters())
-    return score
-
-  def score_old(self, RUB):
-    score = 0.0
-    for j in range(self.data.size()):
-      hkl = self.data['miller_index'][j]
-      q = RUB * hkl
-      score += self.i_s[j] * abs(
-        (q + self.s0).length() - matrix.col(self.data['s1'][j]).length())
     return score
 
   def score(self, UB):
@@ -491,9 +487,25 @@ class Apple(object):
 
     return flex.reflection_table(observed, shoeboxes)
 
-  def index(self, UB, reflections):
-    '''Index a list of reflections; prior to running refinement'''
-    pass
+  def index(self, reflections):
+    miller_index = flex.miller_index()
+    UB = matrix.sqr(self.crystal.get_A())
+    UBi = UB.inverse()
+
+    self.qobs = []
+
+    for refl in reflections:
+      x, y, z = refl['xyzobs.px.value']
+      p = matrix.col(self.panel.get_pixel_lab_coord((x, y)))
+      q = p.normalize() / self.wavelength - self.s0
+      self.qobs.append(q)
+      hkl = UBi * q
+      ihkl = [int(round(h)) for h in hkl]
+      miller_index.append(ihkl)
+
+    reflections['miller_index'] = miller_index
+    self.data = reflections
+    return reflections
 
 if __name__ == '__main__':
   apple = Apple(sys.argv[1], sys.argv[2])
