@@ -497,6 +497,10 @@ class Apple(object):
     return reflections
 
   def index(self, reflections):
+
+    # FIXME allow for the fact that there could be > 1 lattice on here to
+    # e.g. assign index over small spherical radius
+
     miller_index = flex.miller_index()
     UB = matrix.sqr(self.crystal.get_A())
     UBi = UB.inverse()
