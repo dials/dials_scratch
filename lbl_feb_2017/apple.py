@@ -481,11 +481,20 @@ class Apple(object):
       pixel_labeller, 0, 0, True, min_spot_size, max_spot_size, False)
     shoeboxes = creator.result()
 
+    # turns out we need to manually filter the list to get a sensible answer
+    size = creator.spot_size()
+    big = size > max_spot_size
+    small = size < min_spot_size
+    bad = big | small
+    shoeboxes = shoeboxes.select(~bad)
+
+
     centroid = shoeboxes.centroid_valid()
     intensity = shoeboxes.summed_intensity()
     observed = flex.observation(shoeboxes.panels(), centroid, intensity)
 
-    return flex.reflection_table(observed, shoeboxes)
+    reflections = flex.reflection_table(observed, shoeboxes)
+    return reflections
 
   def index(self, reflections):
     miller_index = flex.miller_index()
