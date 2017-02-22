@@ -76,7 +76,8 @@ def plot_merging_stats(results, labels=None, plots=None, prefix=None,
   pyplot.style.use('ggplot')
 
   if plots is None:
-    plots = ('r_merge', 'r_meas', 'r_pim', 'cc_one_half', 'i_over_sigma_mean')
+    plots = ('r_merge', 'r_meas', 'r_pim', 'cc_one_half', 'i_over_sigma_mean',
+             'completeness', 'mean_redundancy')
   if prefix is None:
     prefix = ''
   if labels is not None:
@@ -101,7 +102,7 @@ def plot_merging_stats(results, labels=None, plots=None, prefix=None,
       plot_data(results, 'cc_one_half_sigma_tau', labels, linestyle='--')
     pyplot.xlabel('d spacing')
     pyplot.ylabel(k)
-    if k == 'cc_one_half':
+    if k in ('cc_one_half', 'completeness'):
       pyplot.ylim(0, 1.05)
     else:
       pyplot.ylim(0, pyplot.ylim()[1])
