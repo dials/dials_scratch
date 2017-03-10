@@ -26,25 +26,16 @@ and so on.
 
 from __future__ import division
 
-from dxtbx.model.experiment.experiment_list import Experiment
 from dxtbx.model.experiment.experiment_list import ExperimentListFactory
 from dxtbx.model.experiment.experiment_list import ExperimentListDumper
 from dials.util.options import flatten_reflections
 from dials.array_family import flex
 from dials.command_line.show import beam_centre_mm
-#from scitbx import matrix
 from libtbx import phil
 from libtbx import easy_run
+from libtbx.table_utils import simple_table
 import os
 from math import sqrt
-
-#from libtbx.utils import Sorry
-#import matplotlib
-# Offline backend
-#matplotlib.use("Agg")
-#matplotlib.rc('font', family='serif')
-#matplotlib.rc('font', serif='Times New Roman')
-#from matplotlib import pyplot as plt
 
 help_message = '''
 
@@ -133,6 +124,9 @@ class Script(object):
     first, last = self._scan.get_array_range()
     start = first
 
+    # set up table
+    header = ["Experiments", "#Indexed", "Cell", "Beam centre", "RMSD_X", "RMSD_Y", "RMSD_Z"]
+    rows = []
     while True:
 
       # keep trying to index, extending the block size looking for success
@@ -150,24 +144,28 @@ class Script(object):
 
       # it worked, so update the pointer to the current model
       self._current_exp_path = new_exp_path
+      print "Indexed", self._current_exp_path
 
       # load the indexed results
       el = ExperimentListFactory.from_json_file(self._current_exp_path,
         check_format=False)
+      assert len(el) == 1
+      exp = el[0]
+
       rt = flex.reflection_table.from_pickle(indexed_path)
       indexed = rt.select(rt.get_flags(rt.flags.indexed))
-      bc = [beam_centre_mm(e.detector, e.beam) for e in el]
-      bc = [e.detector[panel_id].millimeter_to_pixel((x, y)) for e, (panel_id, (x, y)) in zip(el, bc)]
+      panel_id, (x,y) = beam_centre_mm(exp.detector, exp.beam)
+      bc = exp.detector[panel_id].millimeter_to_pixel((x, y))
       indexed_rmsds = self._rmsds(indexed)
-      cell = el[0].crystal.get_unit_cell().parameters()
+      cell = exp.crystal.get_unit_cell().parameters()
 
-      msg = self._current_exp_path + " " + "%.2f %.2f %.2f %.2f %.2f %.2f " % cell
-
-      for (x, y) in bc:
-        msg += "Beam centre (px): (%.2f,%.2f) " % (x, y)
-
-      msg += "RMSD X: {:.4f} RMSD Y: {:.4f} RMSD Z: {:.4f}".format(*indexed_rmsds)
-      print msg
+      rows.append([self._current_exp_path,
+                   "%i" % len(indexed),
+                   "%.2f %.2f %.2f %.2f %.2f %.2f " % cell,
+                   "%.2f %.2f" % bc,
+                   "%.4f" % indexed_rmsds[0],
+                   "%.4f" % indexed_rmsds[1],
+                   "%.4f" % indexed_rmsds[2]])
 
       # update the scan range in the experiments and save
       for exp in el:
@@ -178,7 +176,8 @@ class Script(object):
 
       # update start image for the next block
       start = stop
-
+    st = simple_table(rows, header)
+    print st.format()
 
   def _rmsds(self, reflections):
     """calculate unweighted RMSDs for the specified reflections"""
