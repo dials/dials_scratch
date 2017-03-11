@@ -91,6 +91,8 @@ class Script(object):
       raise Sorry("Please provide a single reflection table as input")
 
     self._strong_path = params.input.reflections[0].filename
+    self._num_strong = len(params.input.reflections[0].data)
+    print "{0} strong spots read from {1}".format(self._num_strong, self._strong_path)
 
     self._images_per_block = params.images_per_block
     return
@@ -125,8 +127,9 @@ class Script(object):
     start = first
 
     # set up table
-    header = ["Experiments", "#Indexed", "Cell", "Beam centre", "RMSD_X", "RMSD_Y", "RMSD_Z"]
+    header = ["Experiments", "#Indexed", "Cell", "Beam centre", "Distance", "RMSD_X", "RMSD_Y", "RMSD_Z"]
     rows = []
+    num_indexed = []
     while True:
 
       # keep trying to index, extending the block size looking for success
@@ -154,15 +157,17 @@ class Script(object):
 
       rt = flex.reflection_table.from_pickle(indexed_path)
       indexed = rt.select(rt.get_flags(rt.flags.indexed))
+      num_indexed.append(len(indexed))
       panel_id, (x,y) = beam_centre_mm(exp.detector, exp.beam)
       bc = exp.detector[panel_id].millimeter_to_pixel((x, y))
       indexed_rmsds = self._rmsds(indexed)
       cell = exp.crystal.get_unit_cell().parameters()
-
+      pnl_dists = [p.get_distance() for p in exp.detector]
       rows.append([self._current_exp_path,
-                   "%i" % len(indexed),
-                   "%.2f %.2f %.2f %.2f %.2f %.2f " % cell,
+                   "%i" % num_indexed[-1],
+                   "%.2f %.2f %.2f %.2f %.2f %.2f" % cell,
                    "%.2f %.2f" % bc,
+                   (" ".join(["%.2f" % d for d in pnl_dists])),
                    "%.4f" % indexed_rmsds[0],
                    "%.4f" % indexed_rmsds[1],
                    "%.4f" % indexed_rmsds[2]])
@@ -176,8 +181,13 @@ class Script(object):
 
       # update start image for the next block
       start = stop
+
+    # print results
     st = simple_table(rows, header)
     print st.format()
+    total_num_indexed = sum(num_indexed)
+    print "{0} indexed reflections out of {1} strong spots ({2}%)".format(
+      total_num_indexed, self._num_strong, 100.*total_num_indexed/self._num_strong)
 
   def _rmsds(self, reflections):
     """calculate unweighted RMSDs for the specified reflections"""
