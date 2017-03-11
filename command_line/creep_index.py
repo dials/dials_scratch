@@ -123,19 +123,27 @@ class Script(object):
 
   def __call__(self):
 
+    # set up variables we need to determine blocks
     first, last = self._scan.get_array_range()
     start = first
+    stop = first
 
     # set up table
-    header = ["Experiments", "#Indexed", "Cell", "Beam centre", "Distance", "RMSD_X", "RMSD_Y", "RMSD_Z"]
+    header = ["Experiments", "#Idx", "Cell", "Beam centre\n(fast,slow)",
+      "Distance\n(mm)", "RMSD_X\n(px)", "RMSD_Y\n(px)", "RMSD_Z\n(px)"]
     rows = []
     num_indexed = []
     while True:
 
+      # finish if we already processed all blocks
+      if stop == last:break
+
       # keep trying to index, extending the block size looking for success
       nblocks=1
       while True:
-        stop = min(start + nblocks * self._images_per_block, last)
+        stop = start + nblocks * self._images_per_block
+        # if within one block size from the end, include all images up to the end
+        if stop >= last - self._images_per_block: stop = last
         new_exp_path, indexed_path = self._index_current_block(start, stop)
         # exit if successful indexing
         if [new_exp_path, indexed_path].count(None) == 0: break
@@ -143,7 +151,8 @@ class Script(object):
         if stop == last:break
         nblocks += 1
 
-      if stop == last:break
+      # exit if the last job failed
+      if new_exp_path is None: break
 
       # it worked, so update the pointer to the current model
       self._current_exp_path = new_exp_path
@@ -186,7 +195,7 @@ class Script(object):
     st = simple_table(rows, header)
     print st.format()
     total_num_indexed = sum(num_indexed)
-    print "{0} indexed reflections out of {1} strong spots ({2}%)".format(
+    print "{0} indexed reflections out of {1} strong spots ({2:.1f}%)".format(
       total_num_indexed, self._num_strong, 100.*total_num_indexed/self._num_strong)
 
   def _rmsds(self, reflections):
