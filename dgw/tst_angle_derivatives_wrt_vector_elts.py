@@ -9,8 +9,7 @@ from random import uniform
 from math import sin, cos, acos
 from libtbx.test_utils import approx_equal
 
-from dials.algorithms.refinement.refinement_helpers import \
-  AngleDerivativeWrtVectorElts
+from scitbx.math import angle_derivative_wrt_vectors
 
 class FDAngleDerivativeWrtVectorElts(object):
   '''Given two vectors, u and v, calculate the derivative of the angle theta
@@ -86,22 +85,16 @@ def test():
   gamma = acos(a_dot_b / (a*b))
 
   # Analytical
-  dg = AngleDerivativeWrtVectorElts(vec_a, vec_b)
+  def dangle(u, v):
+    return [matrix.col(e) for e in angle_derivative_wrt_vectors(u,v)]
+  dgamma_da, dgamma_db = dangle(vec_a, vec_b)
 
   # FD
   dgFD = FDAngleDerivativeWrtVectorElts(vec_a, vec_b)
-  assert approx_equal(dg.dtheta_du_1(), dgFD.dtheta_du_1())
-  assert approx_equal(dg.dtheta_du_2(), dgFD.dtheta_du_2())
-  assert approx_equal(dg.dtheta_du_3(), dgFD.dtheta_du_3())
-  assert approx_equal(dg.dtheta_dv_1(), dgFD.dtheta_dv_1())
-  assert approx_equal(dg.dtheta_dv_2(), dgFD.dtheta_dv_2())
-  assert approx_equal(dg.dtheta_dv_3(), dgFD.dtheta_dv_3())
-
-  # Test vector version
-  assert approx_equal(dg.derivative_wrt_u(), matrix.col(
-    (dg.dtheta_du_1(), dg.dtheta_du_2(), dg.dtheta_du_3())))
-  assert approx_equal(dg.derivative_wrt_v(), matrix.col(
-    (dg.dtheta_dv_1(), dg.dtheta_dv_2(), dg.dtheta_dv_3())))
+  assert approx_equal(dgamma_da,
+    matrix.col([dgFD.dtheta_du_1(), dgFD.dtheta_du_2(), dgFD.dtheta_du_3()]))
+  assert approx_equal(dgamma_db,
+    matrix.col([dgFD.dtheta_dv_1(), dgFD.dtheta_dv_2(), dgFD.dtheta_dv_3()]))
 
   return True
 
