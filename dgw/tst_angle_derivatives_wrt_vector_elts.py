@@ -100,7 +100,11 @@ def test():
 
 if __name__ == '__main__':
 
-  results = [test() for i in xrange(10000)]
+  ntests = 1000
+  results = [test() for i in xrange(ntests)]
 
-  print "{0} successes".format(results.count(True))
-  print "{0} skipped tests".format(results.count(False))
+  nsuccess = results.count(True)
+
+  assert nsuccess > 0.95 * ntests
+  print "OK"
+

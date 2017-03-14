@@ -51,8 +51,6 @@ if do_hexagonal:
                 check_format=False)
   crystal = experiments[0].crystal
 
-print crystal
-
 # derive finite difference gradients of various quantities wrt each param
 def check_fd_gradients(parameterisation):
 
@@ -147,8 +145,8 @@ fd_grad = check_fd_gradients(xluc_param)
 # look at each parameter
 for i, dO in enumerate(dO_dp):
 
-  print
-  print "***** PARAMETER {0} *****".format(i)
+  #print
+  #print "***** PARAMETER {0} *****".format(i)
 
   #print "dB_dp analytical"
   #print dB_dp[i]
@@ -158,12 +156,13 @@ for i, dO in enumerate(dO_dp):
 
   # dB_dp is good. What about dO_dp?
 
-  print "O MATRIX"
-  print "dO_dp analytical"
-  print dO.round(6)
-  print "dO_dp FD"
-  print fd_grad[i]['dO_dp'].round(6)
-  print
+  #print "O MATRIX"
+  #print "dO_dp analytical"
+  #print dO.round(6)
+  #print "dO_dp FD"
+  #print fd_grad[i]['dO_dp'].round(6)
+  #print
+  assert approx_equal(dO, fd_grad[i]['dO_dp'])
 
   # extract derivatives of each unit cell vector wrt p
   dav_dp, dbv_dp, dcv_dp = dO.transpose().as_list_of_lists()
@@ -172,41 +171,51 @@ for i, dO in enumerate(dO_dp):
   dcv_dp = matrix.col(dcv_dp)
 
   # check these are correct vs FD
-  print "CELL VECTORS"
-  diff = dav_dp - fd_grad[i]['davec_dp']
+  #print "CELL VECTORS"
+  #diff = dav_dp - fd_grad[i]['davec_dp']
   #print 2 * diff.length() / (dav_dp.length() + fd_grad[i]['davec_dp'].length()) * 100
-  print 'davec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dav_dp.elems)
-  print 'davec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['davec_dp'].elems)
+  #print 'davec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dav_dp.elems)
+  #print 'davec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['davec_dp'].elems)
+  assert approx_equal(dav_dp, fd_grad[i]['davec_dp'])
 
-  diff = dbv_dp - fd_grad[i]['dbvec_dp']
+  #diff = dbv_dp - fd_grad[i]['dbvec_dp']
   #print 2 * diff.length() / (dbv_dp.length() + fd_grad[i]['dbvec_dp'].length()) * 100
-  print 'dbvec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dbv_dp.elems)
-  print 'dbvec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['dbvec_dp'].elems)
+  #print 'dbvec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dbv_dp.elems)
+  #print 'dbvec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['dbvec_dp'].elems)
+  assert approx_equal(dbv_dp, fd_grad[i]['dbvec_dp'])
 
-  diff = dcv_dp - fd_grad[i]['dcvec_dp']
+  #diff = dcv_dp - fd_grad[i]['dcvec_dp']
   #print 2 * diff.length() / (dcv_dp.length() + fd_grad[i]['dcvec_dp'].length()) * 100
-  print 'dcvec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dcv_dp.elems)
-  print 'dcvec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['dcvec_dp'].elems)
-  print
+  #print 'dcvec_dp analytical: {0:.5f} {1:.5f} {2:.5f}'.format(*dcv_dp.elems)
+  #print 'dcvec_dp finite diff: {0:.5f} {1:.5f} {2:.5f}'.format(*fd_grad[i]['dcvec_dp'].elems)
+  #print
+  assert approx_equal(dcv_dp, fd_grad[i]['dcvec_dp'])
 
-  print "CELL LENGTHS"
+  #print "CELL LENGTHS"
   da_dp = 1./a * avec.dot(dav_dp)
-  print "d[a]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(da_dp, fd_grad[i]['da_dp'], i)
+  #print "d[a]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(da_dp, fd_grad[i]['da_dp'], i)
+  assert approx_equal(da_dp, fd_grad[i]['da_dp'])
 
   db_dp = 1./b * bvec.dot(dbv_dp)
-  print "d[b]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(db_dp, fd_grad[i]['db_dp'], i)
+  #print "d[b]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(db_dp, fd_grad[i]['db_dp'], i)
+  assert approx_equal(db_dp, fd_grad[i]['db_dp'])
 
   dc_dp = 1./c * cvec.dot(dcv_dp)
-  print "d[c]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dc_dp, fd_grad[i]['dc_dp'], i)
+  #print "d[c]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dc_dp, fd_grad[i]['dc_dp'], i)
+  assert approx_equal(dc_dp, fd_grad[i]['dc_dp'])
 
-  print
-  print "CELL ANGLES"
+  #print
+  #print "CELL ANGLES"
 
   daa_dp = RAD2DEG * (dbv_dp.dot(dalpha_db) + dcv_dp.dot(dalpha_dc))
   dbb_dp = RAD2DEG * (dav_dp.dot(dbeta_da) + dcv_dp.dot(dbeta_dc))
   dcc_dp = RAD2DEG * (dav_dp.dot(dgamma_da) + dbv_dp.dot(dgamma_db))
 
-  print "d[alpha]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(daa_dp, fd_grad[i]['daa_dp'], i)
-  print "d[beta]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dbb_dp, fd_grad[i]['dbb_dp'], i)
-  print "d[gamma]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dcc_dp, fd_grad[i]['dcc_dp'], i)
+  #print "d[alpha]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(daa_dp, fd_grad[i]['daa_dp'], i)
+  #print "d[beta]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dbb_dp, fd_grad[i]['dbb_dp'], i)
+  #print "d[gamma]/dp{2} analytical: {0:.5f} FD: {1:.5f}".format(dcc_dp, fd_grad[i]['dcc_dp'], i)
+  assert approx_equal(daa_dp, fd_grad[i]['daa_dp'])
+  assert approx_equal(dbb_dp, fd_grad[i]['dbb_dp'])
+  assert approx_equal(dcc_dp, fd_grad[i]['dcc_dp'])
 
+print "OK"

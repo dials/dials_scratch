@@ -363,18 +363,18 @@ def run(verbose = False):
     ## compare FD with analytical calculations
     if verbose: print "\n\nParameter {0}: {1}". format(i,  fd_grad['name'])
 
-    print "d[s1]/dp for the first reflection"
-    print 'finite diff', fd_grad['ds1'][0]
+    if verbose: print "d[s1]/dp for the first reflection"
+    if verbose: print 'finite diff', fd_grad['ds1'][0]
     try:
       an_grad = an_grads[fd_grad['name']]
     except KeyError:
       continue
 
-    print 'checking analytical vs finite difference gradients for s1'
+    if verbose: print 'checking analytical vs finite difference gradients for s1'
     for a, b in zip(fd_grad['ds1'], an_grad['ds1']):
       assert approx_equal(a, b)
     print 'OK'
 
 if __name__ == "__main__":
 
-  run(verbose=True)
+  run(verbose=False)
