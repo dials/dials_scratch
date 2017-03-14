@@ -63,7 +63,7 @@ def check_fd_gradients(parameterisation):
   fd_grad = []
 
   # get matrix to unset rotations of unit cell vectors
-  Ut = mp.get_model().get_U().transpose()
+  Ut = matrix.sqr(mp.get_model().get_U()).transpose()
 
   for i in range(len(deltas)):
 
@@ -74,7 +74,7 @@ def check_fd_gradients(parameterisation):
     rev_uc = mp.get_model().get_unit_cell().parameters()
     rev_vec = mp.get_model().get_real_space_vectors()
     rev_vec = [Ut * vec for vec in rev_vec]
-    rev_B = mp.get_model().get_B()
+    rev_B = matrix.sqr(mp.get_model().get_B())
     rev_O = rev_B.transpose().inverse()
 
     p_vals[i] += deltas[i]
@@ -82,7 +82,7 @@ def check_fd_gradients(parameterisation):
     fwd_uc = mp.get_model().get_unit_cell().parameters()
     fwd_vec = mp.get_model().get_real_space_vectors()
     fwd_vec = [Ut * vec for vec in fwd_vec]
-    fwd_B = mp.get_model().get_B()
+    fwd_B = matrix.sqr(mp.get_model().get_B())
     fwd_O = fwd_B.transpose().inverse()
 
     fd_uc = [(f - r) / deltas[i] for f,r in zip(fwd_uc, rev_uc)]
@@ -115,16 +115,15 @@ xluc_param = CrystalUnitCellParameterisation(crystal)
 from dials.algorithms.refinement.restraints.restraints import SingleUnitCellTie
 uct = SingleUnitCellTie(xluc_param, [None]*6, [None]*6)
 
-from dials.algorithms.refinement.refinement_helpers import \
-      AngleDerivativeWrtVectorElts
+from scitbx.math import angle_derivative_wrt_vectors
 
-B = crystal.get_B()
+B = matrix.sqr(crystal.get_B())
 O = (B.transpose()).inverse()
 a, b, c, aa, bb, cc = crystal.get_unit_cell().parameters()
 aa *= DEG2RAD
 bb *= DEG2RAD
 cc *= DEG2RAD
-Ut = crystal.get_U().transpose()
+Ut = matrix.sqr(crystal.get_U()).transpose()
 avec, bvec, cvec = [Ut * vec for vec in crystal.get_real_space_vectors()]
 
 # calculate d[B^T]/dp
@@ -134,10 +133,13 @@ dBT_dp = [dB.transpose() for dB in dB_dp]
 # calculate d[O]/dp
 dO_dp = [-O * dBT * O for dBT in dBT_dp]
 
-# objects to get derivative of angles wrt vectors
-dalpha = AngleDerivativeWrtVectorElts(bvec, cvec)
-dbeta = AngleDerivativeWrtVectorElts(avec, cvec)
-dgamma = AngleDerivativeWrtVectorElts(avec, bvec)
+# function to get analytical derivative of angles wrt vectors
+def dangle(u, v):
+  return [matrix.col(e) for e in angle_derivative_wrt_vectors(u,v)]
+
+dalpha_db, dalpha_dc = dangle(bvec, cvec)
+dbeta_da, dbeta_dc = dangle(avec, cvec)
+dgamma_da, dgamma_db = dangle(avec, bvec)
 
 # get all FD derivatives
 fd_grad = check_fd_gradients(xluc_param)
@@ -200,18 +202,6 @@ for i, dO in enumerate(dO_dp):
   print
   print "CELL ANGLES"
 
-  # Here we know the derivatives of the angle alpha with respect to elements
-  # of the vectors a and b. Similarly for beta and gamma. We know these
-  # expressions are correct because they are tested in
-  # tst_angle_derivatives_wrt_vector_elts.py
-  dalpha_db = dalpha.derivative_wrt_u()
-  dalpha_dc = dalpha.derivative_wrt_v()
-  dbeta_da = dbeta.derivative_wrt_u()
-  dbeta_dc = dbeta.derivative_wrt_v()
-  dgamma_da = dgamma.derivative_wrt_u()
-  dgamma_db = dgamma.derivative_wrt_v()
-
-  #
   daa_dp = RAD2DEG * (dbv_dp.dot(dalpha_db) + dcv_dp.dot(dalpha_dc))
   dbb_dp = RAD2DEG * (dav_dp.dot(dbeta_da) + dcv_dp.dot(dbeta_dc))
   dcc_dp = RAD2DEG * (dav_dp.dot(dgamma_da) + dbv_dp.dot(dgamma_db))
