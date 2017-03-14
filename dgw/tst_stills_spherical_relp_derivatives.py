@@ -38,7 +38,7 @@ class Predictor(object):
 
     self._predictor = StillsReflectionPredictor(self._experiment,
       spherical_relp=True)
-    self._UB = self._experiment.crystal.get_U() * self._experiment.crystal.get_B()
+    self._UB = matrix.sqr(self._experiment.crystal.get_U()) * matrix.sqr(self._experiment.crystal.get_B())
 
   def predict(self, reflections):
     """
@@ -72,8 +72,8 @@ class AnalyticalGradients(object):
         xl_unit_cell_parameterisation
 
     # Keep quantities of interest from the model
-    self.U = self.crystal.get_U()
-    self.B = self.crystal.get_B()
+    self.U = matrix.sqr(self.crystal.get_U())
+    self.B = matrix.sqr(self.crystal.get_B())
     self.UB = self.U * self.B
     self.s0 = matrix.col(self.beam.get_s0())
     self.s0len = self.s0.length()
@@ -276,7 +276,7 @@ def run(verbose = False):
                         space_group(space_group_symbols(1).hall()).type(),
                         resolution)
   indices = index_generator.to_array()
-  rays = ray_predictor.predict(indices)
+  rays = ray_predictor(indices)
 
   # Make a standard reflection_table and copy in the ray data
   reflections = flex.reflection_table.empty_standard(len(rays))
