@@ -49,7 +49,7 @@ namespace dials { namespace algorithms {
   using dials::model::Foreground;
 
   namespace detail {
- 
+
     /**
      * Helper function to select 2 orthogonal vectors
      * @param x The input vector
@@ -90,25 +90,40 @@ namespace dials { namespace algorithms {
   class ReciprocalLatticePointSpread {
 
   public:
-    
+
+    /**
+     * Init with parameters set to zero
+     */
     ReciprocalLatticePointSpread(mat3<double> A)
       : A_(A) {
       set_parameters(double6(0,0,0,0,0,0));
     }
 
+    /**
+     * Init with parameters
+     */
     ReciprocalLatticePointSpread(mat3<double> A, double6 parameters)
       : A_(A) {
       set_parameters(parameters);
     }
 
+    /**
+     * @returns The A matrix
+     */
     mat3<double> get_A() const {
       return A_;
     }
 
+    /**
+     * @returns The parameters
+     */
     double6 get_parameters() const {
       return parameters_;
     }
 
+    /**
+     * Set the parameters
+     */
     void set_parameters(double6 parameters) {
       // Set parameters
       parameters_ = parameters;
@@ -123,10 +138,16 @@ namespace dials { namespace algorithms {
       covariance_ = A_.transpose() * L * L.transpose() * A_;
     }
 
+    /**
+     * Get the covariance matrix
+     */
     mat3<double> get_covariance() const {
       return covariance_;
     }
-    
+
+    /**
+     * Set the covariance matrix
+     */
     void set_covariance(mat3<double> covariance) {
       typedef scitbx::matrix::cholesky::l_l_transpose_decomposition_in_place<double> decomposition;
       typedef decomposition::accessor_type accessor_type;
@@ -139,7 +160,7 @@ namespace dials { namespace algorithms {
       mat3<double> LL = Ai.transpose() * covariance * Ai;
 
       // Get the lower half of the covariance
-      double6 L(LL[0], 
+      double6 L(LL[0],
                 LL[3], LL[4],
                 LL[6], LL[7], LL[8]);
 
@@ -157,10 +178,17 @@ namespace dials { namespace algorithms {
     mat3<double> A_;
     mat3<double> covariance_;
   };
-  
+
+
+  /**
+   * Class representing the mosaic block angular spread
+   */
   class MosaicBlockAngularSpread {
   public:
 
+    /**
+     * Init
+     */
     MosaicBlockAngularSpread(vec3<double> r)
       : r_(r),
         parameter_(0.0) {
@@ -168,29 +196,42 @@ namespace dials { namespace algorithms {
       set_parameter(0.0);
     }
 
+    /**
+     * Init with parameters
+     */
     MosaicBlockAngularSpread(vec3<double> r, double parameter)
       : r_(r),
         parameter_(0.0) {
       DIALS_ASSERT(r_.length() > 0);
       set_parameter(parameter);
     }
-    
+
+    /**
+     * @returns the reciprocal lattice vector
+     */
     vec3<double> get_r() const {
       return r_;
     }
 
+    /**
+     * @returns the parameter
+     */
     double get_parameter() const {
       return parameter_;
     }
 
+    /**
+     * Set the parameter
+     */
     void set_parameter(double parameter) {
-     
+
       // Ensure the angle is small
+      DIALS_ASSERT(parameter >= 0);
       DIALS_ASSERT(detail::small_angle(parameter));
 
       // Save the parameters
       parameter_ = parameter;
-      
+
       // The eigen values
       double variance = 2.0 * r_.length() * std::tan(parameter_/2.0);
 
@@ -207,10 +248,16 @@ namespace dials { namespace algorithms {
       covariance_ = L * D * L.inverse();
     }
 
+    /**
+     * Get the covariance matrix
+     */
     mat3<double> get_covariance() const {
       return covariance_;
     }
 
+    /**
+     * Set the covariance matrix
+     */
     void set_covariance(mat3<double> covariance) {
 
       // Get the matrix of eigen vectors
@@ -236,8 +283,11 @@ namespace dials { namespace algorithms {
       set_parameter(parameter);
     }
 
+    /**
+     * Return the matrix of eigen vectors
+     */
     mat3<double> eigen_vector_matrix() const {
-      
+
       // The eigen vectors
       vec3<double> x = r_.normalize();
 
@@ -261,9 +311,15 @@ namespace dials { namespace algorithms {
   };
 
 
+  /**
+   * Class representing the wavelength spread
+   */
   class WavelengthSpread {
   public:
-    
+
+    /**
+     * Init
+     */
     WavelengthSpread(vec3<double> s0, vec3<double> r)
       : s0_(s0),
         r_(r),
@@ -273,6 +329,9 @@ namespace dials { namespace algorithms {
       set_parameter(0.0);
     }
 
+    /**
+     * Init
+     */
     WavelengthSpread(vec3<double> s0, vec3<double> r, double parameter)
       : s0_(s0),
         r_(r),
@@ -281,24 +340,38 @@ namespace dials { namespace algorithms {
       DIALS_ASSERT(r_.length() > 0);
       set_parameter(parameter);
     }
-    
+
+    /**
+     * Get the beam vector
+     */
     vec3<double> get_s0() const {
       return s0_;
     }
 
+    /**
+     * Get the reciprocal lattice vector
+     */
     vec3<double> get_r() const {
       return r_;
     }
 
+    /**
+     * Get the parameter
+     */
     double get_parameter() const {
       return parameter_;
     }
 
+    /**
+     * Set the parameter
+     */
     void set_parameter(double parameter) {
-      
+
+      DIALS_ASSERT(parameter >= 0);
+
       // Save the parameters
       parameter_ = parameter;
-      
+
       // The eigen values
       double ratio = r_.length() / s0_.length();
       double variance = parameter_ * (ratio * ratio);
@@ -308,7 +381,7 @@ namespace dials { namespace algorithms {
           variance, 0.0, 0.0,
                0.0, 0.0, 0.0,
                0.0, 0.0, 0.0);
-      
+
       // Get the matrix of eigen vectors
       mat3<double> L = eigen_vector_matrix();
 
@@ -316,10 +389,16 @@ namespace dials { namespace algorithms {
       covariance_ = L * D * L.inverse();
     }
 
+    /**
+     * @returns The covariane matrix
+     */
     mat3<double> get_covariance() const {
       return covariance_;
     }
 
+    /**
+     * Set the covariance matrix
+     */
     void set_covariance(mat3<double> covariance) {
 
       // Get the matrix of eigen vectors
@@ -340,9 +419,12 @@ namespace dials { namespace algorithms {
       // Set the parameter
       set_parameter(parameter);
     }
-    
+
+    /**
+     * @return the Eigen vector matrix
+     */
     mat3<double> eigen_vector_matrix() const {
-      
+
       // The eigen vectors
       vec3<double> x = r_.normalize();
 
@@ -366,13 +448,19 @@ namespace dials { namespace algorithms {
 
   };
 
-  
+
+  /**
+   * Class to build covariance matrix
+   */
   class CovarianceMatrix {
   public:
 
+    /**
+     * Init
+     */
     CovarianceMatrix(
-          mat3<double> A, 
-          vec3<double> s0, 
+          mat3<double> A,
+          vec3<double> s0,
           vec3<double> r,
           bool use_mosaic_block_angular_spread,
           bool use_wavelength_spread)
@@ -385,36 +473,57 @@ namespace dials { namespace algorithms {
         mosaic_block_angular_spread_(r),
         wavelength_spread_(s0, r) {}
 
+    /**
+     * Get the A matrix
+     */
     mat3<double> get_A() const {
       return A_;
     }
-    
+
+    /**
+     * Get the beam vector
+     */
     vec3<double> get_s0() const {
       return s0_;
     }
 
+    /**
+     * Get the reciprocal lattice vector
+     */
     vec3<double> get_r() const {
       return r_;
     }
 
+    /**
+     * @returns Are we using mosiac block angular spread
+     */
     bool use_mosaic_block_angular_spread() const {
       return use_mosaic_block_angular_spread_;
     }
-    
+
+    /**
+     * @returns Are we using wavelength spread
+     */
     bool use_wavelength_spread() const {
       return use_wavelength_spread_;
     }
 
+    /**
+     * @returns The number of parameters
+     */
     std::size_t num_parameters() const {
       return 6 // reciprocal_lattice_point_spread
           +  (use_mosaic_block_angular_spread() ? 1 : 0)
           +  (use_wavelength_spread() ? 1 : 0);
     }
 
+    /**
+     * Set the parameters
+     */
     void set_parameters(const scitbx::af::const_ref<double> parameters) {
-      
+
       DIALS_ASSERT(parameters.size() == num_parameters());
-     
+
       // Set reciprocal lattice point parameters
       reciprocal_lattice_point_spread_.set_parameters(
         double6(
@@ -444,11 +553,14 @@ namespace dials { namespace algorithms {
       }
     }
 
+    /**
+     * Get the parameters
+     */
     scitbx::af::shared<double> get_parameters() const {
       scitbx::af::shared<double> result;
 
       // Ass reciprocal lattice point spread parameters
-      result.insert(result.end(), 
+      result.insert(result.end(),
           reciprocal_lattice_point_spread_.get_parameters().begin(),
           reciprocal_lattice_point_spread_.get_parameters().end());
 
@@ -468,22 +580,34 @@ namespace dials { namespace algorithms {
       return result;
     }
 
+    /**
+     * @returns The covariance matrix
+     */
     mat3<double> get_covariance() {
       return covariance_;
     }
 
+    /**
+     * Get the reciprocal lattice point class
+     */
     const ReciprocalLatticePointSpread& get_reciprocal_lattice_point_spread() const {
       return reciprocal_lattice_point_spread_;
     }
-    
+
+    /**
+     * Get the mosaic block spread class
+     */
     const MosaicBlockAngularSpread& get_mosaic_block_angular_spread() const {
       return mosaic_block_angular_spread_;
     }
-    
+
+    /**
+     * Get the wavelength spread class
+     */
     const WavelengthSpread& get_wavelength_spread() const {
       return wavelength_spread_;
     }
-    
+
   protected:
 
     mat3<double> A_;
@@ -497,9 +621,16 @@ namespace dials { namespace algorithms {
     WavelengthSpread wavelength_spread_;
   };
 
+
+  /**
+   * Class providing 3D model
+   */
   class Model3D {
   public:
 
+    /**
+     * Init
+     */
     Model3D(
           const Beam &beam,
           const Panel &panel,
@@ -514,7 +645,7 @@ namespace dials { namespace algorithms {
         sigma_(sigma),
         sigma_inv_(sigma.inverse()),
         r0_(r0) {
-      double two_pi_cubed = 
+      double two_pi_cubed =
         (2*scitbx::constants::pi) *
         (2*scitbx::constants::pi) *
         (2*scitbx::constants::pi);
@@ -523,12 +654,18 @@ namespace dials { namespace algorithms {
       normalizing_constant_ = (1.0 / std::sqrt(two_pi_cubed * det));
     }
 
+    /**
+     * Function evaluation at a pixel coordinate
+     */
     double f(double x, double y, double z) const {
       vec3<double> r = coord(x, y, z);
       double d = (r - r0_) * sigma_inv_ * (r - r0_);
       return normalizing_constant_ * std::exp(-0.5 * d);
     }
 
+    /**
+     * The Jacobian at a pixel
+     */
     double J(double x, double y, double z) const {
       vec3<double> dr_dx = (coord(x+0.5,y,z) - coord(x-0.5,y,z)) / 1.0;
       vec3<double> dr_dy = (coord(x,y+0.5,z) - coord(x,y-0.5,z)) / 1.0;
@@ -539,6 +676,9 @@ namespace dials { namespace algorithms {
         dr_dx[2], dr_dy[2], dr_dz[2]).determinant());
     }
 
+    /**
+     * The coordinate at a pixel coordinate
+     */
     vec3<double> coord(double x, double y, double z) const {
       vec3<double> s1 = panel_.get_pixel_lab_coord(vec2<double>(x,y)).normalize();
       s1 = s1 * s0_.length();
@@ -560,9 +700,16 @@ namespace dials { namespace algorithms {
     double normalizing_constant_;
   };
 
+
+  /**
+   * Class providing 2D model
+   */
   class Model2D {
   public:
 
+    /**
+     * Init
+     */
     Model2D(
           const Beam &beam,
           const Panel &panel,
@@ -573,7 +720,7 @@ namespace dials { namespace algorithms {
         sigma_(sigma),
         sigma_inv_(sigma.inverse()),
         r0_(r0) {
-      double two_pi_cubed = 
+      double two_pi_cubed =
         (2*scitbx::constants::pi) *
         (2*scitbx::constants::pi) *
         (2*scitbx::constants::pi);
@@ -582,12 +729,18 @@ namespace dials { namespace algorithms {
       normalizing_constant_ = (1.0 / std::sqrt(two_pi_cubed * det));
     }
 
+    /**
+     * Function evaluation at a pixel coordinate
+     */
     double f(double x, double y) const {
       vec3<double> r = coord(x, y);
       double d = (r - r0_) * sigma_inv_ * (r - r0_);
       return normalizing_constant_ * std::exp(-0.5 * d);
     }
 
+    /**
+     * The Jacobian at a pixel
+     */
     double J(double x, double y) const {
       vec3<double> dr_dx = (coord(x+0.5,y) - coord(x-0.5,y)) / 1.0;
       vec3<double> dr_dy = (coord(x,y+0.5) - coord(x,y-0.5)) / 1.0;
@@ -597,6 +750,9 @@ namespace dials { namespace algorithms {
         dr_dx[2], dr_dy[2], 0.0).determinant());
     }
 
+    /**
+     * The coordinate at a pixel coordinate
+     */
     vec3<double> coord(double x, double y) const {
       vec3<double> s1 = panel_.get_pixel_lab_coord(vec2<double>(x,y)).normalize();
       s1 = s1 * s0_.length();
@@ -614,9 +770,16 @@ namespace dials { namespace algorithms {
     double normalizing_constant_;
   };
 
+
+  /**
+   * Represent the target function
+   */
   class MLTarget2DSingle {
   public:
 
+    /**
+     * Init
+     */
     MLTarget2DSingle(
           const Beam &beam,
           const Panel &panel,
@@ -637,7 +800,10 @@ namespace dials { namespace algorithms {
       DIALS_ASSERT(bbox[3] > bbox[2]);
       DIALS_ASSERT(bbox[5] == bbox[4] + 1);
     }
-    
+
+    /**
+     * Compute the log likelihood given the data
+     */
     double log_likelihood(
         const scitbx::af::const_ref< float, scitbx::af::c_grid<3> > &data,
         const scitbx::af::const_ref< int, scitbx::af::c_grid<3> > &mask) {
@@ -670,6 +836,9 @@ namespace dials { namespace algorithms {
       return logL;
     }
 
+    /**
+     * Compute the probability at the pixel
+     */
     double compute_P(std::size_t j, std::size_t i) {
       int x0 = bbox_[0];
       int y0 = bbox_[2];
@@ -703,9 +872,16 @@ namespace dials { namespace algorithms {
     std::uniform_real_distribution<double> uniform_;
   };
 
+
+  /**
+   * Maximum likelihood target function
+   */
   class MLTarget3DSingle {
   public:
 
+    /**
+     * Init
+     */
     MLTarget3DSingle(
           const Beam &beam,
           const Panel &panel,
@@ -731,7 +907,10 @@ namespace dials { namespace algorithms {
       DIALS_ASSERT(bbox[3] > bbox[2]);
       DIALS_ASSERT(bbox[5] > bbox[4]);
     }
-    
+
+    /**
+     * Compute the log likelihood
+     */
     double log_likelihood(
         const scitbx::af::const_ref< float, scitbx::af::c_grid<3> > &data,
         const scitbx::af::const_ref< int, scitbx::af::c_grid<3> > &mask) {
@@ -766,6 +945,9 @@ namespace dials { namespace algorithms {
       return logL;
     }
 
+    /**
+     * Compute the integral using monte-carlo with stratefied sampling
+     */
     double compute_P(std::size_t k, std::size_t j, std::size_t i) {
       int x0 = bbox_[0];
       int y0 = bbox_[2];
@@ -795,6 +977,25 @@ namespace dials { namespace algorithms {
       return J * volume * sumf / num_integral_total;
     }
 
+    /**
+     * Simulate
+     */
+    scitbx::af::versa< double, scitbx::af::c_grid<3> > simulate() {
+      std::size_t xsize = (bbox_[1] - bbox_[0]);
+      std::size_t ysize = (bbox_[3] - bbox_[2]);
+      std::size_t zsize = (bbox_[5] - bbox_[4]);
+      scitbx::af::c_grid<3> grid(zsize, ysize, xsize);
+      scitbx::af::versa< double, scitbx::af::c_grid<3> > result(grid);
+      for (std::size_t k = 0; k < zsize; ++k) {
+        for (std::size_t j = 0; j < ysize; ++j) {
+          for (std::size_t i = 0; i < xsize; ++i) {
+            result(k,j,i) = compute_P(k,j,i);
+          }
+        }
+      }
+      return result;
+    }
+
 
   protected:
 
@@ -805,6 +1006,9 @@ namespace dials { namespace algorithms {
     std::uniform_real_distribution<double> uniform_;
   };
 
+  /**
+   * The maximum likelihood target function for all reflections
+   */
   class MLTarget3D {
   public:
 
@@ -821,6 +1025,9 @@ namespace dials { namespace algorithms {
         use_wavelength_spread_(use_wavelength_spread) {
     }
 
+    /**
+     * Compute the log likelihood
+     */
     double log_likelihood(const scitbx::af::const_ref<double> &parameters) const {
 
       // Check the input
@@ -832,9 +1039,9 @@ namespace dials { namespace algorithms {
       DIALS_ASSERT(reflections_.contains("s1"));
 
       // Get arrays from reflections
-      af::const_ref< Shoebox<> > sbox = 
+      af::const_ref< Shoebox<> > sbox =
         reflections_.get< Shoebox<> >("shoebox").const_ref();
-      af::const_ref< cctbx::miller::index<> > h = 
+      af::const_ref< cctbx::miller::index<> > h =
         reflections_.get< cctbx::miller::index<> >("miller_index").const_ref();
 
       // Get the beam vector
@@ -856,7 +1063,7 @@ namespace dials { namespace algorithms {
         CovarianceMatrix cov(
             A,
             s0,
-            r0, 
+            r0,
             use_mosaic_block_angular_spread_,
             use_wavelength_spread_);
 
@@ -872,12 +1079,121 @@ namespace dials { namespace algorithms {
             cov.get_covariance(),
             r0,
             bbox,
-            num_integral_);        
+            num_integral_);
 
         // Compute the loglikelihood for the reflection
         logL += target.log_likelihood(data, mask);
       }
       return logL;
+    }
+
+    /**
+     * Compute the covariance matrix for all reflections
+     */
+    af::shared< mat3<double> > covariance(const scitbx::af::const_ref<double> &parameters) const {
+      af::shared< mat3<double> > result(reflections_.size());
+
+      // Check the input
+      DIALS_ASSERT(experiment_.get_beam());
+      DIALS_ASSERT(experiment_.get_detector());
+      DIALS_ASSERT(experiment_.get_goniometer());
+      DIALS_ASSERT(experiment_.get_scan());
+      DIALS_ASSERT(reflections_.contains("s1"));
+
+      // Get arrays from reflections
+      af::const_ref< cctbx::miller::index<> > h =
+        reflections_.get< cctbx::miller::index<> >("miller_index").const_ref();
+
+      // Get the beam vector
+      mat3<double> A = experiment_.get_crystal()->get_A();
+      vec3<double> s0 = experiment_.get_beam()->get_s0();
+
+      // Loop through reflections
+      for (std::size_t i = 0; i < reflections_.size(); ++i) {
+
+        // Grad some data for the reflection
+        vec3<double> r0 = A * h[i];
+
+        // Initialize the covariance matrix class
+        CovarianceMatrix cov(
+            A,
+            s0,
+            r0,
+            use_mosaic_block_angular_spread_,
+            use_wavelength_spread_);
+
+        // Set the parameters to generate the covariance matrix
+        cov.set_parameters(parameters);
+
+        // Set the covariance matrix
+        result[i] = cov.get_covariance();
+      }
+      return result;
+    }
+
+    /**
+     * Simulate a reflection
+     */
+    scitbx::af::versa< double, scitbx::af::c_grid<3> > simulate(
+            std::size_t index,
+            const scitbx::af::const_ref<double> &parameters) const {
+
+      DIALS_ASSERT(index < reflections_.size());
+
+      // Check the input
+      DIALS_ASSERT(experiment_.get_beam());
+      DIALS_ASSERT(experiment_.get_detector());
+      DIALS_ASSERT(experiment_.get_goniometer());
+      DIALS_ASSERT(experiment_.get_scan());
+      DIALS_ASSERT(reflections_.contains("shoebox"));
+      DIALS_ASSERT(reflections_.contains("s1"));
+
+      // Get arrays from reflections
+      af::const_ref< Shoebox<> > sbox =
+        reflections_.get< Shoebox<> >("shoebox").const_ref();
+      af::const_ref< cctbx::miller::index<> > h =
+        reflections_.get< cctbx::miller::index<> >("miller_index").const_ref();
+
+      // Get the beam vector
+      mat3<double> A = experiment_.get_crystal()->get_A();
+      vec3<double> s0 = experiment_.get_beam()->get_s0();
+
+      // Grad some data for the reflection
+      int6 bbox = sbox[index].bbox;
+      std::size_t panel = sbox[index].panel;
+      vec3<double> r0 = A * h[index];
+
+      // Initialize the covariance matrix class
+      CovarianceMatrix cov(
+          A,
+          s0,
+          r0,
+          use_mosaic_block_angular_spread_,
+          use_wavelength_spread_);
+
+      // Set the parameters to generate the covariance matrix
+      cov.set_parameters(parameters);
+
+      // Create the target function class
+      MLTarget3DSingle target(
+          (*experiment_.get_beam()),
+          (*experiment_.get_detector())[panel],
+          (*experiment_.get_goniometer()),
+          (*experiment_.get_scan()),
+          cov.get_covariance(),
+          r0,
+          bbox,
+          num_integral_);
+
+      // Return the simulated reflection
+      return target.simulate();
+    }
+
+    /**
+     * Get the number of reflections
+     */
+    std::size_t num_reflections() const {
+      return reflections_.size();
     }
 
   protected:
@@ -892,4 +1208,3 @@ namespace dials { namespace algorithms {
 }} // namespace dials::algorithms
 
 #endif // DIALS_ALGORITHMS_PROFILE_MODELLING_TARGET_H
-

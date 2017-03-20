@@ -33,7 +33,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           boost::python::extract<double>(
             mosaic_block_angular_spread)());
     }
-    
+
     // Add the wavelength spread parameters
     if (self.use_wavelength_spread()) {
       DIALS_ASSERT(wavelength_spread != boost::python::object());
@@ -57,7 +57,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           double6>((
               arg("A"),
               arg("parameters"))))
-      .add_property("A", 
+      .add_property("A",
           &ReciprocalLatticePointSpread::get_A)
       .add_property("parameters",
           &ReciprocalLatticePointSpread::get_parameters,
@@ -66,7 +66,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           &ReciprocalLatticePointSpread::get_covariance,
           &ReciprocalLatticePointSpread::set_covariance)
       ;
-    
+
     class_<MosaicBlockAngularSpread>("MosaicBlockAngularSpread", no_init)
       .def(init<
           vec3<double> >((
@@ -122,11 +122,11 @@ namespace dials { namespace algorithms { namespace boost_python {
                     arg("r"),
                     arg("use_mosaic_block_angular_spread")=true,
                     arg("use_wavelength_spread")=true)))
-      .add_property("A", 
+      .add_property("A",
           &CovarianceMatrix::get_A)
-      .add_property("s0", 
+      .add_property("s0",
           &CovarianceMatrix::get_s0)
-      .add_property("r", 
+      .add_property("r",
           &CovarianceMatrix::get_r)
       .add_property("use_mosaic_block_angular_spread",
           &CovarianceMatrix::use_mosaic_block_angular_spread)
@@ -148,13 +148,13 @@ namespace dials { namespace algorithms { namespace boost_python {
       .def("wavelength_spread",
           &CovarianceMatrix::get_wavelength_spread,
             return_value_policy<copy_const_reference>())
-      .def("compose", 
+      .def("compose",
           &CovarianceMatrix_compose, (
             arg("reciprocal_lattice_point_spread") = boost::python::object(),
             arg("mosaic_block_angular_spread")     = boost::python::object(),
             arg("wavelength_spread")               = boost::python::object()))
       ;
-    
+
     class_<Model2D>("Model2D", no_init)
       .def(init<
           const Beam&,
@@ -188,7 +188,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       .def("J", &Model3D::J)
       .def("coord", &Model3D::coord)
       ;
-    
+
     class_<MLTarget2DSingle>("MLTarget2DSingle", no_init)
       .def(init<
           const Beam&,
@@ -207,7 +207,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           &MLTarget2DSingle::log_likelihood, (
             arg("data"),
             arg("mask")))
-      .def("compute_P", 
+      .def("compute_P",
           &MLTarget2DSingle::compute_P)
       ;
 
@@ -233,8 +233,10 @@ namespace dials { namespace algorithms { namespace boost_python {
           &MLTarget3DSingle::log_likelihood, (
             arg("data"),
             arg("mask")))
-      .def("compute_P", 
+      .def("compute_P",
           &MLTarget3DSingle::compute_P)
+      .def("simulate",
+          &MLTarget3DSingle::simulate)
       ;
 
     class_<MLTarget3D>("MLTarget3D", no_init)
@@ -252,6 +254,15 @@ namespace dials { namespace algorithms { namespace boost_python {
       .def("log_likelihood",
           &MLTarget3D::log_likelihood, (
             arg("parameters")))
+      .def("covariance",
+          &MLTarget3D::covariance, (
+            arg("parameters")))
+      .def("simulate",
+          &MLTarget3D::simulate, (
+            arg("index"),
+            arg("parameters")))
+      .def("num_reflections",
+          &MLTarget3D::num_reflections)
       ;
 
   }

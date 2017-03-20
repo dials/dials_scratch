@@ -1,5 +1,87 @@
 from __future__ import division
 
+
+class History(object):
+  '''
+  Store the history of parameter values and likelihood
+
+  '''
+
+  def __init__(self, parameter_names):
+    '''
+    Initialise with parameter names
+
+    '''
+    self.names = parameter_names
+    self.values = []
+    self.logL = []
+
+  def append(self, parameters, log_likelihood):
+    '''
+    Append a new entry
+
+    '''
+    assert len(parameters) == len(self.names)
+    self.values.append(parameters)
+    self.logL.append(log_likelihood)
+
+  def __len__(self):
+    '''
+    Get the number of items
+
+    '''
+    return len(self.values)
+
+  def __getitem__(self, index):
+    '''
+    Return an item
+
+    '''
+    return (self.values, self.logL)
+
+  def __iter__(self):
+    '''
+    Iterate through items
+
+    '''
+    for i in range(len(self)):
+      yield self[i]
+
+  def plot(self):
+    '''
+    Plot the history
+
+    '''
+    from matplotlib import pylab
+    fig, (ax1, ax2) = pylab.subplots(2, 1, sharex=True)
+    x = list(range(len(self.values)))
+    parameters = zip(*self.values)
+    for i, p in enumerate(parameters):
+      ax1.plot(x, p, label="%s" % self.names[i])
+    ax1.legend()
+    ax2.plot(x, self.logL)
+    ax2.set_xlabel("Iteration")
+    ax2.set_ylabel("log(L)")
+    ax1.set_ylabel("Parameter value")
+    pylab.show()
+
+
+class ProfileModeller(object):
+
+  def __init__(self, experiments, reflections):
+    pass
+
+  @property
+  def model(self):
+    return self._model
+
+  @property
+  def history(self):
+    return self._history
+
+
+
+
 def estimate_model_parameters(experiments, reflections):
   '''
   Estimate the model parameters
@@ -20,6 +102,12 @@ def estimate_model_parameters(experiments, reflections):
       flex.log(flex.double([uniform(0.0001,0.01) for j in range(num_parameters)]))
     )
 
+  class History(object):
+    def __init__(self):
+      self.parameters = []
+      self.log_likelihood = []
+  history = History()
+
   class Evaluator(object):
 
     def __init__(self):
@@ -32,12 +120,15 @@ def estimate_model_parameters(experiments, reflections):
       parameters = flex.exp(log_parameters)
 
       logL = self.func.log_likelihood(parameters)
- 
+
       self.count += 1
 
       print self.count, list(parameters), logL
 
-      # Return negative log likelihood 
+      history.parameters.append(parameters)
+      history.log_likelihood.append(logL)
+
+      # Return negative log likelihood
       return -logL
 
   # Setup the simplex optimizer
@@ -46,12 +137,14 @@ def estimate_model_parameters(experiments, reflections):
     matrix    = starting_simplex,
     evaluator = Evaluator(),
     tolerance = 1e-7)
-
   # Get the solution
   parameters = flex.exp(optimizer.get_solution())
 
+  # Get the final simplex
+  ending_simplex = optimizer.matrix
+
   # Return the current model
-  return parameters
+  return parameters, history
 
 
 def generate_profile_model(experiments, reflections):
@@ -87,48 +180,70 @@ def generate_profile_model(experiments, reflections):
     print 'Selecting %d/%d reflections' % (num, len(reflections))
     return reflections[0:num]
 
-  # def display(experiments, reflections, model, num):
-  #   '''
-  #   Display some shoeboxes
+  def display(experiments, reflections, parameters, num):
+    '''
+    Display some shoeboxes
 
-  #   '''
-  #   from dials_scratch.jmp.viewer import show_image_stack_multi_view
-  #   from random import sample
-  #   from dials.array_family import flex
+    '''
+    from dials_scratch.jmp.viewer import show_image_stack_multi_view
+    from random import sample
+    from dials.array_family import flex
 
-  #   # Sample from reflections
-  #   reflections = reflections.select(flex.size_t(sample(range(len(reflections)), num)))
+    def simulate(experiments, reflections, parameters):
+      from dials_scratch.jmp.profile_modelling import MLTarget3D
+      func = MLTarget3D(experiments[0], reflections)
+      return [func.simulate(i, parameters) for i in range(len(reflections))]
 
-  #   # Simulate the reflection profiles from the current model
-  #   simulated = simulate(experiments, reflections, model)
-   
-  #   # Display stuff
-  #   for model_sbox, data_sbox in zip(simulated, reflections['shoebox']):
-  #     model = model_sbox.data
-  #     data = data_sbox.data
-  #     show_image_stack_multi_view(model.as_numpy_array(), vmax=flex.max(model))
-  #     show_image_stack_multi_view(data.as_numpy_array(), vmax=flex.max(data))
+    # Sample from reflections
+    reflections = reflections.select(flex.size_t(sample(range(len(reflections)), num)))
 
+    # Simulate the reflection profiles from the current model
+    simulated = simulate(experiments, reflections, parameters)
+
+    # Display stuff
+    for model, data_sbox in zip(simulated, reflections['shoebox']):
+      data = data_sbox.data
+      show_image_stack_multi_view(model.as_numpy_array(), vmax=flex.max(model))
+      show_image_stack_multi_view(data.as_numpy_array(), vmax=flex.max(data))
+
+  def display_history(history):
+    '''
+    Display the history
+
+    '''
+    history2 = History(["%d" % i for i in range(6)])
+    for i in range(len(history.parameters)):
+      history2.append(history.parameters[i], history.log_likelihood[i])
+    history2.plot()
+    # from matplotlib import pylab
+    # parameters = zip(*history.parameters)
+    # for i, p in enumerate(parameters):
+    #   pylab.plot(range(len(p)), p, label="%d" % i)
+    # pylab.legend()
+    # pylab.show()
+    # logL = history.log_likelihood
+    # pylab.plot(range(len(logL)), logL)
+    # pylab.show()
 
   # Select the strong reflections
   reflections = select_used_in_refinement(reflections)
   reflections = sort_by_intensity(reflections)
 
   # Select a subset of strong reflections
-  subset = select_subset(reflections, 100)
-  
-  # Display a few
-  # if False:
-  #   display(experiments, subset, initial_model, 5)
+  subset = select_subset(reflections, 10)
 
   # Estimate the model parameters
-  final_model = estimate_model_parameters(
-    experiments, 
+  final_model, history = estimate_model_parameters(
+    experiments,
     subset)
 
   # Display a few
-  # if True:
-  #   display(experiments, subset, final_model, 5)
+  if True:
+    display(experiments, subset, final_model, 5)
+
+  # Display the history
+  if True:
+    display_history(history)
 
   # Return the final model
   return final_model
@@ -156,6 +271,10 @@ if __name__ == '__main__':
     print ""
     return flex.reflection_table.from_pickle(filename)
 
+  def model_profiles(experiments, reflections):
+    modeller = ProfileModeller(experiments, reflections)
+    return modeller.model
+
   # Hard code the filenames
   experiments_filename = '/home/upc86896/Data/bag_training/processed_profile/profile_model/experiments.json'
   reflections_filename = '/home/upc86896/Data/bag_training/processed_profile/profile_model/reflections.pickle'
@@ -166,9 +285,8 @@ if __name__ == '__main__':
 
   # Generate the profile model
   final_model = generate_profile_model(experiments, reflections)
-    
+
   print "Generated final model:"
   print ""
   print list(final_model)
   print ""
-
