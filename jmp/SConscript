@@ -1,0 +1,7 @@
+
+Import('env')
+
+env.SharedLibrary(
+  target='#/lib/dials_scratch_jmp_profile_modelling_ext',
+  source=['profile_modelling/boost_python/ext.cc'],
+  LIBS=env["LIBS"])
