@@ -46,6 +46,26 @@ namespace dials { namespace algorithms { namespace boost_python {
     self.set_parameters(parameters.const_ref());
   }
 
+  static
+  scitbx::af::shared< std::string > MLTarget3D_parameter_names(
+      bool use_mosaic_block_angular_spread,
+      bool use_wavelength_spread) {
+    scitbx::af::shared< std::string > result;
+    result.push_back("RLP: L00");
+    result.push_back("RLP: L10");
+    result.push_back("RLP: L11");
+    result.push_back("RLP: L20");
+    result.push_back("RLP: L21");
+    result.push_back("RLP: L22");
+    if (use_mosaic_block_angular_spread) {
+      result.push_back("Mosaic Block Spread");
+    }
+    if (use_wavelength_spread) {
+      result.push_back("Wavelength Spread");
+    }
+    return result;
+  }
+
   BOOST_PYTHON_MODULE(dials_scratch_jmp_profile_modelling_ext)
   {
     class_<ReciprocalLatticePointSpread>("ReciprocalLatticePointSpread", no_init)
@@ -263,6 +283,11 @@ namespace dials { namespace algorithms { namespace boost_python {
             arg("parameters")))
       .def("num_reflections",
           &MLTarget3D::num_reflections)
+      .def("parameter_names",
+          &MLTarget3D_parameter_names, (
+              arg("use_mosaic_block_angular_spread")=false,
+              arg("use_wavelength_spread")=false))
+      .staticmethod("parameter_names")
       ;
 
   }

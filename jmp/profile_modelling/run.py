@@ -67,120 +67,174 @@ class History(object):
 
 
 class ProfileModeller(object):
-
-  def __init__(self, experiments, reflections):
-    pass
-
-  @property
-  def model(self):
-    return self._model
-
-  @property
-  def history(self):
-    return self._history
-
-
-
-
-def estimate_model_parameters(experiments, reflections):
   '''
-  Estimate the model parameters
-
-  '''
-  from scitbx import simplex
-  from copy import deepcopy
-  from dials.array_family import flex
-  from random import uniform
-
-  # The number of parameters
-  num_parameters = 6
-
-  # Setup the starting simplex
-  starting_simplex = []
-  for i in range(num_parameters+1):
-    starting_simplex.append(
-      flex.log(flex.double([uniform(0.0001,0.01) for j in range(num_parameters)]))
-    )
-
-  class History(object):
-    def __init__(self):
-      self.parameters = []
-      self.log_likelihood = []
-  history = History()
-
-  class Evaluator(object):
-
-    def __init__(self):
-      from dials_scratch.jmp.profile_modelling import MLTarget3D
-      self.func = MLTarget3D(experiments[0], reflections)
-      self.count = 1
-
-    def target(self, log_parameters):
-      from dials.array_family import flex
-      parameters = flex.exp(log_parameters)
-
-      logL = self.func.log_likelihood(parameters)
-
-      self.count += 1
-
-      print self.count, list(parameters), logL
-
-      history.parameters.append(parameters)
-      history.log_likelihood.append(logL)
-
-      # Return negative log likelihood
-      return -logL
-
-  # Setup the simplex optimizer
-  optimizer = simplex.simplex_opt(
-    num_parameters,
-    matrix    = starting_simplex,
-    evaluator = Evaluator(),
-    tolerance = 1e-7)
-  # Get the solution
-  parameters = flex.exp(optimizer.get_solution())
-
-  # Get the final simplex
-  ending_simplex = optimizer.matrix
-
-  # Return the current model
-  return parameters, history
-
-
-def generate_profile_model(experiments, reflections):
-  '''
-  Generate the reflection profile model
+  A class to do profile modelling
 
   '''
 
-  def select_used_in_refinement(reflections):
+  def __init__(self,
+               experiments,
+               reflections,
+               macro_cycles                    = [10, 100],
+               num_integral                    = 5,
+               use_mosaic_block_angular_spread = False,
+               use_wavelength_spread           = False):
+    '''
+    Init
+
+    '''
+    from dials_scratch.jmp.profile_modelling import MLTarget3D
+
+    # Save some stuff
+    self.experiments = experiments
+    self.reflections = reflections
+    self.macro_cycles = macro_cycles
+    self.num_integral = num_integral
+    self.use_mosaic_block_angular_spread = use_mosaic_block_angular_spread
+    self.use_wavelength_spread = use_wavelength_spread
+    self.parameters = None
+    self.simplex = None
+
+    # Get the parameter names
+    names = MLTarget3D.parameter_names(
+      use_mosaic_block_angular_spread = use_mosaic_block_angular_spread,
+      use_wavelength_spread           = use_wavelength_spread)
+
+    # Create the history
+    self.history = History(list(names))
+
+    # Do the estimation
+    for n in self.macro_cycles:
+      self.estimate(n)
+
+  def estimate(self, num_reflections):
+    '''
+    Estimate the model parameters
+
+    '''
+    from scitbx import simplex
+    from copy import deepcopy
+    from dials.array_family import flex
+    from random import uniform
+
+    # Select the reflections
+    reflections = self._select_reflections(self.reflections, num_reflections)
+
+    # The number of parameters
+    num_parameters = len(self.history.names)
+
+    # Setup the starting simplex
+    if self.simplex is None:
+      self.simplex = []
+      for i in range(num_parameters+1):
+        self.simplex.append(
+          flex.log(flex.double([uniform(0.0001,0.01) for j in range(num_parameters)]))
+        )
+
+    class Evaluator(object):
+      '''
+      Evaluator to simplex
+
+      '''
+      def __init__(self,
+                   history,
+                   experiment,
+                   reflections,
+                   num_integral,
+                   use_mosaic_block_angular_spread,
+                   use_wavelength_spread):
+        '''
+        Initialise
+
+        '''
+        from dials_scratch.jmp.profile_modelling import MLTarget3D
+        self.func = MLTarget3D(
+          experiment,
+          reflections,
+          num_integral                    = num_integral,
+          use_mosaic_block_angular_spread = use_mosaic_block_angular_spread,
+          use_wavelength_spread           = use_wavelength_spread)
+        self.count = 1
+        self.history = history
+
+      def target(self, log_parameters):
+        '''
+        Compute the negative log likelihood
+
+        '''
+        from dials.array_family import flex
+        parameters = flex.exp(log_parameters)
+
+        logL = self.func.log_likelihood(parameters)
+
+        self.count += 1
+
+        print self.count, list(parameters), logL
+
+        self.history.append(parameters, logL)
+
+        # Return negative log likelihood
+        return -logL
+
+    # Setup the simplex optimizer
+    optimizer = simplex.simplex_opt(
+      num_parameters,
+      matrix    = self.simplex,
+      evaluator = Evaluator(
+        self.history,
+        self.experiments[0],
+        reflections,
+        num_integral                    = self.num_integral,
+        use_mosaic_block_angular_spread = self.use_mosaic_block_angular_spread,
+        use_wavelength_spread           = self.use_wavelength_spread),
+      tolerance = 1e-7)
+
+    # Get the solution
+    self.parameters = flex.exp(optimizer.get_solution())
+
+    # Get the final simplex
+    self.simplex = optimizer.matrix
+
+  def _select_reflections(self, reflections, num):
     '''
     Select reflections to use
 
     '''
-    selection = reflections.get_flags(reflections.flags.used_in_refinement)
-    print 'Selecting %d/%d strong reflections' % (
-      len(reflections), selection.count(True))
-    print ""
-    return reflections.select(selection)
+    def select_used_in_refinement(reflections):
+      '''
+      Select reflections to use
 
-  def sort_by_intensity(reflections):
-    '''
-    Sort the reflections by intensity
+      '''
+      selection = reflections.get_flags(reflections.flags.used_in_refinement)
+      print 'Selecting %d/%d strong reflections' % (
+        len(reflections), selection.count(True))
+      print ""
+      return reflections.select(selection)
 
-    '''
-    reflections.sort("intensity.sum.value", reverse=True)
-    return reflections
+    def sort_by_intensity(reflections):
+      '''
+      Sort the reflections by intensity
 
-  def select_subset(reflections, num):
-    '''
-    Select most intense reflections
+      '''
+      reflections.sort("intensity.sum.value", reverse=True)
+      return reflections
 
-    '''
-    print 'Selecting %d/%d reflections' % (num, len(reflections))
-    return reflections[0:num]
+    def select_subset(reflections, num):
+      '''
+      Select most intense reflections
 
-  def display(experiments, reflections, parameters, num):
+      '''
+      print 'Selecting %d/%d reflections' % (num, len(reflections))
+      return reflections[0:num]
+
+    # Select the strong reflections
+    reflections = select_used_in_refinement(reflections)
+    reflections = sort_by_intensity(reflections)
+
+    # Select a subset of strong reflections
+    return select_subset(reflections, num)
+
+  def display(self, num):
     '''
     Display some shoeboxes
 
@@ -195,10 +249,11 @@ def generate_profile_model(experiments, reflections):
       return [func.simulate(i, parameters) for i in range(len(reflections))]
 
     # Sample from reflections
-    reflections = reflections.select(flex.size_t(sample(range(len(reflections)), num)))
+    reflections = self.reflections.select(
+      flex.size_t(sample(range(len(self.reflections)), num)))
 
     # Simulate the reflection profiles from the current model
-    simulated = simulate(experiments, reflections, parameters)
+    simulated = simulate(self.experiments, reflections, self.parameters)
 
     # Display stuff
     for model, data_sbox in zip(simulated, reflections['shoebox']):
@@ -206,47 +261,6 @@ def generate_profile_model(experiments, reflections):
       show_image_stack_multi_view(model.as_numpy_array(), vmax=flex.max(model))
       show_image_stack_multi_view(data.as_numpy_array(), vmax=flex.max(data))
 
-  def display_history(history):
-    '''
-    Display the history
-
-    '''
-    history2 = History(["%d" % i for i in range(6)])
-    for i in range(len(history.parameters)):
-      history2.append(history.parameters[i], history.log_likelihood[i])
-    history2.plot()
-    # from matplotlib import pylab
-    # parameters = zip(*history.parameters)
-    # for i, p in enumerate(parameters):
-    #   pylab.plot(range(len(p)), p, label="%d" % i)
-    # pylab.legend()
-    # pylab.show()
-    # logL = history.log_likelihood
-    # pylab.plot(range(len(logL)), logL)
-    # pylab.show()
-
-  # Select the strong reflections
-  reflections = select_used_in_refinement(reflections)
-  reflections = sort_by_intensity(reflections)
-
-  # Select a subset of strong reflections
-  subset = select_subset(reflections, 10)
-
-  # Estimate the model parameters
-  final_model, history = estimate_model_parameters(
-    experiments,
-    subset)
-
-  # Display a few
-  if True:
-    display(experiments, subset, final_model, 5)
-
-  # Display the history
-  if True:
-    display_history(history)
-
-  # Return the final model
-  return final_model
 
 
 if __name__ == '__main__':
@@ -284,9 +298,13 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
 
   # Generate the profile model
-  final_model = generate_profile_model(experiments, reflections)
+  modeller = ProfileModeller(experiments, reflections)
+  modeller.history.plot()
+  if False:
+    modeller.display(5)
+  parameters = modeller.parameters
 
   print "Generated final model:"
   print ""
-  print list(final_model)
+  print list(parameters)
   print ""
