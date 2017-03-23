@@ -2,6 +2,7 @@
 #include <boost/python/def.hpp>
 #include <dials/error.h>
 #include <dials_scratch/jmp/profile_modelling/target.h>
+#include <dials_scratch/jmp/profile_modelling/target_forward.h>
 
 using namespace boost::python;
 
@@ -290,6 +291,85 @@ namespace dials { namespace algorithms { namespace boost_python {
       .staticmethod("parameter_names")
       ;
 
+
+    class_<ReciprocalLatticePointDistribution>("ReciprocalLatticePointDistribution", no_init)
+      .def(init<
+          miller_index,
+          double6
+          >((
+              arg("h0"),
+              arg("parameters"))))
+      .add_property("h0",
+          &ReciprocalLatticePointDistribution::h0)
+      .add_property("parameters",
+          &ReciprocalLatticePointDistribution::get_parameters,
+          &ReciprocalLatticePointDistribution::set_parameters)
+      .add_property("covariance",
+          &ReciprocalLatticePointDistribution::get_covariance,
+          &ReciprocalLatticePointDistribution::set_covariance)
+      .def("sample",
+          &ReciprocalLatticePointDistribution::sample)
+      ;
+
+
+    class_<WavelengthDistribution>("WavelengthDistribution", no_init)
+      .def(init<
+          double,
+          double
+          >((
+              arg("wavelength"),
+              arg("parameters"))))
+      .add_property("wavelength",
+          &WavelengthDistribution::wavelength)
+      .add_property("parameters",
+          &WavelengthDistribution::get_parameters,
+          &WavelengthDistribution::set_parameters)
+      .def("sample",
+          &WavelengthDistribution::sample)
+      ;
+
+    class_<BeamVectorDistribution>("BeamVectorDistribution", no_init)
+      .def(init<
+          vec3<double>,
+          double
+          >((
+              arg("s0"),
+              arg("parameters"))))
+      .add_property("s0",
+          &BeamVectorDistribution::s0)
+      .add_property("parameters",
+          &BeamVectorDistribution::get_parameters,
+          &BeamVectorDistribution::set_parameters)
+      .def("sample",
+          &BeamVectorDistribution::sample)
+      ;
+
+    class_<MLTargetForward3DSingle>("MLTargetForward3DSingle", no_init)
+      .def(init<
+          const Panel&,
+          const Goniometer&,
+          const Scan&,
+          bool,
+          int6,
+          ReciprocalLatticePointDistribution,
+          BeamVectorDistribution,
+          std::size_t>((
+              arg("beam"),
+              arg("panel"),
+              arg("goniometer"),
+              arg("scan"),
+              arg("entering"),
+              arg("bbox"),
+              arg("reciprocal_lattice_point_distribution"),
+              arg("beam_vector_distribution"),
+              arg("num_integral"))))
+      .def("log_likelihood",
+          &MLTargetForward3DSingle::log_likelihood, (
+            arg("data"),
+            arg("mask")))
+      .def("simulate",
+          &MLTargetForward3DSingle::simulate)
+      ;
   }
 
 }}} // namespace dials_scratch::examples::boost_python

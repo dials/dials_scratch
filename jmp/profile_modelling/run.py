@@ -156,6 +156,7 @@ class ProfileModeller(object):
           use_wavelength_spread           = use_wavelength_spread)
         self.count = 1
         self.history = history
+        self.logL = None
 
       def target(self, log_parameters):
         '''
@@ -165,7 +166,8 @@ class ProfileModeller(object):
         from dials.array_family import flex
         parameters = flex.exp(log_parameters)
 
-        logL = self.func.log_likelihood(parameters)
+        self.logL = self.func.log_likelihood(parameters)
+        logL = flex.sum(self.logL)
 
         self.count += 1
 
@@ -194,6 +196,9 @@ class ProfileModeller(object):
 
     # Get the final simplex
     self.simplex = optimizer.matrix
+
+    # Save the likelihood for each reflection
+    self.log_likelihood = optimizer.evaluator.logL
 
   def _select_reflections(self, reflections, num):
     '''
@@ -298,7 +303,13 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
 
   # Generate the profile model
-  modeller = ProfileModeller(experiments, reflections)
+  modeller = ProfileModeller(
+    experiments,
+    reflections,
+    macro_cycles                    = [10],
+    num_integral                    = 10,
+    use_mosaic_block_angular_spread = False,
+    use_wavelength_spread           = False)
   modeller.history.plot()
   if False:
     modeller.display(5)

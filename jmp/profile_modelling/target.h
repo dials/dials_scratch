@@ -227,7 +227,7 @@ namespace dials { namespace algorithms {
 
       // Ensure the angle is small
       DIALS_ASSERT(parameter >= 0);
-      DIALS_ASSERT(detail::small_angle(parameter));
+      /* DIALS_ASSERT(detail::small_angle(parameter)); */
 
       // Save the parameters
       parameter_ = parameter;
@@ -1028,7 +1028,8 @@ namespace dials { namespace algorithms {
     /**
      * Compute the log likelihood
      */
-    double log_likelihood(const scitbx::af::const_ref<double> &parameters) const {
+    scitbx::af::shared<double> log_likelihood(
+        const scitbx::af::const_ref<double> &parameters) const {
 
       // Check the input
       DIALS_ASSERT(experiment_.get_beam());
@@ -1049,7 +1050,7 @@ namespace dials { namespace algorithms {
       vec3<double> s0 = experiment_.get_beam()->get_s0();
 
       // Compute the sum of the logL from each reflection
-      double logL = 0.0;
+      scitbx::af::shared<double> logL(reflections_.size());
       for (std::size_t i = 0; i < reflections_.size(); ++i) {
 
         // Grad some data for the reflection
@@ -1082,7 +1083,7 @@ namespace dials { namespace algorithms {
             num_integral_);
 
         // Compute the loglikelihood for the reflection
-        logL += target.log_likelihood(data, mask);
+        logL[i] = target.log_likelihood(data, mask);
       }
       return logL;
     }
