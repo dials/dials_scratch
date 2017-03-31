@@ -4,11 +4,12 @@ def test_method(method, n):
   from dials_scratch.jmp.cluster_func_test import func
   from time import time
   result = parallel_map(
-    func      = func,
-    iterable  = list(range(n)),
-    processes = n,
-    nslots    = 8,
-    method    = method)
+    func         = func,
+    iterable     = list(range(n)),
+    processes    = n,
+    nslots       = 8,
+    method       = method,
+    job_category = "medium")
 
 def test_method_n_times(method, m, n):
   from time import time
@@ -19,7 +20,7 @@ def test_method_n_times(method, m, n):
   return t / n
 
 if __name__ == '__main__':
-  for m in [10, 50, 100, 500, 1000]:
-    print "EASY_MP: %d jobs -> %f seconds" % (m, test_method_n_times("sge", m, 1))
+  #for m in [10, 50, 100, 500, 1000]:
+  #  print "EASY_MP: %d jobs -> %f seconds" % (m, test_method_n_times("sge", m, 1))
   for m in [10, 50, 100, 500, 1000]:
     print "DRMAA:   %d jobs -> %f seconds" % (m, test_method_n_times("drmaa", m, 1))
