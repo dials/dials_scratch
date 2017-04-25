@@ -173,30 +173,31 @@ def plot_d_spacings(reflections, figsize=(12,8)):
   plt.savefig('d_spacings.png')
   plt.clf()
 
-  intensities = reflections['intensity.sum.value']
-  fig = plt.figure(figsize=figsize)
-  plt.scatter(uctbx.d_as_d_star_sq(d_spacings), intensities, marker='.',
-              c='black', s=1, zorder=10)
-  ylim = plt.ylim()
-  for dss in ice_d_star_sq:
-    plt.plot([dss, dss], (0, ylim[1]), c='r', zorder=0, linestyle=':', alpha=0.3)
-  for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], (0, ylim[1]), c='g', zorder=1, linestyle=':', alpha=0.3)
-  plt.ylim(ylim)
-  ax = plt.gca()
-  xticks = ax.get_xticks()
-  xticks = [x for x in xticks if x >= 0]
-  ax.set_xticks(xticks)
-  xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-  ax.set_xticklabels(['%.2f' %x for x in xticks_d])
-  yticks = ax.get_yticks()
-  yticks = [y for y in yticks if y >= 0]
-  ax.set_yticks(yticks)
-  plt.xlabel('d spacing (A^-1)')
-  plt.ylabel('Intensity')
-  plt.tight_layout()
-  plt.savefig('d_vs_intensity.png')
-  plt.clf()
+  if 'intensity.sum.value' in reflections:
+    intensities = reflections['intensity.sum.value']
+    fig = plt.figure(figsize=figsize)
+    plt.scatter(uctbx.d_as_d_star_sq(d_spacings), intensities, marker='.',
+                c='black', s=1, zorder=10)
+    ylim = plt.ylim()
+    for dss in ice_d_star_sq:
+      plt.plot([dss, dss], (0, ylim[1]), c='r', zorder=0, linestyle=':', alpha=0.3)
+    for dss in cubic_ice_d_star_sq:
+      plt.plot([dss, dss], (0, ylim[1]), c='g', zorder=1, linestyle=':', alpha=0.3)
+    plt.ylim(ylim)
+    ax = plt.gca()
+    xticks = ax.get_xticks()
+    xticks = [x for x in xticks if x >= 0]
+    ax.set_xticks(xticks)
+    xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
+    ax.set_xticklabels(['%.2f' %x for x in xticks_d])
+    yticks = ax.get_yticks()
+    yticks = [y for y in yticks if y >= 0]
+    ax.set_yticks(yticks)
+    plt.xlabel('d spacing (A^-1)')
+    plt.ylabel('Intensity')
+    plt.tight_layout()
+    plt.savefig('d_vs_intensity.png')
+    plt.clf()
 
   hist = flex.histogram(d_star_sq, n_slots=200)
   fig = plt.figure(figsize=figsize)
