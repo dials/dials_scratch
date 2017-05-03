@@ -76,8 +76,8 @@ def plot_merging_stats(results, labels=None, plots=None, prefix=None,
   pyplot.style.use('ggplot')
 
   if plots is None:
-    plots = ('r_merge', 'r_meas', 'r_pim', 'cc_one_half', 'i_over_sigma_mean',
-             'completeness', 'mean_redundancy')
+    plots = ('r_merge', 'r_meas', 'r_pim', 'cc_one_half', 'cc_anom',
+             'i_over_sigma_mean', 'completeness', 'mean_redundancy')
   if prefix is None:
     prefix = ''
   if labels is not None:
