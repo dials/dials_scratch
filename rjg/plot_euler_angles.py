@@ -12,6 +12,27 @@ phil_scope = iotbx.phil.parse(
 ''')
 
 
+def unwrap_angles(angles, deg=False):
+  import math
+  pi = math.pi
+  two_pi = math.pi * 2
+  if deg:
+    pi = 180
+    two_pi = 360
+  prev_angle = angles[0]
+  unwrapped_angles = flex.double([angles[0]])
+  for i, angle in enumerate(angles):
+    if i == 0:
+      continue
+    while (prev_angle - angle) > pi:
+      angle += two_pi
+    while (angle - prev_angle) > pi:
+      angle -= two_pi
+    unwrapped_angles.append(angle)
+    prev_angle = angle
+  return unwrapped_angles
+
+
 def run(args):
 
   from dials.util.options import OptionParser
@@ -59,12 +80,13 @@ def run(args):
   colours = [cmap(c) for c in colours]
   fig = pyplot.figure()
   ax = fig.add_subplot(111, projection='3d')
-  x, y, z = euler_angles.parts()
+  x, y, z = [unwrap_angles(angles, deg=True) for angles in euler_angles.parts()]
   ax.scatter(x, y, z, c=colours)
   ax.set_xlabel('X')
   ax.set_ylabel('Y')
   ax.set_zlabel('Z')
   pyplot.show()
+
 
 if __name__ == '__main__':
   import sys
