@@ -40,6 +40,11 @@ phil_scope = parse("""
     .type = choice
     .help = Weight delta psi by the ratio of the observed intensity to the average intensity in the \
             reflection's resolution bin
+  summed_intensity {
+    scale_factor = 1.0
+      .type = float
+      .help = Multiplier applied to all weights after they are computed
+  }
   show_weight_plots = False
     .type = bool
     .help = Show histograms of the weights per resolution bin
@@ -113,7 +118,7 @@ class Script(object):
         mean_i.append(0)
         continue
       mean_i.append(flex.mean(reflections['intensity.sum.value'].select(sel)))
-      reflections['delpsical.weights'].set_selected(sel, reflections['intensity.sum.value'].select(sel)/mean_i[i])
+      reflections['delpsical.weights'].set_selected(sel, reflections['intensity.sum.value'].select(sel)*(params.summed_intensity.scale_factor/mean_i[i]))
 
       if params.show_weight_plots:
         fig = plt.figure()
