@@ -44,7 +44,7 @@ import math
 # however right enough for this...
 
 theta = math.asin(expt.beam.get_wavelength() / (2 * resolution))
-print 2 * theta * 180.0 / math.pi
+print 'Using two-theta: %.3f' % (2 * theta * 180.0 / math.pi)
 
 epochs = scan.get_epochs()
 exposure_times = scan.get_exposure_times()
@@ -89,9 +89,15 @@ assert solutions is None
 
 R_tt = s0n.axis_and_angle_as_r3_rotation_matrix(2 * theta)
 
-solutions = rotation_decomposition.solve_r3_rotation_for_angles_given_axes(
-  R_tt, e1, e2, e3, return_both_solutions=True, deg=True)
+s = rotation_decomposition.solve_r3_rotation_for_angles_given_axes(
+  R_tt, e1, e2, e3, return_both_solutions=False, deg=False)
 
-print 'Omega    Kappa    Phi'
-for s in solutions:
-  print '%7.3f %7.3f %7.3f' % s
+# use solution
+
+print 'Using angles: %.3f %.3f' % (180 * s[1] / math.pi, 180 * s[2] / math.pi)
+
+F = e2.axis_and_angle_as_r3_rotation_matrix(s[1]) * \
+  e3.axis_and_angle_as_r3_rotation_matrix(s[2])
+
+gonio.set_fixed_rotation(F.elems)
+write_expt(expts, sys.argv[3])
