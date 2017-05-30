@@ -3,9 +3,10 @@ _*.nb
 *.fdb_latexmk
 *.gz
 *.pdf
-*.pyc
+*.py[cod]
 .DS_Store
 *~
-*.swp
+*.sw[op]
 .git-notifier*
+git-notifier.log
 .gitversion
