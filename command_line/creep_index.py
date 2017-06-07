@@ -25,8 +25,8 @@ and so on.
 """
 
 from __future__ import absolute_import, division
-from dxtbx.model.experiment.experiment_list import ExperimentListFactory
-from dxtbx.model.experiment.experiment_list import ExperimentListDumper
+from dxtbx.model.experiment_list import ExperimentListFactory
+from dxtbx.model.experiment_list import ExperimentListDumper
 from dials.util.options import flatten_reflections
 from dials.array_family import flex
 from dials.command_line.show import beam_centre_mm

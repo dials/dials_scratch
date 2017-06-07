@@ -67,7 +67,7 @@ class Blueberry(object):
     s = flex.sqrt(v)
     self.i_s = i/s
 
-    from dxtbx.model.experiment.experiment_list import ExperimentListFactory
+    from dxtbx.model.experiment_list import ExperimentListFactory
     expt = ExperimentListFactory.from_json_file(experiment_file)
     crystal = expt.crystals()[0]
     self.s0 = matrix.col(expt.beams()[0].get_s0())

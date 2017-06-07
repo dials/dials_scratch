@@ -22,7 +22,7 @@ v = data['intensity.sum.variance']
 s = flex.sqrt(v)
 i_s = i/s
 
-from dxtbx.model.experiment.experiment_list import ExperimentListFactory
+from dxtbx.model.experiment_list import ExperimentListFactory
 expt = ExperimentListFactory.from_json_file(sys.argv[2])
 crystal = expt.crystals()[0]
 UB = matrix.sqr(crystal.get_A())

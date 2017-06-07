@@ -58,7 +58,7 @@ class Apple(object):
 
     self.scale = 2
 
-    from dxtbx.model.experiment.experiment_list import ExperimentListFactory
+    from dxtbx.model.experiment_list import ExperimentListFactory
     expt = ExperimentListFactory.from_json_file(experiment_file)
     panel = expt.detectors()[0][0]
     crystal = expt.crystals()[0]
