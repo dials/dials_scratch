@@ -95,7 +95,7 @@ def generate_profile(sample=None, grid_size=15, grid_range=0.25):
     print idx, len(reflections), H
 
     x, y, z = r['xyzcal.px']
-    coords = []  
+    coords = []
     x0, x1, y0, y1, z0, z1 = sbox.bbox
 
     data = data - bgrd
@@ -182,7 +182,7 @@ def crystal_parameters():
   print B
 
   print B.transpose() * B
-  
+
 
   # from rstbx.symmetry.constraints.parameter_reduction import symmetrize_reduce_enlarge
 
@@ -197,7 +197,7 @@ def crystal_parameters():
   # print matrix.sqr(B.reciprocal_matrix()).round(5)
 
 
- 
+
 
   # from cctbx import sgtbx
   # from rstbx.symmetry.constraints import AGconvert

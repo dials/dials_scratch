@@ -5,10 +5,10 @@ from threading import Thread, Event
 
 
 class Sender(object):
-  
+
   def __init__(self, transport):
     self.transport = transport
-    
+
   def send(self, message):
     self.transport.send(
       'outbound',
@@ -16,16 +16,16 @@ class Sender(object):
     )
 
 class Receiver(object):
- 
+
   def __init__(self, transport):
     self.transport = transport
-    
+
     self.message_list = []
-    
+
     self.transport.subscribe("inbound", self.read)
 
   def read(self, header, message):
-    self.message_list.append(message)    
+    self.message_list.append(message)
 
 
 class HeartBeat(Thread):
@@ -46,11 +46,11 @@ class HeartBeat(Thread):
 class Master(object):
 
   def __init__(self):
-    
+
     self.transport = StompTransport()
     self.transport.connect()
 
-    self.heartbeat = HeartBeat(self.transport) 
+    self.heartbeat = HeartBeat(self.transport)
     self.heartbeat.start()
 
     self.sender = Sender(self.transport)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
   data = Data(1, 2, 3)
 
-  message = { 
+  message = {
     'hello': 'world',
     'data' : pickle.dumps(data),
   }
@@ -105,8 +105,7 @@ if __name__ == '__main__':
   master.send(message)
   master.send(message)
   master.send(message)
-  print master.receive() 
+  print master.receive()
 
 
   print "\nSubmitted."
-

@@ -61,7 +61,7 @@ def estimate(data, background, mk):
 #     else:
 #       Cb += data[i]
 #   for j in range(Cf+1):
-#     a = (1 + M/N)**(j-Cf) 
+#     a = (1 + M/N)**(j-Cf)
 #     b = factorial(Cf + Cb - j) / factorial(Cf - j)
 #     jj = a
 #     jj = a*b

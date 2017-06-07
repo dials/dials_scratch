@@ -70,7 +70,7 @@ def run(args):
 
     from dxtbx.serialize import dump
     dump.experiment_list(experiments[i:i+1], output_template %i)
-    
+
   from matplotlib import pyplot
   n, bins, patches = pyplot.hist(angles.as_numpy_array(), 100)
   pyplot.show()

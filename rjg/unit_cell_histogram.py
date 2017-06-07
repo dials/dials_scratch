@@ -156,7 +156,7 @@ def plot_uc_vs_detector_distance(uc_params, panel_distances, outliers, steps_per
   ax4.bar(hist.slot_centers(), hist.slots(), align='center',
           width=hist.slot_width(), zorder=10, color='red', edgecolor=None,
           linewidth=0)
-  
+
   ax1.set_ylabel('Detector distance (mm)')
   ax1.set_xlabel('a ($\AA$)')
   ax2.set_xlabel('b ($\AA$)')

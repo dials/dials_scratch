@@ -26,20 +26,20 @@ def get_reflections(experiments):
     print j
     for i in range(xsize):
       h = transform.h(0, i+0.5, j+0.5, z0+0.5)
-      
+
       hkl = tuple(map(lambda x: int(floor(x+0.5)), h))
-      
+
       d = sqrt(sum(map(lambda a: (a[0]-a[1])**2, zip(h, hkl))))
-      
-      
+
+
       if d < 0.3:
         foreground = True
       else:
         foreground = False
 
-      mask[j,i] = foreground 
+      mask[j,i] = foreground
 
-      reflection_pixels[hkl].append((j,i,foreground)) 
+      reflection_pixels[hkl].append((j,i,foreground))
 
   # from matplotlib import pylab
   # pylab.imshow(mask.as_numpy_array())
@@ -63,7 +63,7 @@ def get_reflections(experiments):
   s0 = experiments[0].beam.get_s0()
 
   for hkl, pixel_list in reflection_pixels.iteritems():
- 
+
     rays = predictor(hkl, UB)
     if len(rays) == 0:
       continue
@@ -105,7 +105,7 @@ def get_reflections(experiments):
     I.append(I_sum - B * I_count)
     V.append(I_sum + B * I_count * (1 + I_count / B_count))
     T.append(dphi * 180 / pi)
-  
+
   print min(T), max(T)
 
   IOS = []

@@ -11,34 +11,34 @@ if __name__ == '__main__':
     description='Extract and view profiles')
 
   parser.add_argument(
-    '--directory', 
+    '--directory',
     dest    = "directory",
     default = None,
     help    = "The directory which must contain integrated_experiments.json and shoeboxes*.pickle files")
 
   parser.add_argument(
-    '--start', 
+    '--start',
     dest    = "start",
     choices = ["extract", "generate", "display", "decompose"],
     default = "extract",
     help    = "If data has been generated then start later")
 
   parser.add_argument(
-    '--sample', 
+    '--sample',
     dest    = "sample",
     type    = int,
     default = None,
     help    = "Choose a random sample of reflections")
-  
+
   parser.add_argument(
-    '--grid_size', 
+    '--grid_size',
     dest    = "grid_size",
     type    = int,
     default = 15,
     help    = "The grid size is 2N+1")
-  
+
   parser.add_argument(
-    '--grid_range', 
+    '--grid_range',
     dest    = "grid_range",
     type    = float,
     default = 0.25,
@@ -53,4 +53,3 @@ if __name__ == '__main__':
   if args.start in ["extract", "generate", "display"]:
     show_profile(args.grid_range)
   crystal_parameters()
-  

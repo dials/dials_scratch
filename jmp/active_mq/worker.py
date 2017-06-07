@@ -20,7 +20,7 @@ class Worker(object):
     self.transport.connect()
     self.transport.subscribe_broadcast("heartbeat", self.read_heartbeat)
     self.transport.subscribe("outbound", self.read)
- 
+
     self.wait()
 
   def timeout(self):
@@ -61,11 +61,9 @@ class Worker(object):
 
 if __name__ == '__main__':
   configuration = '/dls_sw/apps/zocalo/secrets/credentials-james.cfg'
-  
+
   from workflows.transport.stomp_transport import StompTransport
-  
+
   StompTransport.load_configuration_file(configuration)
 
   worker = Worker()
-
-

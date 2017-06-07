@@ -30,10 +30,10 @@ def estimate_signal(data, background, estimator='mean'):
     return K*((C+1)*gammaincc(C+2, B) - B*gammaincc(C+1, B))
 
   elif estimator == 'max':
-    
+
     C = sum(data)
     B = sum(background)
-    
+
     return max(0, C - B)
 
   else:
@@ -74,7 +74,7 @@ for t in range(2000):
 
   data = simulate(B, S, bg, fg)
   background = [B * bg[i] for i in range(len(data))]
-  
+
   S_sum = simple_summation(data, background)
   S_mean = estimate_signal(data, background, estimator='mean')
   S_max = estimate_signal(data, background, estimator='max')
