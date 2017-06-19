@@ -30,6 +30,11 @@ def refine_wavelengths(experiments, reflections, initial_mosaic_parameters, tag,
       tophat functions
   """
 
+  if initial_mosaic_parameters is None:
+    domain_size_ang = flex.mean(flex.double([expt.crystal._ML_domain_size_ang for expt in experiments]))
+    half_mosaicity_deg = flex.mean(flex.double([expt.crystal._ML_half_mosaicity_deg for expt in experiments]))
+    initial_mosaic_parameters = domain_size_ang, half_mosaicity_deg
+
   from scitbx.simplex import simplex_opt
   class simplex_minimizer(object):
     """Class for refining mosaic parameters """
