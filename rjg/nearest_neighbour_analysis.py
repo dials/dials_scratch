@@ -121,6 +121,7 @@ def run(args):
     reflections, max_cell_multiplier=params.max_cell_estimation.multiplier,
     step_size=params.max_cell_estimation.step_size,
     nearest_neighbor_percentile=params.max_cell_estimation.nearest_neighbor_percentile,
+    max_height_fraction=params.max_cell_estimation.max_height_fraction,
     histogram_binning=params.max_cell_estimation.histogram_binning,
     filter_ice=params.max_cell_estimation.filter_ice,
     filter_overlaps=params.max_cell_estimation.filter_overlaps,
