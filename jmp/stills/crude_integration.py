@@ -36,14 +36,14 @@ def integrate(experiment):
       #   reflections[h0].xd = d
       #   reflections[h0].xc = i
       #   reflections[h0].yc = j
-      
+
       if d < 0.3:
         mask[j,i] = True
       reflections[h0].append((j,i))
 
-#   from matplotlib import pylab
-#   pylab.imshow(mask.as_numpy_array(), interpolation='none')
-#   pylab.show()
+  # from matplotlib import pylab
+  # #pylab.imshow(mask.as_numpy_array(), interpolation='none')
+  # pylab.show()
 
   print "Integrating reflections"
   miller_index = flex.miller_index()
@@ -52,7 +52,7 @@ def integrate(experiment):
   bbox = flex.int6()
   xyz = flex.vec3_double()
   for h, r in reflections.iteritems():
-    
+
     # xc = r.xc
     # yc = r.yc
 
@@ -81,7 +81,7 @@ def integrate(experiment):
       variance.append(V)
       bbox.append((x0, x1, y0, y1, 0, 1))
       # xyz.append((xc, yc, 0))
-  
+
   print "Integrated %d reflections" % len(reflections)
   print flex.min(intensity), flex.max(intensity), flex.mean(intensity)
   reflections = flex.reflection_table()
@@ -118,4 +118,3 @@ if __name__ == '__main__':
   reflections = integrate(experiment)
 
   reflections.as_pickle(reflections_filename)
-

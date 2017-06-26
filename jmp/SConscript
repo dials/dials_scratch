@@ -1,6 +1,11 @@
 
 Import('env')
 
+env.SharedLibrary(
+ target='#/lib/dials_scratch_jmp_stills_ext',
+ source=['stills/boost_python/ext.cc'],
+ LIBS=env["LIBS"])
+
 #env.SharedLibrary(
 # target='#/lib/dials_scratch_jmp_sim_ext',
 # source=['sim/boost_python/ext.cc'],
