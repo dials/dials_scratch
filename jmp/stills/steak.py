@@ -1,14 +1,97 @@
 from __future__ import division
+from libtbx.phil import parse
 
 
-def golden_section_search(f, a, b, tol=1e-3):
+phil_scope = parse('''
+
+  spot_finding {
+
+    min_spot_size = 2
+      .type = int(value_min=1)
+      .help = "The minimum number of pixels in a spot"
+
+    max_spot_size = 100
+      .type = int(value_min=1)
+      .help = "The maximum number of pixels in a spot"
+
+  }
+
+  indexing {
+
+    tolerance = 0.3
+      .type = float(value_min=0.01)
+      .help = "The tolerance when indexing strong spots"
+
+  }
+
+  refinement {
+
+    n_macro_cycles = 1
+      .type = int(value_min=1)
+      .help = "The number of refinement macro cycles"
+
+    sample = 100
+      .type = int(value_min=10)
+      .help = "The sample size for refinement"
+
+    profile {
+
+      num_samples = 5
+        .type = int(value_min=1)
+        .help = "The number of pixel samples to take in the integral"
+
+      min = 0.001
+        .type = float(value_min=0.0001, value_max=0.3)
+        .help = "The minimum value of the profile parameter"
+
+      max = 0.3
+        .type = float(value_min=0, value_max=0.3)
+        .help = "The maximum value of the profile parameter"
+
+      tolerance = 1e-4
+        .type = float(value_min=0)
+        .help = "The tolerance to stop the optimization"
+
+      target = *maximum_likelihood least_squares
+        .type = choice
+        .help = "The target function to use"
+
+    }
+
+  }
+
+  integration {
+
+    prediction {
+
+      min_foreground_pixels = 4
+        .type = int(value_min=1)
+        .help = "The minimum number of foreground pixels in a prediction"
+
+      min_background_pixels = 10
+        .type = int(value_min=1)
+        .help = "The minimum number of background pixels"
+
+    }
+
+  }
+
+''')
+
+
+def golden_section_search(f, a, b, tol=1e-3, callback=None):
   from math import sqrt
   gr = (sqrt(5) + 1) / 2
   c = b - (b - a) / gr
   d = a + (b - a) / gr
   while abs(c - d) > tol:
-    print a, b
-    if f(c) < f(d):
+
+    fc = f(c)
+    fd = f(d)
+
+    callback(c, d, fc, fd)
+
+    if fc < fd:
       b = d
     else:
       a = c
@@ -17,6 +100,8 @@ def golden_section_search(f, a, b, tol=1e-3):
     d = a + (b - a) / gr
 
   return (b + a) / 2
+
+
 
 def generate_start(values, offset):
   assert len(values) == len(offset)
@@ -53,293 +138,476 @@ class simple_simplex(object):
     return score
 
 
+
+
+
 class CrystalRefiner(object):
+  '''
+  A class to perform refinement of crystal parameters
+
+  '''
 
   def __init__(self,
-               experiments,
+               experiment,
                reflections,
-               mosaicity):
+               mosaicity,
+               params):
+    '''
+    Perform the refinement
 
-    self.experiments = experiments
-    self.reflections = reflections
-    self.mosaicity = mosaicity
+    :param experiment: The experiment
+    :param reflections: The reflections
+    :param mosaicity: The mosaicity
+    :param params: The parameters
 
-  def refine(self):
+    '''
     from dials.algorithms.refinement.parameterisation.crystal_parameters \
-      import CrystalUnitCellParameterisation, \
-      CrystalOrientationParameterisation
+      import CrystalUnitCellParameterisation
+    from dials.algorithms.refinement.parameterisation.crystal_parameters \
+      import CrystalOrientationParameterisation
+    from dials_scratch.jmp.stills import Model
     from dials.array_family import flex
     from scitbx import simplex
 
-    crystal = self.experiments[0].crystal
+    # Store the input
+    self.experiment = experiment
+    self.reflections = reflections
+    self.mosaicity = mosaicity
+    self.params = params
 
-    self.cucp = CrystalUnitCellParameterisation(crystal)
-    self.cop = CrystalOrientationParameterisation(crystal)
+    # Get the data and image mask
+    data = self.experiment.imageset.get_raw_data(0)[0]
+    mask = self.experiment.imageset.get_mask(0)[0]
 
-    # 0-point and deltas
-    values = flex.double(self.cucp.get_param_vals() +
-                         self.cop.get_param_vals())
-    offset = flex.double([0.01 * v for v in self.cucp.get_param_vals()] +
-                         [0.1, 0.1, 0.1])
+    # Initialise the model
+    self.model = Model(
+      beam             = self.experiment.beam,
+      detector         = self.experiment.detector,
+      crystal          = self.experiment.crystal,
+      reflections      = self.reflections,
+      image_data       = data,
+      image_mask       = mask,
+      mosaicity        = self.mosaicity,
+      foreground_limit = 0.3,
+      background_limit = 0.5,
+      num_samples      = self.params.refinement.profile.num_samples)
 
-    initial = crystal.get_unit_cell()
-    self.cells = []
+    # Get the crystal model and the parameterisation
+    self.crystal = self.experiment.crystal
+    self.cucp = CrystalUnitCellParameterisation(self.crystal)
+    self.cop = CrystalOrientationParameterisation(self.crystal)
+
+    # Get the current values and generate some offsets
+    values = flex.double(
+      self.cucp.get_param_vals() +
+      self.cop.get_param_vals())
+    offset = flex.double(
+      [0.01 * v for v in self.cucp.get_param_vals()] +
+      [0.1, 0.1, 0.1])
+
+
+    # Get the initial cell and initial score
+    initial_cell = self.crystal.get_unit_cell()
     initial_score = self.target(values)
-    doohicky = simple_simplex(values, offset, self, 2000)
-    best = doohicky.get_solution()
-    print 'Initial cell:', initial
-    print 'Final cell:  ', crystal.get_unit_cell()
-    print 'Score change', initial_score, self.target(best)
-    self.best = best
+
+    # Perform the optimization
+    optimizer = simple_simplex(values, offset, self, 2000)
+    result = optimizer.get_solution()
+    print 'Initial cell:', initial_cell
+    print 'Final cell:  ', self.crystal.get_unit_cell()
+    print 'Score change', initial_score, self.target(result)
 
   def target(self, vector):
-    from dials_scratch.jmp.stills import Model
+    '''
+    The target function
+
+    '''
     from dials.array_family import flex
+
+    # Get the cell and orientation parameters
     cell_parms = self.cucp.get_param_vals()
     orientation_parms = self.cop.get_param_vals()
     assert len(vector) == len(cell_parms) + len(orientation_parms)
-    tst_cell = vector[:len(cell_parms)]
-    tst_orientation = vector[len(cell_parms):len(cell_parms) +
-                             len(orientation_parms)]
 
+    # Update the cell and orientation parameters
+    tst_cell = vector[:len(cell_parms)]
+    tst_orientation = vector[len(cell_parms):len(cell_parms) + len(orientation_parms)]
     self.cucp.set_param_vals(tst_cell)
     self.cop.set_param_vals(tst_orientation)
 
-    from scitbx import matrix
-    experiment = self.experiments[0]
-
+    # Print some info
     print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
-      tuple(experiment.crystal.get_unit_cell().parameters())
+      self.crystal.get_unit_cell().parameters()
     print 'Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation)
 
+    # Update the model
+    self.model.crystal = self.crystal
+    self.model.update(pixel_lookup=False)
 
+    # Get the observed and predicted position
+    T = self.model.success()
+    O = self.model.observed()
+    C = self.model.predicted()
 
-    data = experiment.imageset.get_raw_data(0)[0]
-    mask = experiment.imageset.get_mask(0)[0]
+    # Select only those successes
+    selection = T == True
+    Xobs, Yobs, Zobs = O.select(selection).parts()
+    Xcal, Ycal, Zcal = C.select(selection).parts()
 
-    model = Model(
-      experiment.beam,
-      experiment.detector,
-      experiment.crystal,
-      self.mosaicity,
-      5,
-      data,
-      mask,
-      self.reflections)
-
-
-    score = 0
-
-    for i in range(len(model)):
-
-      B = model.background(i)
-      I = model.intensity(i)
-      V = model.variance(i)
-      S = model.scale(i)
-      T = model.success(i)
-      XYZOBS = model.observed(i)
-      XYZCAL = model.predicted(i)
-
-      if T == True:
-        score += (matrix.col(XYZOBS) - matrix.col(XYZCAL)).length_sq()
+    # Compute the rmsd between observed and calculated
+    score = flex.sum((Xobs-Xcal)**2 + (Yobs-Ycal)**2 + (Zobs-Zcal)**2)
 
     return score
 
 
 class ProfileRefiner(object):
+  '''
+  A class to perform the profile refinement
+
+  '''
 
   def __init__(self,
-               experiments,
-               bandwidth=0.035,
-               mosaicity=0.01):
+               experiment,
+               reflections,
+               params):
+    '''
+    Do the profile refinement
 
-    self.experiments = experiments
-    self.bandwidth = bandwidth
-    self.mosaicity = mosaicity
+    :param experiment: The experiment
+    :param reflections: The reflection list
+    :param params: The parameters
+
+    '''
+    from dials_scratch.jmp.stills import Model
+
+    # Save the experiments and reflections
+    self.experiment = experiment
+    self.reflections = reflections
+    self.params = params
+
+    # Get the data and image mask
+    data = self.experiment.imageset.get_raw_data(0)[0]
+    mask = self.experiment.imageset.get_mask(0)[0]
+
+    # Initialise the model
+    self.model = Model(
+      beam             = self.experiment.beam,
+      detector         = self.experiment.detector,
+      crystal          = self.experiment.crystal,
+      reflections      = self.reflections,
+      image_data       = data,
+      image_mask       = mask,
+      mosaicity        = 0.1,
+      foreground_limit = 0.3,
+      background_limit = 0.5,
+      num_samples      = self.params.refinement.profile.num_samples)
+
+    def callback(a, b, fa, fb):
+      print "  A = %f, B = %f, Fa = %f, Fb = %f" % (a, b, fa, fb)
+
+    # Perform a golden section search for the profile parameter
+    print "Refining profile parameters"
+    print "  using '%s' target function" % self.params.refinement.profile.target
+    self.profile = golden_section_search(
+      self.target,
+      self.params.refinement.profile.min,
+      self.params.refinement.profile.max,
+      self.params.refinement.profile.tolerance,
+      callback)
+    print "Mosaicity = %f" % (self.profile)
+
+  def target(self, mosaicity):
+    '''
+    The profile model target function
+
+    '''
+
+    # Set the mosaicity
+    self.model.mosaicity = mosaicity
+
+    # Update the model
+    self.model.update()
+
+    # Choose the least squares or maximum likelihood scorea
+    target_function = self.params.refinement.profile.target
+    if target_function == 'least_squares':
+      score = self.model.least_squares_score()
+    elif target_function == 'maximum_likelihood':
+      score = -self.model.maximum_likelihood_score()
+    else:
+      raise RuntimeError("Unknown target: %s" % target_function)
+
+    # Return the score
+    return score
+
+
+class Integrator(object):
+  '''
+  Top level integrator class for a single still image
+
+  Given a still experiment do the following:
+
+  1) Find strong spots on the image
+  2) Index those spots
+  3) Use those spots to refine the profile model
+  4) Then refine the crystal model parameters
+  5) Predict the full set of reflections
+  6) Integrate the reflections
+
+  '''
+
+  def __init__(self, experiment, params):
+    '''
+    Initialise the class
+
+    :param experiment: The experiment to process
+    :param params: The configuration parameters
+
+    '''
+    assert len(experiment.detector) == 1
+    assert len(experiment.imageset) == 1
+    self.experiment = experiment
+    self.params = params
+    self.reflections = None
+
+  def process(self):
+    '''
+    Process the image
+
+    '''
+
+    # Find the strong spots
+    self.find_spots()
+
+    # Index the strong spots
+    self.index_spots()
+
+    # Iteratively refine profile and crystal models
+    for i in range(self.params.refinement.n_macro_cycles):
+      self.refine_profile()
+      self.refine_crystal()
+
+    # Integrate the reflections
+    self.integrate()
 
   def find_spots(self, min_spot_size=2, max_spot_size=100):
+    '''
+    Find the strong spots on the image
+
+    '''
     from dials.algorithms.spot_finding.threshold import XDSThresholdStrategy
     from dials.model.data import PixelList
     from dials.model.data import PixelListLabeller
     from dials.array_family import flex
-    from scitbx import matrix
 
-    image = self.experiments[0].imageset.get_raw_data(0)[0]
-    mask = self.experiments[0].imageset.get_mask(0)[0]
+    print ""
+    print "-" * 80
+    print " Finding strong spots"
+    print "-" * 80
+    print ""
 
-    threshold_image = XDSThresholdStrategy()
+    # Instantiate the threshold function
+    threshold = XDSThresholdStrategy()
 
-    threshold_mask = threshold_image(image, mask)
-    plist = PixelList(0, image, threshold_mask)
+    # Get the raw data and image mask
+    image = self.experiment.imageset.get_raw_data(0)[0]
+    mask = self.experiment.imageset.get_mask(0)[0]
 
+    # Threshold the image and create the pixel labeller
+    threshold_mask = threshold(image, mask)
     pixel_labeller = PixelListLabeller()
-    pixel_labeller.add(plist)
+    pixel_labeller.add(PixelList(0, image, threshold_mask))
 
+    # Create the shoebox list from the pixel list
     creator = flex.PixelListShoeboxCreator(
-      pixel_labeller, 0, 0, True, min_spot_size, max_spot_size, False)
+      pixel_labeller,
+      0,                                       # Panel number
+      0,                                       # Z start
+      True,                                    # 2D
+      self.params.spot_finding.min_spot_size,  # Min Pixels
+      self.params.spot_finding.max_spot_size,  # Max Pixels
+      False)                                   # Find hot pixels
     shoeboxes = creator.result()
 
-    # turns out we need to manually filter the list to get a sensible answer
+    # Filter the list to remove large and small spots
     size = creator.spot_size()
-    big = size > max_spot_size
-    small = size < min_spot_size
-    bad = big | small
+    large = size > self.params.spot_finding.max_spot_size
+    small = size < self.params.spot_finding.min_spot_size
+    bad = large | small
     shoeboxes = shoeboxes.select(~bad)
+    print "Discarding %d spots with < %d pixels" % (
+      small.count(True),
+      self.params.spot_finding.min_spot_size)
+    print "Discarding %d spots with > %d pixels" % (
+      large.count(True),
+      self.params.spot_finding.max_spot_size)
 
-
+    # Extract the strong spot information
     centroid = shoeboxes.centroid_valid()
     intensity = shoeboxes.summed_intensity()
     observed = flex.observation(shoeboxes.panels(), centroid, intensity)
 
+    # Create the reflection list
     self.reflections = flex.reflection_table(observed, shoeboxes)
+    print "Using %d strong spots" % len(self.reflections)
 
+  def index_spots(self):
+    '''
+    Assign miller indices to the strong spots
+
+    '''
+    from dials.array_family import flex
+    from scitbx import matrix
+    from math import sqrt
+
+    print ""
+    print "-" * 80
+    print " Indexing strong spots"
+    print "-" * 80
+    print ""
+
+    # Initialise the arrays
     miller_index = flex.miller_index()
-    UB = matrix.sqr(self.experiments[0].crystal.get_A())
-    UBi = UB.inverse()
+    distance = flex.double()
 
-    self.qobs = []
+    # Get the models
+    beam = self.experiment.beam
+    panel = self.experiment.detector[0]
+    crystal = self.experiment.crystal
 
-    s0 = matrix.col(self.experiments[0].beam.get_s0())
-    selection = flex.size_t()
+    # Get some stuff we need for calculations
+    s0 = matrix.col(beam.get_s0())
+    A = matrix.sqr(crystal.get_A())
+    Ainv = A.inverse()
+
+    # For each reflection get the index and distance
     for index, refl in enumerate(self.reflections):
       x, y, z = refl['xyzobs.px.value']
-      p = matrix.col(self.experiments[0].detector[0].get_pixel_lab_coord((x, y)))
-      q = p.normalize() * s0.length() - s0
-      self.qobs.append(q)
-      hkl = UBi * q
-      ihkl = [int(round(h)) for h in hkl]
+      s1 = matrix.col(panel.get_pixel_lab_coord((x, y)))
+      r = s1.normalize() * s0.length() - s0
+      h = Ainv * r
+      h0 = tuple(int(round(a)) for a in h)
+      d = sqrt(sum(map(lambda a,b: (a-b)**2, h, h0)))
+      miller_index.append(h0)
+      distance.append(d)
 
-      if (ihkl[0]-hkl[0])**2 + (ihkl[0]-hkl[0])**2 + (ihkl[0]-hkl[0])**2 < 0.3:
-        selection.append(index)
-
-      miller_index.append(ihkl)
-
-
+    # Assign the miller indices
     self.reflections['miller_index'] = miller_index
 
-    print len(selection), len(self.reflections)
-
+    # Select only those spots within the tolerance
+    selection = distance < self.params.indexing.tolerance
     self.reflections = self.reflections.select(selection)
+    print "Indexed %d strong spots within tolerance %f" % (
+      len(self.reflections),
+      self.params.indexing.tolerance)
 
-    # from matplotlib import pylab
-    # X, Y, _ = self.reflections['xyzobs.px.value'].parts()
-    # pylab.scatter(X,Y)
-    # pylab.show()
+  def refine_profile(self):
+    '''
+    Refine the profile parameters
 
-  def refine(self):
+    '''
+    print ""
+    print "-" * 80
+    print " Refining profile parameters"
+    print "-" * 80
+    print ""
 
-    self.find_spots()
+    refiner = ProfileRefiner(
+      self.experiment,
+      self.reflections,
+      self.params)
+    self.experiment = refiner.experiment
+    self.reflections = refiner.reflections
+    self.mosaicity = refiner.profile
 
+  def refine_crystal(self):
+    '''
+    Refine the crystal parameters
 
-    #self.sigma_m = golden_section_search(self.target, 0.01, 0.2, tol=1e-5)
-    self.sigma_m = 0.0674634452691
+    '''
+    print ""
+    print "-" * 80
+    print " Refining crystal parameters"
+    print "-" * 80
+    print ""
 
-    print self.sigma_m
+    refiner = CrystalRefiner(
+      self.experiment,
+      self.reflections,
+      self.mosaicity,
+      self.params)
+    self.experiment = refiner.experiment
+    self.reflections = refiner.reflections
 
-    refiner = CrystalRefiner(self.experiments, self.reflections, self.sigma_m)
-    experiments = refiner.refine()
+  def integrate(self):
+    '''
+    Predict and integrate the reflections
 
-    # import numpy as np
-    # X = []
-    # Y = []
-    # for m in np.linspace(0.030, 0.2, 50):
-    #   s = self.target(m)
-    #   print m, s
-    #   X.append(m)
-    #   Y.append(s)
-
-    # from matplotlib import pylab
-    # pylab.plot(X, Y)
-    # pylab.show()
-
-  def target(self, mosaicity):
+    '''
     from dials_scratch.jmp.stills import Model
     from dials.array_family import flex
 
-    experiment = self.experiments[0]
+    print ""
+    print "-" * 80
+    print " Integrating reflections"
+    print "-" * 80
+    print ""
 
-    data = experiment.imageset.get_raw_data(0)[0]
-    mask = experiment.imageset.get_mask(0)[0]
+    # Get the data and image mask
+    data = self.experiment.imageset.get_raw_data(0)[0]
+    mask = self.experiment.imageset.get_mask(0)[0]
 
+    # Initialise the model
     model = Model(
-      experiment.beam,
-      experiment.detector,
-      experiment.crystal,
-      mosaicity,
-      5,
-      data,
-      mask,
-      self.reflections)
+      beam             = self.experiment.beam,
+      detector         = self.experiment.detector,
+      crystal          = self.experiment.crystal,
+      reflections      = flex.reflection_table(),
+      image_data       = data,
+      image_mask       = mask,
+      mosaicity        = self.mosaicity,
+      foreground_limit = 0.3,
+      background_limit = 0.5,
+      num_samples      = self.params.refinement.profile.num_samples,
+      predict_all      = True)
 
-    #print flex.max(model.image_data())
+    # Update the model
+    model.update()
 
-    # from matplotlib import pylab
-    # pylab.imshow(model.image_data().as_numpy_array(), interpolation='none')
-    # pylab.show()
-    # pylab.imshow(model.image_mask().as_numpy_array(), interpolation='none')
-    # pylab.show()
-    # pylab.imshow(model.image_pred().as_numpy_array(), interpolation='none')
-    # pylab.show()
+    # Get the predicted reflections
+    self.reflections = model.reflections
 
-    if False:
-      score = self.least_squares_score(model)
-    else:
-      score = self.maximum_likelihood_score(model)
+    # Add the columns of data
+    self.reflections['id'] = flex.size_t(len(self.reflections), 0)
+    self.reflections['panel'] = flex.size_t(len(self.reflections), 0)
+    self.reflections['intensity.sum.value'] = model.intensity()
+    self.reflections['intensity.sum.variance'] = model.variance()
+    self.reflections['xyzcal.px'] = model.predicted()
+    self.reflections['xyzobs.px'] = model.observed()
+    self.reflections['partiality'] = model.scale()
+    self.reflections['num_pixels.background'] = model.num_background()
+    self.reflections['num_pixels.foreground'] = model.num_foreground()
+    self.reflections['shoebox'] = model.shoebox()
 
-    return score
+    # Set the integrated flag
+    self.reflections.set_flags(model.success(), self.reflections.flags.integrated_sum)
 
-  def least_squares_score(self, model):
-    from math import sqrt
-
-    score = 0
-
-    for i in range(len(model)):
-
-      B = model.background(i)
-      I = model.intensity(i)
-      V = model.variance(i)
-      S = model.scale(i)
-      T = model.success(i)
-
-      if T == True and I > 0 and S > 0:# and S > 1e-10 and V > 0 and I / sqrt(V) > 2:
-
-        P = I / S
-        c = model.data(i)
-        m = model.mask(i)
-        p = model.pred(i)
-
-        score += sum((ci - (B + P*pi))**2 for ci, pi, mi in zip(c, p, m) if m & 5)
-
-    return score
-
-  def maximum_likelihood_score(self, model):
-    from math import log
-
-    score = 0
-
-    for i in range(len(model)):
-
-      B = model.background(i)
-      I = model.intensity(i)
-      V = model.variance(i)
-      S = model.scale(i)
-      T = model.success(i)
-
-      if T == True and I > 0 and S > 0:# and S > 0 and V > 0:
-
-        P = I / S
-        c = model.data(i)
-        m = model.mask(i)
-        p = model.pred(i)
-
-        score += sum((ci*log(B+P*pi) - B - P*pi)  for ci, pi, mi in zip(c, p, m) if m & 5)
-
-    return -score
+    # Select only those reflections actually predicted
+    # i.e. num_fg and num_bg > 0
+    min_foreground_pixels = self.params.integration.prediction.min_foreground_pixels
+    min_background_pixels = self.params.integration.prediction.min_background_pixels
+    selection1 = self.reflections['num_pixels.background'] > min_background_pixels
+    selection2 = self.reflections['num_pixels.foreground'] > min_foreground_pixels
+    selection = selection1 & selection2
+    self.reflections = self.reflections.select(selection)
+    print "Integrated %d reflections" % len(self.reflections)
 
 
 if __name__ == '__main__':
 
   from dxtbx.model.experiment_list import ExperimentListFactory
+  from dxtbx.model.experiment_list import ExperimentListDumper
+  from dials.array_family import flex
   import sys
 
   experiments_filename = sys.argv[1]
@@ -347,11 +615,24 @@ if __name__ == '__main__':
   # Read the experiments
   experiments = ExperimentListFactory.from_json_file(experiments_filename)
 
-  # Setup the profile refiner
-  refiner = ProfileRefiner(
-    experiments,
-    bandwidth=0.035,
-    mosaicity=0.1)
+  params = phil_scope.fetch(parse("")).extract()
 
-  # Do the refinement
-  refiner.refine()
+  integrator = Integrator(experiments[0], params)
+  integrator.process()
+
+  reflections = integrator.reflections
+  experiments[0] = integrator.experiment
+
+  selection = reflections.get_flags(reflections.flags.integrated_sum)
+  partiality = reflections['partiality'].select(selection)
+  min_partiality = flex.min(partiality)
+  max_partiality = flex.max(partiality)
+
+  print ""
+  print "Mosaicity: %f" % integrator.mosaicity
+  print "Min partiality: %f, Max partiality: %f" % (
+    min_partiality, max_partiality)
+  print ""
+
+  reflections.as_pickle("integrated.pickle")
+  ExperimentListDumper(experiments).as_json("integrated_experiments.json")

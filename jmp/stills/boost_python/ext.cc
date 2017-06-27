@@ -11,6 +11,7 @@
 #include <dials/algorithms/background/glm/robust_poisson_mean.h>
 #include <dials/algorithms/integration/sum/summation.h>
 #include <dials/model/data/mask_code.h>
+#include <dials/model/data/shoebox.h>
 #include <dials/error.h>
 
 using namespace boost::python;
@@ -21,6 +22,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   using dials::model::Valid;
   using dials::model::Background;
   using dials::model::Foreground;
+  using dials::model::Shoebox;
 
   namespace detail {
 
@@ -46,610 +48,1250 @@ namespace dials { namespace algorithms { namespace boost_python {
   }
 
 
-  class Simulator {
+  /* class Simulator { */
+  /* public: */
+
+  /*   Simulator( */
+  /*       const Beam &beam, */
+  /*       const Detector &detector, */
+  /*       const Crystal &crystal, */
+  /*       double mosaicity, */
+  /*       std::size_t num_sample, */
+  /*       const af::const_ref<int,af::c_grid<2> > &data, */
+  /*       const af::const_ref<bool,af::c_grid<2> > &input_mask) { */
+
+  /*     DIALS_ASSERT(mosaicity > 0); */
+  /*     DIALS_ASSERT(num_sample > 0); */
+
+  /*     std::size_t xsize = detector[0].get_image_size()[0]; */
+  /*     std::size_t ysize = detector[0].get_image_size()[1]; */
+
+  /*     model_ = af::versa< double, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0); */
+  /*     mask_ = af::versa< int, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0); */
+  /*     labels_ = af::versa< int, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0); */
+
+  /*     std::map< cctbx::miller::index<>, std::vector<std::size_t> > index_pixel_map; */
+
+  /*     // Initialise the transform */
+  /*     PixelToMillerIndex transform(beam, detector, crystal); */
+
+  /*     // Compute the normal constant */
+  /*     double K = std::pow((1.0 / std::sqrt(2*pi) * mosaicity), 3); */
+
+  /*     for (std::size_t j = 0; j < ysize; ++j) { */
+  /*       for (std::size_t i = 0; i < xsize; ++i) { */
+
+  /*         // Map the corners of the pixel */
+  /*         vec3<double> A = transform.h(0, i, j); */
+  /*         vec3<double> B = transform.h(0, i+1, j); */
+  /*         vec3<double> C = transform.h(0, i, j+1); */
+  /*         vec3<double> D = transform.h(0, i+1, j+1); */
+  /*         vec3<double> E = transform.h(0, i+0.5, j+0.5); */
+
+  /*         // The integer miller index */
+  /*         vec3<double> h0( */
+  /*             std::floor(E[0] + 0.5), */
+  /*             std::floor(E[1] + 0.5), */
+  /*             std::floor(E[2] + 0.5)); */
+
+  /*         // The distance from all corners */
+  /*         double distance_E = (E - h0).length(); */
+
+  /*         // Compute the approximate area of the pixel in reciprocal space */
+  /*         double area_abc = 0.5 * (B-A).cross(C-A).length(); */
+  /*         double area_bcd = 0.5 * (B-D).cross(C-D).length(); */
+  /*         double area = area_abc + area_bcd; */
+
+  /*         // Integrate the 3D normal distribution over the pixel */
+  /*         double sum_f = 0.0; */
+  /*         for (std::size_t jj = 0; jj < num_sample; ++jj) { */
+  /*           for (std::size_t ii = 0; ii < num_sample; ++ii) { */
+  /*             vec3<double> h = transform.h(0, */
+  /*                 i + ii / (double)num_sample, */
+  /*                 j + jj / (double)num_sample); */
+
+  /*             double distance = (h - h0).length(); */
+
+  /*             sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2)); */
+  /*           } */
+  /*         } */
+
+  /*         if (input_mask(j,i)) { */
+  /*           mask_(j,i) = Valid; */
+  /*         } */
+
+  /*         if (distance_E < 3 * mosaicity) { */
+  /*           mask_(j,i) |= Foreground; */
+  /*         } else if (distance_E < 6 * mosaicity) { */
+  /*           mask_(j,i) |= Background; */
+  /*         } */
+
+  /*         model_(j,i) = area * sum_f / (double)(num_sample * num_sample); */
+  /*         index_pixel_map[h0].push_back(i + j * xsize); */
+  /*       } */
+  /*     } */
+
+  /*     typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> >::iterator iterator; */
+  /*     /1* std::size_t count = 0; *1/ */
+  /*     /1* for (iterator it = index_pixel_map.begin(); it != index_pixel_map.end(); ++it) { *1/ */
+  /*     /1*   indices_.push_back(it->first); *1/ */
+  /*     /1*   for (std::vector<std::size_t>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) { *1/ */
+  /*     /1*     labels_[*it2] = count; *1/ */
+  /*     /1*   } *1/ */
+
+  /*     /1*   count += 1; *1/ */
+  /*     /1* } *1/ */
+
+  /*     af::shared< cctbx::miller::index<> > miller_index; */
+  /*     af::shared< double> intensity; */
+  /*     af::shared< double> variance; */
+  /*     af::shared< double> scale; */
+  /*     af::shared< int> flags; */
+  /*     af::shared< vec3<double> > xyzcal; */
+  /*     af::shared< vec3<double> > xyzobs; */
+
+
+  /*     for (iterator it = index_pixel_map.begin(); it != index_pixel_map.end(); ++it) { */
+
+  /*       cctbx::miller::index<> h = it->first; */
+  /*       const std::vector<std::size_t> &pixels = it->second; */
+
+  /*       // Extract pixels */
+  /*       af::shared<double> reflection_data(pixels.size()); */
+  /*       af::shared<double> reflection_pred(pixels.size()); */
+  /*       af::shared<int> reflection_mask(pixels.size()); */
+  /*       af::shared< vec3<double> > reflection_pnts(pixels.size()); */
+  /*       for (std::size_t i = 0; i < pixels.size(); ++i) { */
+  /*         int index = pixels[i]; */
+  /*         double x = (index % xsize) + 0.5; */
+  /*         double y = ((int)(index / xsize)) + 0.5; */
+  /*         reflection_data[i] = data[pixels[i]]; */
+  /*         reflection_mask[i] = mask_[pixels[i]]; */
+  /*         reflection_pred[i] = model_[pixels[i]]; */
+  /*         reflection_pnts[i] = vec3<double>(x, y, 0); */
+  /*       } */
+
+  /*       try { */
+
+  /*         // Compute the background */
+  /*         double B = compute_background( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         // Compute the intensity */
+  /*         vec2<double> IV = compute_intensity( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             B); */
+
+  /*         double I = IV[0]; */
+  /*         double V = IV[1]; */
+  /*         double S = compute_scale( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         vec3<double> xcal = compute_centroid( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+  /*         vec3<double> xobs = compute_centroid( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+
+  /*         miller_index.push_back(h); */
+  /*         intensity.push_back(I); */
+  /*         variance.push_back(V); */
+  /*         scale.push_back(S); */
+  /*         flags.push_back(af::IntegratedSum); */
+  /*         xyzcal.push_back(xcal); */
+  /*         xyzobs.push_back(xobs); */
+  /*       } catch (dials::error e) { */
+  /*         std::cout << e.what() << std::endl; */
+  /*         continue; */
+  /*       } */
+  /*     } */
+
+  /*     DIALS_ASSERT(miller_index.size() == intensity.size()); */
+  /*     DIALS_ASSERT(miller_index.size() == variance.size()); */
+  /*     DIALS_ASSERT(miller_index.size() == scale.size()); */
+  /*     DIALS_ASSERT(miller_index.size() == flags.size()); */
+  /*     DIALS_ASSERT(miller_index.size() == xyzcal.size()); */
+  /*     DIALS_ASSERT(miller_index.size() == xyzobs.size()); */
+  /*     DIALS_ASSERT(reflections_.size() == 0); */
+
+  /*     reflections_.resize(miller_index.size()); */
+  /*     reflections_["id"] = af::shared<std::size_t>(miller_index.size(), 0); */
+  /*     reflections_["panel"] = af::shared<std::size_t>(miller_index.size(), 0); */
+  /*     reflections_["miller_index"] = miller_index; */
+  /*     reflections_["intensity.sum.value"] = intensity; */
+  /*     reflections_["intensity.sum.variance"] = variance; */
+  /*     reflections_["intensity.scale"] = scale; */
+  /*     reflections_["flags"] = flags; */
+  /*     reflections_["xyzcal.px"] = xyzcal; */
+  /*     reflections_["xyzobs.px.value"] = xyzobs; */
+  /*   } */
+
+  /*   vec3<double> compute_centroid( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       af::const_ref< vec3<double> > points) { */
+  /*     af::shared<double> v; */
+  /*     af::shared< vec3<double> > p; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         v.push_back(data[i]); */
+  /*         p.push_back(points[i]); */
+  /*       } */
+  /*     } */
+
+  /*     CentroidPoints<double, vec3<double> > centroid(v.const_ref(), p.const_ref()); */
+  /*     return centroid.mean(); */
+  /*   } */
+
+  /*   double compute_background( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask) const { */
+
+  /*     std::size_t min_pixels = 10; */
+  /*     double tuning_constant = 1.345; */
+  /*     std::size_t max_iter = 100; */
+
+  /*     // Compute number of background pixels */
+  /*     std::size_t num_background = 0; */
+  /*     int mask_code = Valid | Background; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         num_background++; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(num_background >= min_pixels); */
+
+  /*     // Allocate some arrays */
+  /*     af::shared<double> Y(num_background, 0); */
+  /*     std::size_t j = 0; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         DIALS_ASSERT(j < Y.size()); */
+  /*         DIALS_ASSERT(data[i] >= 0); */
+  /*         Y[j++] = data[i]; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(j == Y.size()); */
+
+  /*     // Compute the median value for the starting value */
+  /*     double median = detail::median(Y.const_ref()); */
+  /*     if (median == 0) { */
+  /*       median = 1.0; */
+  /*     } */
+
+  /*     // Compute the result */
+  /*     RobustPoissonMean result( */
+  /*         Y.const_ref(), */
+  /*         median, */
+  /*         tuning_constant, */
+  /*         1e-3, */
+  /*         max_iter); */
+  /*     DIALS_ASSERT(result.converged()); */
+
+  /*     // Compute the background */
+  /*     return result.mean(); */
+  /*   } */
+
+  /*   vec2<double> compute_intensity( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       double B) const { */
+
+  /*     std::size_t min_pixels = 1; */
+
+  /*     af::shared<double> background(data.size()); */
+  /*     for (std::size_t i = 0; i < background.size(); ++i) { */
+  /*       background[i] = B; */
+  /*     } */
+
+  /*     Summation<double> summation(data, background.const_ref(), mask); */
+
+
+  /*     DIALS_ASSERT(summation.n_signal() >= min_pixels); */
+
+  /*     return vec2<double>(summation.intensity(), summation.variance()); */
+  /*   } */
+
+  /*   double compute_scale( */
+  /*       af::const_ref<double> pred, */
+  /*       af::const_ref<int> mask) const { */
+  /*     double result = 0; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < pred.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         result += pred[i]; */
+  /*       } */
+  /*     } */
+  /*     return result; */
+  /*   } */
+
+  /*   af::versa< double, af::c_grid<2> > model() const { */
+  /*     return model_; */
+  /*   } */
+
+  /*   af::versa< int, af::c_grid<2> > mask() const { */
+  /*     return mask_; */
+  /*   } */
+
+  /*   af::versa< int, af::c_grid<2> > labels() const { */
+  /*     return labels_; */
+  /*   } */
+
+  /*   af::shared< cctbx::miller::index<> > indices() const { */
+  /*     return indices_; */
+  /*   } */
+
+  /*   af::reflection_table reflections() const { */
+  /*     return reflections_; */
+  /*   } */
+
+  /* protected: */
+
+  /*   af::versa< double, af::c_grid<2> > model_; */
+  /*   af::versa< int, af::c_grid<2> > mask_; */
+  /*   af::versa< int, af::c_grid<2> > labels_; */
+  /*   af::shared< cctbx::miller::index<> > indices_; */
+  /*   af::reflection_table reflections_; */
+  /* }; */
+
+
+  /* class ModelOld { */
+  /* public: */
+
+  /*   ModelOld( */
+  /*         const Beam &beam, */
+  /*         const Detector &detector, */
+  /*         const Crystal &crystal, */
+  /*         double mosaicity, */
+  /*         std::size_t num_sample, */
+  /*         const af::const_ref<int,af::c_grid<2> > &input_data, */
+  /*         const af::const_ref<bool,af::c_grid<2> > &input_mask) */
+  /*     : image_data_(input_data.accessor()), */
+  /*       image_mask_(input_mask.accessor()), */
+  /*       image_pred_(input_data.accessor()) { */
+
+  /*     // Check the input */
+  /*     DIALS_ASSERT(mosaicity > 0); */
+  /*     DIALS_ASSERT(num_sample > 0); */
+
+  /*     // Copy the mask and data arrays */
+  /*     std::copy(input_data.begin(), input_data.end(), image_data_.begin()); */
+  /*     std::copy(input_mask.begin(), input_mask.end(), image_mask_.begin()); */
+
+  /*     // Generate the image model */
+  /*     generate_image_model(beam, detector, crystal, mosaicity, num_sample); */
+
+  /*     // integrate the data */
+  /*     integrate(); */
+  /*   } */
+
+  /*   void generate_image_model( */
+  /*         const Beam &beam, */
+  /*         const Detector &detector, */
+  /*         const Crystal &crystal, */
+  /*         double mosaicity, */
+  /*         std::size_t num_sample) { */
+
+  /*     std::size_t xsize = detector[0].get_image_size()[0]; */
+  /*     std::size_t ysize = detector[0].get_image_size()[1]; */
+
+  /*     // Initialise the transform */
+  /*     PixelToMillerIndex transform(beam, detector, crystal); */
+
+  /*     // Compute the normal constant */
+  /*     double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity), 3); */
+
+  /*     for (std::size_t j = 0; j < ysize; ++j) { */
+  /*       for (std::size_t i = 0; i < xsize; ++i) { */
+
+  /*         // Map the corners of the pixel */
+  /*         vec3<double> A = transform.h(0, i, j); */
+  /*         vec3<double> B = transform.h(0, i+1, j); */
+  /*         vec3<double> C = transform.h(0, i, j+1); */
+  /*         vec3<double> D = transform.h(0, i+1, j+1); */
+  /*         vec3<double> E = transform.h(0, i+0.5, j+0.5); */
+
+  /*         // The integer miller index */
+  /*         vec3<double> h0( */
+  /*             std::floor(E[0] + 0.5), */
+  /*             std::floor(E[1] + 0.5), */
+  /*             std::floor(E[2] + 0.5)); */
+
+  /*         // The distance from all corners */
+  /*         double distance_E = (E - h0).length(); */
+
+  /*         // Compute the approximate area of the pixel in reciprocal space */
+  /*         double area_abc = 0.5 * (B-A).cross(C-A).length(); */
+  /*         double area_bcd = 0.5 * (B-D).cross(C-D).length(); */
+  /*         double area = area_abc + area_bcd; */
+
+  /*         // Integrate the 3D normal distribution over the pixel */
+  /*         double sum_f = 0.0; */
+  /*         for (std::size_t jj = 0; jj < num_sample; ++jj) { */
+  /*           for (std::size_t ii = 0; ii < num_sample; ++ii) { */
+  /*             vec3<double> h = transform.h(0, */
+  /*                 i + ii / (double)num_sample, */
+  /*                 j + jj / (double)num_sample); */
+
+  /*             double distance = (h - h0).length(); */
+
+  /*             sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2)); */
+  /*           } */
+  /*         } */
+
+  /*         // Assign pixel as foreground or background depending on mosaicity */
+  /*         if (distance_E < 3 * mosaicity) { */
+  /*           image_mask_(j,i) |= Foreground; */
+  /*         } else if (distance_E < 6 * mosaicity) { */
+  /*           image_mask_(j,i) |= Background; */
+  /*         } */
+
+  /*         // Compute the predicted integrated intensity on the pixel */
+  /*         image_pred_(j,i) = area * sum_f / (double)(num_sample * num_sample); */
+
+  /*         // Add a pixel to the lookup */
+  /*         lookup_[h0].push_back(i + j * xsize); */
+  /*       } */
+  /*     } */
+  /*   } */
+
+  /*   void integrate() { */
+
+  /*     typedef LookupMap::iterator iterator; */
+
+  /*     std::size_t xsize = image_data_.accessor()[1]; */
+  /*     std::size_t ysize = image_data_.accessor()[0]; */
+
+  /*     for (iterator it = lookup_.begin(); it != lookup_.end(); ++it) { */
+
+  /*       cctbx::miller::index<> h = it->first; */
+  /*       const std::vector<std::size_t> &pixels = it->second; */
+
+  /*       // Extract pixels */
+  /*       af::shared<double> reflection_data(pixels.size()); */
+  /*       af::shared<double> reflection_pred(pixels.size()); */
+  /*       af::shared<int> reflection_mask(pixels.size()); */
+  /*       af::shared< vec3<double> > reflection_pnts(pixels.size()); */
+  /*       for (std::size_t i = 0; i < pixels.size(); ++i) { */
+  /*         int index = pixels[i]; */
+  /*         double x = (index % xsize) + 0.5; */
+  /*         double y = ((int)(index / xsize)) + 0.5; */
+  /*         reflection_data[i] = image_data_[pixels[i]]; */
+  /*         reflection_mask[i] = image_data_[pixels[i]]; */
+  /*         reflection_pred[i] = image_pred_[pixels[i]]; */
+  /*         reflection_pnts[i] = vec3<double>(x, y, 0); */
+  /*       } */
+
+  /*       reflection_data_.push_back(reflection_data); */
+  /*       reflection_mask_.push_back(reflection_mask); */
+  /*       reflection_pred_.push_back(reflection_pred); */
+
+  /*       try { */
+
+  /*         // Compute the background */
+  /*         double B = compute_background( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         // Compute the intensity */
+  /*         vec2<double> IV = compute_intensity( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             B); */
+
+  /*         double I = IV[0]; */
+  /*         double V = IV[1]; */
+  /*         double S = compute_scale( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         vec3<double> xcal = compute_centroid( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+  /*         vec3<double> xobs = compute_centroid( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+  /*         background_.push_back(B); */
+  /*         intensity_.push_back(I); */
+  /*         variance_.push_back(V); */
+  /*         scale_.push_back(S); */
+  /*         success_.push_back(true); */
+  /*         //std::cout << "Success" << std::endl; */
+  /*       } catch (dials::error e) { */
+  /*         background_.push_back(-1); */
+  /*         intensity_.push_back(-1); */
+  /*         variance_.push_back(-1); */
+  /*         scale_.push_back(-1); */
+  /*         success_.push_back(false); */
+  /*         //std::cout << e.what() << std::endl; */
+  /*         continue; */
+  /*       } */
+  /*     } */
+  /*   } */
+
+  /*   vec3<double> compute_centroid( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       af::const_ref< vec3<double> > points) { */
+  /*     af::shared<double> v; */
+  /*     af::shared< vec3<double> > p; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         v.push_back(data[i]); */
+  /*         p.push_back(points[i]); */
+  /*       } */
+  /*     } */
+
+  /*     CentroidPoints<double, vec3<double> > centroid(v.const_ref(), p.const_ref()); */
+  /*     return centroid.mean(); */
+  /*   } */
+
+  /*   double compute_background( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask) const { */
+
+  /*     std::size_t min_pixels = 10; */
+  /*     double tuning_constant = 1.345; */
+  /*     std::size_t max_iter = 100; */
+
+  /*     // Compute number of background pixels */
+  /*     std::size_t num_background = 0; */
+  /*     int mask_code = Valid | Background; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         num_background++; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(num_background >= min_pixels); */
+
+  /*     // Allocate some arrays */
+  /*     af::shared<double> Y(num_background, 0); */
+  /*     std::size_t j = 0; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         DIALS_ASSERT(j < Y.size()); */
+  /*         DIALS_ASSERT(data[i] >= 0); */
+  /*         Y[j++] = data[i]; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(j == Y.size()); */
+
+  /*     // Compute the median value for the starting value */
+  /*     double median = detail::median(Y.const_ref()); */
+  /*     if (median == 0) { */
+  /*       median = 1.0; */
+  /*     } */
+
+  /*     // Compute the result */
+  /*     RobustPoissonMean result( */
+  /*         Y.const_ref(), */
+  /*         median, */
+  /*         tuning_constant, */
+  /*         1e-3, */
+  /*         max_iter); */
+  /*     DIALS_ASSERT(result.converged()); */
+
+  /*     // Compute the background */
+  /*     return result.mean(); */
+  /*   } */
+
+  /*   vec2<double> compute_intensity( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       double B) const { */
+
+  /*     std::size_t min_pixels = 1; */
+
+  /*     af::shared<double> background(data.size()); */
+  /*     for (std::size_t i = 0; i < background.size(); ++i) { */
+  /*       background[i] = B; */
+  /*     } */
+
+  /*     Summation<double> summation(data, background.const_ref(), mask); */
+
+
+  /*     DIALS_ASSERT(summation.n_signal() >= min_pixels); */
+
+  /*     return vec2<double>(summation.intensity(), summation.variance()); */
+  /*   } */
+
+  /*   double compute_scale( */
+  /*       af::const_ref<double> pred, */
+  /*       af::const_ref<int> mask) const { */
+  /*     double result = 0; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < pred.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         result += pred[i]; */
+  /*       } */
+  /*     } */
+  /*     return result; */
+  /*   } */
+
+  /*   af::versa< double, af::c_grid<2> > image_pred() const { */
+  /*     return image_pred_; */
+  /*   } */
+
+  /*   af::versa< double, af::c_grid<2> > image_data() const { */
+  /*     return image_data_; */
+  /*   } */
+
+  /*   af::versa< int, af::c_grid<2> > image_mask() const { */
+  /*     return image_mask_; */
+  /*   } */
+
+  /*   af::shared< double > pred(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_pred_.size()); */
+  /*     return reflection_pred_[index]; */
+  /*   } */
+
+  /*   af::shared< double > data(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_data_.size()); */
+  /*     return reflection_data_[index]; */
+  /*   } */
+
+  /*   af::shared< int > mask(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_mask_.size()); */
+  /*     return reflection_mask_[index]; */
+  /*   } */
+
+  /*   double background(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < background_.size()); */
+  /*     return background_[index]; */
+  /*   } */
+
+  /*   double intensity(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < intensity_.size()); */
+  /*     return intensity_[index]; */
+  /*   } */
+
+  /*   double variance(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < variance_.size()); */
+  /*     return variance_[index]; */
+  /*   } */
+
+  /*   double scale(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < scale_.size()); */
+  /*     return scale_[index]; */
+  /*   } */
+
+  /*   double success(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < success_.size()); */
+  /*     return success_[index]; */
+  /*   } */
+
+  /*   std::size_t size() const { */
+  /*     return intensity_.size(); */
+  /*   } */
+
+  /* protected: */
+
+  /*   typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> > LookupMap; */
+  /*   LookupMap lookup_; */
+
+  /*   af::versa< double, af::c_grid<2> > image_data_; */
+  /*   af::versa< int,    af::c_grid<2> > image_mask_; */
+  /*   af::versa< double, af::c_grid<2> > image_pred_; */
+
+  /*   af::shared< af::shared< double > > reflection_data_; */
+  /*   af::shared< af::shared< int    > > reflection_mask_; */
+  /*   af::shared< af::shared< double > > reflection_pred_; */
+
+  /*   af::shared< double > intensity_; */
+  /*   af::shared< double > variance_; */
+  /*   af::shared< double > background_; */
+  /*   af::shared< double > scale_; */
+  /*   af::shared< bool   > success_; */
+  /* }; */
+
+
+  /* class ModelOld2 { */
+  /* public: */
+
+  /*   ModelOld2( */
+  /*         const Beam &beam, */
+  /*         const Detector &detector, */
+  /*         const Crystal &crystal, */
+  /*         double mosaicity, */
+  /*         std::size_t num_sample, */
+  /*         const af::const_ref<int,af::c_grid<2> > &input_data, */
+  /*         const af::const_ref<bool,af::c_grid<2> > &input_mask, */
+  /*         af::reflection_table reflections) */
+  /*     : image_data_(input_data.accessor()), */
+  /*       image_mask_(input_mask.accessor()), */
+  /*       image_pred_(input_data.accessor()) { */
+
+  /*     // Check the input */
+  /*     DIALS_ASSERT(mosaicity > 0); */
+  /*     DIALS_ASSERT(num_sample > 0); */
+
+  /*     // Copy the mask and data arrays */
+  /*     std::copy(input_data.begin(), input_data.end(), image_data_.begin()); */
+  /*     std::copy(input_mask.begin(), input_mask.end(), image_mask_.begin()); */
+
+  /*     // Generate the pixel index lookup */
+  /*     generate_pixel_index_lookup(beam, detector, crystal); */
+
+  /*     // Generate reflection pixel model */
+  /*     generate_image_model(beam, detector, crystal, reflections, mosaicity, num_sample); */
+
+  /*     // Integrate reflections */
+  /*     integrate_reflections(); */
+
+  /*     /1* // Generate the image model *1/ */
+
+  /*     /1* // integrate the data *1/ */
+  /*     /1* integrate(); *1/ */
+  /*   } */
+
+  /*   void generate_pixel_index_lookup( */
+
+  /*         const Beam &beam, */
+  /*         const Detector &detector, */
+  /*         const Crystal &crystal) { */
+
+  /*     std::size_t xsize = detector[0].get_image_size()[0]; */
+  /*     std::size_t ysize = detector[0].get_image_size()[1]; */
+
+  /*     // Initialise the transform */
+  /*     PixelToMillerIndex transform(beam, detector, crystal); */
+
+  /*     for (std::size_t j = 0; j < ysize; ++j) { */
+  /*       for (std::size_t i = 0; i < xsize; ++i) { */
+
+  /*         // Map the corners of the pixel */
+  /*         vec3<double> h = transform.h(0, i+0.5, j+0.5); */
+
+  /*         // The integer miller index */
+  /*         vec3<double> h0( */
+  /*             std::floor(h[0] + 0.5), */
+  /*             std::floor(h[1] + 0.5), */
+  /*             std::floor(h[2] + 0.5)); */
+
+  /*         // Add a pixel to the lookup */
+  /*         lookup_[h0].push_back(i + j * xsize); */
+  /*       } */
+  /*     } */
+  /*   } */
+
+  /*   void generate_image_model( */
+  /*         const Beam &beam, */
+  /*         const Detector &detector, */
+  /*         const Crystal &crystal, */
+  /*         af::reflection_table reflections, */
+  /*         double mosaicity, */
+  /*         std::size_t num_sample) { */
+
+  /*     af::const_ref< cctbx::miller::index<> > miller_index = reflections["miller_index"]; */
+
+  /*     std::size_t xsize = detector[0].get_image_size()[0]; */
+  /*     std::size_t ysize = detector[0].get_image_size()[1]; */
+
+  /*     // Initialise the transform */
+  /*     PixelToMillerIndex transform(beam, detector, crystal); */
+
+  /*     // Compute the normal constant */
+  /*     double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity), 3); */
+
+  /*     for (std::size_t i = 0; i < miller_index.size(); ++i) { */
+
+  /*       vec3<double> h0( */
+  /*           miller_index[i][0], */
+  /*           miller_index[i][1], */
+  /*           miller_index[i][2]); */
+  /*       const std::vector<std::size_t> &pixels = lookup_[h0]; */
+
+  /*       // Extract pixels */
+  /*       af::shared<double> reflection_data(pixels.size()); */
+  /*       af::shared<double> reflection_pred(pixels.size()); */
+  /*       af::shared<int> reflection_mask(pixels.size()); */
+  /*       af::shared< vec3<double> > reflection_pnts(pixels.size()); */
+  /*       for (std::size_t k = 0; k < pixels.size(); ++k) { */
+  /*         int index = pixels[k]; */
+  /*         double i = (index % xsize) + 0.5; */
+  /*         double j = ((int)(index / xsize)) + 0.5; */
+
+  /*         // Map the corners of the pixel */
+  /*         vec3<double> A = transform.h(0, i, j); */
+  /*         vec3<double> B = transform.h(0, i+1, j); */
+  /*         vec3<double> C = transform.h(0, i, j+1); */
+  /*         vec3<double> D = transform.h(0, i+1, j+1); */
+  /*         vec3<double> E = transform.h(0, i+0.5, j+0.5); */
+
+  /*         // The distance from all corners */
+  /*         double distance_E = (E - h0).length(); */
+
+  /*         // Compute the approximate area of the pixel in reciprocal space */
+  /*         double area_abc = 0.5 * (B-A).cross(C-A).length(); */
+  /*         double area_bcd = 0.5 * (B-D).cross(C-D).length(); */
+  /*         double area = area_abc + area_bcd; */
+
+  /*         // Integrate the 3D normal distribution over the pixel */
+  /*         double sum_f = 0.0; */
+  /*         for (std::size_t jj = 0; jj < num_sample; ++jj) { */
+  /*           for (std::size_t ii = 0; ii < num_sample; ++ii) { */
+  /*             vec3<double> h = transform.h(0, */
+  /*                 i + ii / (double)num_sample, */
+  /*                 j + jj / (double)num_sample); */
+
+  /*             double distance = (h - h0).length(); */
+
+  /*             sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2)); */
+  /*           } */
+  /*         } */
+
+  /*         reflection_pnts[k] = vec3<double>(i, j, 0); */
+
+  /*         // Set pixel data */
+  /*         reflection_data[k] = image_data_[index]; */
+
+  /*         // Assign pixel as foreground or background depending on mosaicity */
+  /*         if (distance_E < 0.3) {//3 * mosaicity) { */
+  /*           reflection_mask[k] = image_mask_[index] | Foreground; */
+  /*         } else if (distance_E < 0.5) {// * mosaicity) { */
+  /*           reflection_mask[k] = image_mask_[index] | Background; */
+  /*         } */
+
+  /*         // Compute the predicted integrated intensity on the pixel */
+  /*         reflection_pred[k] = area * sum_f / (double)(num_sample * num_sample); */
+  /*       } */
+
+  /*       // Add to arrays */
+  /*       reflection_data_.push_back(reflection_data); */
+  /*       reflection_mask_.push_back(reflection_mask); */
+  /*       reflection_pred_.push_back(reflection_pred); */
+  /*       reflection_pnts_.push_back(reflection_pnts); */
+  /*     } */
+  /*   } */
+
+  /*   void integrate_reflections() { */
+
+  /*     typedef LookupMap::iterator iterator; */
+
+  /*     std::size_t xsize = image_data_.accessor()[1]; */
+  /*     std::size_t ysize = image_data_.accessor()[0]; */
+
+  /*     for (std::size_t i = 0; i < reflection_data_.size(); ++i) { */
+
+  /*       af::shared<double> reflection_data = reflection_data_[i]; */
+  /*       af::shared<double> reflection_pred = reflection_pred_[i]; */
+  /*       af::shared<int> reflection_mask = reflection_mask_[i]; */
+  /*       af::shared< vec3<double> > reflection_pnts = reflection_pnts_[i]; */
+
+  /*       try { */
+
+  /*         // Compute the background */
+  /*         double B = compute_background( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         // Compute the intensity */
+  /*         vec2<double> IV = compute_intensity( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             B); */
+
+  /*         double I = IV[0]; */
+  /*         double V = IV[1]; */
+  /*         double S = compute_scale( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref()); */
+
+  /*         vec3<double> xcal = compute_centroid( */
+  /*             reflection_pred.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+  /*         vec3<double> xobs = compute_centroid( */
+  /*             reflection_data.const_ref(), */
+  /*             reflection_mask.const_ref(), */
+  /*             reflection_pnts.const_ref()); */
+
+  /*         observed_.push_back(xobs); */
+  /*         predicted_.push_back(xcal); */
+  /*         background_.push_back(B); */
+  /*         intensity_.push_back(I); */
+  /*         variance_.push_back(V); */
+  /*         scale_.push_back(S); */
+  /*         success_.push_back(true); */
+  /*         //std::cout << "Success" << std::endl; */
+  /*       } catch (dials::error e) { */
+  /*         observed_.push_back(vec3<double>(-1,-1,-1)); */
+  /*         predicted_.push_back(vec3<double>(-1,-1,-1)); */
+  /*         background_.push_back(-1); */
+  /*         intensity_.push_back(-1); */
+  /*         variance_.push_back(-1); */
+  /*         scale_.push_back(-1); */
+  /*         success_.push_back(false); */
+  /*         //std::cout << e.what() << std::endl; */
+  /*         continue; */
+  /*       } */
+  /*     } */
+  /*   } */
+
+  /*   vec3<double> compute_centroid( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       af::const_ref< vec3<double> > points) { */
+  /*     af::shared<double> v; */
+  /*     af::shared< vec3<double> > p; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         v.push_back(data[i]); */
+  /*         p.push_back(points[i]); */
+  /*       } */
+  /*     } */
+
+  /*     CentroidPoints<double, vec3<double> > centroid(v.const_ref(), p.const_ref()); */
+  /*     return centroid.mean(); */
+  /*   } */
+
+  /*   double compute_background( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask) const { */
+
+  /*     std::size_t min_pixels = 10; */
+  /*     double tuning_constant = 1.345; */
+  /*     std::size_t max_iter = 100; */
+
+  /*     // Compute number of background pixels */
+  /*     std::size_t num_background = 0; */
+  /*     int mask_code = Valid | Background; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         num_background++; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(num_background >= min_pixels); */
+
+  /*     // Allocate some arrays */
+  /*     af::shared<double> Y(num_background, 0); */
+  /*     std::size_t j = 0; */
+  /*     for (std::size_t i = 0; i < mask.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         DIALS_ASSERT(j < Y.size()); */
+  /*         DIALS_ASSERT(data[i] >= 0); */
+  /*         Y[j++] = data[i]; */
+  /*       } */
+  /*     } */
+  /*     DIALS_ASSERT(j == Y.size()); */
+
+  /*     // Compute the median value for the starting value */
+  /*     double median = detail::median(Y.const_ref()); */
+  /*     if (median == 0) { */
+  /*       median = 1.0; */
+  /*     } */
+
+  /*     // Compute the result */
+  /*     RobustPoissonMean result( */
+  /*         Y.const_ref(), */
+  /*         median, */
+  /*         tuning_constant, */
+  /*         1e-3, */
+  /*         max_iter); */
+  /*     DIALS_ASSERT(result.converged()); */
+
+  /*     // Compute the background */
+  /*     return result.mean(); */
+  /*   } */
+
+  /*   vec2<double> compute_intensity( */
+  /*       af::const_ref<double> data, */
+  /*       af::const_ref<int> mask, */
+  /*       double B) const { */
+
+  /*     std::size_t min_pixels = 1; */
+
+  /*     af::shared<double> background(data.size()); */
+  /*     for (std::size_t i = 0; i < background.size(); ++i) { */
+  /*       background[i] = B; */
+  /*     } */
+
+  /*     Summation<double> summation(data, background.const_ref(), mask); */
+
+
+  /*     DIALS_ASSERT(summation.n_signal() >= min_pixels); */
+
+  /*     return vec2<double>(summation.intensity(), summation.variance()); */
+  /*   } */
+
+  /*   double compute_scale( */
+  /*       af::const_ref<double> pred, */
+  /*       af::const_ref<int> mask) const { */
+  /*     double result = 0; */
+  /*     int mask_code = Valid | Foreground; */
+  /*     for (std::size_t i = 0; i < pred.size(); ++i) { */
+  /*       if ((mask[i] & mask_code) == mask_code) { */
+  /*         result += pred[i]; */
+  /*       } */
+  /*     } */
+  /*     return result; */
+  /*   } */
+
+  /*   af::versa< double, af::c_grid<2> > image_pred() const { */
+  /*     return image_pred_; */
+  /*   } */
+
+  /*   af::versa< double, af::c_grid<2> > image_data() const { */
+  /*     return image_data_; */
+  /*   } */
+
+  /*   af::versa< int, af::c_grid<2> > image_mask() const { */
+  /*     return image_mask_; */
+  /*   } */
+
+  /*   af::shared< double > pred(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_pred_.size()); */
+  /*     return reflection_pred_[index]; */
+  /*   } */
+
+  /*   af::shared< double > data(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_data_.size()); */
+  /*     return reflection_data_[index]; */
+  /*   } */
+
+  /*   af::shared< int > mask(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < reflection_mask_.size()); */
+  /*     return reflection_mask_[index]; */
+  /*   } */
+
+  /*   vec3<double> observed(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < observed_.size()); */
+  /*     return observed_[index]; */
+  /*   } */
+
+  /*   vec3<double> predicted(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < predicted_.size()); */
+  /*     return predicted_[index]; */
+  /*   } */
+
+  /*   double background(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < background_.size()); */
+  /*     return background_[index]; */
+  /*   } */
+
+  /*   double intensity(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < intensity_.size()); */
+  /*     return intensity_[index]; */
+  /*   } */
+
+  /*   double variance(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < variance_.size()); */
+  /*     return variance_[index]; */
+  /*   } */
+
+  /*   double scale(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < scale_.size()); */
+  /*     return scale_[index]; */
+  /*   } */
+
+  /*   double success(std::size_t index) const { */
+  /*     DIALS_ASSERT(index < success_.size()); */
+  /*     return success_[index]; */
+  /*   } */
+
+  /*   std::size_t size() const { */
+  /*     return intensity_.size(); */
+  /*   } */
+
+  /* protected: */
+
+  /*   typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> > LookupMap; */
+  /*   LookupMap lookup_; */
+
+  /*   af::versa< double, af::c_grid<2> > image_data_; */
+  /*   af::versa< int,    af::c_grid<2> > image_mask_; */
+  /*   af::versa< double, af::c_grid<2> > image_pred_; */
+
+  /*   af::shared< af::shared< double > > reflection_data_; */
+  /*   af::shared< af::shared< int    > > reflection_mask_; */
+  /*   af::shared< af::shared< double > > reflection_pred_; */
+  /*   af::shared< af::shared< vec3<double> > > reflection_pnts_; */
+
+  /*   af::shared< vec3<double> > observed_; */
+  /*   af::shared< vec3<double> > predicted_; */
+  /*   af::shared< double > intensity_; */
+  /*   af::shared< double > variance_; */
+  /*   af::shared< double > background_; */
+  /*   af::shared< double > scale_; */
+  /*   af::shared< bool   > success_; */
+  /* }; */
+
+
+
+  class Model {
   public:
 
-    Simulator(
-        const Beam &beam,
-        const Detector &detector,
-        const Crystal &crystal,
-        double mosaicity,
-        std::size_t num_sample,
-        const af::const_ref<int,af::c_grid<2> > &data,
-        const af::const_ref<bool,af::c_grid<2> > &input_mask) {
+    typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> > LookupMap;
 
-      DIALS_ASSERT(mosaicity > 0);
-      DIALS_ASSERT(num_sample > 0);
-
-      std::size_t xsize = detector[0].get_image_size()[0];
-      std::size_t ysize = detector[0].get_image_size()[1];
-
-      model_ = af::versa< double, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0);
-      mask_ = af::versa< int, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0);
-      labels_ = af::versa< int, af::c_grid<2> >(af::c_grid<2>(ysize, xsize), 0);
-
-      std::map< cctbx::miller::index<>, std::vector<std::size_t> > index_pixel_map;
-
-      // Initialise the transform
-      PixelToMillerIndex transform(beam, detector, crystal);
-
-      // Compute the normal constant
-      double K = std::pow((1.0 / std::sqrt(2*pi) * mosaicity), 3);
-
-      for (std::size_t j = 0; j < ysize; ++j) {
-        for (std::size_t i = 0; i < xsize; ++i) {
-
-          // Map the corners of the pixel
-          vec3<double> A = transform.h(0, i, j);
-          vec3<double> B = transform.h(0, i+1, j);
-          vec3<double> C = transform.h(0, i, j+1);
-          vec3<double> D = transform.h(0, i+1, j+1);
-          vec3<double> E = transform.h(0, i+0.5, j+0.5);
-
-          // The integer miller index
-          vec3<double> h0(
-              std::floor(E[0] + 0.5),
-              std::floor(E[1] + 0.5),
-              std::floor(E[2] + 0.5));
-
-          // The distance from all corners
-          double distance_E = (E - h0).length();
-
-          // Compute the approximate area of the pixel in reciprocal space
-          double area_abc = 0.5 * (B-A).cross(C-A).length();
-          double area_bcd = 0.5 * (B-D).cross(C-D).length();
-          double area = area_abc + area_bcd;
-
-          // Integrate the 3D normal distribution over the pixel
-          double sum_f = 0.0;
-          for (std::size_t jj = 0; jj < num_sample; ++jj) {
-            for (std::size_t ii = 0; ii < num_sample; ++ii) {
-              vec3<double> h = transform.h(0,
-                  i + ii / (double)num_sample,
-                  j + jj / (double)num_sample);
-
-              double distance = (h - h0).length();
-
-              sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2));
-            }
-          }
-
-          if (input_mask(j,i)) {
-            mask_(j,i) = Valid;
-          }
-
-          if (distance_E < 3 * mosaicity) {
-            mask_(j,i) |= Foreground;
-          } else if (distance_E < 6 * mosaicity) {
-            mask_(j,i) |= Background;
-          }
-
-          model_(j,i) = area * sum_f / (double)(num_sample * num_sample);
-          index_pixel_map[h0].push_back(i + j * xsize);
-        }
-      }
-
-      typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> >::iterator iterator;
-      /* std::size_t count = 0; */
-      /* for (iterator it = index_pixel_map.begin(); it != index_pixel_map.end(); ++it) { */
-      /*   indices_.push_back(it->first); */
-      /*   for (std::vector<std::size_t>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) { */
-      /*     labels_[*it2] = count; */
-      /*   } */
-
-      /*   count += 1; */
-      /* } */
-
-      af::shared< cctbx::miller::index<> > miller_index;
-      af::shared< double> intensity;
-      af::shared< double> variance;
-      af::shared< double> scale;
-      af::shared< int> flags;
-      af::shared< vec3<double> > xyzcal;
-      af::shared< vec3<double> > xyzobs;
-
-
-      for (iterator it = index_pixel_map.begin(); it != index_pixel_map.end(); ++it) {
-
-        cctbx::miller::index<> h = it->first;
-        const std::vector<std::size_t> &pixels = it->second;
-
-        // Extract pixels
-        af::shared<double> reflection_data(pixels.size());
-        af::shared<double> reflection_pred(pixels.size());
-        af::shared<int> reflection_mask(pixels.size());
-        af::shared< vec3<double> > reflection_pnts(pixels.size());
-        for (std::size_t i = 0; i < pixels.size(); ++i) {
-          int index = pixels[i];
-          double x = (index % xsize) + 0.5;
-          double y = ((int)(index / xsize)) + 0.5;
-          reflection_data[i] = data[pixels[i]];
-          reflection_mask[i] = mask_[pixels[i]];
-          reflection_pred[i] = model_[pixels[i]];
-          reflection_pnts[i] = vec3<double>(x, y, 0);
-        }
-
-        try {
-
-          // Compute the background
-          double B = compute_background(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref());
-
-          // Compute the intensity
-          vec2<double> IV = compute_intensity(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref(),
-              B);
-
-          double I = IV[0];
-          double V = IV[1];
-          double S = compute_scale(
-              reflection_pred.const_ref(),
-              reflection_mask.const_ref());
-
-          vec3<double> xcal = compute_centroid(
-              reflection_pred.const_ref(),
-              reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
-
-          vec3<double> xobs = compute_centroid(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
-
-
-          miller_index.push_back(h);
-          intensity.push_back(I);
-          variance.push_back(V);
-          scale.push_back(S);
-          flags.push_back(af::IntegratedSum);
-          xyzcal.push_back(xcal);
-          xyzobs.push_back(xobs);
-        } catch (dials::error e) {
-          std::cout << e.what() << std::endl;
-          continue;
-        }
-      }
-
-      DIALS_ASSERT(miller_index.size() == intensity.size());
-      DIALS_ASSERT(miller_index.size() == variance.size());
-      DIALS_ASSERT(miller_index.size() == scale.size());
-      DIALS_ASSERT(miller_index.size() == flags.size());
-      DIALS_ASSERT(miller_index.size() == xyzcal.size());
-      DIALS_ASSERT(miller_index.size() == xyzobs.size());
-      DIALS_ASSERT(reflections_.size() == 0);
-
-      reflections_.resize(miller_index.size());
-      reflections_["id"] = af::shared<std::size_t>(miller_index.size(), 0);
-      reflections_["panel"] = af::shared<std::size_t>(miller_index.size(), 0);
-      reflections_["miller_index"] = miller_index;
-      reflections_["intensity.sum.value"] = intensity;
-      reflections_["intensity.sum.variance"] = variance;
-      reflections_["intensity.scale"] = scale;
-      reflections_["flags"] = flags;
-      reflections_["xyzcal.px"] = xyzcal;
-      reflections_["xyzobs.px.value"] = xyzobs;
-    }
-
-    vec3<double> compute_centroid(
-        af::const_ref<double> data,
-        af::const_ref<int> mask,
-        af::const_ref< vec3<double> > points) {
-      af::shared<double> v;
-      af::shared< vec3<double> > p;
-      int mask_code = Valid | Foreground;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          v.push_back(data[i]);
-          p.push_back(points[i]);
-        }
-      }
-
-      CentroidPoints<double, vec3<double> > centroid(v.const_ref(), p.const_ref());
-      return centroid.mean();
-    }
-
-    double compute_background(
-        af::const_ref<double> data,
-        af::const_ref<int> mask) const {
-
-      std::size_t min_pixels = 10;
-      double tuning_constant = 1.345;
-      std::size_t max_iter = 100;
-
-      // Compute number of background pixels
-      std::size_t num_background = 0;
-      int mask_code = Valid | Background;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          num_background++;
-        }
-      }
-      DIALS_ASSERT(num_background >= min_pixels);
-
-      // Allocate some arrays
-      af::shared<double> Y(num_background, 0);
-      std::size_t j = 0;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          DIALS_ASSERT(j < Y.size());
-          DIALS_ASSERT(data[i] >= 0);
-          Y[j++] = data[i];
-        }
-      }
-      DIALS_ASSERT(j == Y.size());
-
-      // Compute the median value for the starting value
-      double median = detail::median(Y.const_ref());
-      if (median == 0) {
-        median = 1.0;
-      }
-
-      // Compute the result
-      RobustPoissonMean result(
-          Y.const_ref(),
-          median,
-          tuning_constant,
-          1e-3,
-          max_iter);
-      DIALS_ASSERT(result.converged());
-
-      // Compute the background
-      return result.mean();
-    }
-
-    vec2<double> compute_intensity(
-        af::const_ref<double> data,
-        af::const_ref<int> mask,
-        double B) const {
-
-      std::size_t min_pixels = 1;
-
-      af::shared<double> background(data.size());
-      for (std::size_t i = 0; i < background.size(); ++i) {
-        background[i] = B;
-      }
-
-      Summation<double> summation(data, background.const_ref(), mask);
-
-
-      DIALS_ASSERT(summation.n_signal() >= min_pixels);
-
-      return vec2<double>(summation.intensity(), summation.variance());
-    }
-
-    double compute_scale(
-        af::const_ref<double> pred,
-        af::const_ref<int> mask) const {
-      double result = 0;
-      int mask_code = Valid | Foreground;
-      for (std::size_t i = 0; i < pred.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          result += pred[i];
-        }
-      }
-      return result;
-    }
-
-    af::versa< double, af::c_grid<2> > model() const {
-      return model_;
-    }
-
-    af::versa< int, af::c_grid<2> > mask() const {
-      return mask_;
-    }
-
-    af::versa< int, af::c_grid<2> > labels() const {
-      return labels_;
-    }
-
-    af::shared< cctbx::miller::index<> > indices() const {
-      return indices_;
-    }
-
-    af::reflection_table reflections() const {
-      return reflections_;
-    }
-
-  protected:
-
-    af::versa< double, af::c_grid<2> > model_;
-    af::versa< int, af::c_grid<2> > mask_;
-    af::versa< int, af::c_grid<2> > labels_;
-    af::shared< cctbx::miller::index<> > indices_;
-    af::reflection_table reflections_;
-  };
-
-
-  class ModelOld {
-  public:
-
-    ModelOld(
+    Model(
           const Beam &beam,
           const Detector &detector,
           const Crystal &crystal,
-          double mosaicity,
-          std::size_t num_sample,
+          af::reflection_table reflections,
           const af::const_ref<int,af::c_grid<2> > &input_data,
-          const af::const_ref<bool,af::c_grid<2> > &input_mask)
-      : image_data_(input_data.accessor()),
+          const af::const_ref<bool,af::c_grid<2> > &input_mask,
+          double mosaicity,
+          double foreground_limit,
+          double background_limit,
+          std::size_t num_samples,
+          bool predict_all)
+      : beam_(beam),
+        detector_(detector),
+        crystal_(crystal),
+        reflections_(reflections),
+        image_data_(input_data.accessor()),
         image_mask_(input_mask.accessor()),
-        image_pred_(input_data.accessor()) {
+        mosaicity_(mosaicity),
+        foreground_limit_(foreground_limit),
+        background_limit_(background_limit),
+        num_samples_(num_samples),
+        predict_all_(predict_all),
+        update_pixel_lookup_(true),
+        update_image_model_(true),
+        update_reflection_data_(true),
+        first_(true) {
 
       // Check the input
+      if (predict_all) {
+        DIALS_ASSERT(reflections.size() == 0);
+      } else {
+        DIALS_ASSERT(reflections.size() > 0);
+      }
+
       DIALS_ASSERT(mosaicity > 0);
-      DIALS_ASSERT(num_sample > 0);
+      DIALS_ASSERT(foreground_limit_ > 0);
+      DIALS_ASSERT(background_limit_ > foreground_limit_);
+      DIALS_ASSERT(num_samples > 0);
+      DIALS_ASSERT(input_data.accessor().all_eq(input_mask.accessor()));
+      DIALS_ASSERT(detector.size() == 1);
+      DIALS_ASSERT(detector[0].get_image_size()[0] == input_data.accessor()[1]);
+      DIALS_ASSERT(detector[0].get_image_size()[1] == input_data.accessor()[0]);
 
       // Copy the mask and data arrays
       std::copy(input_data.begin(), input_data.end(), image_data_.begin());
       std::copy(input_mask.begin(), input_mask.end(), image_mask_.begin());
-
-      // Generate the image model
-      generate_image_model(beam, detector, crystal, mosaicity, num_sample);
-
-      // integrate the data
-      integrate();
     }
 
-    void generate_image_model(
-          const Beam &beam,
-          const Detector &detector,
-          const Crystal &crystal,
-          double mosaicity,
-          std::size_t num_sample) {
-
-      std::size_t xsize = detector[0].get_image_size()[0];
-      std::size_t ysize = detector[0].get_image_size()[1];
-
-      // Initialise the transform
-      PixelToMillerIndex transform(beam, detector, crystal);
-
-      // Compute the normal constant
-      double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity), 3);
-
-      for (std::size_t j = 0; j < ysize; ++j) {
-        for (std::size_t i = 0; i < xsize; ++i) {
-
-          // Map the corners of the pixel
-          vec3<double> A = transform.h(0, i, j);
-          vec3<double> B = transform.h(0, i+1, j);
-          vec3<double> C = transform.h(0, i, j+1);
-          vec3<double> D = transform.h(0, i+1, j+1);
-          vec3<double> E = transform.h(0, i+0.5, j+0.5);
-
-          // The integer miller index
-          vec3<double> h0(
-              std::floor(E[0] + 0.5),
-              std::floor(E[1] + 0.5),
-              std::floor(E[2] + 0.5));
-
-          // The distance from all corners
-          double distance_E = (E - h0).length();
-
-          // Compute the approximate area of the pixel in reciprocal space
-          double area_abc = 0.5 * (B-A).cross(C-A).length();
-          double area_bcd = 0.5 * (B-D).cross(C-D).length();
-          double area = area_abc + area_bcd;
-
-          // Integrate the 3D normal distribution over the pixel
-          double sum_f = 0.0;
-          for (std::size_t jj = 0; jj < num_sample; ++jj) {
-            for (std::size_t ii = 0; ii < num_sample; ++ii) {
-              vec3<double> h = transform.h(0,
-                  i + ii / (double)num_sample,
-                  j + jj / (double)num_sample);
-
-              double distance = (h - h0).length();
-
-              sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2));
-            }
-          }
-
-          // Assign pixel as foreground or background depending on mosaicity
-          if (distance_E < 3 * mosaicity) {
-            image_mask_(j,i) |= Foreground;
-          } else if (distance_E < 6 * mosaicity) {
-            image_mask_(j,i) |= Background;
-          }
-
-          // Compute the predicted integrated intensity on the pixel
-          image_pred_(j,i) = area * sum_f / (double)(num_sample * num_sample);
-
-          // Add a pixel to the lookup
-          lookup_[h0].push_back(i + j * xsize);
-        }
-      }
+    Beam get_beam() const {
+      return beam_;
     }
 
-    void integrate() {
-
-      typedef LookupMap::iterator iterator;
-
-      std::size_t xsize = image_data_.accessor()[1];
-      std::size_t ysize = image_data_.accessor()[0];
-
-      for (iterator it = lookup_.begin(); it != lookup_.end(); ++it) {
-
-        cctbx::miller::index<> h = it->first;
-        const std::vector<std::size_t> &pixels = it->second;
-
-        // Extract pixels
-        af::shared<double> reflection_data(pixels.size());
-        af::shared<double> reflection_pred(pixels.size());
-        af::shared<int> reflection_mask(pixels.size());
-        af::shared< vec3<double> > reflection_pnts(pixels.size());
-        for (std::size_t i = 0; i < pixels.size(); ++i) {
-          int index = pixels[i];
-          double x = (index % xsize) + 0.5;
-          double y = ((int)(index / xsize)) + 0.5;
-          reflection_data[i] = image_data_[pixels[i]];
-          reflection_mask[i] = image_data_[pixels[i]];
-          reflection_pred[i] = image_pred_[pixels[i]];
-          reflection_pnts[i] = vec3<double>(x, y, 0);
-        }
-
-        reflection_data_.push_back(reflection_data);
-        reflection_mask_.push_back(reflection_mask);
-        reflection_pred_.push_back(reflection_pred);
-
-        try {
-
-          // Compute the background
-          double B = compute_background(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref());
-
-          // Compute the intensity
-          vec2<double> IV = compute_intensity(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref(),
-              B);
-
-          double I = IV[0];
-          double V = IV[1];
-          double S = compute_scale(
-              reflection_pred.const_ref(),
-              reflection_mask.const_ref());
-
-          vec3<double> xcal = compute_centroid(
-              reflection_pred.const_ref(),
-              reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
-
-          vec3<double> xobs = compute_centroid(
-              reflection_data.const_ref(),
-              reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
-
-          background_.push_back(B);
-          intensity_.push_back(I);
-          variance_.push_back(V);
-          scale_.push_back(S);
-          success_.push_back(true);
-          //std::cout << "Success" << std::endl;
-        } catch (dials::error e) {
-          background_.push_back(-1);
-          intensity_.push_back(-1);
-          variance_.push_back(-1);
-          scale_.push_back(-1);
-          success_.push_back(false);
-          //std::cout << e.what() << std::endl;
-          continue;
-        }
-      }
+    void set_beam(const Beam &beam) {
+      beam_ = beam;
+      update_pixel_lookup_ = true;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
     }
 
-    vec3<double> compute_centroid(
-        af::const_ref<double> data,
-        af::const_ref<int> mask,
-        af::const_ref< vec3<double> > points) {
-      af::shared<double> v;
-      af::shared< vec3<double> > p;
-      int mask_code = Valid | Foreground;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          v.push_back(data[i]);
-          p.push_back(points[i]);
-        }
-      }
-
-      CentroidPoints<double, vec3<double> > centroid(v.const_ref(), p.const_ref());
-      return centroid.mean();
+    Detector get_detector() const {
+      return detector_;
     }
 
-    double compute_background(
-        af::const_ref<double> data,
-        af::const_ref<int> mask) const {
-
-      std::size_t min_pixels = 10;
-      double tuning_constant = 1.345;
-      std::size_t max_iter = 100;
-
-      // Compute number of background pixels
-      std::size_t num_background = 0;
-      int mask_code = Valid | Background;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          num_background++;
-        }
-      }
-      DIALS_ASSERT(num_background >= min_pixels);
-
-      // Allocate some arrays
-      af::shared<double> Y(num_background, 0);
-      std::size_t j = 0;
-      for (std::size_t i = 0; i < mask.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          DIALS_ASSERT(j < Y.size());
-          DIALS_ASSERT(data[i] >= 0);
-          Y[j++] = data[i];
-        }
-      }
-      DIALS_ASSERT(j == Y.size());
-
-      // Compute the median value for the starting value
-      double median = detail::median(Y.const_ref());
-      if (median == 0) {
-        median = 1.0;
-      }
-
-      // Compute the result
-      RobustPoissonMean result(
-          Y.const_ref(),
-          median,
-          tuning_constant,
-          1e-3,
-          max_iter);
-      DIALS_ASSERT(result.converged());
-
-      // Compute the background
-      return result.mean();
+    void set_detector(const Detector &detector) {
+      DIALS_ASSERT(detector[0].get_image_size().all_eq(detector_[0].get_image_size()));
+      detector_ = detector;
+      update_pixel_lookup_ = true;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
     }
 
-    vec2<double> compute_intensity(
-        af::const_ref<double> data,
-        af::const_ref<int> mask,
-        double B) const {
-
-      std::size_t min_pixels = 1;
-
-      af::shared<double> background(data.size());
-      for (std::size_t i = 0; i < background.size(); ++i) {
-        background[i] = B;
-      }
-
-      Summation<double> summation(data, background.const_ref(), mask);
-
-
-      DIALS_ASSERT(summation.n_signal() >= min_pixels);
-
-      return vec2<double>(summation.intensity(), summation.variance());
+    Crystal get_crystal() const {
+      return crystal_;
     }
 
-    double compute_scale(
-        af::const_ref<double> pred,
-        af::const_ref<int> mask) const {
-      double result = 0;
-      int mask_code = Valid | Foreground;
-      for (std::size_t i = 0; i < pred.size(); ++i) {
-        if ((mask[i] & mask_code) == mask_code) {
-          result += pred[i];
-        }
-      }
-      return result;
+    void set_crystal(const Crystal &crystal) {
+      crystal_ = crystal;
+      update_pixel_lookup_ = true;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
     }
 
-    af::versa< double, af::c_grid<2> > image_pred() const {
-      return image_pred_;
+    af::reflection_table get_reflections() const {
+      return reflections_;
     }
 
-    af::versa< double, af::c_grid<2> > image_data() const {
+    void set_reflections(const af::reflection_table &reflections) {
+      reflections_ = reflections;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    af::versa< int, af::c_grid<2> > get_image_data() const {
       return image_data_;
     }
 
-    af::versa< int, af::c_grid<2> > image_mask() const {
+    void set_image_data(const af::const_ref<int, af::c_grid<2> > &image_data) {
+      DIALS_ASSERT(image_data.accessor().all_eq(image_data_.accessor()));
+      std::copy(image_data.begin(), image_data.end(), image_data_.begin());
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    af::versa< int, af::c_grid<2> > get_image_mask() const {
       return image_mask_;
+    }
+
+    void set_image_mask(const af::const_ref<int, af::c_grid<2> > &image_mask) {
+      DIALS_ASSERT(image_mask.accessor().all_eq(image_mask_.accessor()));
+      std::copy(image_mask.begin(), image_mask.end(), image_mask_.begin());
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    double get_mosaicity() const {
+      return mosaicity_;
+    }
+
+    void set_mosaicity(const double &mosaicity) {
+      mosaicity_ = mosaicity;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    double get_foreground_limit() const {
+      return foreground_limit_;
+    }
+
+    void set_foreground_limit(const double &foreground_limit) {
+      foreground_limit_ = foreground_limit;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    double get_background_limit() const {
+      return background_limit_;
+    }
+
+    void set_background_limit(const double &background_limit) {
+      background_limit_ = background_limit;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    double get_num_samples() const {
+      return num_samples_;
+    }
+
+    void set_num_samples(const double &num_samples) {
+      num_samples_ = num_samples;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
     }
 
     af::shared< double > pred(std::size_t index) const {
@@ -667,111 +1309,218 @@ namespace dials { namespace algorithms { namespace boost_python {
       return reflection_mask_[index];
     }
 
-    double background(std::size_t index) const {
-      DIALS_ASSERT(index < background_.size());
-      return background_[index];
+    af::shared< vec3<double> > observed() const {
+      return observed_;
     }
 
-    double intensity(std::size_t index) const {
-      DIALS_ASSERT(index < intensity_.size());
-      return intensity_[index];
+    af::shared< vec3<double> > predicted() const {
+      return predicted_;
     }
 
-    double variance(std::size_t index) const {
-      DIALS_ASSERT(index < variance_.size());
-      return variance_[index];
+    af::shared<double> background() const {
+      return background_;
     }
 
-    double scale(std::size_t index) const {
-      DIALS_ASSERT(index < scale_.size());
-      return scale_[index];
+    af::shared<double> intensity() const {
+      return intensity_;
     }
 
-    double success(std::size_t index) const {
-      DIALS_ASSERT(index < success_.size());
-      return success_[index];
+    af::shared<double> variance() const {
+      return variance_;
+    }
+
+    af::shared<std::size_t> num_foreground() const {
+      return num_foreground_;
+    }
+
+    af::shared<std::size_t> num_background() const {
+      return num_background_;
+    }
+
+    af::shared<double> scale() const {
+      return scale_;
+    }
+
+    af::shared<bool> success() const {
+      return success_;
+    }
+
+    af::shared< Shoebox<> > shoebox() const {
+
+      af::shared< Shoebox<> > result(reflections_.size());
+
+      for (std::size_t l = 0; l < reflection_mask_.size(); ++l) {
+
+        // Get the reflection pixel information
+        af::const_ref< vec3<int> > pnts = reflection_pnts_[l].const_ref();
+        af::const_ref< double >    data = reflection_data_[l].const_ref();
+        af::const_ref< int >       mask = reflection_mask_[l].const_ref();
+
+        // Compute the bounding box
+        DIALS_ASSERT(pnts.size() > 0);
+        int x0 = pnts[0][0];
+        int x1 = pnts[0][0]+1;
+        int y0 = pnts[0][1];
+        int y1 = pnts[0][1]+1;
+        for (std::size_t i = 1; i < pnts.size(); ++i) {
+          if (pnts[i][0] < x0)  x0 = pnts[i][0];
+          if (pnts[i][0] >= x1) x1 = pnts[i][0] + 1;
+          if (pnts[i][1] < y0)  y0 = pnts[i][1];
+          if (pnts[i][1] >= y1) y1 = pnts[i][1] + 1;
+        }
+        DIALS_ASSERT(x0 < x1);
+        DIALS_ASSERT(y0 < y1);
+        int6 bbox(x0, x1, y0, y1, 0, 1);
+
+        // Allocate the shoebox
+        Shoebox<> sbox(0, bbox);
+        sbox.allocate();
+
+        // Fill the shobox
+        for (std::size_t i = 1; i < pnts.size(); ++i) {
+          int x = pnts[i][0];
+          int y = pnts[i][1];
+          int ii = x - x0;
+          int jj = y - y0;
+          DIALS_ASSERT(ii >= 0 && ii < sbox.data.accessor()[2]);
+          DIALS_ASSERT(jj >= 0 && jj < sbox.data.accessor()[1]);
+          sbox.data(0, jj,ii) = data[i];
+          sbox.mask(0, jj,ii) = mask[i];
+          sbox.background(0, jj,ii) = background_[l];
+        }
+
+        result[l] = sbox;
+      }
+
+      // Return the shoebox
+      return result;
     }
 
     std::size_t size() const {
       return intensity_.size();
     }
 
-  protected:
-
-    typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> > LookupMap;
-    LookupMap lookup_;
-
-    af::versa< double, af::c_grid<2> > image_data_;
-    af::versa< int,    af::c_grid<2> > image_mask_;
-    af::versa< double, af::c_grid<2> > image_pred_;
-
-    af::shared< af::shared< double > > reflection_data_;
-    af::shared< af::shared< int    > > reflection_mask_;
-    af::shared< af::shared< double > > reflection_pred_;
-
-    af::shared< double > intensity_;
-    af::shared< double > variance_;
-    af::shared< double > background_;
-    af::shared< double > scale_;
-    af::shared< bool   > success_;
-  };
-
-
-  class Model {
-  public:
-
-    Model(
-          const Beam &beam,
-          const Detector &detector,
-          const Crystal &crystal,
-          double mosaicity,
-          std::size_t num_sample,
-          const af::const_ref<int,af::c_grid<2> > &input_data,
-          const af::const_ref<bool,af::c_grid<2> > &input_mask,
-          af::reflection_table reflections)
-      : image_data_(input_data.accessor()),
-        image_mask_(input_mask.accessor()),
-        image_pred_(input_data.accessor()) {
-
-      // Check the input
-      DIALS_ASSERT(mosaicity > 0);
-      DIALS_ASSERT(num_sample > 0);
-
-      // Copy the mask and data arrays
-      std::copy(input_data.begin(), input_data.end(), image_data_.begin());
-      std::copy(input_mask.begin(), input_mask.end(), image_mask_.begin());
+    void update(bool pixel_lookup = true) {
 
       // Generate the pixel index lookup
-      generate_pixel_index_lookup(beam, detector, crystal);
+      if (update_pixel_lookup_ && (pixel_lookup || first_)) {
+        generate_pixel_index_lookup();
+        update_pixel_lookup_ = false;
+        update_image_model_ = true;
+      }
 
       // Generate reflection pixel model
-      generate_image_model(beam, detector, crystal, reflections, mosaicity, num_sample);
+      if (update_image_model_) {
+        generate_image_model();
+        update_image_model_ = false;
+        update_reflection_data_ = true;
+      }
 
       // Integrate reflections
-      integrate_reflections();
+      if (update_reflection_data_) {
+        integrate_reflections();
+        update_reflection_data_ = false;
+      }
 
-      /* // Generate the image model */
-
-      /* // integrate the data */
-      /* integrate(); */
+      // Unset the first flag
+      first_ = false;
     }
 
-    void generate_pixel_index_lookup(
+    double least_squares_score() const {
 
-          const Beam &beam,
-          const Detector &detector,
-          const Crystal &crystal) {
+      int mask_code = Valid | Foreground;
 
-      std::size_t xsize = detector[0].get_image_size()[0];
-      std::size_t ysize = detector[0].get_image_size()[1];
+      double score = 0;
+
+      for (std::size_t i = 0; i < intensity_.size(); ++i) {
+
+        double B = background_[i];
+        double I = intensity_[i];
+        double V = variance_[i];
+        double S = scale_[i];
+        bool T = success_[i];
+
+        if (T && I > 0 && S > 0 && V > 0) {
+
+          double P = I / S;
+
+          af::const_ref< double > c = reflection_data_[i].const_ref();
+          af::const_ref< int>     m = reflection_mask_[i].const_ref();
+          af::const_ref< double > p = reflection_pred_[i].const_ref();
+
+          DIALS_ASSERT(c.size() == m.size());
+          DIALS_ASSERT(c.size() == p.size());
+
+          for (std::size_t j = 0; j < c.size(); ++j) {
+            if ((m[j] & mask_code) == mask_code) {
+              score += std::pow(c[j] - (B + P*p[j]), 2);
+            }
+          }
+        }
+      }
+
+      return score;
+    }
+
+    double maximum_likelihood_score() const {
+
+      const double TINY = 1e-20;
+
+      int mask_code = Valid | Foreground;
+
+      double score = 0;
+
+      for (std::size_t i = 0; i < intensity_.size(); ++i) {
+
+        double B = background_[i];
+        double I = intensity_[i];
+        double V = variance_[i];
+        double S = scale_[i];
+        bool T = success_[i];
+
+        if (T && I > 0 && S > 0 && V > 0) {
+
+          double P = I / S;
+
+          af::const_ref< double > c = reflection_data_[i].const_ref();
+          af::const_ref< int>     m = reflection_mask_[i].const_ref();
+          af::const_ref< double > p = reflection_pred_[i].const_ref();
+
+          DIALS_ASSERT(c.size() == m.size());
+          DIALS_ASSERT(c.size() == p.size());
+
+          for (std::size_t j = 0; j < c.size(); ++j) {
+            if ((m[j] & mask_code) == mask_code) {
+              double v = B + P*p[j];
+              if (v < TINY) {
+                v = TINY;
+              }
+              score += c[j] * std::log(v) - v;
+            }
+          }
+        }
+      }
+
+      return score;
+    }
+
+  protected:
+
+    void generate_pixel_index_lookup() {
 
       // Initialise the transform
-      PixelToMillerIndex transform(beam, detector, crystal);
+      PixelToMillerIndex transform(beam_, detector_, crystal_);
+
+      // Clear the map
+      lookup_.clear();
+
+      std::size_t xsize = detector_[0].get_image_size()[0];
+      std::size_t ysize = detector_[0].get_image_size()[1];
 
       for (std::size_t j = 0; j < ysize; ++j) {
         for (std::size_t i = 0; i < xsize; ++i) {
 
-          // Map the corners of the pixel
+          // Map the centre of the pixel
           vec3<double> h = transform.h(0, i+0.5, j+0.5);
 
           // The integer miller index
@@ -784,44 +1533,56 @@ namespace dials { namespace algorithms { namespace boost_python {
           lookup_[h0].push_back(i + j * xsize);
         }
       }
+
+      // If predict all is set then fill the reflection table miller indices
+      if (predict_all_) {
+
+        af::shared< cctbx::miller::index<> > miller_indices;
+        for (LookupMap::iterator it = lookup_.begin(); it != lookup_.end(); ++it) {
+          miller_indices.push_back(it->first);
+        }
+
+        // Clear current stuff and add new miller indices
+        reflections_.clear();
+        reflections_.resize(miller_indices.size());
+        reflections_["miller_index"] = miller_indices;
+      }
     }
 
-    void generate_image_model(
-          const Beam &beam,
-          const Detector &detector,
-          const Crystal &crystal,
-          af::reflection_table reflections,
-          double mosaicity,
-          std::size_t num_sample) {
+    void generate_image_model() {
 
-      af::const_ref< cctbx::miller::index<> > miller_index = reflections["miller_index"];
+      af::const_ref< cctbx::miller::index<> > miller_index = reflections_["miller_index"];
 
-      std::size_t xsize = detector[0].get_image_size()[0];
-      std::size_t ysize = detector[0].get_image_size()[1];
+      std::size_t xsize = detector_[0].get_image_size()[0];
 
       // Initialise the transform
-      PixelToMillerIndex transform(beam, detector, crystal);
+      PixelToMillerIndex transform(beam_, detector_, crystal_);
 
       // Compute the normal constant
-      double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity), 3);
+      double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity_), 3);
 
-      for (std::size_t i = 0; i < miller_index.size(); ++i) {
+      // Resize the arrays
+      reflection_pnts_ = af::shared< af::shared< vec3<int> > >(miller_index.size());
+      reflection_data_ = af::shared< af::shared<double> >(miller_index.size());
+      reflection_pred_ = af::shared< af::shared<double> >(miller_index.size());
+      reflection_mask_ = af::shared< af::shared<int> >(miller_index.size());
+      for (std::size_t l = 0; l < miller_index.size(); ++l) {
 
         vec3<double> h0(
-            miller_index[i][0],
-            miller_index[i][1],
-            miller_index[i][2]);
+            miller_index[l][0],
+            miller_index[l][1],
+            miller_index[l][2]);
         const std::vector<std::size_t> &pixels = lookup_[h0];
 
         // Extract pixels
         af::shared<double> reflection_data(pixels.size());
         af::shared<double> reflection_pred(pixels.size());
         af::shared<int> reflection_mask(pixels.size());
-        af::shared< vec3<double> > reflection_pnts(pixels.size());
+        af::shared< vec3<int> > reflection_pnts(pixels.size());
         for (std::size_t k = 0; k < pixels.size(); ++k) {
           int index = pixels[k];
-          double i = (index % xsize) + 0.5;
-          double j = ((int)(index / xsize)) + 0.5;
+          int i = (index % xsize);
+          int j = ((int)(index / xsize));
 
           // Map the corners of the pixel
           vec3<double> A = transform.h(0, i, j);
@@ -840,39 +1601,39 @@ namespace dials { namespace algorithms { namespace boost_python {
 
           // Integrate the 3D normal distribution over the pixel
           double sum_f = 0.0;
-          for (std::size_t jj = 0; jj < num_sample; ++jj) {
-            for (std::size_t ii = 0; ii < num_sample; ++ii) {
+          for (std::size_t jj = 0; jj < num_samples_; ++jj) {
+            for (std::size_t ii = 0; ii < num_samples_; ++ii) {
               vec3<double> h = transform.h(0,
-                  i + ii / (double)num_sample,
-                  j + jj / (double)num_sample);
+                  i + ii / (double)num_samples_,
+                  j + jj / (double)num_samples_);
 
               double distance = (h - h0).length();
 
-              sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity, 2));
+              sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity_, 2));
             }
           }
 
-          reflection_pnts[k] = vec3<double>(i, j, 0);
+          reflection_pnts[k] = vec3<int>(i, j, 0);
 
           // Set pixel data
           reflection_data[k] = image_data_[index];
 
           // Assign pixel as foreground or background depending on mosaicity
-          if (distance_E < 0.3) {//3 * mosaicity) {
+          if (distance_E < foreground_limit_) {
             reflection_mask[k] = image_mask_[index] | Foreground;
-          } else if (distance_E < 0.5) {// * mosaicity) {
+          } else if (distance_E < background_limit_) {
             reflection_mask[k] = image_mask_[index] | Background;
           }
 
           // Compute the predicted integrated intensity on the pixel
-          reflection_pred[k] = area * sum_f / (double)(num_sample * num_sample);
+          reflection_pred[k] = area * sum_f / (double)(num_samples_ * num_samples_);
         }
 
         // Add to arrays
-        reflection_data_.push_back(reflection_data);
-        reflection_mask_.push_back(reflection_mask);
-        reflection_pred_.push_back(reflection_pred);
-        reflection_pnts_.push_back(reflection_pnts);
+        reflection_data_[l] = reflection_data;
+        reflection_mask_[l] = reflection_mask;
+        reflection_pred_[l] = reflection_pred;
+        reflection_pnts_[l] = reflection_pnts;
       }
     }
 
@@ -880,16 +1641,53 @@ namespace dials { namespace algorithms { namespace boost_python {
 
       typedef LookupMap::iterator iterator;
 
-      std::size_t xsize = image_data_.accessor()[1];
-      std::size_t ysize = image_data_.accessor()[0];
+      // Initialise all the arrays
+      observed_ = af::shared< vec3<double> >(reflections_.size());
+      predicted_ = af::shared< vec3<double> >(reflections_.size());
+      background_ = af::shared< double >(reflections_.size());
+      intensity_ = af::shared< double >(reflections_.size());
+      variance_ = af::shared< double >(reflections_.size());
+      scale_ = af::shared< double >(reflections_.size());
+      num_foreground_ = af::shared< std::size_t >(reflections_.size());
+      num_background_ = af::shared< std::size_t >(reflections_.size());
+      success_ = af::shared< bool >(reflections_.size());
 
-      for (std::size_t i = 0; i < reflection_data_.size(); ++i) {
+      // The mask codes
+      int mask_code_bg = Valid | Background;
+      int mask_code_fg = Valid | Foreground;
 
-        af::shared<double> reflection_data = reflection_data_[i];
-        af::shared<double> reflection_pred = reflection_pred_[i];
-        af::shared<int> reflection_mask = reflection_mask_[i];
-        af::shared< vec3<double> > reflection_pnts = reflection_pnts_[i];
+      // Loop through all the reflections
+      for (std::size_t i = 0; i < reflections_.size(); ++i) {
 
+        // Get the pixel data for the reflection
+        af::shared< vec3<int> > reflection_pnts = reflection_pnts_[i];
+        af::shared<double>      reflection_data = reflection_data_[i];
+        af::shared<double>      reflection_pred = reflection_pred_[i];
+        af::shared<int>         reflection_mask = reflection_mask_[i];
+
+        // Convert to double
+        af::shared< vec3<double> > reflection_pnts_double(reflection_pnts.size());
+        for (std::size_t j = 0; j < reflection_pnts.size(); ++j) {
+          reflection_pnts_double[j][0] = reflection_pnts[j][0] + 0.5;
+          reflection_pnts_double[j][1] = reflection_pnts[j][1] + 0.5;
+          reflection_pnts_double[j][2] = reflection_pnts[j][2] + 0.5;
+        }
+
+        // Compute the number of foreground and background pixels
+        std::size_t count_fg = 0;
+        std::size_t count_bg = 0;
+        for (std::size_t j = 0; j < reflection_mask.size(); ++j) {
+          if ((reflection_mask[j] & mask_code_fg) == mask_code_fg) {
+            count_fg++;
+          }
+          if ((reflection_mask[j] & mask_code_bg) == mask_code_bg) {
+            count_bg++;
+          }
+        }
+        num_foreground_[i] = count_fg;
+        num_background_[i] = count_bg;
+
+        // Integrate the reflection
         try {
 
           // Compute the background
@@ -912,29 +1710,29 @@ namespace dials { namespace algorithms { namespace boost_python {
           vec3<double> xcal = compute_centroid(
               reflection_pred.const_ref(),
               reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
+              reflection_pnts_double.const_ref());
 
           vec3<double> xobs = compute_centroid(
               reflection_data.const_ref(),
               reflection_mask.const_ref(),
-              reflection_pnts.const_ref());
+              reflection_pnts_double.const_ref());
 
-          observed_.push_back(xobs);
-          predicted_.push_back(xcal);
-          background_.push_back(B);
-          intensity_.push_back(I);
-          variance_.push_back(V);
-          scale_.push_back(S);
-          success_.push_back(true);
+          observed_[i] = xobs;
+          predicted_[i] = xcal;
+          background_[i] = B;
+          intensity_[i] = I;
+          variance_[i] = V;
+          scale_[i] = S;
+          success_[i] = true;
           //std::cout << "Success" << std::endl;
         } catch (dials::error e) {
-          observed_.push_back(vec3<double>(-1,-1,-1));
-          predicted_.push_back(vec3<double>(-1,-1,-1));
-          background_.push_back(-1);
-          intensity_.push_back(-1);
-          variance_.push_back(-1);
-          scale_.push_back(-1);
-          success_.push_back(false);
+          observed_[i] = vec3<double>(-1,-1,-1);
+          predicted_[i] = vec3<double>(-1,-1,-1);
+          background_[i] = -1;
+          intensity_[i] = -1;
+          variance_[i] = -1;
+          scale_[i] = -1;
+          success_[i] = false;
           //std::cout << e.what() << std::endl;
           continue;
         }
@@ -1022,7 +1820,6 @@ namespace dials { namespace algorithms { namespace boost_python {
 
       Summation<double> summation(data, background.const_ref(), mask);
 
-
       DIALS_ASSERT(summation.n_signal() >= min_pixels);
 
       return vec2<double>(summation.intensity(), summation.variance());
@@ -1041,85 +1838,31 @@ namespace dials { namespace algorithms { namespace boost_python {
       return result;
     }
 
-    af::versa< double, af::c_grid<2> > image_pred() const {
-      return image_pred_;
-    }
-
-    af::versa< double, af::c_grid<2> > image_data() const {
-      return image_data_;
-    }
-
-    af::versa< int, af::c_grid<2> > image_mask() const {
-      return image_mask_;
-    }
-
-    af::shared< double > pred(std::size_t index) const {
-      DIALS_ASSERT(index < reflection_pred_.size());
-      return reflection_pred_[index];
-    }
-
-    af::shared< double > data(std::size_t index) const {
-      DIALS_ASSERT(index < reflection_data_.size());
-      return reflection_data_[index];
-    }
-
-    af::shared< int > mask(std::size_t index) const {
-      DIALS_ASSERT(index < reflection_mask_.size());
-      return reflection_mask_[index];
-    }
-
-    vec3<double> observed(std::size_t index) const {
-      DIALS_ASSERT(index < observed_.size());
-      return observed_[index];
-    }
-
-    vec3<double> predicted(std::size_t index) const {
-      DIALS_ASSERT(index < predicted_.size());
-      return predicted_[index];
-    }
-
-    double background(std::size_t index) const {
-      DIALS_ASSERT(index < background_.size());
-      return background_[index];
-    }
-
-    double intensity(std::size_t index) const {
-      DIALS_ASSERT(index < intensity_.size());
-      return intensity_[index];
-    }
-
-    double variance(std::size_t index) const {
-      DIALS_ASSERT(index < variance_.size());
-      return variance_[index];
-    }
-
-    double scale(std::size_t index) const {
-      DIALS_ASSERT(index < scale_.size());
-      return scale_[index];
-    }
-
-    double success(std::size_t index) const {
-      DIALS_ASSERT(index < success_.size());
-      return success_[index];
-    }
-
-    std::size_t size() const {
-      return intensity_.size();
-    }
-
-  protected:
-
-    typedef std::map< cctbx::miller::index<>, std::vector<std::size_t> > LookupMap;
     LookupMap lookup_;
 
-    af::versa< double, af::c_grid<2> > image_data_;
-    af::versa< int,    af::c_grid<2> > image_mask_;
-    af::versa< double, af::c_grid<2> > image_pred_;
+    Beam beam_;
+    Detector detector_;
+    Crystal crystal_;
+    af::reflection_table reflections_;
+
+    af::versa< int, af::c_grid<2> > image_data_;
+    af::versa< int, af::c_grid<2> > image_mask_;
+
+    double mosaicity_;
+    double foreground_limit_;
+    double background_limit_;
+    std::size_t num_samples_;
+    bool predict_all_;
+
+    bool update_pixel_lookup_;
+    bool update_image_model_;
+    bool update_reflection_data_;
+    bool first_;
 
     af::shared< af::shared< double > > reflection_data_;
     af::shared< af::shared< int    > > reflection_mask_;
     af::shared< af::shared< double > > reflection_pred_;
-    af::shared< af::shared< vec3<double> > > reflection_pnts_;
+    af::shared< af::shared< vec3<int> > > reflection_pnts_;
 
     af::shared< vec3<double> > observed_;
     af::shared< vec3<double> > predicted_;
@@ -1127,8 +1870,12 @@ namespace dials { namespace algorithms { namespace boost_python {
     af::shared< double > variance_;
     af::shared< double > background_;
     af::shared< double > scale_;
+    af::shared< std::size_t > num_foreground_;
+    af::shared< std::size_t > num_background_;
     af::shared< bool   > success_;
   };
+
+
 
 
   BOOST_PYTHON_MODULE(dials_scratch_jmp_stills_ext)
@@ -1138,24 +1885,75 @@ namespace dials { namespace algorithms { namespace boost_python {
         const Beam &,
         const Detector &,
         const Crystal &,
+        af::reflection_table,
+        const af::const_ref<int,  af::c_grid<2> >&,
+        const af::const_ref<bool, af::c_grid<2> >&,
+        double,
+        double,
         double,
         std::size_t,
-        const af::const_ref<int,  af::c_grid<2> >,
-        const af::const_ref<bool, af::c_grid<2> >&,
-        af::reflection_table>())
-      .def("image_data", &Model::image_data)
-      .def("image_mask", &Model::image_mask)
-      .def("image_pred", &Model::image_pred)
-      .def("data", &Model::data)
-      .def("mask", &Model::mask)
-      .def("pred", &Model::pred)
+        bool>((
+            arg("beam"),
+            arg("detector"),
+            arg("crystal"),
+            arg("reflections"),
+            arg("image_data"),
+            arg("image_mask"),
+            arg("mosaicity")        = 0.1,
+            arg("foreground_limit") = 3.0,
+            arg("background_limit") = 5.0,
+            arg("num_samples")      = 5,
+            arg("predict_all")      = false)))
+      .add_property("beam",
+          &Model::get_beam,
+          &Model::set_beam)
+      .add_property("detector",
+          &Model::get_detector,
+          &Model::set_detector)
+      .add_property("crystal",
+          &Model::get_crystal,
+          &Model::set_crystal)
+      .add_property("reflections",
+          &Model::get_reflections,
+          &Model::set_reflections)
+      .add_property("image_data",
+          &Model::get_image_data,
+          &Model::set_image_data)
+      .add_property("image_mask",
+          &Model::get_image_mask,
+          &Model::set_image_mask)
+      .add_property("mosaicity",
+          &Model::get_mosaicity,
+          &Model::set_mosaicity)
+      .add_property("foreground_limit",
+          &Model::get_foreground_limit,
+          &Model::set_foreground_limit)
+      .add_property("background_limit",
+          &Model::get_background_limit,
+          &Model::set_background_limit)
+      .add_property("num_samples",
+          &Model::get_num_samples,
+          &Model::set_num_samples)
+      .def("update",
+          &Model::update, (
+            arg("pixel_lookup") = true))
+      .def("least_squares_score",
+          &Model::least_squares_score)
+      .def("maximum_likelihood_score",
+          &Model::maximum_likelihood_score)
       .def("observed", &Model::observed)
       .def("predicted", &Model::predicted)
       .def("background", &Model::background)
       .def("intensity", &Model::intensity)
       .def("variance", &Model::variance)
+      .def("num_foreground", &Model::num_foreground)
+      .def("num_background", &Model::num_background)
+      .def("shoebox", &Model::shoebox)
       .def("scale", &Model::scale)
       .def("success", &Model::success)
+      .def("data", &Model::data)
+      .def("mask", &Model::mask)
+      .def("pred", &Model::pred)
       .def("__len__", &Model::size)
       ;
   }
