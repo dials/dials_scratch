@@ -3,7 +3,7 @@ from __future__ import division
 from libtbx.phil import command_line
 from libtbx.utils import Sorry
 import iotbx.phil
-from cctbx import sgtbx
+from cctbx import sgtbx, uctbx
 # from dials.util.command_line import Importer
 from dials.util.options import OptionParser
 from dials.array_family import flex
@@ -51,13 +51,73 @@ def run(args):
   for filename in args:
     hkl, i, sigi = parse_best_hkl(filename)
     ms = miller.set(cs, hkl)
-    ma = miller.array(ms, data=i, sigmas=sigi)    
+    ma = miller.array(ms, data=i, sigmas=sigi)
     intensities.append(ma)
     #ma.show_summary()
 
+  # Two subplots, the axes array is 1-d
+  from matplotlib import pyplot
+
+  ma1, ma2 = intensities
+  hist1 = flex.histogram(ma1.data(), n_slots=100)
+  hist2 = flex.histogram(ma2.data(), n_slots=100)
+  f, axarr = pyplot.subplots(2, sharex=True)
+  axarr[0].bar(hist1.slot_centers() - 0.5 * hist1.slot_width(), hist1.slots(), align="center",
+               width=hist1.slot_width(), color='black', edgecolor=None)
+  axarr[1].bar(hist2.slot_centers() - 0.5 * hist2.slot_width(), hist2.slots(), align="center",
+               width=hist2.slot_width(), color='black', edgecolor=None)
+  pyplot.savefig('hist_intensities.png')
+  pyplot.clf()
+
+  hist1 = flex.histogram(ma1.data()/ma1.sigmas(), n_slots=100)
+  hist2 = flex.histogram(ma2.data()/ma2.sigmas(), n_slots=100)
+  f, axarr = pyplot.subplots(2, sharex=True)
+  axarr[0].bar(hist1.slot_centers() - 0.5 * hist1.slot_width(), hist1.slots(), align="center",
+               width=hist1.slot_width(), color='black', edgecolor=None)
+  axarr[1].bar(hist2.slot_centers() - 0.5 * hist2.slot_width(), hist2.slots(), align="center",
+               width=hist2.slot_width(), color='black', edgecolor=None)
+  pyplot.savefig('hist_isigi.png')
+  pyplot.clf()
+
+  print ma1.d_max_min()
+  print ma2.d_max_min()
+  ma1.setup_binner(n_bins=20)
+  ma2.setup_binner(n_bins=20)
+
+  imean1 = ma1.mean(use_binning=True)
+  imean2 = ma2.mean(use_binning=True)
+  f, axarr = pyplot.subplots(2, sharex=True)
+  axarr[0].scatter(imean1.binner.bin_centers(2), imean1.data[1:-1])
+  axarr[1].scatter(imean2.binner.bin_centers(2), imean2.data[1:-1])
+  ax = pyplot.gca()
+  xticks = ax.get_xticks()
+  xticks_d = [
+    '%.2f' %uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks]
+  ax.set_xticklabels(xticks_d)
+  pyplot.xlabel('d spacing (A)')
+  pyplot.savefig('imean_vs_resolution.png')
+  pyplot.clf()
+
+  isigi1 = ma1.i_over_sig_i(use_binning=True)
+  isigi2 = ma2.i_over_sig_i(use_binning=True)
+  f, axarr = pyplot.subplots(2, sharex=True)
+  axarr[0].scatter(isigi1.binner.bin_centers(2), isigi1.data[1:-1])
+  axarr[1].scatter(isigi2.binner.bin_centers(2), isigi2.data[1:-1])
+  ax = pyplot.gca()
+  xticks = ax.get_xticks()
+  xticks_d = [
+    '%.2f' %uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks]
+  ax.set_xticklabels(xticks_d)
+  pyplot.xlabel('d spacing (A)')
+  pyplot.savefig('isigi_vs_resolution.png')
+  pyplot.clf()
+
   best_cb_op = None
-  best_count = 0  for i_op, op in enumerate(space_group.build_derived_reflection_intensity_group(False).all_ops()):
-    if not op.t().is_zero():      continue    cb_op = sgtbx.change_of_basis_op(op)#.inverse())
+  best_count = 0
+  for i_op, op in enumerate(space_group.build_derived_reflection_intensity_group(False).all_ops()):
+    if not op.t().is_zero():
+      continue
+    cb_op = sgtbx.change_of_basis_op(op)#.inverse())
 
     ma1, ma2 = intensities
     ma1, ma2 = ma1.common_sets(ma2.change_basis(cb_op))
@@ -110,7 +170,7 @@ def parse_best_hkl(filename):
   with open(filename, 'rb') as f:
     for line in f.readlines():
       tokens = line.split()
-      assert len(tokens) == 5, tokens      
+      assert len(tokens) == 5, tokens
       hkl.append(tuple(int(t) for t in tokens[:3]))
       intensities.append(float(tokens[3]))
       sigmas.append(float(tokens[4]))
@@ -123,4 +183,3 @@ if __name__ == '__main__':
   from libtbx.utils import show_times_at_exit
   show_times_at_exit()
   run(sys.argv[1:])
-
