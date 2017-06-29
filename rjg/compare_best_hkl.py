@@ -52,6 +52,7 @@ def run(args):
     hkl, i, sigi = parse_best_hkl(filename)
     ms = miller.set(cs, hkl)
     ma = miller.array(ms, data=i, sigmas=sigi)
+    ma.set_observation_type_xray_intensity()
     intensities.append(ma)
     #ma.show_summary()
 
