@@ -23,7 +23,7 @@ def compute_profile(experiments, reflection, reference, N):
   scan = experiments[0].scan
 
   cs = CoordinateSystem(m2, s0, s1, phi)
-  
+
   scan_range = scan.get_array_range()
   image_size = detector[0].get_image_size()
   grid_size = (3, 3, 40)
@@ -45,16 +45,16 @@ def compute_profile(experiments, reflection, reference, N):
   delta_m = 3.0 * sigma_m
 
   profile = compute_profile_internal(
-    grid, 
-    bbox, 
-    zs, 
-    ys, 
-    xs, 
-    N, 
-    delta_d, 
-    delta_m, 
-    detector, 
-    scan, 
+    grid,
+    bbox,
+    zs,
+    ys,
+    xs,
+    N,
+    delta_d,
+    delta_m,
+    detector,
+    scan,
     cs)
 
   # from dials_scratch.jmp.viewer import show_image_stack_multi_view
@@ -62,7 +62,7 @@ def compute_profile(experiments, reflection, reference, N):
   sum_p = flex.sum(profile)
   print "Partiality: %f" % sum_p
   try:
-    assert sum_p > 0, "sum_p == 0" 
+    assert sum_p > 0, "sum_p == 0"
   except Exception, e:
     print e
     return None
@@ -96,7 +96,7 @@ def write_profiles(experiments, reflections, reference, N, filename):
 from libtbx.phil import parse
 
 phil_scope = parse('''
-  
+
   experiments = None
     .type = str
 

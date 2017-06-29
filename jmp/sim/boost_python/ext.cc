@@ -10,7 +10,7 @@
 using namespace boost::python;
 
 namespace dials { namespace algorithms { namespace boost_python {
-  
+
   using dxtbx::model::Detector;
   using dxtbx::model::Panel;
   using dxtbx::model::Scan;
@@ -34,9 +34,9 @@ namespace dials { namespace algorithms { namespace boost_python {
 
     std::default_random_engine generator;
     std::uniform_real_distribution<double> uniform(0.0,1.0);
-    
-    af::versa< double, af::c_grid<3> > profile(af::c_grid<3>(zs, ys, xs)); 
-  
+
+    af::versa< double, af::c_grid<3> > profile(af::c_grid<3>(zs, ys, xs));
+
     double xoff = -delta_d;
     double yoff = -delta_d;
     double zoff = -delta_m;
@@ -48,7 +48,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     for (std::size_t k = 0; k < grid.accessor()[0]; ++k) {
       for (std::size_t j = 0; j < grid.accessor()[1]; ++j) {
         for (std::size_t i = 0; i < grid.accessor()[2]; ++i) {
-          double counts = grid(k,j,i);          
+          double counts = grid(k,j,i);
           if (counts > 0) {
             double fraction = counts / double(N);
             for (std::size_t l = 0; l < N; ++l) {
@@ -56,11 +56,11 @@ namespace dials { namespace algorithms { namespace boost_python {
               double gz = uniform(generator) + k;
               double gy = uniform(generator) + j;
               double gx = uniform(generator) + i;
-              
+
               double e1 = xoff + gx * xstep;
               double e2 = yoff + gy * ystep;
               double e3 = zoff + gz * zstep;
-              
+
               vec3<double> s1p = cs.to_beam_vector(vec2<double>(e1, e2));
               vec2<double> pxy = detector[0].get_ray_intersection_px(s1p);
               double px = pxy[0] - bbox[0];
@@ -91,7 +91,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
 
 
-  
+
     return profile;
   }
 
