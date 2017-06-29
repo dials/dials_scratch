@@ -40,14 +40,6 @@ phil_scope = parse('''
         .type = int(value_min=1)
         .help = "The number of pixel samples to take in the integral"
 
-      min = 0.001
-        .type = float(value_min=0.0001, value_max=0.3)
-        .help = "The minimum value of the profile parameter"
-
-      max = 0.3
-        .type = float(value_min=0, value_max=0.3)
-        .help = "The maximum value of the profile parameter"
-
       tolerance = 1e-4
         .type = float(value_min=0)
         .help = "The tolerance to stop the optimization"
@@ -188,6 +180,7 @@ class CrystalRefiner(object):
       image_data       = data,
       image_mask       = mask,
       mosaicity        = self.mosaicity,
+      bandpass         = 0.0,
       foreground_limit = 0.3,
       background_limit = 0.5,
       num_samples      = self.params.refinement.profile.num_samples)
@@ -298,6 +291,7 @@ class ProfileRefiner(object):
       image_data       = data,
       image_mask       = mask,
       mosaicity        = 0.1,
+      bandpass         = 0.0,
       foreground_limit = 0.3,
       background_limit = 0.5,
       num_samples      = self.params.refinement.profile.num_samples)
@@ -305,15 +299,21 @@ class ProfileRefiner(object):
     def callback(a, b, fa, fb):
       print "  A = %f, B = %f, Fa = %f, Fb = %f" % (a, b, fa, fb)
 
+    # Compute min and max by taking as fraction of hkl then converting using A
+    # matrix
+    min_mosaicity = 1e-10
+    max_mosaicity = 0.01
+
     # Perform a golden section search for the profile parameter
     print "Refining profile parameters"
     print "  using '%s' target function" % self.params.refinement.profile.target
     self.profile = golden_section_search(
       self.target,
-      self.params.refinement.profile.min,
-      self.params.refinement.profile.max,
+      min_mosaicity,
+      max_mosaicity,
       self.params.refinement.profile.tolerance,
       callback)
+    assert self.profile < max_mosaicity
     print "Mosaicity = %f" % (self.profile)
 
   def target(self, mosaicity):
@@ -381,6 +381,9 @@ class Integrator(object):
 
     # Index the strong spots
     self.index_spots()
+
+    # Select a sample of the strong spots
+    self.sample_reflections()
 
     # Iteratively refine profile and crystal models
     for i in range(self.params.refinement.n_macro_cycles):
@@ -501,6 +504,23 @@ class Integrator(object):
       len(self.reflections),
       self.params.indexing.tolerance)
 
+  def sample_reflections(self):
+    '''
+    Select a sample of reflections
+
+    '''
+    from dials.array_family import flex
+    from random import sample
+    if self.params.refinement.sample:
+      print "Selecting %d/%d reflections for refinement" % (
+        self.params.refinement.sample,
+        len(self.reflections))
+      selection = flex.size_t(
+        sorted(sample(
+          range(len(self.reflections)),
+          self.params.refinement.sample)))
+      self.reflections = self.reflections.select(selection)
+
   def refine_profile(self):
     '''
     Refine the profile parameters
@@ -519,6 +539,7 @@ class Integrator(object):
     self.experiment = refiner.experiment
     self.reflections = refiner.reflections
     self.mosaicity = refiner.profile
+    #self.mosaicity = 0.042370
 
   def refine_crystal(self):
     '''
@@ -566,6 +587,7 @@ class Integrator(object):
       image_data       = data,
       image_mask       = mask,
       mosaicity        = self.mosaicity,
+      bandpass         = 0.0,
       foreground_limit = 0.3,
       background_limit = 0.5,
       num_samples      = self.params.refinement.profile.num_samples,
@@ -633,6 +655,10 @@ if __name__ == '__main__':
   print "Min partiality: %f, Max partiality: %f" % (
     min_partiality, max_partiality)
   print ""
+
+  from matplotlib import pylab
+  pylab.hist(partiality, bins=100)
+  pylab.show()
 
   reflections.as_pickle("integrated.pickle")
   ExperimentListDumper(experiments).as_json("integrated_experiments.json")

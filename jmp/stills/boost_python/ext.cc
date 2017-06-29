@@ -61,6 +61,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           const af::const_ref<int,af::c_grid<2> > &input_data,
           const af::const_ref<bool,af::c_grid<2> > &input_mask,
           double mosaicity,
+          double bandpass,
           double foreground_limit,
           double background_limit,
           std::size_t num_samples,
@@ -72,6 +73,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         image_data_(input_data.accessor()),
         image_mask_(input_mask.accessor()),
         mosaicity_(mosaicity),
+        bandpass_(bandpass),
         foreground_limit_(foreground_limit),
         background_limit_(background_limit),
         num_samples_(num_samples),
@@ -79,7 +81,9 @@ namespace dials { namespace algorithms { namespace boost_python {
         update_pixel_lookup_(true),
         update_image_model_(true),
         update_reflection_data_(true),
-        first_(true) {
+        first_(true),
+        wavelength_values_(5),
+        wavelength_weights_(5) {
 
       // Check the input
       if (predict_all) {
@@ -89,6 +93,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       }
 
       DIALS_ASSERT(mosaicity > 0);
+      DIALS_ASSERT(bandpass >= 0);
       DIALS_ASSERT(foreground_limit_ > 0);
       DIALS_ASSERT(background_limit_ > foreground_limit_);
       DIALS_ASSERT(num_samples > 0);
@@ -100,6 +105,26 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Copy the mask and data arrays
       std::copy(input_data.begin(), input_data.end(), image_data_.begin());
       std::copy(input_mask.begin(), input_mask.end(), image_mask_.begin());
+
+      // We use guass-hermite polynomials to approximate a normal distribution
+      // of wavelengths. We use the 5th degree polynomial and hard code the
+      // roots below. The actual wavelength values are given by:
+      // sqrt(2) * sigma * x + mu
+      //
+      // The weights are then
+      //
+      // 2^(n-1) n! sqrt(pi) / (n^2 H_(n-1)(x)^2)
+      wavelength_values_[0] = -std::sqrt(5.0/2.0 + std::sqrt(5.0/2.0));
+      wavelength_values_[1] = -std::sqrt(5.0/2.0 - std::sqrt(5.0/2.0));
+      wavelength_values_[2] = 0;
+      wavelength_values_[3] = std::sqrt(5.0/2.0 - std::sqrt(5.0/2.0));
+      wavelength_values_[4] = std::sqrt(5.0/2.0 + std::sqrt(5.0/2.0));
+      for (std::size_t i = 0; i < 5; ++i) {
+        double x = wavelength_values_[i];
+        double H4 = 16.0*x*x*x*x - 48.0*x*x + 12.0;
+        wavelength_weights_[i] = 16 * 120 * std::sqrt(pi) / (25 * H4);
+      }
+
     }
 
     Beam get_beam() const {
@@ -174,6 +199,16 @@ namespace dials { namespace algorithms { namespace boost_python {
 
     void set_mosaicity(const double &mosaicity) {
       mosaicity_ = mosaicity;
+      update_image_model_ = true;
+      update_reflection_data_ = true;
+    }
+
+    double get_bandpass() const {
+      return bandpass_;
+    }
+
+    void set_bandpass(const double &bandpass) {
+      bandpass_ = bandpass;
       update_image_model_ = true;
       update_reflection_data_ = true;
     }
@@ -312,6 +347,19 @@ namespace dials { namespace algorithms { namespace boost_python {
 
     std::size_t size() const {
       return intensity_.size();
+    }
+
+    af::shared<double> wavelength_values() const {
+      double wavelength = beam_.get_wavelength();
+      af::shared<double> result(wavelength_values_.size());
+      for (std::size_t i = 0; i < result.size(); ++i) {
+        result[i] = std::sqrt(2) * bandpass_ * wavelength_values_[i] + wavelength;
+      }
+      return result;
+    }
+
+    af::shared<double> wavelength_weights() const {
+      return wavelength_weights_;
     }
 
     void update(bool pixel_lookup = true) {
@@ -472,8 +520,12 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Initialise the transform
       PixelToMillerIndex transform(beam_, detector_, crystal_);
 
+      // Get the A matrix
+      mat3<double> UB = crystal_.get_A();
+
       // Compute the normal constant
       double K = std::pow(1.0 / (std::sqrt(2*pi) * mosaicity_), 3);
+      double K2 = 1.0 / (std::sqrt(2*pi) * mosaicity_);
 
       // Resize the arrays
       reflection_pnts_ = af::shared< af::shared< vec3<int> > >(miller_index.size());
@@ -486,6 +538,7 @@ namespace dials { namespace algorithms { namespace boost_python {
             miller_index[l][0],
             miller_index[l][1],
             miller_index[l][2]);
+        vec3<double> q0 = UB * h0;
         const std::vector<std::size_t> &pixels = lookup_[h0];
 
         // Extract pixels
@@ -499,10 +552,10 @@ namespace dials { namespace algorithms { namespace boost_python {
           int j = ((int)(index / xsize));
 
           // Map the corners of the pixel
-          vec3<double> A = transform.h(0, i, j);
-          vec3<double> B = transform.h(0, i+1, j);
-          vec3<double> C = transform.h(0, i, j+1);
-          vec3<double> D = transform.h(0, i+1, j+1);
+          vec3<double> A = transform.q(0, i, j);
+          vec3<double> B = transform.q(0, i+1, j);
+          vec3<double> C = transform.q(0, i, j+1);
+          vec3<double> D = transform.q(0, i+1, j+1);
           vec3<double> E = transform.h(0, i+0.5, j+0.5);
 
           // The distance from all corners
@@ -517,16 +570,42 @@ namespace dials { namespace algorithms { namespace boost_python {
           double sum_f = 0.0;
           for (std::size_t jj = 0; jj < num_samples_; ++jj) {
             for (std::size_t ii = 0; ii < num_samples_; ++ii) {
-              vec3<double> h = transform.h(0,
-                  i + ii / (double)num_samples_,
-                  j + jj / (double)num_samples_);
+              vec3<double> q = transform.q(0,
+                  i + (ii + 0.5) / (double)num_samples_,
+                  j + (jj + 0.5) / (double)num_samples_);
 
-              double distance = (h - h0).length();
+              double distance = (q - q0).length();
 
-              sum_f += K * std::exp(-0.5 * std::pow(distance / mosaicity_, 2));
+              sum_f += std::exp(-0.5 * std::pow(distance / mosaicity_, 2));
             }
           }
 
+          // Compute the value of the integral
+          double I = area * K * sum_f / (double)(num_samples_ * num_samples_);
+
+          // FIXME
+          // The partiality is different depending on whether I do it in HKL
+          // space or Q space even when the mosaicity computed in either space
+          // is equivalent which is clearly wrong. However, if I do this, then
+          // I get the same (more sensible) answer. The reason why is not clear
+          // to me!
+          //
+          // Thinking about it, this is probably wrong answer - I bet it has something
+          // to do with the ratio between the areas which I'm missing somewhere.
+          /* I *= mosaicity_; */
+          //
+          // Whilst the integral of the normal density over a given range is the
+          // same in whatever space it is taken, the the value of the normal
+          // density function depends on the space as the variance may be
+          // different under linear transform. We therefore normalize the scale
+          // with respect to the (0,0,0) reflection by dividing through by a
+          // constant term. This is then the reletive likelihood
+          I /= K2;
+
+          // Compute the predicted integrated intensity on the pixel
+          reflection_pred[k] = I;
+
+          // Add the point
           reflection_pnts[k] = vec3<int>(i, j, 0);
 
           // Set pixel data
@@ -538,9 +617,6 @@ namespace dials { namespace algorithms { namespace boost_python {
           } else if (distance_E < background_limit_) {
             reflection_mask[k] = image_mask_[index] | Background;
           }
-
-          // Compute the predicted integrated intensity on the pixel
-          reflection_pred[k] = area * sum_f / (double)(num_samples_ * num_samples_);
         }
 
         // Add to arrays
@@ -763,6 +839,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     af::versa< int, af::c_grid<2> > image_mask_;
 
     double mosaicity_;
+    double bandpass_;
     double foreground_limit_;
     double background_limit_;
     std::size_t num_samples_;
@@ -772,6 +849,9 @@ namespace dials { namespace algorithms { namespace boost_python {
     bool update_image_model_;
     bool update_reflection_data_;
     bool first_;
+
+    af::shared< double > wavelength_values_;
+    af::shared< double > wavelength_weights_;
 
     af::shared< af::shared< double > > reflection_data_;
     af::shared< af::shared< int    > > reflection_mask_;
@@ -805,6 +885,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         double,
         double,
         double,
+        double,
         std::size_t,
         bool>((
             arg("beam"),
@@ -814,6 +895,7 @@ namespace dials { namespace algorithms { namespace boost_python {
             arg("image_data"),
             arg("image_mask"),
             arg("mosaicity")        = 0.1,
+            arg("bandpass")         = 0.01,
             arg("foreground_limit") = 3.0,
             arg("background_limit") = 5.0,
             arg("num_samples")      = 5,
@@ -839,6 +921,9 @@ namespace dials { namespace algorithms { namespace boost_python {
       .add_property("mosaicity",
           &Model::get_mosaicity,
           &Model::set_mosaicity)
+      .add_property("bandpass",
+          &Model::get_bandpass,
+          &Model::set_bandpass)
       .add_property("foreground_limit",
           &Model::get_foreground_limit,
           &Model::set_foreground_limit)
@@ -855,6 +940,8 @@ namespace dials { namespace algorithms { namespace boost_python {
           &Model::least_squares_score)
       .def("maximum_likelihood_score",
           &Model::maximum_likelihood_score)
+      .def("wavelength_values", &Model::wavelength_values)
+      .def("wavelength_weights", &Model::wavelength_weights)
       .def("observed", &Model::observed)
       .def("predicted", &Model::predicted)
       .def("background", &Model::background)
