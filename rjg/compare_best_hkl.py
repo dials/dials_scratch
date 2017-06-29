@@ -62,7 +62,7 @@ def run(args):
   ma1, ma2 = intensities
   hist1 = flex.histogram(ma1.data(), n_slots=100)
   hist2 = flex.histogram(ma2.data(), n_slots=100)
-  f, axarr = pyplot.subplots(2, sharex=True)
+  f, axarr = pyplot.subplots(2, sharex=True, figsize=(16,12))
   axarr[0].bar(hist1.slot_centers() - 0.5 * hist1.slot_width(), hist1.slots(), align="center",
                width=hist1.slot_width(), color='black', edgecolor=None)
   axarr[1].bar(hist2.slot_centers() - 0.5 * hist2.slot_width(), hist2.slots(), align="center",
@@ -72,7 +72,7 @@ def run(args):
 
   hist1 = flex.histogram(ma1.data()/ma1.sigmas(), n_slots=100)
   hist2 = flex.histogram(ma2.data()/ma2.sigmas(), n_slots=100)
-  f, axarr = pyplot.subplots(2, sharex=True)
+  f, axarr = pyplot.subplots(2, sharex=True, figsize=(16,12))
   axarr[0].bar(hist1.slot_centers() - 0.5 * hist1.slot_width(), hist1.slots(), align="center",
                width=hist1.slot_width(), color='black', edgecolor=None)
   axarr[1].bar(hist2.slot_centers() - 0.5 * hist2.slot_width(), hist2.slots(), align="center",
@@ -87,9 +87,9 @@ def run(args):
 
   imean1 = ma1.mean(use_binning=True)
   imean2 = ma2.mean(use_binning=True)
-  f, axarr = pyplot.subplots(2, sharex=True)
-  axarr[0].scatter(imean1.binner.bin_centers(2), imean1.data[1:-1])
-  axarr[1].scatter(imean2.binner.bin_centers(2), imean2.data[1:-1])
+  f, axarr = pyplot.subplots(2, sharex=True, figsize=(16,12))
+  axarr[0].plot(imean1.binner.bin_centers(2), imean1.data[1:-1])
+  axarr[1].plot(imean2.binner.bin_centers(2), imean2.data[1:-1])
   ax = pyplot.gca()
   xticks = ax.get_xticks()
   xticks_d = [
@@ -101,9 +101,9 @@ def run(args):
 
   isigi1 = ma1.i_over_sig_i(use_binning=True)
   isigi2 = ma2.i_over_sig_i(use_binning=True)
-  f, axarr = pyplot.subplots(2, sharex=True)
-  axarr[0].scatter(isigi1.binner.bin_centers(2), isigi1.data[1:-1])
-  axarr[1].scatter(isigi2.binner.bin_centers(2), isigi2.data[1:-1])
+  f, axarr = pyplot.subplots(2, sharex=True, figsize=(16,12))
+  axarr[0].plot(isigi1.binner.bin_centers(2), isigi1.data[1:-1])
+  axarr[1].plot(isigi2.binner.bin_centers(2), isigi2.data[1:-1])
   ax = pyplot.gca()
   xticks = ax.get_xticks()
   xticks_d = [
