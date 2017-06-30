@@ -193,6 +193,20 @@ namespace dials { namespace algorithms { namespace boost_python {
       update_reflection_data_ = true;
     }
 
+    af::versa< double, af::c_grid<2> > get_image_pred() const {
+      af::versa< double, af::c_grid<2> > result(image_mask_.accessor());
+      for (std::size_t i = 0; i < reflection_pred_.size(); ++i) {
+        af::const_ref< double > pred = reflection_pred_[i].const_ref();
+        af::const_ref< vec3<int> > pnts = reflection_pnts_[i].const_ref();
+        for (std::size_t j = 0; j < pred.size(); ++j) {
+          int x = pnts[j][0];
+          int y = pnts[j][1];
+          result(y,x) = pred[j];
+        }
+      }
+      return result;
+    }
+
     double get_mosaicity() const {
       return mosaicity_;
     }
@@ -918,6 +932,8 @@ namespace dials { namespace algorithms { namespace boost_python {
       .add_property("image_mask",
           &Model::get_image_mask,
           &Model::set_image_mask)
+      .add_property("image_pred",
+          &Model::get_image_pred)
       .add_property("mosaicity",
           &Model::get_mosaicity,
           &Model::set_mosaicity)

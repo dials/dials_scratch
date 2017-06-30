@@ -607,11 +607,15 @@ class Integrator(object):
     # Update the model
     model.update()
 
+    # Get the predicted image
+    self.image_pred = model.image_pred
+
     # Get the predicted reflections
     self.reflections = model.reflections
 
     # Add the columns of data
     self.reflections['id'] = flex.size_t(len(self.reflections), 0)
+    self.reflections['partial_id'] = flex.size_t(range(len(self.reflections)))
     self.reflections['panel'] = flex.size_t(len(self.reflections), 0)
     self.reflections['intensity.sum.value'] = model.intensity()
     self.reflections['intensity.sum.variance'] = model.variance()

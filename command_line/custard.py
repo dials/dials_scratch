@@ -13,7 +13,6 @@ from __future__ import absolute_import, division
 import libtbx.load_env
 import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
-# DIALS_ENABLE_COMMAND_LINE_COMPLETION
 
 help_message = '''
 
@@ -25,6 +24,7 @@ phil_scope = parse(
 '''
 
   output {
+
     experiments = 'integrated_experiments.json'
       .type = str
       .help = "The experiments output filename"
@@ -32,6 +32,14 @@ phil_scope = parse(
     reflections = 'integrated.pickle'
       .type = str
       .help = "The integrated output filename"
+
+    model = 'model.pickle'
+      .type = str
+      .help = "The image model filename"
+
+    model_image = 'model.png'
+      .type = str
+      .help = "The image model filename"
 
   }
 
@@ -66,21 +74,26 @@ class Script(object):
     from dials_scratch.jmp.stills.custard import Integrator
     from dials.array_family import flex
     from scitbx import matrix
+    import cPickle as pickle
     import sys
 
+    # Parse the command line
     params, options = self.parser.parse_args(show_diff_phil=False)
     experiments = flatten_experiments(params.input.experiments)
-
-
     assert len(experiments) == 1
 
+    # Do the integration
     integrator = Integrator(experiments[0], params)
     integrator.process()
 
+    # Get the results
     reflections = integrator.reflections
     experiments[0] = integrator.experiment
 
+    # Get the predicted image model
+    image_pred = integrator.image_pred
 
+    # Compute min/max partiality
     selection = reflections.get_flags(reflections.flags.integrated_sum)
     partiality = reflections['partiality'].select(selection)
     min_partiality = flex.min(partiality)
@@ -114,12 +127,21 @@ class Script(object):
       min_partiality, max_partiality)
     print ""
 
-    from matplotlib import pylab
-    pylab.hist(partiality, bins=100)
-    pylab.show()
+    # Save the reflections
+    reflections.as_pickle(params.output.reflections)
 
-    reflections.as_pickle("integrated.pickle")
-    ExperimentListDumper(experiments).as_json("integrated_experiments.json")
+    # Save the experiments
+    ExperimentListDumper(experiments).as_json(params.output.experiments)
+
+    # Save the image model
+    pickle.dump(image_pred, open(params.output.model, "w"))
+
+    # Save an image of the image model
+    from matplotlib import pylab
+    fig, ax = pylab.subplots(nrows=1, ncols=1)
+    ax.imshow(image_pred.as_numpy_array(), interpolation='none')
+    fig.savefig(params.output.model_image, dpi=600)
+    pylab.close(fig)
 
 if __name__ == '__main__':
   from dials.util import halraiser
