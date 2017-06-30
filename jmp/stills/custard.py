@@ -26,7 +26,7 @@ phil_scope = parse('''
 
   refinement {
 
-    n_macro_cycles = 1
+    n_macro_cycles = 3
       .type = int(value_min=1)
       .help = "The number of refinement macro cycles"
 
@@ -115,7 +115,7 @@ class simple_simplex(object):
     optimizer = simplex.simplex_opt(dimension=self.n,
                                     matrix=self.starting_simplex,
                                     evaluator=evaluator,
-                                    tolerance=1e-10,
+                                    tolerance=1e-7,
                                     max_iter=max_iter)
 
     self.x = optimizer.get_solution()
@@ -160,6 +160,7 @@ class CrystalRefiner(object):
     from dials_scratch.jmp.stills import Model
     from dials.array_family import flex
     from scitbx import simplex
+    from math import sqrt
 
     # Store the input
     self.experiment = experiment
@@ -208,7 +209,13 @@ class CrystalRefiner(object):
     result = optimizer.get_solution()
     print 'Initial cell:', initial_cell
     print 'Final cell:  ', self.crystal.get_unit_cell()
-    print 'Score change', initial_score, self.target(result)
+
+    # Compute RMSD
+    xcal, ycal, _ = self.model.observed().parts()
+    xobs, yobs, _ = self.model.predicted().parts()
+    rmsd_x = sqrt(flex.sum((xcal-xobs)**2) / len(xcal))
+    rmsd_y = sqrt(flex.sum((ycal-yobs)**2) / len(ycal))
+    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
 
   def target(self, vector):
     '''
@@ -216,6 +223,7 @@ class CrystalRefiner(object):
 
     '''
     from dials.array_family import flex
+    from math import sqrt
 
     # Get the cell and orientation parameters
     cell_parms = self.cucp.get_param_vals()
@@ -227,11 +235,6 @@ class CrystalRefiner(object):
     tst_orientation = vector[len(cell_parms):len(cell_parms) + len(orientation_parms)]
     self.cucp.set_param_vals(tst_cell)
     self.cop.set_param_vals(tst_orientation)
-
-    # Print some info
-    print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
-      self.crystal.get_unit_cell().parameters()
-    print 'Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation)
 
     # Update the model
     self.model.crystal = self.crystal
@@ -250,6 +253,11 @@ class CrystalRefiner(object):
     # Compute the rmsd between observed and calculated
     score = flex.sum((Xobs-Xcal)**2 + (Yobs-Ycal)**2 + (Zobs-Zcal)**2)
 
+    # Print some info
+    print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
+      tuple(self.crystal.get_unit_cell().parameters()) +
+      tuple(tst_orientation) +
+      tuple((sqrt(score / len(Xobs)),)))
     return score
 
 
@@ -389,6 +397,9 @@ class Integrator(object):
     for i in range(self.params.refinement.n_macro_cycles):
       self.refine_profile()
       self.refine_crystal()
+
+    # Do a final refinement of profile parameters
+    self.refine_profile()
 
     # Integrate the reflections
     self.integrate()

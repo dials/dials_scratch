@@ -65,10 +65,12 @@ class Script(object):
     from dxtbx.model.experiment_list import ExperimentListDumper
     from dials_scratch.jmp.stills.custard import Integrator
     from dials.array_family import flex
+    from scitbx import matrix
     import sys
 
     params, options = self.parser.parse_args(show_diff_phil=False)
     experiments = flatten_experiments(params.input.experiments)
+
 
     assert len(experiments) == 1
 
@@ -78,13 +80,36 @@ class Script(object):
     reflections = integrator.reflections
     experiments[0] = integrator.experiment
 
+
     selection = reflections.get_flags(reflections.flags.integrated_sum)
     partiality = reflections['partiality'].select(selection)
     min_partiality = flex.min(partiality)
     max_partiality = flex.max(partiality)
 
+    # Get the mosaicity
+    mosaicity = integrator.mosaicity
+
     print ""
-    print "Mosaicity: %f" % integrator.mosaicity
+    print "Mosaicity: %f" % mosaicity
+    print ""
+
+    # The mosaicity matrix in q-space
+    Mq = matrix.sqr((
+      mosaicity, 0, 0,
+      0, mosaicity, 0,
+      0, 0, mosaicity))
+    print "Mosacity matrix in q-space"
+    print Mq.as_numpy_array()
+    print ""
+
+    # The mosaicity matrix in hkl
+    A = matrix.sqr(experiments[0].crystal.get_A())
+    Mh = A.inverse() * Mq
+    print "Mosacity matrix in h-space"
+    print Mh.as_numpy_array()
+    print ""
+
+    # Print partiality
     print "Min partiality: %f, Max partiality: %f" % (
       min_partiality, max_partiality)
     print ""
