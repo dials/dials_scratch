@@ -199,6 +199,8 @@ class CrystalRefiner(object):
       [0.01 * v for v in self.cucp.get_param_vals()] +
       [0.1, 0.1, 0.1])
 
+    # The optimization history
+    self.history = []
 
     # Get the initial cell and initial score
     initial_cell = self.crystal.get_unit_cell()
@@ -253,6 +255,9 @@ class CrystalRefiner(object):
     # Compute the rmsd between observed and calculated
     score = flex.sum((Xobs-Xcal)**2 + (Yobs-Ycal)**2 + (Zobs-Zcal)**2)
 
+    # Append to the history
+    self.history.append(tst_cell, tst_orientation, score)
+
     # Print some info
     print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
       tuple(self.crystal.get_unit_cell().parameters()) +
@@ -286,6 +291,9 @@ class ProfileRefiner(object):
     self.reflections = reflections
     self.params = params
 
+    # The optimization history
+    self.history = []
+
     # Get the data and image mask
     data = self.experiment.imageset.get_raw_data(0)[0]
     mask = self.experiment.imageset.get_mask(0)[0]
@@ -305,6 +313,7 @@ class ProfileRefiner(object):
       num_samples      = self.params.refinement.profile.num_samples)
 
     def callback(a, b, fa, fb):
+      self.history.append((a, b, fa, fb))
       print "  A = %f, B = %f, Fa = %f, Fb = %f" % (a, b, fa, fb)
 
     # Compute min and max by taking as fraction of hkl then converting using A
@@ -550,7 +559,13 @@ class Integrator(object):
     self.experiment = refiner.experiment
     self.reflections = refiner.reflections
     self.mosaicity = refiner.profile
-    #self.mosaicity = 0.042370
+
+    # from matplotlib import pylab
+    # X1, X2, Y1, Y2 = zip(*refiner.history)
+    # X = X1 + X2
+    # Y = Y1 + Y2
+    # pylab.scatter(X, Y)
+    # pylab.show()
 
   def refine_crystal(self):
     '''
