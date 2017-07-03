@@ -123,6 +123,7 @@ def run(args):
     nearest_neighbor_percentile=params.max_cell_estimation.nearest_neighbor_percentile,
     max_height_fraction=params.max_cell_estimation.max_height_fraction,
     histogram_binning=params.max_cell_estimation.histogram_binning,
+    nn_per_bin=params.max_cell_estimation.nn_per_bin,
     filter_ice=params.max_cell_estimation.filter_ice,
     filter_overlaps=params.max_cell_estimation.filter_overlaps,
     overlaps_border=params.max_cell_estimation.overlaps_border)
