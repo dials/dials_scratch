@@ -29,7 +29,7 @@ from dials.test.algorithms.refinement import setup_geometry
 from dials.test.algorithms.refinement import setup_minimiser
 
 # We will set up a mock scan and a mock experiment list
-from dxtbx.model.scan import scan_factory
+from dxtbx.model.scan import ScanFactory
 from dxtbx.model.experiment.experiment_list import ExperimentList, Experiment
 
 # Model parameterisations
@@ -80,7 +80,7 @@ mycrystal = models.crystal
 mybeam = models.beam
 
 # Build a mock scan for a 180 degree sweep
-sf = scan_factory()
+sf = ScanFactory()
 myscan = sf.make_scan(image_range = (1,1800),
                       exposure_times = 0.1,
                       oscillation = (0, 0.1),
