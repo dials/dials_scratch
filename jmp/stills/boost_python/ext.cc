@@ -1,4 +1,3 @@
-#include <random>
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 #include <scitbx/constants.h>
@@ -65,7 +64,8 @@ namespace dials { namespace algorithms { namespace boost_python {
           double foreground_limit,
           double background_limit,
           std::size_t num_samples,
-          bool predict_all)
+          bool predict_all,
+          bool use_mosaicity_for_mask)
       : beam_(beam),
         detector_(detector),
         crystal_(crystal),
@@ -78,6 +78,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         background_limit_(background_limit),
         num_samples_(num_samples),
         predict_all_(predict_all),
+        use_mosaicity_for_mask_(use_mosaicity_for_mask),
         update_pixel_lookup_(true),
         update_image_model_(true),
         update_reflection_data_(true),
@@ -571,9 +572,11 @@ namespace dials { namespace algorithms { namespace boost_python {
           vec3<double> C = transform.q(0, i, j+1);
           vec3<double> D = transform.q(0, i+1, j+1);
           vec3<double> E = transform.h(0, i+0.5, j+0.5);
+          vec3<double> F = transform.q(0, i+0.5, j+0.5);
 
           // The distance from all corners
           double distance_E = (E - h0).length();
+          double distance_F = (F - q0).length();
 
           // Compute the approximate area of the pixel in reciprocal space
           double area_abc = 0.5 * (B-A).cross(C-A).length();
@@ -626,10 +629,18 @@ namespace dials { namespace algorithms { namespace boost_python {
           reflection_data[k] = image_data_[index];
 
           // Assign pixel as foreground or background depending on mosaicity
-          if (distance_E < foreground_limit_) {
-            reflection_mask[k] = image_mask_[index] | Foreground;
-          } else if (distance_E < background_limit_) {
-            reflection_mask[k] = image_mask_[index] | Background;
+          if (use_mosaicity_for_mask_) {
+            if (distance_F < 3 * mosaicity_) {
+              reflection_mask[k] = image_mask_[index] | Foreground;
+            } else if (distance_F < 5 * mosaicity_) {
+              reflection_mask[k] = image_mask_[index] | Background;
+            }
+          } else {
+            if (distance_E < foreground_limit_) {
+              reflection_mask[k] = image_mask_[index] | Foreground;
+            } else if (distance_E < background_limit_) {
+              reflection_mask[k] = image_mask_[index] | Background;
+            }
           }
         }
 
@@ -858,6 +869,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     double background_limit_;
     std::size_t num_samples_;
     bool predict_all_;
+    bool use_mosaicity_for_mask_;
 
     bool update_pixel_lookup_;
     bool update_image_model_;
@@ -901,6 +913,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         double,
         double,
         std::size_t,
+        bool,
         bool>((
             arg("beam"),
             arg("detector"),
@@ -913,7 +926,8 @@ namespace dials { namespace algorithms { namespace boost_python {
             arg("foreground_limit") = 3.0,
             arg("background_limit") = 5.0,
             arg("num_samples")      = 5,
-            arg("predict_all")      = false)))
+            arg("predict_all")      = false,
+            arg("use_mosaicity_for_mask") = false)))
       .add_property("beam",
           &Model::get_beam,
           &Model::set_beam)

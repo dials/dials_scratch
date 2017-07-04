@@ -27,7 +27,7 @@ phil_scope = parse('''
   refinement {
 
     n_macro_cycles = 3
-      .type = int(value_min=1)
+      .type = int(value_min=0)
       .help = "The number of refinement macro cycles"
 
     sample = 100
@@ -256,7 +256,7 @@ class CrystalRefiner(object):
     score = flex.sum((Xobs-Xcal)**2 + (Yobs-Ycal)**2 + (Zobs-Zcal)**2)
 
     # Append to the history
-    self.history.append(tst_cell, tst_orientation, score)
+    self.history.append((tst_cell, tst_orientation, score))
 
     # Print some info
     print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
@@ -606,18 +606,19 @@ class Integrator(object):
 
     # Initialise the model
     model = Model(
-      beam             = self.experiment.beam,
-      detector         = self.experiment.detector,
-      crystal          = self.experiment.crystal,
-      reflections      = flex.reflection_table(),
-      image_data       = data,
-      image_mask       = mask,
-      mosaicity        = self.mosaicity,
-      bandpass         = 0.0,
-      foreground_limit = 0.3,
-      background_limit = 0.5,
-      num_samples      = self.params.refinement.profile.num_samples,
-      predict_all      = True)
+      beam                   = self.experiment.beam,
+      detector               = self.experiment.detector,
+      crystal                = self.experiment.crystal,
+      reflections            = flex.reflection_table(),
+      image_data             = data,
+      image_mask             = mask,
+      mosaicity              = self.mosaicity,
+      bandpass               = 0.0,
+      foreground_limit       = 0.3,
+      background_limit       = 0.5,
+      num_samples            = self.params.refinement.profile.num_samples,
+      predict_all            = True,
+      use_mosaicity_for_mask = True)
 
     # Update the model
     model.update()
@@ -640,6 +641,7 @@ class Integrator(object):
     self.reflections['num_pixels.background'] = model.num_background()
     self.reflections['num_pixels.foreground'] = model.num_foreground()
     self.reflections['shoebox'] = model.shoebox()
+    self.reflections['bbox'] = self.reflections['shoebox'].bounding_boxes()
 
     # Set the integrated flag
     self.reflections.set_flags(model.success(), self.reflections.flags.integrated_sum)
