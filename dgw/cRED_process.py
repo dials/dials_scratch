@@ -243,10 +243,10 @@ class Script(object):
     if [os.path.exists(e) for e in logpaths].count(True) == 2:
       aimlessP1 = self._get_aimless_summary(logpaths[0])
       aimlessP222 = self._get_aimless_summary(logpaths[1])
-    diff = difflib.HtmlDiff(wrapcolumn=80).make_file(
-        aimlessP1, aimlessP222, logpaths[0], logpaths[1])
-    with open('aimless-diff.html', 'w') as f:
-      f.writelines(diff)
+      diff = difflib.HtmlDiff(wrapcolumn=80).make_file(
+          aimlessP1, aimlessP222, logpaths[0], logpaths[1])
+      with open('aimless-diff.html', 'w') as f:
+        f.writelines(diff)
 
     print
     return
@@ -348,7 +348,7 @@ class Script(object):
 
     # aimless
     cmd = 'aimless hklin sorted.mtz hklout scaled.mtz > aimless.log'
-    keywords = ['resolution 2.0']
+    keywords = ['resolution 80.0 2.0']
     if self._run_one_job(cmd, keywords=keywords) is None: return
 
 
