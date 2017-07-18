@@ -54,20 +54,17 @@ def run(args):
     parser.print_help()
     return
 
-  from dials.algorithms.indexing.compare_orientation_matrices import \
-       difference_rotation_matrix_axis_angle
-
   import scitbx.matrix
   euler_angles = flex.vec3_double()
   expt_ids = flex.int()
   for i, experiment in enumerate(experiments):
     crystal = experiment.crystal
-    A = scitbx.matrix.sqr(crystal.get_A())
-    Ainv = A.inverse()
     U = scitbx.matrix.sqr(crystal.get_U())
     euler = U.r3_rotation_matrix_as_x_y_z_angles(deg=True)
     euler_angles.append(euler)
     expt_ids.append(i)
+
+  x, y, z = [unwrap_angles(angles, deg=True) for angles in euler_angles.parts()]
 
   colour_map = 'jet'
   import matplotlib
@@ -79,12 +76,34 @@ def run(args):
   colours /= flex.max(colours)
   colours = [cmap(c) for c in colours]
   fig = pyplot.figure()
+
+  ax = pyplot.scatter(x, y, c=colours)
+  pyplot.xlabel('X')
+  pyplot.ylabel('Y')
+  pyplot.axes().set_aspect('equal')
+  pyplot.savefig('xy.png')
+  pyplot.clf()
+
+  ax = pyplot.scatter(y, z, c=colours)
+  pyplot.xlabel('Y')
+  pyplot.ylabel('Z')
+  pyplot.axes().set_aspect('equal')
+  pyplot.savefig('yz.png')
+  pyplot.clf()
+
+  ax = pyplot.scatter(z, x, c=colours)
+  pyplot.xlabel('Z')
+  pyplot.ylabel('X')
+  pyplot.axes().set_aspect('equal')
+  pyplot.savefig('zx.png')
+  pyplot.clf()
+
   ax = fig.add_subplot(111, projection='3d')
-  x, y, z = [unwrap_angles(angles, deg=True) for angles in euler_angles.parts()]
   ax.scatter(x, y, z, c=colours)
   ax.set_xlabel('X')
   ax.set_ylabel('Y')
   ax.set_zlabel('Z')
+  ax.set_aspect('equal')
   pyplot.show()
 
 
