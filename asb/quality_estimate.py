@@ -51,7 +51,7 @@ class Script(object):
     from scitbx.array_family import flex
     from libtbx import table_utils, easy_pickle
     from xfel.command_line.cspad_cbf_metrology import find_files
-    from dxtbx.model.experiment.experiment_list import ExperimentListFactory
+    from dxtbx.model.experiment_list import ExperimentListFactory
     table_header = ["","","","I","IsigI","N >","RMSD","Cutoff"]
     table_header2 = ["Bin","Resolution Range","Completeness","","","cutoff","(um)",""]
 
@@ -68,7 +68,7 @@ class Script(object):
     best_data = {}
     best_limits = flex.double()
     for exp_path, refl_path in zip(exp_paths, refl_paths):
-      experiments = ExperimentListFactory.from_json_file(exp_path)
+      experiments = ExperimentListFactory.from_json_file(exp_path, check_format=False)
       reflections = easy_pickle.load(refl_path)
       exp_name = os.path.basename(exp_path)
       if exp_name.startswith("idx-") and exp_name.endswith("_refined_experiments.json"):
