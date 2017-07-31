@@ -137,9 +137,9 @@ class Script(object):
             best_data[tag] = d_min, best_row
           elif (d_min < best_limits).count(True) > 0:
             worst_d_min = flex.max(best_limits)
-            for tag, data in best_data.iteritems():
+            for t, data in best_data.iteritems():
               if worst_d_min == data[0]:
-                best_data[tag] = d_min, best_row
+                best_data[t] = d_min, best_row
                 best_limits[flex.first_index(best_limits, worst_d_min)] = d_min
                 break
           print tag, "best row:", " ".join(best_row)
