@@ -126,6 +126,7 @@ class Script(object):
           if b:
             row.append("X")
         print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
+        print tag, "unit cell:", ", ".join(["%.2f"%p for p in crystal.get_unit_cell().parameters()]), crystal.get_space_group().info()
 
         if any(acceptable_resolution_bins):
           best_index = acceptable_resolution_bins.count(True)-1
