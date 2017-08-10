@@ -27,13 +27,24 @@ phil_scope = parse('''
               "centroid in images along the rotation axis direction"
       .type = float(value_min=0)
   }
+
+  recalculate_centroid_variances = True
+    .help = "Whether to recalcuate the reflection table column"
+            "xyzobs.mm.variance for the updated geometry. If False, then"
+            "for comparison, later refinement results will use identical"
+            "weights. However, set to True to ensure weights are set to"
+            "what they would be expected to be from real spot-finding"
+    .type = bool
+
 ''')
 
 help_message = '''
 
 Simulated indexed observations for refinement testing. Predictions will be
 made for all reflections in the input reflections .pickle file, for each of the
-experimental geometries described by the input experiments .json files.
+experimental geometries described by the input experiments .json files. Only
+reflections that are successfully predicted with both geometries will be
+written to the output files.
 
 Examples::
 
@@ -84,8 +95,20 @@ class Script(object):
     # make errors to add to observed centroids
     self.set_random_error()
 
+    obs_sets = []
     for wrapper in self.params.input.experiments:
-      self.create_indexed(experiments=wrapper.data, filename=wrapper.filename)
+      obs_sets.append(
+          self.create_indexed(experiments=wrapper.data, filename=wrapper.filename))
+
+    # Keep only predictions that are possible for all experiments
+    obs_sets = self.select_intersection(obs_sets)
+
+    # Write out reflections
+    import os
+    for refs, wrapper in zip(obs_sets, self.params.input.experiments):
+      outname = os.path.splitext(wrapper.filename)[0] + '.pickle'
+      print "Saving reflections to {0}".format(outname)
+      refs.as_pickle(outname)
 
   def set_random_error(self):
 
@@ -153,23 +176,32 @@ class Script(object):
     #    flex.max(z) * RAD_TO_DEG)
 
     # Keep original variance estimates from spot-finding for centroids in
-    # pixels/images, but rescale for centroids in mm/rad for this experiment
-    var_x_px, var_y_px, var_z_px = obs_refs['xyzobs.px.variance'].parts()
-    var_x_mm = var_x_px * px_size_mm[0]**2
-    var_y_mm = var_y_px * px_size_mm[1]**2
-    var_z_rd = var_z_px * image_width_rad**2
-    obs_refs['xyzobs.mm.variance'] = flex.vec3_double(var_x_mm, var_y_mm, var_z_rd)
+    # pixels/images, but optionally rescale for centroids in mm/rad.
+    # Note that an overall scale factor for the variance is irrelevant to
+    # refinement. What matters are differences in the relative scale between
+    # the detector space and rotation parts.
+    if self.params.recalculate_centroid_variances:
+      var_x_px, var_y_px, var_z_px = obs_refs['xyzobs.px.variance'].parts()
+      var_x_mm = var_x_px * px_size_mm[0]**2
+      var_y_mm = var_y_px * px_size_mm[1]**2
+      var_z_rd = var_z_px * image_width_rad**2
+      obs_refs['xyzobs.mm.variance'] = flex.vec3_double(
+          var_x_mm, var_y_mm, var_z_rd)
 
     # Reset observed s1 vectors
     from dials.algorithms.refinement.refinement_helpers import set_obs_s1
     obs_refs['s1'] = flex.vec3_double(len(obs_refs))
     set_obs_s1(obs_refs, experiments)
 
-    import os
-    outname = os.path.splitext(filename)[0] + '.pickle'
-    print "Saving reflections to {0}".format(outname)
-    obs_refs.as_pickle(outname)
-    print
+    return obs_refs
+
+  def select_intersection(self, obs_sets):
+
+    pred_sets = [rt.get_flags(rt.flags.predicted) for rt in obs_sets]
+    sel = reduce(lambda a, b: a & b, pred_sets)
+    print "Selecting {0} reflections common to each set".format(sel.count(True))
+
+    return [rt.select(sel) for rt in obs_sets]
 
 if __name__ == '__main__':
   from dials.util import halraiser
