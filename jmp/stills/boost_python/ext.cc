@@ -22,6 +22,9 @@ namespace dials { namespace algorithms { namespace boost_python {
   using dials::model::Background;
   using dials::model::Foreground;
   using dials::model::Shoebox;
+  using dxtbx::model::Beam;
+  using dxtbx::model::Detector;
+  using dxtbx::model::Crystal;
 
   namespace detail {
 

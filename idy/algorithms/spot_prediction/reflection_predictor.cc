@@ -37,7 +37,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
     class_<Predictor>("StillsExperimentalReflectionPredictor", no_init)
       .def(init<
-          const Beam&,
+          const boost::shared_ptr<BeamBase>,
           const Detector&,
           mat3<double>,
           const cctbx::uctbx::unit_cell&,

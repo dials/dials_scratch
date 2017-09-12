@@ -20,7 +20,7 @@
 
 namespace dials { namespace algorithms {
 
-  using dxtbx::model::Beam;
+  using dxtbx::model::BeamBase;
   using dxtbx::model::Detector;
   using dials::model::Ray;
 
@@ -28,7 +28,7 @@ namespace dials { namespace algorithms {
   public:
 
     StillsExperimentalReflectionPredictor(
-        const Beam &beam,
+        const boost::shared_ptr<BeamBase> beam,
         const Detector &detector,
         mat3<double> ub,
         const cctbx::uctbx::unit_cell &unit_cell,
@@ -37,7 +37,7 @@ namespace dials { namespace algorithms {
         double const& mos)
       : StillsDeltaPsiReflectionPredictor(beam,detector,ub,unit_cell,space_group_type,dmin),
         half_mosaicity_rad_(mos),
-        ci_predict_ray_(beam.get_s0(),mos) {}
+        ci_predict_ray_(beam->get_s0(),mos) {}
 
     virtual void append_for_index(stills_prediction_data &p,
         const mat3<double> ub,
