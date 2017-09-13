@@ -8,7 +8,9 @@ Unfortunately this currently runs quite slowly on large datasets such as the
 thaumatin tutorial data, particularly the data reshaping before minimisation.
 
 Usage:
-  dials_scratch.xds_scaling integrated.pickle integrated_experiments.json
+  dials_scratch.xds_scaling integrated.pickle integrated_experiments.json [options]
+
+A number of options can be specified, see the phil_scope below.
 """
 
 from __future__ import absolute_import, division
@@ -25,43 +27,73 @@ from libtbx import phil
 
 logger = logging.getLogger(libtbx.env.dispatcher_name)
 
-#phil_scope = phil.parse('''
-#  debug = False
-#    .type = bool
-#    .help = "Output additional debugging information"
-#  output {
-#    log = 'dials_scratch.xds_scaling.log'
-#      .type = str
-#      .help = "The log filename"
-#
-#    debug_log = 'dials_scratch.xds_scaling.debug.log'
-#      .type = str
-#      .help = "The debug log filename"
-#  }
-#''')
+phil_scope = phil.parse("""
+  debug = False
+    .type = bool
+    .help = Output additional debugging information
+  output {
+    log = 'dials_scratch.xds_scaling.log'
+      .type = path
+      .help = The log filename
 
-phil_scope = phil.parse('')
+    debug_log = 'dials_scratch.xds_scaling.debug.log'
+      .type = path
+      .help = The debug log filename
+  }
+
+  n_d_bins = 20
+    .type = int
+    .help = Number of bins for resolution gridding
+  n_z_bins = 20
+    .type = int
+    .help = Number of bins for phi/time gridding
+  n_detector_bins = 37
+    .type = int
+    .help = Number of bins in each detector dimension for modulation gridding
+  integration_method = prf
+    .type = str
+    .help = Option to choose from profile fitted intensities (prf) or summation integrated intensities (sum)
+  decay_correction_rescaling = False
+    .type = bool
+    .help = Option to turn on a relative-B factor rescale to the decay scale factors
+""")
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
 
-def scaling_lbfgs(reflections, experiments, gridding_parameters, scaling_options):
+def scaling_lbfgs(reflections, experiments, optionparser):
   """This algorithm performs an xds-like scaling"""
   '''handling of choice of integration method'''
-  if scaling_options['integration_method'] == 'profile_fitting':
-    int_method = (str('intensity.prf.value'), str('intensity.prf.variance'))
-  elif scaling_options['integration_method'] == 'summation_integration':
-      int_method = (str('intensity.sum.value'), str('intensity.sum.variance'))
-  else:
-      raise ValueError('Incorrect choice of integration_method')
 
+  '''extract parameters from phil'''
+  phil_parameters = optionparser.phil
+  diff_phil_parameters = optionparser.diff_phil
+
+  scaling_options={'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None, 
+                  'integration_method' : None, 'decay_correction_rescaling': False }
+  for obj in phil_parameters.objects:
+    if obj.name in scaling_options:
+      scaling_options[obj.name] = obj.extract()
+  for obj in diff_phil_parameters.objects:
+    if obj.name in scaling_options:
+      scaling_options[obj.name] = obj.extract()
+
+  if scaling_options['integration_method'] not in ['prf', 'sum']:
+    print 'Invalid integration_method choice, using default profile fitted intensities'
+    scaling_options['integration_method'] = 'prf'
+
+
+  print "Scaling options being used are :" 
+  for k,v in scaling_options.iteritems():
+    print '%s : %s' % (k, v)
+    
   '''create a data manager object'''
-  loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, int_method,
-                                                 gridding_parameters)
+  loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
 
   """Filter out zero/negative values of d, variance, etc"""
-  loaded_reflections.filter_data(int_method[1], -10.0, 0.0)
+  #loaded_reflections.filter_data(int_method[1], -10.0, 0.0)
+  loaded_reflections.filter_negative_intensities()
   loaded_reflections.filter_data('d', -1.0, 0.0)
 
   '''Map the indices to the asu and also sort the reflection table by miller index'''
@@ -73,7 +105,7 @@ def scaling_lbfgs(reflections, experiments, gridding_parameters, scaling_options
   '''assign a unique reflection index to each group of reflections'''
   loaded_reflections.assign_h_index()
   loaded_reflections.scale_by_LP_and_dqe()
-    
+  
   '''call the optimiser on the Data Manager object'''
   decay_correction_rescaling = scaling_options['decay_correction_rescaling']
   minimised = mf.LBFGS_optimiser(loaded_reflections, param_name='g_absorption',
@@ -85,13 +117,11 @@ def scaling_lbfgs(reflections, experiments, gridding_parameters, scaling_options
                                  parameters=minimised.data_manager.g_modulation)
   return minimised
 
-def apply_scaling(reflections, experiments):
+def apply_scaling(reflections, experiments, optionparser):
   #default parameters
-  gridding_parameters = {'ndbins':20, 'nzbins':20, 'n_detector_bins':37}
-  scaling_options = {'integration_method':'profile_fitting',
-                     'decay_correction_rescaling':True}
-  minimised = scaling_lbfgs(reflections, experiments, gridding_parameters, 
-                            scaling_options)
+  
+
+  minimised = scaling_lbfgs(reflections, experiments, optionparser)
 
   '''clean up reflection table for outputting'''
   minimised.data_manager.sorted_reflections['inverse_scale_factor'] = (
@@ -123,20 +153,20 @@ def main(argv):
     check_format=False)
   params, options = optionparser.parse_args(argv)
 
-  #dials.util.log.config(
-  #  verbosity=options.verbose,
-  #  info=params.output.log,
-  #  debug=params.output.debug_log)
+  dials.util.log.config(
+    verbosity=options.verbose,
+    info=params.output.log,
+    debug=params.output.debug_log)
 
   if not params.input.experiments or not params.input.reflections:
     optionparser.print_help()
     return
-
+  
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
   
-  apply_scaling(reflections, experiments)
+  apply_scaling(reflections, experiments, optionparser)
 
 if __name__ == "__main__":
   try:
