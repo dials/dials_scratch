@@ -18,8 +18,8 @@ from __future__ import absolute_import, division
 import sys
 import logging
 
-import dials.util.log
-from dials.util import halraiser
+
+from dials.util import halraiser, log
 from dials.array_family import flex
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 import libtbx.load_env
@@ -40,6 +40,9 @@ phil_scope = phil.parse("""
       .type = path
       .help = The debug log filename
   }
+  verbosity = 1
+    .type = int(value_min=0)
+    .help = "The verbosity level"
 
   n_d_bins = 20
     .type = int
@@ -56,38 +59,70 @@ phil_scope = phil.parse("""
   decay_correction_rescaling = False
     .type = bool
     .help = Option to turn on a relative-B factor rescale to the decay scale factors
+  modulation = True
+    .type = bool
+    .help = Option to turn off modulation correction
+  decay = True
+    .type = bool
+    .help = Option to turn off decay correction
+  absorption = True
+    .type = bool
+    .help = Option to turn off absorption correction
 """)
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
+from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay, 
+plot_data_absorption, plot_data_modulation)
 
-def scaling_lbfgs(reflections, experiments, optionparser):
+
+def main(argv):
+  optionparser = OptionParser(
+    usage=__doc__.strip(),
+    read_experiments=True,
+    read_reflections=True,
+    read_datablocks=False,
+    phil=phil_scope,
+    check_format=False)
+  params, options = optionparser.parse_args(argv, show_diff_phil=False)
+  
+  log.config(verbosity=1,
+             info=params.output.log,
+             debug=params.output.debug_log)
+
+  if not params.input.experiments or not params.input.reflections:
+    optionparser.print_help()
+    return
+
+  from dials.util.version import dials_version
+  logger.info(dials_version())
+
+  # Log the diff phil
+  diff_phil = optionparser.diff_phil.as_str()
+  if diff_phil is not '':
+    logger.info('The following parameters have been modified:\n')
+    logger.info(diff_phil)
+  
+  output_path = [s for s in argv if 'integrated.pickle' in s]
+  output_path =  output_path[0].rstrip('.pickle')+'_scaled.pickle'
+  
+  # UNWRAP all of the data objects from the PHIL parser
+  reflections = flatten_reflections(params.input.reflections)
+  experiments = flatten_experiments(params.input.experiments)
+  
+  apply_scaling(reflections, experiments, optionparser, output_path, logger=logger)
+
+def scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
   '''handling of choice of integration method'''
-
-  '''extract parameters from phil'''
-  phil_parameters = optionparser.phil
-  diff_phil_parameters = optionparser.diff_phil
-
-  scaling_options={'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None, 
-                  'integration_method' : None, 'decay_correction_rescaling': False }
-  for obj in phil_parameters.objects:
-    if obj.name in scaling_options:
-      scaling_options[obj.name] = obj.extract()
-  for obj in diff_phil_parameters.objects:
-    if obj.name in scaling_options:
-      scaling_options[obj.name] = obj.extract()
 
   if scaling_options['integration_method'] not in ['prf', 'sum']:
     print 'Invalid integration_method choice, using default profile fitted intensities'
     scaling_options['integration_method'] = 'prf'
 
+  
 
-  print "Scaling options being used are :" 
-  for k,v in scaling_options.iteritems():
-    print '%s : %s' % (k, v)
-    
   '''create a data manager object'''
   loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
 
@@ -108,65 +143,73 @@ def scaling_lbfgs(reflections, experiments, optionparser):
   
   '''call the optimiser on the Data Manager object'''
   decay_correction_rescaling = scaling_options['decay_correction_rescaling']
-  minimised = mf.LBFGS_optimiser(loaded_reflections, param_name='g_absorption',
-                                 parameters=loaded_reflections.g_absorption)
-  minimised = mf.LBFGS_optimiser(minimised.data_manager, param_name='g_decay',
-                                 parameters=minimised.data_manager.g_decay,
-                                 decay_correction_rescaling=decay_correction_rescaling)
-  minimised = mf.LBFGS_optimiser(minimised.data_manager, param_name='g_modulation',
-                                 parameters=minimised.data_manager.g_modulation)
-  return minimised
+  if scaling_options['absorption']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_absorption',
+                                            parameters=loaded_reflections.g_absorption
+                                           ).return_data_manager()
+  if scaling_options['decay']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_decay',
+                                            parameters=loaded_reflections.g_decay,
+                                            decay_correction_rescaling=decay_correction_rescaling
+                                           ).return_data_manager()
+  if scaling_options['modulation']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_modulation',
+                                            parameters=loaded_reflections.g_modulation
+                                           ).return_data_manager()
+  loaded_reflections.sorted_reflections['inverse_scale_factor'] = loaded_reflections.scale_factors
+  return loaded_reflections
 
-def apply_scaling(reflections, experiments, optionparser):
-  #default parameters
-  
+def apply_scaling(reflections, experiments, optionparser, output_path, logger):
+  '''extract parameters from phil'''
+  phil_parameters = optionparser.phil
+  diff_phil_parameters = optionparser.diff_phil
 
-  minimised = scaling_lbfgs(reflections, experiments, optionparser)
+  logger.info("=" * 80)
+  logger.info("")
+  logger.info("Initialising")
+  logger.info("")
+  print "Initialising data structures...."
 
-  '''clean up reflection table for outputting'''
-  minimised.data_manager.sorted_reflections['inverse_scale_factor'] = (
-    minimised.data_manager.scale_factors)
-  minimised.data_manager.initial_keys.append('inverse_scale_factor')
-  for key in minimised.data_manager.reflection_table.keys():
-    if not key in minimised.data_manager.initial_keys:
-      del minimised.data_manager.sorted_reflections[key]
+  scaling_options={'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None, 
+                  'integration_method' : None, 'decay_correction_rescaling': False,
+                  'modulation' : True, 'decay' : True, 'absorption' : True}
+  for obj in phil_parameters.objects:
+    if obj.name in scaling_options:
+      scaling_options[obj.name] = obj.extract()
+  for obj in diff_phil_parameters.objects:
+    if obj.name in scaling_options:
+      scaling_options[obj.name] = obj.extract()
 
-  '''save data'''
-  filename = sys.argv[1].strip('.pickle')+str('_scaled.pickle')
-  minimised.data_manager.save_sorted_reflections(filename)
-  print "Saved output to " + str(filename)
+  logger.info("Scaling options being used are :") 
+  for k,v in scaling_options.iteritems():
+    logger.info('%s : %s' % (k, v))
+
+  '''do lbfgs minimisation'''
+  minimised = scaling_lbfgs(reflections, experiments, scaling_options, logger=logger)
 
   '''calculate R metrics'''
-  Rmeas = R_meas(minimised.data_manager)
-  Rpim = R_pim(minimised.data_manager)
+  Rmeas = R_meas(minimised)
+  Rpim = R_pim(minimised)
   print "R_meas is %s" % (Rmeas)
   print "R_pim is %s" % (Rpim)
 
+  '''clean up reflection table for outputting and save data'''
+  minimised.clean_reflection_table()
+  minimised.save_sorted_reflections(output_path)
+  print "Saved output to " + str(output_path)
 
-def main(argv):
-  optionparser = OptionParser(
-    usage=__doc__.strip(),
-    read_experiments=True,
-    read_reflections=True,
-    read_datablocks=False,
-    phil=phil_scope,
-    check_format=False)
-  params, options = optionparser.parse_args(argv)
+  '''output plots of scale factors'''
+  if scaling_options['absorption']:
+    plot_data_absorption(minimised)
+  if scaling_options['decay']:
+    plot_data_decay(minimised)
+  if scaling_options['modulation']:
+    plot_data_modulation(minimised)
+  print "Saved plots of correction factors"
 
-  dials.util.log.config(
-    verbosity=options.verbose,
-    info=params.output.log,
-    debug=params.output.debug_log)
-
-  if not params.input.experiments or not params.input.reflections:
-    optionparser.print_help()
-    return
-  
-  # UNWRAP all of the data objects from the PHIL parser
-  reflections = flatten_reflections(params.input.reflections)
-  experiments = flatten_experiments(params.input.experiments)
-  
-  apply_scaling(reflections, experiments, optionparser)
 
 if __name__ == "__main__":
   try:
