@@ -14,31 +14,30 @@ A number of options can be specified, see the phil_scope below.
 """
 
 from __future__ import absolute_import, division
-
-import sys
-import logging
-
-
-from dials.util import halraiser, log
-from dials.array_family import flex
-from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 import libtbx.load_env
-from libtbx import phil
-
+import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
 
-phil_scope = phil.parse("""
+import sys
+
+
+from dials.util import halraiser
+from dials.array_family import flex
+from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
+from libtbx import phil
+
+phil_scope = phil.parse('''
   debug = False
     .type = bool
-    .help = Output additional debugging information
+    .help = "Output additional debugging information"
   output {
     log = 'dials_scratch.xds_scaling.log'
-      .type = path
-      .help = The log filename
+      .type = str
+      .help = "The log filename"
 
     debug_log = 'dials_scratch.xds_scaling.debug.log'
-      .type = path
-      .help = The debug log filename
+      .type = str
+      .help = "The debug log filename"
   }
   verbosity = 1
     .type = int(value_min=0)
@@ -46,29 +45,29 @@ phil_scope = phil.parse("""
 
   n_d_bins = 20
     .type = int
-    .help = Number of bins for resolution gridding
+    .help = "Number of bins for resolution gridding"
   n_z_bins = 20
     .type = int
-    .help = Number of bins for phi/time gridding
+    .help = "Number of bins for phi/time gridding"
   n_detector_bins = 37
     .type = int
-    .help = Number of bins in each detector dimension for modulation gridding
-  integration_method = prf
+    .help = "Number of bins in each detector dimension for modulation gridding"
+  integration_method = 'prf'
     .type = str
-    .help = Option to choose from profile fitted intensities (prf) or summation integrated intensities (sum)
+    .help = "Option to choose from profile fitted intensities (prf) or summation integrated intensities (sum)"
   decay_correction_rescaling = False
     .type = bool
-    .help = Option to turn on a relative-B factor rescale to the decay scale factors
+    .help = "Option to turn on a relative-B factor rescale to the decay scale factors"
   modulation = True
     .type = bool
-    .help = Option to turn off modulation correction
+    .help = "Option to turn off modulation correction"
   decay = True
     .type = bool
-    .help = Option to turn off decay correction
+    .help = "Option to turn off decay correction"
   absorption = True
     .type = bool
-    .help = Option to turn off absorption correction
-""")
+    .help = "Option to turn off absorption correction"
+''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
@@ -78,6 +77,7 @@ plot_data_absorption, plot_data_modulation)
 
 
 def main(argv):
+  
   optionparser = OptionParser(
     usage=__doc__.strip(),
     read_experiments=True,
@@ -86,11 +86,10 @@ def main(argv):
     phil=phil_scope,
     check_format=False)
   params, options = optionparser.parse_args(argv, show_diff_phil=False)
-  
-  log.config(verbosity=1,
-             info=params.output.log,
-             debug=params.output.debug_log)
 
+  from dials.util import log
+  log.config(verbosity=1, info=params.output.log, debug=params.output.debug_log)
+  
   if not params.input.experiments or not params.input.reflections:
     optionparser.print_help()
     return
@@ -121,28 +120,29 @@ def scaling_lbfgs(reflections, experiments, scaling_options, logger):
     print 'Invalid integration_method choice, using default profile fitted intensities'
     scaling_options['integration_method'] = 'prf'
 
-  
-
   '''create a data manager object'''
   loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
 
   """Filter out zero/negative values of d, variance, etc"""
-  #loaded_reflections.filter_data(int_method[1], -10.0, 0.0)
-  loaded_reflections.filter_negative_intensities()
+  loaded_reflections.filter_negative_variances()
   loaded_reflections.filter_data('d', -1.0, 0.0)
 
   '''Map the indices to the asu and also sort the reflection table by miller index'''
   loaded_reflections.map_indices_to_asu()
+  loaded_reflections.scale_by_LP_and_dqe()
 
-  '''determine gridding index for scale parameters '''
-  loaded_reflections.initialise_scale_factors()
+  #set scaling weightings
+  loaded_reflections.scale_weight_Isigma(3.0)
+  loaded_reflections.scale_weight_dmin(1.4)
 
   '''assign a unique reflection index to each group of reflections'''
+  '''determine gridding index for scale parameters '''
   loaded_reflections.assign_h_index()
-  loaded_reflections.scale_by_LP_and_dqe()
-  
+  loaded_reflections.initialise_scale_factors()
+
   '''call the optimiser on the Data Manager object'''
   decay_correction_rescaling = scaling_options['decay_correction_rescaling']
+  
   if scaling_options['absorption']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name='g_absorption',
