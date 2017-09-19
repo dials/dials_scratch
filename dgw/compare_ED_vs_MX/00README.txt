@@ -72,7 +72,9 @@ observations. In either case the error vector is the same in pixels/images,
 but this is scaled appropriately into mm/rad for each experiment. The centroid
 variances from spot-finding are left untouched for the centroids in
 pixels/images, but again these are scaled appropriately for the centroids in
-mm/rad.
+mm/rad. Only reflections that can be predicted with both geometries are written
+to the output files. This ensures that refinement can be performed using the
+equivalent set of reflections in each case, to help comparison.
 
 Refinement
 ----------
