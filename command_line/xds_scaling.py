@@ -54,10 +54,17 @@ phil_scope = phil.parse('''
     .help = "Number of bins in each detector dimension for modulation gridding"
   integration_method = 'prf'
     .type = str
-    .help = "Option to choose from profile fitted intensities (prf) or summation integrated intensities (sum)"
+    .help = "Option to choose from profile fitted intensities (prf) 
+             or summation integrated intensities (sum)"
   decay_correction_rescaling = False
     .type = bool
     .help = "Option to turn on a relative-B factor rescale to the decay scale factors"
+  Isigma_min = -5.0
+    .type = float
+    .help = "Option to use a I/sigma subset of reflections to determine scale factors"
+  d_min = 0.0
+    .type = float
+    .help = "Option to use a d-value subset of reflections to determine scale factors"
   modulation = True
     .type = bool
     .help = "Option to turn off modulation correction"
@@ -110,60 +117,6 @@ def main(argv):
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
   
-  apply_scaling(reflections, experiments, optionparser, output_path, logger=logger)
-
-def scaling_lbfgs(reflections, experiments, scaling_options, logger):
-  """This algorithm performs an xds-like scaling"""
-  '''handling of choice of integration method'''
-
-  if scaling_options['integration_method'] not in ['prf', 'sum']:
-    print 'Invalid integration_method choice, using default profile fitted intensities'
-    scaling_options['integration_method'] = 'prf'
-
-  '''create a data manager object'''
-  loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
-
-  """Filter out zero/negative values of d, variance, etc"""
-  loaded_reflections.filter_negative_variances()
-  loaded_reflections.filter_data('d', -1.0, 0.0)
-
-  '''Map the indices to the asu and also sort the reflection table by miller index'''
-  loaded_reflections.map_indices_to_asu()
-  loaded_reflections.scale_by_LP_and_dqe()
-
-  #set scaling weightings
-  loaded_reflections.scale_weight_Isigma(3.0)
-  loaded_reflections.scale_weight_dmin(1.4)
-
-  '''assign a unique reflection index to each group of reflections'''
-  '''determine gridding index for scale parameters '''
-  loaded_reflections.assign_h_index()
-  loaded_reflections.initialise_scale_factors()
-
-  '''call the optimiser on the Data Manager object'''
-  decay_correction_rescaling = scaling_options['decay_correction_rescaling']
-  
-  if scaling_options['absorption']:
-    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_absorption',
-                                            parameters=loaded_reflections.g_absorption
-                                           ).return_data_manager()
-  if scaling_options['decay']:
-    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_decay',
-                                            parameters=loaded_reflections.g_decay,
-                                            decay_correction_rescaling=decay_correction_rescaling
-                                           ).return_data_manager()
-  if scaling_options['modulation']:
-    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_modulation',
-                                            parameters=loaded_reflections.g_modulation
-                                           ).return_data_manager()
-  loaded_reflections.sorted_reflections['inverse_scale_factor'] = loaded_reflections.scale_factors
-  return loaded_reflections
-
-def apply_scaling(reflections, experiments, optionparser, output_path, logger):
-  '''extract parameters from phil'''
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
 
@@ -174,21 +127,26 @@ def apply_scaling(reflections, experiments, optionparser, output_path, logger):
   print "Initialising data structures...."
 
   scaling_options={'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None, 
-                  'integration_method' : None, 'decay_correction_rescaling': False,
-                  'modulation' : True, 'decay' : True, 'absorption' : True}
+                   'integration_method' : None, 'decay_correction_rescaling': False,
+                   'modulation' : True, 'decay' : True, 'absorption' : True,
+                   'Isigma_min' : -5.0, 'd_min' : 0.0}
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
   for obj in diff_phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
+  '''handling of choice of integration method'''
+  if scaling_options['integration_method'] not in ['prf', 'sum', 'combine']:
+    print 'Invalid integration_method choice, using default profile fitted intensities'
+    scaling_options['integration_method'] = 'prf'
 
-  logger.info("Scaling options being used are :") 
-  for k,v in scaling_options.iteritems():
+  logger.info("Scaling options being used are :")
+  for k, v in scaling_options.iteritems():
     logger.info('%s : %s' % (k, v))
 
   '''do lbfgs minimisation'''
-  minimised = scaling_lbfgs(reflections, experiments, scaling_options, logger=logger)
+  minimised = xds_scaling_lbfgs(reflections, experiments, scaling_options, logger)
 
   '''calculate R metrics'''
   Rmeas = R_meas(minimised)
@@ -209,6 +167,37 @@ def apply_scaling(reflections, experiments, optionparser, output_path, logger):
   if scaling_options['modulation']:
     plot_data_modulation(minimised)
   print "Saved plots of correction factors"
+
+
+def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
+  """This algorithm performs an xds-like scaling"""
+  
+  '''create a data manager object. Upon creation, negative variance & d-values
+  are filtered and the indices are mapped to the asu and sorted. scale factors
+  are initialised to unity'''
+  loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
+
+  '''set scaling weightings - choice of which reflections to use
+  to determine scale factors'''
+  loaded_reflections.scale_weight_Isigma(scaling_options['Isigma_min'])
+  loaded_reflections.scale_weight_dmin(scaling_options['d_min'])
+
+  '''call the optimiser on the Data Manager object'''
+  if scaling_options['absorption']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_absorption',
+                                           ).return_data_manager() 
+  if scaling_options['decay']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_decay',
+                                            decay_correction_rescaling=
+                                            scaling_options['decay_correction_rescaling']
+                                           ).return_data_manager()                                      
+  if scaling_options['modulation']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name='g_modulation',
+                                           ).return_data_manager()
+  return loaded_reflections
 
 
 if __name__ == "__main__":
