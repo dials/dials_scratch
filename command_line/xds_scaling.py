@@ -19,6 +19,7 @@ import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
 
 import sys
+import numpy as np
 
 
 from dials.util import halraiser
@@ -84,7 +85,7 @@ plot_data_absorption, plot_data_modulation)
 
 
 def main(argv):
-  
+  '''main script to run and xds-like scaling algorithm'''
   optionparser = OptionParser(
     usage=__doc__.strip(),
     read_experiments=True,
@@ -96,7 +97,7 @@ def main(argv):
 
   from dials.util import log
   log.config(verbosity=1, info=params.output.log, debug=params.output.debug_log)
-  
+
   if not params.input.experiments or not params.input.reflections:
     optionparser.print_help()
     return
@@ -109,14 +110,14 @@ def main(argv):
   if diff_phil is not '':
     logger.info('The following parameters have been modified:\n')
     logger.info(diff_phil)
-  
+
   output_path = [s for s in argv if 'integrated.pickle' in s]
-  output_path =  output_path[0].rstrip('.pickle')+'_scaled.pickle'
-  
+  output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
+
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
-  
+
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
 
@@ -126,10 +127,10 @@ def main(argv):
   logger.info("")
   print "Initialising data structures...."
 
-  scaling_options={'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None, 
-                   'integration_method' : None, 'decay_correction_rescaling': False,
-                   'modulation' : True, 'decay' : True, 'absorption' : True,
-                   'Isigma_min' : -5.0, 'd_min' : 0.0}
+  scaling_options = {'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None,
+                     'integration_method' : None, 'modulation' : True,
+                     'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
+                     'd_min' : 0.0, 'decay_correction_rescaling': False}
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
@@ -171,31 +172,24 @@ def main(argv):
 
 def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
-  
+
   '''create a data manager object. Upon creation, negative variance & d-values
   are filtered and the indices are mapped to the asu and sorted. scale factors
   are initialised to unity'''
   loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
 
-  '''set scaling weightings - choice of which reflections to use
-  to determine scale factors'''
-  loaded_reflections.scale_weight_Isigma(scaling_options['Isigma_min'])
-  loaded_reflections.scale_weight_dmin(scaling_options['d_min'])
-
   '''call the optimiser on the Data Manager object'''
   if scaling_options['absorption']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_absorption',
-                                           ).return_data_manager() 
+                                            param_name='g_absorption'
+                                           ).return_data_manager()
   if scaling_options['decay']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_decay',
-                                            decay_correction_rescaling=
-                                            scaling_options['decay_correction_rescaling']
-                                           ).return_data_manager()                                      
+                                            param_name='g_decay'
+                                           ).return_data_manager()
   if scaling_options['modulation']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_modulation',
+                                            param_name='g_modulation'
                                            ).return_data_manager()
   return loaded_reflections
 
