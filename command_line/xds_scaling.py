@@ -57,6 +57,9 @@ phil_scope = phil.parse('''
     .type = str
     .help = "Option to choose from profile fitted intensities (prf) 
              or summation integrated intensities (sum)"
+  parameterization = 'standard'
+    .type = str
+    .help = "Choice of g-value parameterisation - 'standard' (multiplicative) or 'log'"
   decay_correction_rescaling = False
     .type = bool
     .help = "Option to turn on a relative-B factor rescale to the decay scale factors"
@@ -130,7 +133,8 @@ def main(argv):
   scaling_options = {'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None,
                      'integration_method' : None, 'modulation' : True,
                      'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
-                     'd_min' : 0.0, 'decay_correction_rescaling': False}
+                     'd_min' : 0.0, 'decay_correction_rescaling': False,
+                     'parameterization': 'standard'}
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
@@ -141,6 +145,9 @@ def main(argv):
   if scaling_options['integration_method'] not in ['prf', 'sum', 'combine']:
     print 'Invalid integration_method choice, using default profile fitted intensities'
     scaling_options['integration_method'] = 'prf'
+  if scaling_options['parameterization'] not in ['standard', 'log']:
+    print 'Invalid parameterization choice, using standard g-value parameterisation'
+    scaling_options['integration_method'] = 'standard'
 
   logger.info("Scaling options being used are :")
   for k, v in scaling_options.iteritems():
@@ -177,6 +184,7 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   are filtered and the indices are mapped to the asu and sorted. scale factors
   are initialised to unity'''
   loaded_reflections = dmf.XDS_Data_Manager(reflections, experiments, scaling_options)
+  #loaded_reflections.reject_outliers(10.0, 1)
 
   '''call the optimiser on the Data Manager object'''
   if scaling_options['absorption']:
