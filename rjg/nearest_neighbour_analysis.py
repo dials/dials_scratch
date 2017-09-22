@@ -219,6 +219,35 @@ def plot_d_spacings(reflections, figsize=(12,8)):
   plt.savefig('d_spacings_hist.png')
   plt.clf()
 
+  hist_d_spacings = hist.slot_centers()
+  hist_freq = hist.slots()
+  perm = flex.sort_permutation(hist_freq.as_double())
+  fig = plt.figure(figsize=figsize)
+  plt.plot(range(hist_freq.size()), hist_freq.select(perm))
+  plt.tight_layout()
+  plt.savefig('ordered_d_spacings_hist.png')
+  plt.clf()
+
+  perm = flex.sort_permutation(d_spacings, reverse=True)
+  ordered_d_spacings = d_spacings.select(perm)
+  fig = plt.figure(figsize=figsize)
+  #plt.plot(range(ordered_d_spacings.size()), ordered_d_spacings)
+  plt.plot(
+    uctbx.d_as_d_star_sq(ordered_d_spacings),
+    flex.double_range(ordered_d_spacings.size())/ordered_d_spacings.size())
+  ax = plt.gca()
+  xticks = ax.get_xticks()
+  xticks = [x for x in xticks if x >= 0]
+  ax.set_xticks(xticks)
+  xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
+  ax.set_xticklabels(['%.2f' %x for x in xticks_d])
+  plt.xlabel('d spacing(A^-1)')
+  plt.ylabel('Percentile')
+  plt.tight_layout()
+  plt.savefig('ordered_d_spacings.png')
+  plt.clf()
+
+
 def plot_direct_space_distances(direct, d_spacings, figsize=(12,8)):
   from cctbx import uctbx
   from matplotlib import pyplot as plt
