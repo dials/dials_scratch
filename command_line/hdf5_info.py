@@ -4,9 +4,9 @@ import numpy
 def main(filename):
 
   f = h5py.File(filename, 'r')
-  
+
   datasets = []
-  
+
   def visitor(name, obj):
     if isinstance(obj, h5py.Dataset):
       datasets.append(name)
@@ -16,7 +16,7 @@ def main(filename):
     elif isinstance(obj, h5py.Group):
       print 'group:  ', name
 
-    print 
+    print
 
   f.visititems(visitor)
 
