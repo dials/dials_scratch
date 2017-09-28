@@ -18,7 +18,7 @@ def predict_reflections(experiments):
 
   # Predict
   reflections = flex.reflection_table.from_predictions_multi(experiments)
-  
+
   # Compute some reflection properties
   reflections.compute_zeta_multi(experiments)
   reflections.compute_d(experiments)
@@ -69,7 +69,7 @@ def read_images(experiments):
 
 #   pixels = defaultdict(list)
 #   for i in range(len(reflections)):
-    
+
 #     subset = reflections.select(flex.size_t([i]))
 #     subset['shoebox'] = flex.shoebox(
 #       subset['panel'],
@@ -106,7 +106,7 @@ def read_images(experiments):
 #   for k, v in overlaps.iteritems():
 #     if len(v) > 0:
 #       print "Reflection %d operlaps with %s" % (k, list(v))
-  
+
 #   return overlaps
 
 
@@ -130,7 +130,7 @@ def read_images(experiments):
 
 #   background = flex.double()
 #   success = flex.bool()
-  
+
 #   for i in range(len(reflections)):
 #     x0, x1, y0, y1, z0, z1 = reflections[i]['bbox']
 #     x0 = max(x0, 0)
@@ -145,7 +145,7 @@ def read_images(experiments):
 #         for x in range(x0, x1):
 #           if mask[z,y,x] == 1:
 #             pixels.append(data[z,y,x])
-    
+
 #     if pixels.all_eq(0):
 #       background.append(0)
 #       success.append(0)
@@ -171,7 +171,7 @@ def load_sampler(experiments, reference):
     experiments[0].detector[0].get_image_size(),
     experiments[0].scan.get_array_range(),
     num_scan_points)
-    
+
 
   return sampler
 
@@ -218,19 +218,19 @@ def load_sampler(experiments, reference):
 #   xyz = reflection['xyzcal.px']
 #   bbox = reflection['bbox']
 #   panel = reflection['panel']
-  
+
 #   index = sampler.nearest(0, xyz)
 
 #   profile = reference[0][index]
 #   cs = CoordinateSystem(m2, s0, s1, phi)
-  
+
 #   transform = TransformReverseNoModel(
 #     transform_spec,
 #     cs,
 #     bbox,
 #     panel,
 #     profile)
-  
+
 #   return transform.profile()
 
 
@@ -254,7 +254,7 @@ def load_sampler(experiments, reference):
 #   r_mask = r_mask.as_1d()
 #   r_mask.set_selected(r_mask == 5, 4)
 #   r_mask.reshape(r_data.accessor())
-  
+
 #   for p in reverse_pixel_list[i]:
 #     if len(pixel_list[p]) == 1:
 #       x, y, z = p
@@ -264,7 +264,7 @@ def load_sampler(experiments, reference):
 #       # print i, p, pixel_list[p]
 #       # print xx, yy, zz, reflections[i]['bbox'], r_mask.all()
 #       r_mask[zz,yy,xx] = 5
-  
+
 
 #   return r_data, r_bgrd, r_mask
 
@@ -284,7 +284,7 @@ def integrate(experiments, reflections, reference):
   from time import time
   st = time()
   pixel_list = PixelList(
-    reflections, 
+    reflections,
     experiments[0].beam,
     experiments[0].detector,
     experiments[0].goniometer,
@@ -319,7 +319,7 @@ def integrate(experiments, reflections, reference):
 
   # # Get a list of foreground pixels with associated reflections
   # pixel_list = get_pixel_list(experiments, reflections)
-  
+
   # # Get pixel list associating pixels with reflections
   # reverse_pixel_list = get_reverse_pixel_list(pixel_list)
 
@@ -354,13 +354,13 @@ def integrate(experiments, reflections, reference):
   #                                     reflections[i], sampler, reference)
 
   #   r_data, r_bgrd, r_mask = get_data_on_detector(
-  #     data, 
+  #     data,
   #     mask,
-  #     reflections, 
+  #     reflections,
   #     i,
-  #     pixel_list, 
+  #     pixel_list,
   #     reverse_pixel_list)
-   
+
   #   if r_data is None:
   #     continue
 
@@ -421,4 +421,3 @@ if __name__ == '__main__':
   reflections = integrate(experiments, reflections, reference)
 
   reflections.as_pickle("integrated.pickle")
-
