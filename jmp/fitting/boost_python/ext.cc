@@ -46,6 +46,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   using dxtbx::ImageSweep;
   using dxtbx::format::Image;
+  using dxtbx::format::ImageTile;
 
   using dials::model::Shoebox;
   using dials::algorithms::profile_model::gaussian_rs::MaskCalculator3D;
@@ -509,9 +510,16 @@ namespace dials { namespace algorithms { namespace boost_python {
 
 
 
+  /**
+   * A class to implement a thread pool
+   */
   class ThreadPool {
   public:
 
+    /**
+     * Instantiate with the number of required threads
+     * @param N The number of threads
+     */
     ThreadPool(std::size_t N)
         : work_(io_service_),
           started_(0),
@@ -524,6 +532,9 @@ namespace dials { namespace algorithms { namespace boost_python {
       }
     }
 
+    /**
+     * Destroy the thread pool and join all threads
+     */
     ~ThreadPool() {
       io_service_.stop();
       try {
@@ -533,26 +544,44 @@ namespace dials { namespace algorithms { namespace boost_python {
       }
     }
 
+    /**
+     * Post a function to the thread pool
+     * @param function The function to call
+     */
     template <typename Function>
     void post(Function function) {
       started_++;
       io_service_.post(FunctionRunner<Function>(function, finished_));
     }
 
+    /**
+     * Wait until all posted jobs have finished
+     */
     void wait() {
       while (finished_ < started_);
     }
 
   protected:
 
+    /**
+     * A helper class to call the function increasing an atomic counter
+     */
     template <typename Function>
     class FunctionRunner {
     public:
 
+      /**
+       * Create the helper class instance
+       * @param function The function to call
+       * @param counter The counter to increment
+       */
       FunctionRunner(Function function, boost::atomic<std::size_t> &counter)
         : function_(function),
           counter_(counter) {}
 
+      /**
+       * Call the function and increment the counter
+       */
       void operator()() {
         function_();
         counter_++;
@@ -569,297 +598,30 @@ namespace dials { namespace algorithms { namespace boost_python {
     boost::thread_group threads_;
     std::size_t started_;
     boost::atomic<std::size_t> finished_;
-
   };
 
 
-  class Reflection {
-  public:
 
-    typedef typename af::reflection_table_type_generator::data_type data_type;
-    typedef std::map<std::string, data_type> map_type;
-
-    typedef typename map_type::key_type key_type;
-    typedef typename map_type::mapped_type mapped_type;
-    typedef typename map_type::value_type map_value_type;
-    typedef typename map_type::iterator iterator;
-    typedef typename map_type::const_iterator const_iterator;
-    typedef typename map_type::size_type size_type;
-
-    Reflection()
-      : data_(boost::make_shared<map_type>()){}
-
-    /**
-     * Access a value by key
-     * @param key The column name
-     * @returns The proxy object to access the value
-     */
-    const mapped_type& operator[](const key_type &key) const {
-      return data_->operator[](key);
-    }
-
-    /**
-     * Access a value by key
-     * @param key The column name
-     * @returns The proxy object to access the value
-     */
-    mapped_type& operator[](const key_type &key) {
-      return data_->operator[](key);
-    }
-
-    /**
-     * Access a value by key
-     * @param key The column name
-     * @returns The value.
-     */
-    template <typename T>
-    T& get(const key_type &key) {
-      iterator it = find(key);
-      DIALS_ASSERT(it != end());
-      return boost::get<T>(it->second);
-    }
-
-    /**
-     * Access a value by key
-     * @param key The column name
-     * @returns The value.
-     */
-    template <typename T>
-    const T& get(const key_type &key) const {
-      const_iterator it = find(key);
-      DIALS_ASSERT(it != end());
-      return boost::get<T>(it->second);
-    }
-
-    /** @returns An iterator to the beginning of the column map */
-    iterator begin() {
-      return data_->begin();
-    }
-
-    /** @returns An iterator to the end of the column map */
-    iterator end() {
-      return data_->end();
-    }
-
-    /** @returns A const iterator to the beginning of the column map */
-    const_iterator begin() const {
-      return data_->begin();
-    }
-
-    /** @returns A const iterator to the end of the column map */
-    const_iterator end() const {
-      return data_->end();
-    }
-
-    /** @returns The number of values in the table */
-    size_type size() const {
-      return data_->size();
-    }
-
-    /** @returns Is the table empty */
-    bool empty() const {
-      return data_->empty();
-    }
-
-    /** @returns The number of columns matching the key (0 or 1) */
-    size_type count(const key_type &key) const {
-      return data_->count(key);
-    }
-
-    /**
-     * Find a column matching the key
-     * @param key The column name
-     * @returns An iterator to the column
-     */
-    iterator find(const key_type &key) {
-      return data_->find(key);
-    }
-
-    /**
-     * Find a column matching the key
-     * @param key The column name
-     * @returns A const iterator to the column
-     */
-    const_iterator find(const key_type &key) const {
-      return data_->find(key);
-    }
-
-    /**
-     * Erase a column from the table.
-     * @param key The column name
-     * @returns The number of columns removed
-     */
-    size_type erase(const key_type &key) {
-      return data_->erase(key);
-    }
-
-    /** Clear the table */
-    void clear() {
-      data_->clear();
-    }
-
-    /** @returns Does the table contain the key. */
-    bool contains(const key_type &key) const {
-      const_iterator it = find(key);
-      return it != end();
-    }
-
-  protected:
-
-    boost::shared_ptr<map_type> data_;
-
-  };
-
-  struct element_to_variant_visitor : public boost::static_visitor<Reflection::data_type> {
-    std::size_t n_;
-    element_to_variant_visitor(std::size_t n) : n_(n) {}
-    template <typename T>
-    Reflection::data_type operator () (T &col) {
-      DIALS_ASSERT(n_ < col.size());
-      return Reflection::data_type(col[n_]);
-    }
-  };
-
-  struct variant_to_element_visitor : public boost::static_visitor<void> {
-    af::reflection_table table_;
-    std::size_t n_;
-    Reflection::key_type key_;
-    variant_to_element_visitor(af::reflection_table table, std::size_t n, Reflection::key_type key) :
-      table_(table),
-      n_(n),
-      key_(key) {}
-    template <typename T>
-    void operator () (const T &item) {
-      af::ref<T> col = table_[key_];
-      DIALS_ASSERT(n_ < col.size());
-      col[n_] = item;
-    }
-  };
-
-  struct to_table_visitor : public boost::static_visitor<void> {
-    af::reflection_table table_;
-    std::string key_;
-    to_table_visitor(af::reflection_table table, std::string key) :
-      table_(table),
-      key_(key) {
-      DIALS_ASSERT(table_.size() == 1);
-    }
-    template <typename T>
-    void operator () (const T &item) {
-      table_[key_] = af::shared<T>(1, item);
-    }
-  };
-
-
-  Reflection get_reflection(af::reflection_table table, std::size_t i) {
-
-    typedef typename af::reflection_table::const_iterator iterator;
-    DIALS_ASSERT(i < table.size());
-    Reflection result;
-    element_to_variant_visitor visitor(i);
-    for (iterator it = table.begin(); it != table.end(); ++it) {
-      result[it->first] = it->second.apply_visitor(visitor);
-    }
-    return result;
-  }
-
-
-  void set_reflection(af::reflection_table table, std::size_t i, Reflection item) {
-    typedef typename Reflection::const_iterator iterator;
-    DIALS_ASSERT(i < table.size());
-    for (iterator it = item.begin(); it != item.end(); ++it) {
-      variant_to_element_visitor visitor(table, i, it->first);
-      it->second.apply_visitor(visitor);
-    }
-  }
-
-  af::reflection_table Reflection_to_table(const Reflection &self) {
-    typedef typename Reflection::const_iterator iterator;
-    af::reflection_table result(1);
-    for (iterator it = self.begin(); it != self.end(); ++it) {
-      to_table_visitor visitor(result, it->first);
-      it->second.apply_visitor(visitor);
-    }
-    return result;
-  }
-
-
-  struct item_to_object_visitor : public boost::static_visitor<object> {
-    template <typename T>
-    object operator () (T &col) {
-      return object(col);
-    }
-  };
-
-  boost::python::object Reflection_get(const Reflection &self, std::string name) {
-    typename Reflection::mapped_type item = self[name];
-    item_to_object_visitor visitor;
-    return item.apply_visitor(visitor);
-  }
-
-  void Reflection_set_bool(Reflection &self, std::string name, bool item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_int(Reflection &self, std::string name, int item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_size_t(Reflection &self, std::string name, std::size_t item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_double(Reflection &self, std::string name, double item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_string(Reflection &self, std::string name, std::string item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_vec2_double(Reflection &self, std::string name, vec2<double> item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_vec3_double(Reflection &self, std::string name, vec3<double> item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_mat3_double(Reflection &self, std::string name, mat3<double> item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_int6(Reflection &self, std::string name, int6 item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_miller_index(Reflection &self, std::string name, cctbx::miller::index<> item) {
-    self[name] = Reflection::data_type(item);
-  }
-
-  void Reflection_set_shoebox(Reflection &self, std::string name, Shoebox<> item) {
-    self[name] = Reflection::data_type(item);
-  }
 
 
   class MaskCalculatorIface {
   public:
 
-    virtual void operator()(Reflection &reflection) const = 0;
+    virtual void operator()(af::Reflection &reflection) const = 0;
 
   };
 
   class BackgroundCalculatorIface {
   public:
 
-    virtual void operator()(Reflection &reflection) const = 0;
+    virtual void operator()(af::Reflection &reflection) const = 0;
 
   };
 
   class IntensityCalculatorIface {
   public:
 
-    virtual void operator()(Reflection &reflection) const = 0;
+    virtual void operator()(af::Reflection &reflection) const = 0;
 
   };
 
@@ -880,7 +642,7 @@ namespace dials { namespace algorithms { namespace boost_python {
               delta_b,
               delta_m) {}
 
-    virtual void operator()(Reflection &reflection) const {
+    virtual void operator()(af::Reflection &reflection) const {
       func_.single(
         reflection.get< Shoebox<> >("shoebox"),
         reflection.get< vec3<double> >("s1"),
@@ -908,7 +670,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           max_iter,
           min_pixels) {}
 
-    virtual void operator()(Reflection &reflection) const {
+    virtual void operator()(af::Reflection &reflection) const {
       creator_.single(reflection.get< Shoebox<> >("shoebox"));
     }
 
@@ -983,7 +745,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         spec_(spec) {
     }
 
-    virtual void operator()(Reflection &reflection) const {
+    virtual void operator()(af::Reflection &reflection) const {
 
       typedef af::const_ref< double, af::c_grid<3> > data_const_reference;
       typedef af::const_ref< bool, af::c_grid<3> > mask_const_reference;
@@ -1099,15 +861,101 @@ namespace dials { namespace algorithms { namespace boost_python {
     TransformSpec spec_;
 
   };
+  
+  
+  /**
+   * A class to store the image data buffer
+   */
+  class Buffer {
+  public:
 
+    /**
+     * Initialise the the size of the panels
+     * @param detector The detector model
+     * @param n The number of images
+     */
+    Buffer(const Detector &detector, std::size_t n) {
+      std::size_t zsize = n;
+      DIALS_ASSERT(zsize > 0);
+      for (std::size_t i = 0; i < detector.size(); ++i) {
+        std::size_t xsize = detector[i].get_image_size()[0];
+        std::size_t ysize = detector[i].get_image_size()[1];
+        DIALS_ASSERT(xsize > 0);
+        DIALS_ASSERT(ysize > 0);
+        data_.push_back(
+            af::versa< double, af::c_grid<3> >(
+              af::c_grid<3>(zsize, ysize, xsize)));
+      }
+    }
+
+    /**
+     * Copy an image to the buffer
+     * @param image The image data
+     * @param index The image index
+     */
+    void copy(const Image<double> &image, std::size_t index) {
+      DIALS_ASSERT(image.n_tiles() == data_.size());
+      for (std::size_t i = 0; i < image.n_tiles(); ++i) {
+        copy(image.tile(i).data().const_ref(), data_[i].ref(), index);
+      }
+    }
+
+    /**
+     * Copy the data from 1 panel
+     * @param image The image data
+     * @param buffer The image buffer
+     * @param index The image index
+     */
+    void copy(af::const_ref< double, af::c_grid<2> > image,
+              af::ref < double, af::c_grid<3> > buffer,
+              std::size_t index) {
+      std::size_t ysize = image.accessor()[0];
+      std::size_t xsize = image.accessor()[1];
+      DIALS_ASSERT(image.accessor()[0] == buffer.accessor()[1]);
+      DIALS_ASSERT(image.accessor()[1] == buffer.accessor()[2]);
+      for (std::size_t j = 0; j < ysize * xsize; ++j) {
+        buffer[index * (xsize*ysize) + j] = image[j];
+      }
+    }
+
+    /**
+     * @param The panel number
+     * @returns The buffer for the panel
+     */
+    af::const_ref< double, af::c_grid<3> > data(std::size_t panel) const {
+      DIALS_ASSERT(panel < data_.size());
+      return data_[panel].const_ref();
+    }
+
+  protected:
+
+    std::vector< af::versa< double, af::c_grid<3> > > data_;
+
+  };
+
+
+
+  /**
+   * A class to integrate a single reflection
+   */
   class ReflectionIntegrator {
   public:
 
+    /**
+     * Initialise the integrator
+     * @param compute_mask The mask calculation function
+     * @param compute_background The background calculation function
+     * @param compute_intensity The intensity calculation function
+     * @param buffer The image buffer array
+     * @param zstart The first image index
+     * @param underload The underload value
+     * @param overload The overload value
+     */
     ReflectionIntegrator(
           const MaskCalculatorIface &compute_mask,
           const BackgroundCalculatorIface &compute_background,
           const IntensityCalculatorIface &compute_intensity,
-          const af::const_ref< double, af::c_grid<3> > &buffer,
+          const Buffer &buffer,
           int zstart,
           double underload,
           double overload)
@@ -1119,42 +967,59 @@ namespace dials { namespace algorithms { namespace boost_python {
         underload_(underload),
         overload_(overload) {}
 
-    void operator()(Reflection &reflection) const {
+    /**
+     * Integrate a reflection
+     * @param reflection The reflection object
+     */
+    void operator()(af::Reflection &reflection) const {
 
+      // Get the panel number
+      std::size_t panel = reflection.get<std::size_t>("panel");
+
+      // Extract the shoebox data
       extract_shoebox(
-          buffer_,
+          buffer_.data(panel),
           reflection,
           zstart_,
           underload_,
           overload_);
 
+      // Compute the mask
       compute_mask_(reflection);
 
+      // Compute the background
       try {
         compute_background_(reflection);
       } catch (dials::error) {
         return;
       }
 
+      // Compute the centroid
       compute_centroid(reflection);
 
+      // Compute the summed intensity
       compute_summed_intensity(reflection);
 
+      // Compute the profile fitted intensity
       try {
         compute_intensity_(reflection);
       } catch (dials::error) {
         return;
       }
 
+      // Erase the shoebox from the reflection
       reflection.erase("shoebox");
     }
 
 
   protected:
 
+    /**
+     * Extract the shoebox
+     */
     void extract_shoebox(
           const af::const_ref< double, af::c_grid<3> > &buffer,
-          Reflection &reflection,
+          af::Reflection &reflection,
           int zstart,
           double underload,
           double overload) const {
@@ -1205,58 +1070,88 @@ namespace dials { namespace algorithms { namespace boost_python {
       reflection["shoebox"] = shoebox;
     }
 
-    void compute_centroid(Reflection &r) const {
-      Shoebox<> shoebox = r.get< Shoebox<> >("shoebox");
+    /**
+     * Compute the centroid
+     */
+    void compute_centroid(af::Reflection &reflection) const {
+      
+      // Get the shoebox and compute centroid
+      Shoebox<> shoebox = reflection.get< Shoebox<> >("shoebox");
       Centroid centroid = shoebox.centroid_foreground_minus_background();
-      r["xyzobs.px.value"] = centroid.px.position;
-      r["xyzobs.px.variance"] = centroid.px.variance;
+
+      // Set the centroid values
+      reflection["xyzobs.px.value"] = centroid.px.position;
+      reflection["xyzobs.px.variance"] = centroid.px.variance;
     }
 
-    void compute_summed_intensity(Reflection &r) const {
-      Shoebox<> shoebox = r.get< Shoebox<> >("shoebox");
+    /**
+     * Compute the summed intensity
+     */
+    void compute_summed_intensity(af::Reflection &reflection) const {
+
+      // Get flags and reset
+      std::size_t flags = reflection.get<std::size_t>("flags");
+      flags &= ~af::IntegratedSum;
+      flags &= ~af::FailedDuringSummation;
+
+      // Get the shoebox and compute the summed intensity
+      Shoebox<> shoebox = reflection.get< Shoebox<> >("shoebox");
       Intensity intensity = shoebox.summed_intensity();
-      r["intensity.sum.value"] = intensity.observed.value;
-      r["intensity.sum.variance"] = intensity.observed.variance;
+
+      // Set the intensities
+      reflection["intensity.sum.value"] = intensity.observed.value;
+      reflection["intensity.sum.variance"] = intensity.observed.variance;
+      reflection["background.sum.value"] = intensity.background.value;
+      reflection["background.sum.variance"] = intensity.background.variance;
+
+      // Set the appropriate flag
+      if (intensity.observed.success) {
+        flags |= af::IntegratedSum;
+      } else {
+        flags |= af::FailedDuringSummation;
+      }
+      reflection["flags"] = flags;
     }
 
     const MaskCalculatorIface &compute_mask_;
     const BackgroundCalculatorIface &compute_background_;
     const IntensityCalculatorIface &compute_intensity_;
-    af::const_ref< double, af::c_grid<3> > buffer_;
+    const Buffer &buffer_;
     int zstart_;
     double underload_;
     double overload_;
 
   };
 
-  namespace detail {
-
-    class sort_by_frame {
-    public:
-      sort_by_frame(af::const_ref<int6> bbox)
-        : bbox_(bbox) {}
-
-      bool operator()(std::size_t a, std::size_t b) const {
-        return bbox_[a][5] < bbox_[b][5];
-      }
-
-    protected:
-
-      af::const_ref<int6> bbox_;
-    };
-  }
-
+ 
+  /**
+   * a class to sort the indices of all reflections that are fully recorded
+   * after a particular image. 
+   */
   class Lookup {
   public:
 
+    /**
+     * @param bbox the bounding boxs
+     * @param zstart the first frame number
+     * @param n the number of frames
+     */
     Lookup(af::const_ref<int6> bbox, int zstart, std::size_t n)
       : indices_(bbox.size()) {
+      
+      // fill the index array  
       for (std::size_t i = 0; i < indices_.size(); ++i) {
         indices_[i] = i;
       }
-      std::sort(indices_.begin(), indices_.end(), detail::sort_by_frame(bbox));
+
+      // sort the indices by the final frame number
+      std::sort(indices_.begin(), indices_.end(), sort_by_frame(bbox));
       DIALS_ASSERT(bbox[indices_.front()][5] - zstart >= 1);
       DIALS_ASSERT(bbox[indices_.back()][5]  - zstart <= n);
+
+      // create an offset array that records the positions in the index array
+      // where the frame increments such that
+      // offset[i], offset[i+1] gives the range of indices for a frame.
       std::size_t i = 0;
       offset_.push_back(0);
       for (std::size_t j = 0; j < n; ++j) {
@@ -1267,7 +1162,10 @@ namespace dials { namespace algorithms { namespace boost_python {
       DIALS_ASSERT(offset_.back() == indices_.size());
     }
 
-
+    /**
+     * @param z the frame number
+     * @returns the indices for a given frame
+     */
     af::const_ref<std::size_t> indices(std::size_t z) const {
       DIALS_ASSERT(z < offset_.size()-1);
       DIALS_ASSERT(offset_[z+1] >= offset_[z]);
@@ -1278,121 +1176,195 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   private:
 
+    /**
+     * helper function to sort by final bbox frame
+     */
+    struct sort_by_frame {
+      af::const_ref<int6> bbox_;
+      sort_by_frame(af::const_ref<int6> bbox) : bbox_(bbox) {}
+      bool operator()(std::size_t a, std::size_t b) const {
+        return bbox_[a][5] < bbox_[b][5];
+      }
+    };
+
     std::vector<std::size_t> indices_;
     std::vector<std::size_t> offset_;
   };
 
+
+
+  /**
+   * A class to perform parallel integration
+   */
   class Integrator {
   public:
 
+    /**
+     * Do the integration
+     * @param reflections The reflection table
+     * @param imageset The imageset
+     * @param compute_mask The mask calulcation function
+     * @param compute_background The background calculation function
+     * @param compute_intensity The intensity calculation function
+     * @param nthreads The number of parallel threads
+     */
     Integrator(
           af::reflection_table reflections,
           ImageSweep imageset,
           const MaskCalculatorIface &compute_mask,
           const BackgroundCalculatorIface &compute_background,
-          const IntensityCalculatorIface &compute_intensity)
-      : reflections_(reflections) {
+          const IntensityCalculatorIface &compute_intensity,
+          std::size_t nthreads) {
 
-      ThreadPool pool(8);
+      // Check the input
+      DIALS_ASSERT(nthreads > 0);
 
+      // Check the models
       DIALS_ASSERT(imageset.get_detector() != NULL);
       DIALS_ASSERT(imageset.get_scan() != NULL);
 
+      // Get the size of the data buffer needed
       std::size_t xsize = (*imageset.get_detector())[0].get_image_size()[0];
       std::size_t ysize = (*imageset.get_detector())[0].get_image_size()[1];
       std::size_t zsize = imageset.size();
-      int zstart = imageset.get_scan()->get_array_range()[0];
-
       DIALS_ASSERT(xsize > 0);
       DIALS_ASSERT(ysize > 0);
       DIALS_ASSERT(zsize > 0);
-
-      af::versa< double, af::c_grid<3> > buffer(af::c_grid<3>(zsize, ysize, xsize));
-
+     
+      // Get the starting frame and the underload/overload values
+      int zstart = imageset.get_scan()->get_array_range()[0];
       double underload = (*imageset.get_detector())[0].get_trusted_range()[0];
       double overload  = (*imageset.get_detector())[0].get_trusted_range()[1];
+      DIALS_ASSERT(underload < overload);
+     
+      // Get the reflection flags and bbox
+      af::const_ref<int6> bbox = reflections.get<int6>("bbox").const_ref();
+      af::ref<std::size_t> flags = reflections.get<std::size_t>("flags").ref();
 
-      af::shared<int6> bbox = reflections.get<int6>("bbox");
+      // Allocate the array for the image data
+      Buffer buffer(*imageset.get_detector(), zsize);
 
-      Lookup lookup(bbox.const_ref(), zstart, buffer.accessor()[0]);
+      // Transform reflection data from column major to row major. The
+      // reason for doing this is because we want to process each reflection
+      // in parallel. Therefore passing a reflection object is better than
+      // passing the whole table. Additionally, because the reflection table
+      // uses a std::map, it may not be thread safe, so we want to avoid
+      // accessing this across multiple threads.
+      af::shared<af::Reflection> reflection_array = 
+        reflection_table_to_array(reflections);
 
+      // The lookup class gives the indices of reflections whose bounding boxes
+      // are complete at a given image. This is used to submit reflections for
+      // integration after each image is processed.
+      Lookup lookup(bbox, zstart, zsize);
+      
+      // Create the reflection integrator. This class is called for each
+      // reflection to integrate the data
       ReflectionIntegrator integrator(
           compute_mask,
           compute_background,
           compute_intensity,
-          buffer.const_ref(),
+          buffer,
           zstart,
           underload,
           overload);
 
-      std::vector< Reflection > reflection_buffer;
-      for (std::size_t i = 0; i < reflections.size(); ++i) {
-        reflection_buffer.push_back(get_reflection(reflections, i));
-      }
+      // Do the integration
+      process(
+          lookup,
+          integrator,
+          buffer,
+          reflection_array.ref(),
+          imageset,
+          bbox,
+          flags,
+          nthreads);
 
-      af::ref<std::size_t> flags = reflections["flags"];
-
-      for (std::size_t i = 0; i < zsize; ++i) {
-        std::cout << zstart + i << std::endl;
-        Image<double> data = imageset.get_corrected_data(i);
-        DIALS_ASSERT(data.tile(0).data().size() == ysize * xsize);
-        for (std::size_t j = 0; j < ysize * xsize; ++j) {
-          buffer[i * (xsize*ysize) + j] = data.tile(0).data()[j];
-        }
-        af::const_ref<std::size_t> indices = lookup.indices(i);
-        for (std::size_t j = 0; j < indices.size(); ++j) {
-
-          std::size_t k = indices[j];
-
-          if (flags[k] & af::DontIntegrate) {
-            flags[k] &= ~af::IntegratedSum;
-            flags[k] &= ~af::IntegratedPrf;
-            continue;
-          }
-
-          pool.post(
-                boost::bind(
-                  &ReflectionIntegrator::operator(),
-                  integrator,
-                  boost::ref(reflection_buffer[k])));
-        }
-      }
-
-      pool.wait();
-
-      for (std::size_t i = 0; i < reflections.size(); ++i) {
-        set_reflection(reflections, i, reflection_buffer[i]);
-      }
+      // Transform the row major reflection array to the reflection table
+      reflections_ = reflection_table_from_array(reflection_array.const_ref());
     }
 
+    /**
+     * @returns The integrated reflections
+     */
     af::reflection_table reflections() const {
       return reflections_;
     }
 
   protected:
 
-    void read_image_data(
-          ImageSweep imageset,
-          af::ref< double, af::c_grid<3> > buffer) const {
-      int zstart = imageset.get_scan()->get_array_range()[0];
-      std::size_t zsize = buffer.accessor()[0];
-      std::size_t ysize = buffer.accessor()[1];
-      std::size_t xsize = buffer.accessor()[2];
-      for (std::size_t i = 0; i < zsize; ++i) {
-        std::cout << zstart + i << std::endl;
-        Image<double> data = imageset.get_corrected_data(i);
-        DIALS_ASSERT(data.tile(0).data().size() == ysize * xsize);
-        for (std::size_t j = 0; j < ysize * xsize; ++j) {
-          buffer[i * (xsize*ysize) + j] = data.tile(0).data()[j];
-        }
+    /**
+     * Reset the reflection flags
+     */
+    void reset_flags(af::ref<std::size_t> flags) const {
+      for (std::size_t i = 0; i < flags.size(); ++i) {
+        flags[i] &= ~af::IntegratedSum;
+        flags[i] &= ~af::IntegratedPrf;
       }
     }
 
+    /**
+     * Do the processing
+     */
+    void process(
+        const Lookup &lookup,
+        const ReflectionIntegrator &integrator,
+        Buffer &buffer,
+        af::ref< af::Reflection > reflections,
+        ImageSweep imageset,
+        af::const_ref<int6> bbox,
+        af::const_ref<std::size_t> flags,
+        std::size_t nthreads) const {
+      
+      // Create the thread pool
+      ThreadPool pool(nthreads);
+
+      // Get the size of the array
+      int zstart = imageset.get_scan()->get_array_range()[0];
+      std::size_t zsize = imageset.size();
+
+      // Loop through all the images
+      for (std::size_t i = 0; i < zsize; ++i) {
+        std::cout << zstart + i << std::endl;
+
+        // Copy the image to the buffer
+        buffer.copy(imageset.get_corrected_data(i), i);
+        
+        // Get the reflections recorded at this point
+        af::const_ref<std::size_t> indices = lookup.indices(i);
+
+        // Iterate through the reflection indices 
+        for (std::size_t j = 0; j < indices.size(); ++j) {
+
+          // Get the reflection index
+          std::size_t k = indices[j];
+
+          // Check that the reflection bounding box is within the range of
+          // images that have been read
+          DIALS_ASSERT(bbox[k][5] <= zstart + i + 1);
+
+          // Ignore if we're not integrating this reflection
+          if (flags[k] & af::DontIntegrate) {
+            continue;
+          }
+
+          // Post the integration job
+          pool.post(
+            boost::bind(
+              &ReflectionIntegrator::operator(),
+              integrator,
+              boost::ref(reflections[k])));
+        }
+      }
+
+      // Wait for all the integration jobs to complete
+      pool.wait();
+    }
 
     af::reflection_table reflections_;
   };
 
-
+  
 
   BOOST_PYTHON_MODULE(dials_scratch_jmp_fitting_ext)
   {
@@ -1411,38 +1383,6 @@ namespace dials { namespace algorithms { namespace boost_python {
     /*   .def("compute_background", &PixelList::compute_background) */
     /*   .def("compute_intensity", &PixelList::compute_intensity) */
     /*   ; */
-
-    class_<Reflection>("Reflection")
-      .def("get",
-          &Reflection_get)
-      .def("set_bool",
-          &Reflection_set_bool)
-      .def("set_int",
-          &Reflection_set_int)
-      .def("set_size_t",
-          &Reflection_set_size_t)
-      .def("set_double",
-          &Reflection_set_double)
-      .def("set_string",
-          &Reflection_set_string)
-      .def("set_vec2_double",
-          &Reflection_set_vec2_double)
-      .def("set_vec3_double",
-          &Reflection_set_vec3_double)
-      .def("set_mat3_double",
-          &Reflection_set_mat3_double)
-      .def("set_int6",
-          &Reflection_set_int6)
-      .def("set_miller_index",
-          &Reflection_set_miller_index)
-      .def("set_shoebox",
-          &Reflection_set_shoebox)
-      .def("to_table",
-          &Reflection_to_table)
-      ;
-
-    def("set_reflection", &set_reflection);
-    def("get_reflection", &get_reflection);
 
     class_<MaskCalculatorIface, boost::noncopyable>("MaskCalculatorIface", no_init)
       ;
@@ -1488,12 +1428,14 @@ namespace dials { namespace algorithms { namespace boost_python {
           ImageSweep,
           const MaskCalculatorIface&,
           const BackgroundCalculatorIface&,
-          const IntensityCalculatorIface&>((
+          const IntensityCalculatorIface&,
+          std::size_t>((
               arg("reflections"),
               arg("imageset"),
               arg("compute_mask"),
               arg("compute_background"),
-              arg("compute_intensity"))))
+              arg("compute_intensity"),
+              arg("nthreads") = 1)))
       .def("reflections",
           &Integrator::reflections)
       ;

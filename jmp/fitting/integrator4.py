@@ -293,7 +293,8 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
     compute_background = BackgroundCalculatorFactory.build(experiments),
     compute_intensity  = IntensityCalculatorFactory.build(experiments, reference,
                                              grid_size=grid_size,
-                                             detector_space=detector_space)
+                                             detector_space=detector_space),
+    nthreads           = 8
   )
 
   reflections = integrator.reflections()
