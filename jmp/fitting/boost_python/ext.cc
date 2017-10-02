@@ -27,6 +27,7 @@
 #include <dials/algorithms/integration/fit/fitting.h>
 #include <dials/algorithms/centroid/centroid.h>
 #include <dials/error.h>
+#include <dials/util/thread_pool.h>
 #include <map>
 #include <vector>
 #include <boost/unordered_map.hpp>
@@ -38,6 +39,8 @@ using namespace boost::python;
 
 namespace dials { namespace algorithms { namespace boost_python {
 
+
+  using dials::util::ThreadPool;
 
   using dxtbx::model::Beam;
   using dxtbx::model::Detector;
@@ -510,96 +513,6 @@ namespace dials { namespace algorithms { namespace boost_python {
 
 
 
-  /**
-   * A class to implement a thread pool
-   */
-  class ThreadPool {
-  public:
-
-    /**
-     * Instantiate with the number of required threads
-     * @param N The number of threads
-     */
-    ThreadPool(std::size_t N)
-        : work_(io_service_),
-          started_(0),
-          finished_(0) {
-      for (std::size_t i = 0; i < N; ++i) {
-        threads_.create_thread(
-            boost::bind(
-              &boost::asio::io_service::run,
-              &io_service_));
-      }
-    }
-
-    /**
-     * Destroy the thread pool and join all threads
-     */
-    ~ThreadPool() {
-      io_service_.stop();
-      try {
-        threads_.join_all();
-      } catch (const std::exception&) {
-        // pass
-      }
-    }
-
-    /**
-     * Post a function to the thread pool
-     * @param function The function to call
-     */
-    template <typename Function>
-    void post(Function function) {
-      started_++;
-      io_service_.post(FunctionRunner<Function>(function, finished_));
-    }
-
-    /**
-     * Wait until all posted jobs have finished
-     */
-    void wait() {
-      while (finished_ < started_);
-    }
-
-  protected:
-
-    /**
-     * A helper class to call the function increasing an atomic counter
-     */
-    template <typename Function>
-    class FunctionRunner {
-    public:
-
-      /**
-       * Create the helper class instance
-       * @param function The function to call
-       * @param counter The counter to increment
-       */
-      FunctionRunner(Function function, boost::atomic<std::size_t> &counter)
-        : function_(function),
-          counter_(counter) {}
-
-      /**
-       * Call the function and increment the counter
-       */
-      void operator()() {
-        function_();
-        counter_++;
-      }
-
-    protected:
-
-      Function function_;
-      boost::atomic<std::size_t> &counter_;
-    };
-
-    boost::asio::io_service io_service_;
-    boost::asio::io_service::work work_;
-    boost::thread_group threads_;
-    std::size_t started_;
-    boost::atomic<std::size_t> finished_;
-  };
-
 
 
 
@@ -755,8 +668,6 @@ namespace dials { namespace algorithms { namespace boost_python {
       vec3<double> s1 = reflection.get< vec3<double> >("s1");
       double phi = reflection.get< vec3<double> >("xyzcal.mm")[2];
       vec3<double> xyz = reflection.get< vec3<double> >("xyzcal.px");
-      int6 bbox = reflection.get<int6>("bbox");
-      std::size_t panel = reflection.get<std::size_t>("panel");
       Shoebox<> sbox = reflection.get< Shoebox<> >("shoebox");
       DIALS_ASSERT(sbox.is_consistent());
 
@@ -874,7 +785,8 @@ namespace dials { namespace algorithms { namespace boost_python {
      * @param detector The detector model
      * @param n The number of images
      */
-    Buffer(const Detector &detector, std::size_t n) {
+    Buffer(const Detector &detector, std::size_t n, bool dynamic_mask)
+        : dynamic_mask_(dynamic_mask) {
       std::size_t zsize = n;
       DIALS_ASSERT(zsize > 0);
       for (std::size_t i = 0; i < detector.size(); ++i) {
@@ -885,6 +797,11 @@ namespace dials { namespace algorithms { namespace boost_python {
         data_.push_back(
             af::versa< double, af::c_grid<3> >(
               af::c_grid<3>(zsize, ysize, xsize)));
+        if (dynamic_mask) {
+          mask_.push_back(
+            af::versa< bool, af::c_grid<3> >(
+              af::c_grid<3>(zsize, ysize, xsize)));
+        }
       }
     }
 
@@ -893,28 +810,26 @@ namespace dials { namespace algorithms { namespace boost_python {
      * @param image The image data
      * @param index The image index
      */
-    void copy(const Image<double> &image, std::size_t index) {
-      DIALS_ASSERT(image.n_tiles() == data_.size());
-      for (std::size_t i = 0; i < image.n_tiles(); ++i) {
-        copy(image.tile(i).data().const_ref(), data_[i].ref(), index);
+    void copy(const Image<double> &data, std::size_t index) {
+      DIALS_ASSERT(data.n_tiles() == data_.size());
+      for (std::size_t i = 0; i < data.n_tiles(); ++i) {
+        copy(data.tile(i).data().const_ref(), data_[i].ref(), index);
       }
     }
-
+    
     /**
-     * Copy the data from 1 panel
+     * Copy an image to the buffer
      * @param image The image data
-     * @param buffer The image buffer
      * @param index The image index
      */
-    void copy(af::const_ref< double, af::c_grid<2> > image,
-              af::ref < double, af::c_grid<3> > buffer,
-              std::size_t index) {
-      std::size_t ysize = image.accessor()[0];
-      std::size_t xsize = image.accessor()[1];
-      DIALS_ASSERT(image.accessor()[0] == buffer.accessor()[1]);
-      DIALS_ASSERT(image.accessor()[1] == buffer.accessor()[2]);
-      for (std::size_t j = 0; j < ysize * xsize; ++j) {
-        buffer[index * (xsize*ysize) + j] = image[j];
+    void copy(const Image<double> &data, const Image<bool> &mask, std::size_t index) {
+      DIALS_ASSERT(dynamic_mask_ == true);
+      DIALS_ASSERT(data.n_tiles() == mask.n_tiles());
+      DIALS_ASSERT(data.n_tiles() == data_.size());
+      DIALS_ASSERT(mask.n_tiles() == mask_.size());
+      for (std::size_t i = 0; i < data.n_tiles(); ++i) {
+        copy(data.tile(i).data().const_ref(), data_[i].ref(), index);
+        copy(mask.tile(i).data().const_ref(), mask_[i].ref(), index);
       }
     }
 
@@ -926,10 +841,49 @@ namespace dials { namespace algorithms { namespace boost_python {
       DIALS_ASSERT(panel < data_.size());
       return data_[panel].const_ref();
     }
+    
+    /**
+     * @param The panel number
+     * @returns The buffer for the panel
+     */
+    af::const_ref< bool, af::c_grid<3> > mask(std::size_t panel) const {
+      DIALS_ASSERT(dynamic_mask_ == true);
+      DIALS_ASSERT(panel < mask_.size());
+      return mask_[panel].const_ref();
+    }
+
+    /**
+     * @returns do we have a dynamic mask?
+     */
+    bool dynamic_mask() const {
+      return dynamic_mask_;
+    }
 
   protected:
 
+    /**
+     * Copy the data from 1 panel
+     * @param image The image data
+     * @param buffer The image buffer
+     * @param index The image index
+     */
+    template <typename T>
+    void copy(af::const_ref< T, af::c_grid<2> > src,
+              af::ref < T, af::c_grid<3> > dst,
+              std::size_t index) {
+      std::size_t ysize = src.accessor()[0];
+      std::size_t xsize = src.accessor()[1];
+      DIALS_ASSERT(index < dst.accessor()[0]);
+      DIALS_ASSERT(src.accessor()[0] == dst.accessor()[1]);
+      DIALS_ASSERT(src.accessor()[1] == dst.accessor()[2]);
+      for (std::size_t j = 0; j < ysize * xsize; ++j) {
+        dst[index * (xsize*ysize) + j] = src[j];
+      }
+    }
+
     std::vector< af::versa< double, af::c_grid<3> > > data_;
+    std::vector< af::versa< bool, af::c_grid<3> > > mask_;
+    bool dynamic_mask_;
 
   };
 
@@ -958,14 +912,16 @@ namespace dials { namespace algorithms { namespace boost_python {
           const Buffer &buffer,
           int zstart,
           double underload,
-          double overload)
+          double overload,
+          bool debug)
       : compute_mask_(compute_mask),
         compute_background_(compute_background),
         compute_intensity_(compute_intensity),
         buffer_(buffer),
         zstart_(zstart),
         underload_(underload),
-        overload_(overload) {}
+        overload_(overload),
+        debug_(debug) {}
 
     /**
      * Integrate a reflection
@@ -977,12 +933,22 @@ namespace dials { namespace algorithms { namespace boost_python {
       std::size_t panel = reflection.get<std::size_t>("panel");
 
       // Extract the shoebox data
-      extract_shoebox(
-          buffer_.data(panel),
-          reflection,
-          zstart_,
-          underload_,
-          overload_);
+      if (buffer_.dynamic_mask()) {
+        extract_shoebox(
+            buffer_.data(panel),
+            buffer_.mask(panel),
+            reflection,
+            zstart_,
+            underload_,
+            overload_);
+      } else {
+        extract_shoebox(
+            buffer_.data(panel),
+            reflection,
+            zstart_,
+            underload_,
+            overload_);
+      }
 
       // Compute the mask
       compute_mask_(reflection);
@@ -1008,12 +974,14 @@ namespace dials { namespace algorithms { namespace boost_python {
       }
 
       // Erase the shoebox from the reflection
-      reflection.erase("shoebox");
+      if (!debug_) {
+        reflection.erase("shoebox");
+      }
     }
 
 
   protected:
-
+    
     /**
      * Extract the shoebox
      */
@@ -1044,6 +1012,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       DIALS_ASSERT(zsize == data.accessor()[0]);
       DIALS_ASSERT(ysize == data.accessor()[1]);
       DIALS_ASSERT(xsize == data.accessor()[2]);
+      DIALS_ASSERT(shoebox.is_consistent());
       for (std::size_t k = 0; k < zsize; ++k) {
         for (std::size_t j = 0; j < ysize; ++j) {
           for (std::size_t i = 0; i < xsize; ++i) {
@@ -1058,6 +1027,65 @@ namespace dials { namespace algorithms { namespace boost_python {
                 ii < buffer.accessor()[2]) {
               double d = buffer(kk, jj, ii);
               int m = (d > underload && d < overload) ? Valid : 0;
+              data(k,j,i) = d;
+              mask(k,j,i) = m;
+            } else {
+              data(k,j,i) = 0;
+              mask(k,j,i) = 0;
+            }
+          }
+        }
+      }
+      reflection["shoebox"] = shoebox;
+    }
+
+    /**
+     * Extract the shoebox
+     */
+    void extract_shoebox(
+          const af::const_ref< double, af::c_grid<3> > &data_buffer,
+          const af::const_ref< bool, af::c_grid<3> > &mask_buffer,
+          af::Reflection &reflection,
+          int zstart,
+          double underload,
+          double overload) const {
+      DIALS_ASSERT(data_buffer.accessor().all_eq(mask_buffer.accessor()));
+      std::size_t panel = reflection.get<std::size_t>("panel");
+      int6 bbox = reflection.get<int6>("bbox");
+      Shoebox<> shoebox(panel, bbox);
+      shoebox.allocate();
+      af::ref< float, af::c_grid<3> > data = shoebox.data.ref();
+      af::ref< int,   af::c_grid<3> > mask = shoebox.mask.ref();
+      int x0 = bbox[0];
+      int x1 = bbox[1];
+      int y0 = bbox[2];
+      int y1 = bbox[3];
+      int z0 = bbox[4];
+      int z1 = bbox[5];
+      DIALS_ASSERT(x1 > x0);
+      DIALS_ASSERT(y1 > y0);
+      DIALS_ASSERT(z1 > z0);
+      std::size_t zsize = z1 - z0;
+      std::size_t ysize = y1 - y0;
+      std::size_t xsize = x1 - x0;
+      DIALS_ASSERT(zsize == data.accessor()[0]);
+      DIALS_ASSERT(ysize == data.accessor()[1]);
+      DIALS_ASSERT(xsize == data.accessor()[2]);
+      DIALS_ASSERT(shoebox.is_consistent());
+      for (std::size_t k = 0; k < zsize; ++k) {
+        for (std::size_t j = 0; j < ysize; ++j) {
+          for (std::size_t i = 0; i < xsize; ++i) {
+            int kk = z0 + k - zstart;
+            int jj = y0 + j;
+            int ii = x0 + i;
+            if (kk >= 0 &&
+                jj >= 0 &&
+                ii >= 0 &&
+                kk < data_buffer.accessor()[0] &&
+                jj < data_buffer.accessor()[1] &&
+                ii < data_buffer.accessor()[2]) {
+              double d = data_buffer(kk, jj, ii);
+              int m = mask_buffer(kk, jj, ii) ? Valid : 0;
               data(k,j,i) = d;
               mask(k,j,i) = m;
             } else {
@@ -1120,7 +1148,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     int zstart_;
     double underload_;
     double overload_;
-
+    bool debug_;
   };
 
  
@@ -1214,7 +1242,8 @@ namespace dials { namespace algorithms { namespace boost_python {
           const MaskCalculatorIface &compute_mask,
           const BackgroundCalculatorIface &compute_background,
           const IntensityCalculatorIface &compute_intensity,
-          std::size_t nthreads) {
+          std::size_t nthreads,
+          bool debug) {
 
       // Check the input
       DIALS_ASSERT(nthreads > 0);
@@ -1242,7 +1271,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       af::ref<std::size_t> flags = reflections.get<std::size_t>("flags").ref();
 
       // Allocate the array for the image data
-      Buffer buffer(*imageset.get_detector(), zsize);
+      Buffer buffer(*imageset.get_detector(), zsize, false);
 
       // Transform reflection data from column major to row major. The
       // reason for doing this is because we want to process each reflection
@@ -1267,7 +1296,8 @@ namespace dials { namespace algorithms { namespace boost_python {
           buffer,
           zstart,
           underload,
-          overload);
+          overload,
+          debug);
 
       // Do the integration
       process(
@@ -1328,7 +1358,11 @@ namespace dials { namespace algorithms { namespace boost_python {
         std::cout << zstart + i << std::endl;
 
         // Copy the image to the buffer
-        buffer.copy(imageset.get_corrected_data(i), i);
+        if (buffer.dynamic_mask()) {
+          buffer.copy(imageset.get_corrected_data(i), imageset.get_mask(i), i);
+        } else {
+          buffer.copy(imageset.get_corrected_data(i), i);
+        }
         
         // Get the reflections recorded at this point
         af::const_ref<std::size_t> indices = lookup.indices(i);
@@ -1429,13 +1463,15 @@ namespace dials { namespace algorithms { namespace boost_python {
           const MaskCalculatorIface&,
           const BackgroundCalculatorIface&,
           const IntensityCalculatorIface&,
-          std::size_t>((
+          std::size_t,
+          bool>((
               arg("reflections"),
               arg("imageset"),
               arg("compute_mask"),
               arg("compute_background"),
               arg("compute_intensity"),
-              arg("nthreads") = 1)))
+              arg("nthreads") = 1,
+              arg("debug") = false)))
       .def("reflections",
           &Integrator::reflections)
       ;
