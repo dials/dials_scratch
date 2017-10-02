@@ -17,6 +17,7 @@
 #include <dials/algorithms/spot_prediction/pixel_to_miller_index.h>
 #include <dials/algorithms/background/glm/robust_poisson_mean.h>
 #include <dials/algorithms/integration/sum/summation.h>
+#include <dials/algorithms/shoebox/find_overlapping.h>
 #include <dials/model/data/mask_code.h>
 #include <dials/model/data/shoebox.h>
 #include <dials/algorithms/profile_model/gaussian_rs/mask_calculator.h>
@@ -61,6 +62,9 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   using dials::model::Centroid;
   using dials::model::Intensity;
+  using dials::model::AdjacencyList;
+
+  using dials::algorithms::shoebox::find_overlapping_multi_panel;
 
 
   namespace detail {
@@ -927,7 +931,8 @@ namespace dials { namespace algorithms { namespace boost_python {
      * Integrate a reflection
      * @param reflection The reflection object
      */
-    void operator()(af::Reflection &reflection) const {
+    void operator()(af::Reflection &reflection,
+                    std::vector<af::Reflection> &adjacent_reflections) const {
 
       // Get the panel number
       std::size_t panel = reflection.get<std::size_t>("panel");
@@ -1251,27 +1256,33 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Check the models
       DIALS_ASSERT(imageset.get_detector() != NULL);
       DIALS_ASSERT(imageset.get_scan() != NULL);
+      Detector detector = *imageset.get_detector();
+      Scan scan = *imageset.get_scan();
 
       // Get the size of the data buffer needed
-      std::size_t xsize = (*imageset.get_detector())[0].get_image_size()[0];
-      std::size_t ysize = (*imageset.get_detector())[0].get_image_size()[1];
       std::size_t zsize = imageset.size();
-      DIALS_ASSERT(xsize > 0);
-      DIALS_ASSERT(ysize > 0);
       DIALS_ASSERT(zsize > 0);
      
       // Get the starting frame and the underload/overload values
-      int zstart = imageset.get_scan()->get_array_range()[0];
-      double underload = (*imageset.get_detector())[0].get_trusted_range()[0];
-      double overload  = (*imageset.get_detector())[0].get_trusted_range()[1];
+      int zstart = scan.get_array_range()[0];
+      double underload = detector[0].get_trusted_range()[0];
+      double overload  = detector[0].get_trusted_range()[1];
       DIALS_ASSERT(underload < overload);
-     
+      for (std::size_t i = 1; i < detector.size(); ++i) {
+        DIALS_ASSERT(underload == detector[i].get_trusted_range()[0]);
+        DIALS_ASSERT(overload  == detector[i].get_trusted_range()[1]);
+      }
+        
       // Get the reflection flags and bbox
+      af::const_ref<std::size_t> panel = reflections.get<std::size_t>("panel").const_ref();
       af::const_ref<int6> bbox = reflections.get<int6>("bbox").const_ref();
       af::ref<std::size_t> flags = reflections.get<std::size_t>("flags").ref();
 
+      // Find the overlapping reflections
+      AdjacencyList overlaps = find_overlapping_multi_panel(bbox, panel);
+
       // Allocate the array for the image data
-      Buffer buffer(*imageset.get_detector(), zsize, false);
+      Buffer buffer(detector, zsize, false);
 
       // Transform reflection data from column major to row major. The
       // reason for doing this is because we want to process each reflection
@@ -1305,6 +1316,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           integrator,
           buffer,
           reflection_array.ref(),
+          overlaps,
           imageset,
           bbox,
           flags,
@@ -1341,10 +1353,22 @@ namespace dials { namespace algorithms { namespace boost_python {
         const ReflectionIntegrator &integrator,
         Buffer &buffer,
         af::ref< af::Reflection > reflections,
+        const AdjacencyList &overlaps,
         ImageSweep imageset,
         af::const_ref<int6> bbox,
         af::const_ref<std::size_t> flags,
         std::size_t nthreads) const {
+
+      // Construct a list of adjacent reflections for each given reflection
+      std::vector< std::vector<af::Reflection> > adjacent_reflections(reflections.size());
+      for (std::size_t i = 0; i < reflections.size(); ++i) {
+        AdjacencyList::edge_iterator_range edges = overlaps.edges(i);
+        for (AdjacencyList::edge_iterator it = edges.first; it != edges.second; ++it) {
+          DIALS_ASSERT(it->first == i);
+          DIALS_ASSERT(it->second < reflections.size());
+          adjacent_reflections[i].push_back(reflections[it->second]);
+        }
+      }
       
       // Create the thread pool
       ThreadPool pool(nthreads);
@@ -1387,7 +1411,8 @@ namespace dials { namespace algorithms { namespace boost_python {
             boost::bind(
               &ReflectionIntegrator::operator(),
               integrator,
-              boost::ref(reflections[k])));
+              boost::ref(reflections[k]),
+              boost::ref(adjacent_reflections[k])));
         }
       }
 
