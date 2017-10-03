@@ -294,10 +294,24 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
     compute_intensity  = IntensityCalculatorFactory.build(experiments, reference,
                                              grid_size=grid_size,
                                              detector_space=detector_space),
-    nthreads           = 8
+    nthreads           = 8,
+    debug = False
   )
 
   reflections = integrator.reflections()
+
+  # from dials.algorithms.shoebox import MaskCode
+  # from matplotlib import pylab
+  # for sbox in reflections["shoebox"]:
+  #   if sbox.count_mask_values(MaskCode.Overlapped) > 0:
+  #     for i in range(sbox.mask.all()[0]):
+  #       print "slice", i
+  #       pylab.imshow(sbox.mask.as_numpy_array()[i,:,:], interpolation='none')
+  #       pylab.show()
+
+  # del reflections["shoebox"]
+
+  # exit(0)
 
   return reflections
 
@@ -314,10 +328,22 @@ def integrate(experiments, reflections, reference, grid_size=5,
   while start < len(experiments[0].imageset) - block_size // 2:
     blocks.append((start, start+block_size))
     start += block_size // 2
+  print blocks
   assert len(blocks) == len(reflections)
 
   result = flex.reflection_table()
   for i in range(len(blocks)):
+
+    reflections[i].compute_bbox(experiments)
+
+    for j in range(len(reflections[i])):
+      x0, x1, y0, y1, z0, z1 = reflections[i]["bbox"][j]
+      if z0 < blocks[i][0]:
+        z0 = blocks[i][0]
+      if z1 > blocks[i][1]:
+        z1 = blocks[i][1]
+      reflections[i]["bbox"][j] = (x0, x1, y0, y1, z0, z1)
+
     r = integrate_job(blocks[i], experiments, reflections[i], reference, grid_size,
                   detector_space)
     result.extend(r)
@@ -343,6 +369,8 @@ if __name__ == '__main__':
   experiments = read_experiments(experiments_filename)
   reflections = read_reflections(reflections_filename)
   reference = read_reference(reference_filename)
+
+  experiments[0].profile._sigma_b *= 2
 
   print "Read %d reflections" % len(reflections)
 

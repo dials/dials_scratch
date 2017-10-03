@@ -524,7 +524,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   class MaskCalculatorIface {
   public:
 
-    virtual void operator()(af::Reflection &reflection) const = 0;
+    virtual void operator()(af::Reflection &reflection, bool adjacent=false) const = 0;
 
   };
 
@@ -538,7 +538,8 @@ namespace dials { namespace algorithms { namespace boost_python {
   class IntensityCalculatorIface {
   public:
 
-    virtual void operator()(af::Reflection &reflection) const = 0;
+    virtual void operator()(af::Reflection &reflection,
+                            const std::vector<af::Reflection> &adjacent_reflections) const = 0;
 
   };
 
@@ -559,12 +560,13 @@ namespace dials { namespace algorithms { namespace boost_python {
               delta_b,
               delta_m) {}
 
-    virtual void operator()(af::Reflection &reflection) const {
+    virtual void operator()(af::Reflection &reflection, bool adjacent=false) const {
       func_.single(
         reflection.get< Shoebox<> >("shoebox"),
         reflection.get< vec3<double> >("s1"),
         reflection.get< vec3<double> >("xyzcal.px")[2],
-        reflection.get< std::size_t >("panel"));
+        reflection.get< std::size_t >("panel"),
+        adjacent);
     }
 
   protected:
@@ -635,7 +637,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       int mask_code;
       check_mask_code(int code) : mask_code(code) {}
       bool operator()(int a) const {
-        return ((a & mask_code) == mask_code);
+        return ((a & mask_code) == mask_code && (a & Overlapped) == 0);
       }
     };
 
@@ -650,6 +652,16 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   }
 
+  class NullIntensityCalculator : public IntensityCalculatorIface {
+  public:
+
+    virtual void operator()(af::Reflection &reflection,
+                            const std::vector<af::Reflection> &adjacent_reflections) const {
+
+    }
+
+  };
+
   class IntensityCalculator : public IntensityCalculatorIface {
   public:
 
@@ -662,7 +674,8 @@ namespace dials { namespace algorithms { namespace boost_python {
         spec_(spec) {
     }
 
-    virtual void operator()(af::Reflection &reflection) const {
+    virtual void operator()(af::Reflection &reflection,
+                            const std::vector<af::Reflection> &adjacent_reflections) const {
 
       typedef af::const_ref< double, af::c_grid<3> > data_const_reference;
       typedef af::const_ref< bool, af::c_grid<3> > mask_const_reference;
@@ -761,7 +774,9 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Check if all pixels are valid
       bool pixels_valid = true;
       for (std::size_t i = 0; i < sbox.mask.size(); ++i) {
-        if (sbox.mask[i] & Foreground && !(sbox.mask[i] & Valid)) {
+        if ((sbox.mask[i] & Foreground) && 
+            !(sbox.mask[i] & Valid) && 
+            !(sbox.mask[i] & Overlapped)) {
           pixels_valid = false;
           break;
         }
@@ -958,6 +973,14 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Compute the mask
       compute_mask_(reflection);
 
+      // Set all the bounding boxes of adjacent reflections
+      // And compute the mask for these reflections too.
+      for (std::size_t i = 0; i < adjacent_reflections.size(); ++i) {
+        adjacent_reflections[i]["bbox"] = reflection.get<int6>("bbox");
+        adjacent_reflections[i]["shoebox"] = reflection.get< Shoebox<> >("shoebox");
+        compute_mask_(adjacent_reflections[i], true);
+      }
+
       // Compute the background
       try {
         compute_background_(reflection);
@@ -973,7 +996,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
       // Compute the profile fitted intensity
       try {
-        compute_intensity_(reflection);
+        compute_intensity_(reflection, adjacent_reflections);
       } catch (dials::error) {
         return;
       }
@@ -981,6 +1004,9 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Erase the shoebox from the reflection
       if (!debug_) {
         reflection.erase("shoebox");
+        for (std::size_t i = 0; i < adjacent_reflections.size(); ++i) {
+          adjacent_reflections[i].erase("shoebox");
+        }
       }
     }
 
@@ -1362,11 +1388,14 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Construct a list of adjacent reflections for each given reflection
       std::vector< std::vector<af::Reflection> > adjacent_reflections(reflections.size());
       for (std::size_t i = 0; i < reflections.size(); ++i) {
-        AdjacencyList::edge_iterator_range edges = overlaps.edges(i);
-        for (AdjacencyList::edge_iterator it = edges.first; it != edges.second; ++it) {
-          DIALS_ASSERT(it->first == i);
-          DIALS_ASSERT(it->second < reflections.size());
-          adjacent_reflections[i].push_back(reflections[it->second]);
+        if ((flags[i] & af::DontIntegrate) == 0) {
+          adjacent_reflections[i].reserve(overlaps.vertex_num_edges(i));
+          AdjacencyList::edge_iterator_range edges = overlaps.edges(i);
+          for (AdjacencyList::edge_iterator it = edges.first; it != edges.second; ++it) {
+            DIALS_ASSERT(it->first == i);
+            DIALS_ASSERT(it->second < reflections.size());
+            adjacent_reflections[i].push_back(reflections[it->second]);
+          }
         }
       }
       
