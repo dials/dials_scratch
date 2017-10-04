@@ -1,6 +1,20 @@
 import h5py
 import numpy
 
+def print_dataset_info(dataset):
+  ndim = dataset.ndim
+  shape = dataset.shape
+
+  if ndim == 0:
+    print 'scalar set; value:', dataset[()]
+  elif ndim == 1:
+    if shape[0] < 4:
+      print '1D data set; values;', dataset[()]
+    else:
+      print '1D data set length %d' % shape[0]
+  else:
+    print '%dD data set shape %s' % (ndim, str(shape))
+
 def extract(filename, dataset_list):
 
   f = h5py.File(filename, 'r')
@@ -27,6 +41,7 @@ def main(filename):
     if isinstance(obj, h5py.Dataset):
       datasets.append(name)
       print 'dataset:', name
+      print_dataset_info(obj)
       for k in obj.attrs:
         print k, obj.attrs[k]
     elif isinstance(obj, h5py.Group):
