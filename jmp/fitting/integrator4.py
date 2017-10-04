@@ -49,7 +49,8 @@ class BackgroundCalculatorFactory(object):
 class IntensityCalculatorFactory(object):
 
   @classmethod
-  def build(self, experiments, reference, grid_size=5, detector_space=False):
+  def build(self, experiments, reference, grid_size=5, detector_space=False,
+            deconvolution=False):
     from dials_scratch.jmp.fitting import IntensityCalculator
     from dials_scratch.jmp.fitting import Reference
     from dials.algorithms.profile_model.modeller import CircleSampler
@@ -81,11 +82,13 @@ class IntensityCalculatorFactory(object):
     reference = Reference()
     for d, m in temp:
       reference.append(d, m)
-
+    print detector_space, deconvolution
     return IntensityCalculator(
       reference,
       sampler,
-      spec)
+      spec,
+      detector_space,
+      deconvolution)
 
 
 # class IntensityCalculator(object):
@@ -277,7 +280,7 @@ class IntensityCalculatorFactory(object):
 
 
 def integrate_job(block, experiments, reflections, reference, grid_size=5,
-                  detector_space=False):
+                  detector_space=False, deconvolution=False):
   from dials_scratch.jmp.fitting import Integrator
   from dials.array_family import flex
 
@@ -293,8 +296,9 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
     compute_background = BackgroundCalculatorFactory.build(experiments),
     compute_intensity  = IntensityCalculatorFactory.build(experiments, reference,
                                              grid_size=grid_size,
-                                             detector_space=detector_space),
-    nthreads           = 8,
+                                             detector_space=detector_space,
+                                             deconvolution=deconvolution),
+    nthreads           = 1,
     debug = False
   )
 
@@ -317,7 +321,7 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
 
 
 def integrate(experiments, reflections, reference, grid_size=5,
-              detector_space=False):
+              detector_space=False, deconvolution=False):
   from dials.array_family import flex
   from dials.array_family import flex
   from dials.model.data import make_image
@@ -345,7 +349,7 @@ def integrate(experiments, reflections, reference, grid_size=5,
       reflections[i]["bbox"][j] = (x0, x1, y0, y1, z0, z1)
 
     r = integrate_job(blocks[i], experiments, reflections[i], reference, grid_size,
-                  detector_space)
+                  detector_space, deconvolution)
     result.extend(r)
 
   return result
@@ -374,10 +378,14 @@ if __name__ == '__main__':
 
   print "Read %d reflections" % len(reflections)
 
+  deconvolution = True
+
   from time import time
   st = time()
   reflections = integrate(experiments, reflections, reference[0],
-                          grid_size=grid_size, detector_space=detector_space)
+                          grid_size=grid_size, detector_space=detector_space,
+                          deconvolution=deconvolution)
+  print "Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True)
   print "Time taken: ", time() - st
 
   reflections.as_pickle("integrated.pickle")
