@@ -50,7 +50,7 @@ phil_scope = phil.parse('''
   n_z_bins = 20
     .type = int
     .help = "Number of bins for phi/time gridding"
-  n_detector_bins = 37
+  n_detector_bins = 19
     .type = int
     .help = "Number of bins in each detector dimension for modulation gridding"
   integration_method = 'prf'
@@ -69,7 +69,7 @@ phil_scope = phil.parse('''
   d_min = 0.0
     .type = float
     .help = "Option to use a d-value subset of reflections to determine scale factors"
-  modulation = True
+  modulation = False
     .type = bool
     .help = "Option to turn off modulation correction"
   decay = True
@@ -199,6 +199,23 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name='g_modulation'
                                            ).return_data_manager()
+  '''sortedIh = flex.sorted(loaded_reflections.sorted_reflections['Ih_values'], reverse=False)
+  #sortedscales = flex.sorted(loaded_reflections.sorted_reflections['inverse_scale_factor'], reverse=False)
+  #print list(sortedIh)[0:40]
+  for i, intensity in enumerate(loaded_reflections.sorted_reflections['intensity']):
+    if int(loaded_reflections.sorted_reflections['Ih_values'][i]) < -0.0:
+      d = loaded_reflections.sorted_reflections['d'][i]
+      real_intensity = loaded_reflections.sorted_reflections['intensity.prf.value'][i]
+      real_variance = loaded_reflections.sorted_reflections['intensity.prf.variance'][i]
+      real_intensity_sum = loaded_reflections.sorted_reflections['intensity.sum.value'][i]
+      real_variance_sum = loaded_reflections.sorted_reflections['intensity.sum.variance'][i]
+      scale_factor = loaded_reflections.sorted_reflections['inverse_scale_factor'][i]
+      weight = loaded_reflections.weights_for_scaling.get_weights()[i]
+      Ih_value = loaded_reflections.sorted_reflections['Ih_values'][i]
+      R = ((((intensity - (scale_factor * Ih_value))**2) * weight))
+      stddev = loaded_reflections.sorted_reflections['variance'][i]**0.5
+      print (d, real_intensity, real_variance, real_intensity_sum, real_variance_sum,
+      intensity, stddev, Ih_value, R, weight, scale_factor)'''
   return loaded_reflections
 
 
