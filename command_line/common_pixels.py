@@ -37,7 +37,7 @@ def main():
 
   for indx in images[1:]:
     next = signal(imageset, indx)
-    print indx, (next & previous).count(True)
+    print indx, (next & previous).count(True), next.count(True)
     previous = next
 
 def signal(imageset, indx):
