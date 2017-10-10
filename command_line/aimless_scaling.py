@@ -173,23 +173,12 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   '''call the optimiser on the Data Manager object'''
   loaded_reflections = mf.aimless_LBFGS_optimiser(loaded_reflections).return_data_manager()
 
-  '''sortedIh = flex.sorted(loaded_reflections.sorted_reflections['Ih_values'], reverse=False)
-  #sortedscales = flex.sorted(loaded_reflections.sorted_reflections['inverse_scale_factor'], reverse=False)
-  #print list(sortedIh)[0:40]
-  for i, intensity in enumerate(loaded_reflections.sorted_reflections['intensity']):
-    if int(loaded_reflections.sorted_reflections['Ih_values'][i]) < -0.0:
-      d = loaded_reflections.sorted_reflections['d'][i]
-      real_intensity = loaded_reflections.sorted_reflections['intensity.prf.value'][i]
-      real_variance = loaded_reflections.sorted_reflections['intensity.prf.variance'][i]
-      real_intensity_sum = loaded_reflections.sorted_reflections['intensity.sum.value'][i]
-      real_variance_sum = loaded_reflections.sorted_reflections['intensity.sum.variance'][i]
-      scale_factor = loaded_reflections.sorted_reflections['inverse_scale_factor'][i]
-      weight = loaded_reflections.weights_for_scaling.get_weights()[i]
-      Ih_value = loaded_reflections.sorted_reflections['Ih_values'][i]
-      R = ((((intensity - (scale_factor * Ih_value))**2) * weight))
-      stddev = loaded_reflections.sorted_reflections['variance'][i]**0.5
-      print (d, real_intensity, real_variance, real_intensity_sum, real_variance_sum,
-      intensity, stddev, Ih_value, R, weight, scale_factor)'''
+  '''the minimisation has only been done on a subset, so expand back out to fill the 
+  sorted reflection table and recalculate the h_index and Ih values'''
+  loaded_reflections.calculate_scale_factors()
+  loaded_reflections.update_weights_for_scaling(loaded_reflections.sorted_reflections)
+  loaded_reflections.assign_h_index(loaded_reflections.sorted_reflections)
+  loaded_reflections.calc_Ih(loaded_reflections.sorted_reflections)
   return loaded_reflections
 
 
