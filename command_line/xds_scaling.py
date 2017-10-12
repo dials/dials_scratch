@@ -55,7 +55,7 @@ phil_scope = phil.parse('''
     .help = "Number of bins in each detector dimension for modulation gridding"
   integration_method = 'prf'
     .type = str
-    .help = "Option to choose from profile fitted intensities (prf) 
+    .help = "Option to choose from profile fitted intensities (prf)
              or summation integrated intensities (sum)"
   parameterization = 'standard'
     .type = str
@@ -83,7 +83,7 @@ phil_scope = phil.parse('''
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
-from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay, 
+from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
 plot_data_absorption, plot_data_modulation)
 
 

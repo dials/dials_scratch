@@ -52,7 +52,7 @@ phil_scope = phil.parse('''
     .help = "Number of bins for scale binning"
   integration_method = 'prf'
     .type = str
-    .help = "Option to choose from profile fitted intensities (prf) 
+    .help = "Option to choose from profile fitted intensities (prf)
              or summation integrated intensities (sum)"
   parameterization = 'standard'
     .type = str
@@ -68,7 +68,7 @@ phil_scope = phil.parse('''
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
-from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay, 
+from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
 plot_data_absorption, plot_data_modulation)
 
 
@@ -173,7 +173,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   '''call the optimiser on the Data Manager object'''
   loaded_reflections = mf.aimless_LBFGS_optimiser(loaded_reflections).return_data_manager()
 
-  '''the minimisation has only been done on a subset, so expand back out to fill the 
+  '''the minimisation has only been done on a subset, so expand back out to fill the
   sorted reflection table and recalculate the h_index and Ih values'''
   loaded_reflections.calculate_scale_factors()
   loaded_reflections.update_weights_for_scaling(loaded_reflections.sorted_reflections)
