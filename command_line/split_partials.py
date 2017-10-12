@@ -16,7 +16,7 @@ refl = refl.select(sel)
 
 # extract partiality, plot histogram, select subset, dump
 part = refl['partiality']
-parth = flex.histogram(part, n_slots=20)
+parth = flex.histogram(part, n_slots=20, data_min=0.0, data_max=1.0)
 parth.show()
 edge = part < part_lim
 edge_refl = refl.select(edge)
