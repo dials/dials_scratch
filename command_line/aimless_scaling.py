@@ -147,7 +147,7 @@ def main(argv):
   print "R_pim is %s" % (Rpim)
 
   '''clean up reflection table for outputting and save data'''
-  #minimised.clean_reflection_table()
+  minimised.clean_reflection_table()
   minimised.save_sorted_reflections(output_path)
   print "Saved output to " + str(output_path)
 
