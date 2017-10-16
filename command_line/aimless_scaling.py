@@ -69,7 +69,7 @@ from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
-plot_data_absorption, plot_data_modulation)
+plot_data_absorption, plot_data_modulation, plot_smooth_scales)
 
 
 def main(argv):
@@ -151,6 +151,7 @@ def main(argv):
   minimised.save_sorted_reflections(output_path)
   print "Saved output to " + str(output_path)
 
+  plot_smooth_scales(minimised)
   #'''output plots of scale factors'''
   #if scaling_options['absorption']:
   #  plot_data_absorption(minimised)
@@ -158,7 +159,7 @@ def main(argv):
   #  plot_data_decay(minimised)
   #if scaling_options['modulation']:
   #  plot_data_modulation(minimised)
-  #print "Saved plots of correction factors"
+  print "Saved plots of correction factors"
 
 
 def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
