@@ -44,6 +44,9 @@ phil_scope = phil.parse('''
     .type = int(value_min=0)
     .help = "The verbosity level"
 
+  n_d_bins = 20
+    .type = int
+    .help = "Number of bins for resolution gridding"
   n_B_bins = 10
     .type = int
     .help = "Number of bins for decay binning"
@@ -118,7 +121,7 @@ def main(argv):
   scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
                      'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard'}
+                     'parameterization': 'standard', 'n_d_bins': None}
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
@@ -146,20 +149,16 @@ def main(argv):
   print "R_meas is %s" % (Rmeas)
   print "R_pim is %s" % (Rpim)
 
+  plot_smooth_scales(minimised)
+  #'''output plots of scale factors'''
+  print "Saved plots of correction factors"
+  
   '''clean up reflection table for outputting and save data'''
   minimised.clean_reflection_table()
   minimised.save_sorted_reflections(output_path)
   print "Saved output to " + str(output_path)
 
-  plot_smooth_scales(minimised)
-  #'''output plots of scale factors'''
-  #if scaling_options['absorption']:
-  #  plot_data_absorption(minimised)
-  #if scaling_options['decay']:
-  #  plot_data_decay(minimised)
-  #if scaling_options['modulation']:
-  #  plot_data_modulation(minimised)
-  print "Saved plots of correction factors"
+  
 
 
 def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
