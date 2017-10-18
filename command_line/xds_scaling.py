@@ -84,7 +84,7 @@ from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
-plot_data_absorption, plot_data_modulation)
+plot_data_absorption, plot_data_modulation, plot_correction_at_multiple_detector_areas)
 
 
 def main(argv):
@@ -162,19 +162,25 @@ def main(argv):
   print "R_meas is %s" % (Rmeas)
   print "R_pim is %s" % (Rpim)
 
-  '''clean up reflection table for outputting and save data'''
-  minimised.clean_reflection_table()
-  minimised.save_sorted_reflections(output_path)
-  print "Saved output to " + str(output_path)
 
   '''output plots of scale factors'''
   if scaling_options['absorption']:
     plot_data_absorption(minimised)
+    n_time_pos = minimised.g_absorption.ntime_parameters
+    plot_correction_at_multiple_detector_areas(minimised, [0, n_time_pos // 5,
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
   if scaling_options['decay']:
     plot_data_decay(minimised)
   if scaling_options['modulation']:
     plot_data_modulation(minimised)
   print "Saved plots of correction factors"
+
+  '''clean up reflection table for outputting and save data'''
+  minimised.clean_reflection_table()
+  minimised.save_sorted_reflections(output_path)
+  print "Saved output to " + str(output_path)
+
+  
 
 
 def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
