@@ -161,16 +161,23 @@ def plot_d_spacings(reflections, figsize=(12,8)):
   perm = flex.sort_permutation(d_star_sq)
   fig = plt.figure(figsize=figsize)
   plt.plot(d_star_sq.select(perm), flex.int_range(perm.size()), zorder=10)
-  for dss in ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3)
-  for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='g', zorder=1, linestyle=':', alpha=0.3)
+  ylim = plt.ylim()
+  for i, dss in enumerate(ice_d_star_sq):
+    if i == 0: label = "Hexagonal ice"
+    else: label = None
+    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3, label=label)
+  for i, dss in enumerate(cubic_ice_d_star_sq):
+    if i == 0: label = "Cubic ice"
+    else: label = None
+    plt.plot([dss, dss], plt.ylim(), c='g', zorder=1, linestyle=':', alpha=0.3, label=label)
+  plt.ylim(ylim)
   ax = plt.gca()
   xticks = ax.get_xticks()
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
   plt.xlabel('d spacing (A^-1)')
   plt.ylabel('Cumulative frequency')
+  plt.legend(loc='best')
   plt.tight_layout()
   plt.savefig('d_spacings.png')
   plt.clf()
@@ -181,10 +188,14 @@ def plot_d_spacings(reflections, figsize=(12,8)):
     plt.scatter(uctbx.d_as_d_star_sq(d_spacings), intensities, marker='.',
                 c='black', s=1, zorder=10)
     ylim = plt.ylim()
-    for dss in ice_d_star_sq:
-      plt.plot([dss, dss], (0, ylim[1]), c='r', zorder=0, linestyle=':', alpha=0.3)
-    for dss in cubic_ice_d_star_sq:
-      plt.plot([dss, dss], (0, ylim[1]), c='g', zorder=1, linestyle=':', alpha=0.3)
+    for i, dss in enumerate(ice_d_star_sq):
+      if i == 0: label = "Hexagonal ice"
+      else: label = None
+      plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3, label=label)
+    for i, dss in enumerate(cubic_ice_d_star_sq):
+      if i == 0: label = "Cubic ice"
+      else: label = None
+      plt.plot([dss, dss], plt.ylim(), c='g', zorder=1, linestyle=':', alpha=0.3, label=label)
     plt.ylim(ylim)
     ax = plt.gca()
     xticks = ax.get_xticks()
@@ -197,6 +208,7 @@ def plot_d_spacings(reflections, figsize=(12,8)):
     ax.set_yticks(yticks)
     plt.xlabel('d spacing (A^-1)')
     plt.ylabel('Intensity')
+    plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig('d_vs_intensity.png')
     plt.clf()
@@ -205,16 +217,23 @@ def plot_d_spacings(reflections, figsize=(12,8)):
   fig = plt.figure(figsize=figsize)
   plt.bar(hist.slot_centers(), hist.slots(), align="center",
           width=hist.slot_width(), zorder=10, color='black', edgecolor=None)
-  for dss in ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3)
-  for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], plt.ylim(), c='g', zorder=0, linestyle=':', alpha=0.3)
+  ylim = plt.ylim()
+  for i, dss in enumerate(ice_d_star_sq):
+    if i == 0: label = "Hexagonal ice"
+    else: label = None
+    plt.plot([dss, dss], plt.ylim(), c='r', zorder=0, linestyle=':', alpha=0.3, label=label)
+  for i, dss in enumerate(cubic_ice_d_star_sq):
+    if i == 0: label = "Cubic ice"
+    else: label = None
+    plt.plot([dss, dss], plt.ylim(), c='g', zorder=1, linestyle=':', alpha=0.3, label=label)
+  plt.ylim(ylim)
   ax = plt.gca()
   xticks = ax.get_xticks()
   xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
   ax.set_xticklabels(['%.2f' %x for x in xticks_d])
   plt.xlabel('d spacing (A^-1)')
   plt.ylabel('Frequency')
+  plt.legend(loc='best')
   plt.tight_layout()
   plt.savefig('d_spacings_hist.png')
   plt.clf()
@@ -227,26 +246,6 @@ def plot_d_spacings(reflections, figsize=(12,8)):
   plt.tight_layout()
   plt.savefig('ordered_d_spacings_hist.png')
   plt.clf()
-
-  perm = flex.sort_permutation(d_spacings, reverse=True)
-  ordered_d_spacings = d_spacings.select(perm)
-  fig = plt.figure(figsize=figsize)
-  #plt.plot(range(ordered_d_spacings.size()), ordered_d_spacings)
-  plt.plot(
-    uctbx.d_as_d_star_sq(ordered_d_spacings),
-    flex.double_range(ordered_d_spacings.size())/ordered_d_spacings.size())
-  ax = plt.gca()
-  xticks = ax.get_xticks()
-  xticks = [x for x in xticks if x >= 0]
-  ax.set_xticks(xticks)
-  xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-  ax.set_xticklabels(['%.2f' %x for x in xticks_d])
-  plt.xlabel('d spacing(A^-1)')
-  plt.ylabel('Percentile')
-  plt.tight_layout()
-  plt.savefig('ordered_d_spacings.png')
-  plt.clf()
-
 
 def plot_direct_space_distances(direct, d_spacings, figsize=(12,8)):
   from cctbx import uctbx
