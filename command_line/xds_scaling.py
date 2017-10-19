@@ -205,15 +205,11 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name='g_modulation'
                                            ).return_data_manager()
-  loaded_reflections.calculate_scale_factors()
-  loaded_reflections.update_weights_for_scaling(loaded_reflections.sorted_reflections)
-  loaded_reflections.assign_h_index(loaded_reflections.sorted_reflections)
-  loaded_reflections.calc_Ih(loaded_reflections.sorted_reflections)
-  for i, scale in enumerate(loaded_reflections.sorted_reflections['inverse_scale_factor']):
-    if scale < 0:
-      refl = loaded_reflections.sorted_reflections
-      print (scale, refl['intensity'][i], refl['variance'][i], refl['variance'][i],
-        refl['Ih_values'][i], refl['asu_miller_index'][i])
+                                           
+  '''the minimisation has only been done on a subset on the data, so apply the 
+  scale factors to the sorted reflection table.'''
+  loaded_reflections.expand_scales_to_all_reflections()
+
   return loaded_reflections
 
 

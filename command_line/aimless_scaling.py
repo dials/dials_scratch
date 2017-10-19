@@ -3,7 +3,7 @@
 
 """
 aimless_scaling.py performs an aimless-like parameterisation of scaling and outputs the
-calcualted inverse scale factors to a integrated_scaled.pickle file.
+calculated inverse scale factors to a integrated_scaled.pickle file.
 Unfortunately this currently runs quite slowly on large datasets such as the
 thaumatin tutorial data, particularly the data reshaping before minimisation.
 
@@ -150,35 +150,29 @@ def main(argv):
   print "R_pim is %s" % (Rpim)
 
   plot_smooth_scales(minimised)
-  #'''output plots of scale factors'''
   print "Saved plots of correction factors"
-  
+
   '''clean up reflection table for outputting and save data'''
   minimised.clean_reflection_table()
   minimised.save_sorted_reflections(output_path)
   print "Saved output to " + str(output_path)
 
-  
-
 
 def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an aimless-like scaling"""
 
-  '''create a data manager object. Upon creation, negative variance & d-values
-  are filtered and the indices are mapped to the asu and sorted. scale factors
-  are initialised to unity'''
+  '''initilise a data_manager object, which creates a sorted reflection table,
+  tracks the groups of unique reflections and initialises scale factor objects
+  to be used in minimisation'''
   loaded_reflections = dmf.aimless_Data_Manager(reflections, experiments, scaling_options)
-  #loaded_reflections.reject_outliers(10.0, 1)
 
   '''call the optimiser on the Data Manager object'''
   loaded_reflections = mf.aimless_LBFGS_optimiser(loaded_reflections).return_data_manager()
 
-  '''the minimisation has only been done on a subset, so expand back out to fill the
-  sorted reflection table and recalculate the h_index and Ih values'''
-  loaded_reflections.calculate_scale_factors()
-  loaded_reflections.update_weights_for_scaling(loaded_reflections.sorted_reflections)
-  loaded_reflections.assign_h_index(loaded_reflections.sorted_reflections)
-  loaded_reflections.calc_Ih(loaded_reflections.sorted_reflections)
+  '''the minimisation has only been done on a subset on the data, so apply the 
+  scale factors to the sorted reflection table.'''
+  loaded_reflections.expand_scales_to_all_reflections()
+
   return loaded_reflections
 
 
