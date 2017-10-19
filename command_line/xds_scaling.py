@@ -209,6 +209,11 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   loaded_reflections.update_weights_for_scaling(loaded_reflections.sorted_reflections)
   loaded_reflections.assign_h_index(loaded_reflections.sorted_reflections)
   loaded_reflections.calc_Ih(loaded_reflections.sorted_reflections)
+  for i, scale in enumerate(loaded_reflections.sorted_reflections['inverse_scale_factor']):
+    if scale < 0:
+      refl = loaded_reflections.sorted_reflections
+      print (scale, refl['intensity'][i], refl['variance'][i], refl['variance'][i],
+        refl['Ih_values'][i], refl['asu_miller_index'][i])
   return loaded_reflections
 
 
