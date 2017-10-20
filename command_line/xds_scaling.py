@@ -164,11 +164,11 @@ def main(argv):
 
 
   '''output plots of scale factors'''
-  if scaling_options['absorption']:
-    plot_data_absorption(minimised)
-    n_time_pos = minimised.g_absorption.ntime_parameters
-    plot_correction_at_multiple_detector_areas(minimised, [0, n_time_pos // 5,
-      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
+  #if scaling_options['absorption']:
+  #  plot_data_absorption(minimised)
+  #  n_time_pos = minimised.g_absorption.ntime_parameters
+  #  plot_correction_at_multiple_detector_areas(minimised, [0, n_time_pos // 5,
+  #    2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
   if scaling_options['decay']:
     plot_data_decay(minimised)
   if scaling_options['modulation']:
@@ -205,7 +205,7 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name='g_modulation'
                                            ).return_data_manager()
-                                           
+
   '''the minimisation has only been done on a subset on the data, so apply the 
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()

@@ -167,7 +167,8 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   loaded_reflections = dmf.aimless_Data_Manager(reflections, experiments, scaling_options)
 
   '''call the optimiser on the Data Manager object'''
-  loaded_reflections = mf.aimless_LBFGS_optimiser(loaded_reflections).return_data_manager()
+  loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                          param_name=None).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the 
   scale factors to the sorted reflection table.'''
