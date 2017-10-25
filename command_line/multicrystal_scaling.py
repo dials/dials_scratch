@@ -187,7 +187,7 @@ def main(argv):
   minimised.dm1.save_sorted_reflections(output_path)
   print "Saved output to " + str(output_path)
 
-  
+
 
 
 def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
@@ -224,7 +224,7 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
                                             param_name='g_modulation'
                                            ).return_data_manager()
 
-  '''the minimisation has only been done on a subset on the data, so apply the 
+  '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
   loaded_reflections.join_multiple_datasets()

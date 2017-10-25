@@ -152,7 +152,7 @@ class Script(object):
       for line in f:
         if line.startswith('<!--SUMMARY_BEGIN-->'): break
       for line in f:
-        if line.startswith('	$$ <!--SUMMARY_END-->'): break
+        if line.startswith('    $$ <!--SUMMARY_END-->'): break
         summary.append(line)
     return summary
 

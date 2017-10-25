@@ -641,7 +641,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         return ((a & mask_code) == mask_code && (a & Overlapped) == 0);
       }
     };
-    
+
     struct check_mask_code2 {
       int mask_code;
       check_mask_code2(int code) : mask_code(code) {}
@@ -695,11 +695,11 @@ namespace dials { namespace algorithms { namespace boost_python {
       if (detector_space_ == true) {
         if (deconvolution_ == true) {
           integrate_detector_space_with_deconvolution(
-              reflection, 
+              reflection,
               adjacent_reflections);
         } else {
           integrate_detector_space(
-              reflection, 
+              reflection,
               adjacent_reflections);
         }
       } else {
@@ -715,7 +715,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
       typedef af::const_ref< double, af::c_grid<3> > data_const_reference;
       typedef af::const_ref< bool, af::c_grid<3> > mask_const_reference;
-      
+
       reflection["flags"] = reflection.get<std::size_t>("flags") & ~af::IntegratedPrf;
 
       vec3<double> s1 = reflection.get< vec3<double> >("s1");
@@ -795,16 +795,16 @@ namespace dials { namespace algorithms { namespace boost_python {
       reflection["intensity.prf.correlation"] = fit.correlation();
       reflection["flags"] = reflection.get<std::size_t>("flags") | af::IntegratedPrf;
     }
-    
+
     void integrate_detector_space(
           af::Reflection &reflection,
           const std::vector<af::Reflection> &adjacent_reflections) const {
-      
+
       typedef af::const_ref< double, af::c_grid<3> > data_const_reference;
       typedef af::const_ref< bool, af::c_grid<3> > mask_const_reference;
-      
+
       reflection["flags"] = reflection.get<std::size_t>("flags") & ~af::IntegratedPrf;
-      
+
       // Get some data
       vec3<double> s1 = reflection.get< vec3<double> >("s1");
       double phi = reflection.get< vec3<double> >("xyzcal.mm")[2];
@@ -888,14 +888,14 @@ namespace dials { namespace algorithms { namespace boost_python {
       typedef af::const_ref< bool, af::c_grid<3> > mask_const_reference;
 
 
-      
 
-      
+
+
       reflection["flags"] = reflection.get<std::size_t>("flags") & ~af::IntegratedPrf;
-      
+
       // Get some data
       vec3<double> s1 = reflection.get< vec3<double> >("s1");
-      
+
       double phi = reflection.get< vec3<double> >("xyzcal.mm")[2];
       vec3<double> xyz = reflection.get< vec3<double> >("xyzcal.px");
       Shoebox<> sbox = reflection.get< Shoebox<> >("shoebox");
@@ -951,7 +951,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         std::size_t index = sampler_.nearest(sbox.panel, xyz);
         data_const_reference d = reference_.data(index);
         mask_const_reference mask1 = reference_.mask(index);
-       
+
         // The profile grid
         af::versa< double, af::c_grid<4> > profile(af::c_grid<4>(
               af::tiny<std::size_t,4>(
@@ -992,10 +992,10 @@ namespace dials { namespace algorithms { namespace boost_python {
 
           // Get the transformed shoebox
           data_const_reference p2 = transform.profile().const_ref();
-        
+
           std::copy(p2.begin(), p2.end(), profile.begin() + (j+1)*p2.size());
         }
-       
+
         std::cout << "Num reflections " << adjacent_reflections.size() << std::endl;
         std::cout << "Mask" << std::endl;
         for (std::size_t k = 0; k < m.accessor()[0]; ++k) {
@@ -1058,7 +1058,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         reflection["intensity.prf.variance"] = fit.variance()[0];
         reflection["intensity.prf.correlation"] = fit.correlation();
         reflection["flags"] = reflection.get<std::size_t>("flags") | af::IntegratedPrf;
-      
+
       } catch (dials::error) {
         integrate_detector_space(reflection, adjacent_reflections);
       }
@@ -1078,8 +1078,8 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Check if all pixels are valid
       bool pixels_valid = true;
       for (std::size_t i = 0; i < sbox.mask.size(); ++i) {
-        if ((sbox.mask[i] & Foreground) && 
-            !(sbox.mask[i] & Valid) && 
+        if ((sbox.mask[i] & Foreground) &&
+            !(sbox.mask[i] & Valid) &&
             !(sbox.mask[i] & Overlapped)) {
           pixels_valid = false;
           break;
@@ -1089,7 +1089,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Return whether to use or not
       return bbox_valid && pixels_valid;
     }
-    
+
     bool check2(std::size_t flags,
                const Shoebox<> &sbox) const {
 
@@ -1123,8 +1123,8 @@ namespace dials { namespace algorithms { namespace boost_python {
     bool deconvolution_;
 
   };
-  
-  
+
+
   /**
    * A class to store the image data buffer
    */
@@ -1167,7 +1167,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         copy(data.tile(i).data().const_ref(), data_[i].ref(), index);
       }
     }
-    
+
     /**
      * Copy an image to the buffer
      * @param image The image data
@@ -1192,7 +1192,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       DIALS_ASSERT(panel < data_.size());
       return data_[panel].const_ref();
     }
-    
+
     /**
      * @param The panel number
      * @returns The buffer for the panel
@@ -1344,7 +1344,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
 
   protected:
-    
+
     /**
      * Extract the shoebox
      */
@@ -1465,7 +1465,7 @@ namespace dials { namespace algorithms { namespace boost_python {
      * Compute the centroid
      */
     void compute_centroid(af::Reflection &reflection) const {
-      
+
       // Get the shoebox and compute centroid
       Shoebox<> shoebox = reflection.get< Shoebox<> >("shoebox");
       Centroid centroid = shoebox.centroid_foreground_minus_background();
@@ -1514,10 +1514,10 @@ namespace dials { namespace algorithms { namespace boost_python {
     bool debug_;
   };
 
- 
+
   /**
    * a class to sort the indices of all reflections that are fully recorded
-   * after a particular image. 
+   * after a particular image.
    */
   class Lookup {
   public:
@@ -1529,8 +1529,8 @@ namespace dials { namespace algorithms { namespace boost_python {
      */
     Lookup(af::const_ref<int6> bbox, int zstart, std::size_t n)
       : indices_(bbox.size()) {
-      
-      // fill the index array  
+
+      // fill the index array
       for (std::size_t i = 0; i < indices_.size(); ++i) {
         indices_[i] = i;
       }
@@ -1620,7 +1620,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       // Get the size of the data buffer needed
       std::size_t zsize = imageset.size();
       DIALS_ASSERT(zsize > 0);
-     
+
       // Get the starting frame and the underload/overload values
       int zstart = scan.get_array_range()[0];
       double underload = detector[0].get_trusted_range()[0];
@@ -1630,7 +1630,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         DIALS_ASSERT(underload == detector[i].get_trusted_range()[0]);
         DIALS_ASSERT(overload  == detector[i].get_trusted_range()[1]);
       }
-        
+
       // Get the reflection flags and bbox
       af::const_ref<std::size_t> panel = reflections.get<std::size_t>("panel").const_ref();
       af::const_ref<int6> bbox = reflections.get<int6>("bbox").const_ref();
@@ -1648,14 +1648,14 @@ namespace dials { namespace algorithms { namespace boost_python {
       // passing the whole table. Additionally, because the reflection table
       // uses a std::map, it may not be thread safe, so we want to avoid
       // accessing this across multiple threads.
-      af::shared<af::Reflection> reflection_array = 
+      af::shared<af::Reflection> reflection_array =
         reflection_table_to_array(reflections);
 
       // The lookup class gives the indices of reflections whose bounding boxes
       // are complete at a given image. This is used to submit reflections for
       // integration after each image is processed.
       Lookup lookup(bbox, zstart, zsize);
-      
+
       // Create the reflection integrator. This class is called for each
       // reflection to integrate the data
       ReflectionIntegrator integrator(
@@ -1730,7 +1730,7 @@ namespace dials { namespace algorithms { namespace boost_python {
           }
         }
       }
-      
+
       // Create the thread pool
       ThreadPool pool(nthreads);
 
@@ -1748,11 +1748,11 @@ namespace dials { namespace algorithms { namespace boost_python {
         } else {
           buffer.copy(imageset.get_corrected_data(i), i);
         }
-        
+
         // Get the reflections recorded at this point
         af::const_ref<std::size_t> indices = lookup.indices(i);
 
-        // Iterate through the reflection indices 
+        // Iterate through the reflection indices
         for (std::size_t j = 0; j < indices.size(); ++j) {
 
           // Get the reflection index
@@ -1784,7 +1784,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     af::reflection_table reflections_;
   };
 
-  
+
 
   BOOST_PYTHON_MODULE(dials_scratch_jmp_fitting_ext)
   {

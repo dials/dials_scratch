@@ -8,5 +8,3 @@ else:
 
 if not ext is None:
   from dials_scratch_ext import *
-
-
