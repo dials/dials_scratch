@@ -4,26 +4,39 @@ import numpy
 def get_stupid_value(h5_obj):
   if h5_obj.ndim == 0:
     return h5_obj[()]
-  if h5_obj.ndim == 1 and h5_obj.shape == (1):
-    return h5_obj[()][0]
+  if h5_obj.ndim == 1 and h5_obj.shape == (1,):
+    return h5_obj[()][0].item()
   raise RuntimeError, 'not scalar or 1D length 1 array'
 
 def get_depends_on_stack(h5_file, name):
+  from cctbx.sgtbx import rt_mx
+  from scitbx.matrix import sqr, col
   obj = h5_file[name]
   depends_on = obj['depends_on'][...]
   actual_depends_on = get_stupid_value(depends_on)
 
   # now iterate through the stack...
   transformation = actual_depends_on
-  print transformation
+
+  obj = h5_file[transformation]
+
+  t_type = obj.attrs['transformation_type']
+
+  shift = col((0, 0, 0))
 
   while transformation != '.':
-    transform = h5_file[transformation]
-    transformation = transform.attrs['depends_on']
-    print transformation
+    obj = h5_file[transformation]
+    t_type = obj.attrs['transformation_type']
+    if t_type == 'translation':
+      shift += get_stupid_value(obj) * col(obj.attrs['vector'])
+    else:
+      raise RuntimeError, 'panic'
+    transformation = obj.attrs['depends_on']
+
+  return shift
 
 def get_actual_pixel_offset(detector):
-  from scitbx import matrix
+  from scitbx.matrix import col
   modules = []
   for thing in detector:
     obj = detector[thing]
@@ -33,14 +46,12 @@ def get_actual_pixel_offset(detector):
   assert len(modules) == 1
   for module in modules:
     offset = module['module_offset']
-    fast = module['fast_pixel_direction']
-    slow = module['slow_pixel_direction']
-    actual_offset = matrix.col(offset.attrs['offset'])
-    return actual_offset
+    fast = col(module['fast_pixel_direction'].attrs['vector'])
+    slow = col(module['slow_pixel_direction'].attrs['vector'])
+    actual_offset = col(offset.attrs['offset'])
+    return actual_offset, fast, slow
 
 def get_derived_beam_centre(h5_file):
-  from scitbx import matrix
-
   # first find the detector
 
   detectors = []
@@ -56,12 +67,15 @@ def get_derived_beam_centre(h5_file):
   detector = detectors[0]
 
   actual_detector = h5_file[detector]
-  offset = get_actual_pixel_offset(actual_detector)
-  get_depends_on_stack(h5_file, detector)
+  offset, fast, slow = get_actual_pixel_offset(actual_detector)
+  shift = get_depends_on_stack(h5_file, detector)
+  origin = offset + shift
+  norm = fast.cross(slow)
+  beam = origin - norm * origin.dot(norm)
+  return beam.dot(fast), beam.dot(slow)
 
 def hdf5_useful_nxmx(h5_file):
 
-  get_derived_beam_centre(h5_file)
 
   # wavelength
   wavelength_locations = ['entry/instrument/beam/incident_wavelength',
@@ -108,6 +122,9 @@ def hdf5_useful_nxmx(h5_file):
       (ndim, str(shape))
     beam_ys = beam_y_dataset[()]
     print '====>', beam_ys, beam_y_dataset.attrs['units']
+
+  beam_xy = get_derived_beam_centre(h5_file)
+  print 'Derived beam centre(mm)', beam_xy
 
   distance_locations = ['entry/instrument/detector/detector_distance',
                         'entry/instrument/detector_z/det_z']
