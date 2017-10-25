@@ -43,13 +43,18 @@ def get_actual_pixel_offset(detector):
     if 'NX_class' in obj.attrs:
       if obj.attrs['NX_class'] == 'NXdetector_module':
         modules.append(obj)
-  assert len(modules) == 1
-  for module in modules:
-    offset = module['module_offset']
-    fast = col(module['fast_pixel_direction'].attrs['vector'])
-    slow = col(module['slow_pixel_direction'].attrs['vector'])
-    actual_offset = col(offset.attrs['offset'])
-    return actual_offset, fast, slow
+  if len(modules) == 0:
+    raise RuntimeError, 'no modules found'
+
+  if len(modules) > 1:
+    raise RuntimeError, 'too many modules found'
+
+  module = modules[0]
+  offset = module['module_offset']
+  fast = col(module['fast_pixel_direction'].attrs['vector'])
+  slow = col(module['slow_pixel_direction'].attrs['vector'])
+  actual_offset = col(offset.attrs['offset'])
+  return actual_offset, fast, slow
 
 def get_derived_beam_centre(h5_file):
   # first find the detector
