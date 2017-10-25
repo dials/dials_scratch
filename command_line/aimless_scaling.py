@@ -170,7 +170,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                           param_name=None).return_data_manager()
 
-  '''the minimisation has only been done on a subset on the data, so apply the 
+  '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
 
