@@ -47,9 +47,9 @@ phil_scope = phil.parse('''
   n_d_bins = 20
     .type = int
     .help = "Number of bins for resolution gridding"
-  n_z_bins = 20
-    .type = int
-    .help = "Number of bins for phi/time gridding"
+  rotation_interval = None
+    .type = float
+    .help = "User specified rotation (phi) interval in degrees for phi binning"
   n_detector_bins = 19
     .type = int
     .help = "Number of bins in each detector dimension for modulation gridding"
@@ -130,7 +130,7 @@ def main(argv):
   logger.info("")
   print "Initialising data structures...."
 
-  scaling_options = {'n_d_bins' : None, 'n_z_bins' : None, 'n_detector_bins' : None,
+  scaling_options = {'n_d_bins' : None, 'rotation_interval' : None, 'n_detector_bins' : None,
                      'integration_method' : None, 'modulation' : True,
                      'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
@@ -177,9 +177,9 @@ def main(argv):
     plot_correction_at_multiple_detector_areas(minimised.dm1, [0, n_time_pos // 5,
       2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
   if scaling_options['decay']:
-    plot_data_decay(minimised)
+    plot_data_decay(minimised.dm1)
   if scaling_options['modulation']:
-    plot_data_modulation(minimised)
+    plot_data_modulation(minimised.dm1)
   print "Saved plots of correction factors"
 
   '''clean up reflection table for outputting and save data'''

@@ -53,6 +53,9 @@ phil_scope = phil.parse('''
   n_scale_bins = 10
     .type = int
     .help = "Number of bins for scale binning"
+  rotation_interval = None
+    .type = float
+    .help = "User specified rotation (phi) interval in degrees for phi binning"
   integration_method = 'prf'
     .type = str
     .help = "Option to choose from profile fitted intensities (prf)
@@ -119,6 +122,7 @@ def main(argv):
   print "Initialising data structures...."
 
   scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
+                     'rotation_interval' : None,
                      'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
                      'parameterization': 'standard', 'n_d_bins': None}
