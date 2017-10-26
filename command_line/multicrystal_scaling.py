@@ -123,12 +123,9 @@ def main(argv):
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
 
-  '''print reflections
-  print experiments
-  print reflections[0]
-  print experiments[0]
-  print reflections[1]
-  print experiments[1]'''
+  if (experiments[0].crystal.get_space_group() !=
+      experiments[1].crystal.get_space_group()):
+    assert 0, '''Cannot perform joint scaling of these datasets as the space group assignment is different'''
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
