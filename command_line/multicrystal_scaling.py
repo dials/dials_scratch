@@ -115,9 +115,11 @@ def main(argv):
     logger.info('The following parameters have been modified:\n')
     logger.info(diff_phil)
 
-  output_path = [s for s in argv if 'integrated.pickle' in s]
-  output_path_1 = output_path[0].rstrip('.pickle') + '_scaled_1.pickle'
-  output_path_2 = output_path[1].rstrip('.pickle') + '_scaled_2.pickle'
+  #output_path = [s for s in argv if '.pickle' in s]
+  #output_path_1 = output_path[0].rstrip('.pickle') + '_scaled_1.pickle'
+  #output_path_2 = output_path[1].rstrip('.pickle') + '_scaled_2.pickle'
+  output_path_1 = 'integrated_scaled_1.pickle'
+  output_path_2 = 'integrated_scaled_2.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
@@ -181,12 +183,12 @@ def main(argv):
     plot_data_absorption(minimised.dm1, outputfile='g_absorption_multiset1.png')
     n_time_pos = minimised.dm1.g_absorption.ntime_parameters
     plot_correction_at_multiple_detector_areas(minimised.dm1, [0, n_time_pos // 5,
-      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1],
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2],
       outputfile='g_absorption_surfaces_multiset1.png')
     plot_data_absorption(minimised.dm2, outputfile='g_absorption_multiset2.png')
     n_time_pos = minimised.dm2.g_absorption.ntime_parameters
     plot_correction_at_multiple_detector_areas(minimised.dm2, [0, n_time_pos // 5,
-      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1],
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2],
       outputfile='g_absorption_surfaces_multiset2.png')
   if scaling_options['decay']:
     plot_data_decay(minimised.dm1, outputfile='g_decay_multiset1.png')

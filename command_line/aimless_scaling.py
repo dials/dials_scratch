@@ -105,8 +105,8 @@ def main(argv):
     logger.info('The following parameters have been modified:\n')
     logger.info(diff_phil)
 
-  output_path = [s for s in argv if 'integrated.pickle' in s]
-  output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
+  #output_path = [s for s in argv if 'integrated.pickle' in s]
+  output_path = 'integrated_scaled.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)[0]

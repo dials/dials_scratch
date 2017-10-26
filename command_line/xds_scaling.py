@@ -114,8 +114,9 @@ def main(argv):
     logger.info('The following parameters have been modified:\n')
     logger.info(diff_phil)
 
-  output_path = [s for s in argv if 'integrated.pickle' in s]
-  output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
+  #output_path = [s for s in argv if '.pickle' in s]
+  #output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
+  output_path = 'integrated_scaled.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)[0]
@@ -168,7 +169,7 @@ def main(argv):
     plot_data_absorption(minimised)
     n_time_pos = minimised.g_absorption.ntime_parameters
     plot_correction_at_multiple_detector_areas(minimised, [0, n_time_pos // 5,
-      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2])
   if scaling_options['decay']:
     plot_data_decay(minimised)
   if scaling_options['modulation']:
