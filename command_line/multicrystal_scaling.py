@@ -8,7 +8,8 @@ Unfortunately this currently runs quite slowly on large datasets such as the
 thaumatin tutorial data, particularly the data reshaping before minimisation.
 
 Usage:
-  dials_scratch.multicrystal_scaling integrated.pickle integrated_experiments.json [options]
+  dials_scratch.multicrystal_scaling integrated.pickle(1) integrated_experiments.json(1) 
+  integrated.pickle(2) integrated_experiments.json(2) [options]
 
 A number of options can be specified, see the phil_scope below.
 """
@@ -115,11 +116,19 @@ def main(argv):
     logger.info(diff_phil)
 
   output_path = [s for s in argv if 'integrated.pickle' in s]
-  output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
+  output_path_1 = output_path[0].rstrip('.pickle') + '_scaled_1.pickle'
+  output_path_2 = output_path[1].rstrip('.pickle') + '_scaled_2.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
+
+  '''print reflections
+  print experiments
+  print reflections[0]
+  print experiments[0]
+  print reflections[1]
+  print experiments[1]'''
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
@@ -154,7 +163,7 @@ def main(argv):
     logger.info('%s : %s' % (k, v))
 
   '''do lbfgs minimisation'''
-  minimised = xds_scaling_lbfgs(reflections, experiments, scaling_options, logger)
+  minimised = xds_multi_scaling_lbfgs(reflections, experiments, scaling_options, logger)
 
   '''calculate R metrics'''
   Rmeas = R_meas(minimised)
@@ -172,31 +181,41 @@ def main(argv):
 
   '''output plots of scale factors'''
   if scaling_options['absorption']:
-    plot_data_absorption(minimised.dm1)
+    plot_data_absorption(minimised.dm1, outputfile='g_absorption_multiset1.png')
     n_time_pos = minimised.dm1.g_absorption.ntime_parameters
     plot_correction_at_multiple_detector_areas(minimised.dm1, [0, n_time_pos // 5,
-      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1])
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1],
+      outputfile='g_absorption_surfaces_multiset1.png')
+    plot_data_absorption(minimised.dm2, outputfile='g_absorption_multiset2.png')
+    n_time_pos = minimised.dm2.g_absorption.ntime_parameters
+    plot_correction_at_multiple_detector_areas(minimised.dm2, [0, n_time_pos // 5,
+      2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 1],
+      outputfile='g_absorption_surfaces_multiset2.png')
   if scaling_options['decay']:
-    plot_data_decay(minimised.dm1)
+    plot_data_decay(minimised.dm1, outputfile='g_decay_multiset1.png')
+    plot_data_decay(minimised.dm2, outputfile='g_decay_multiset2.png')
   if scaling_options['modulation']:
-    plot_data_modulation(minimised.dm1)
+    plot_data_modulation(minimised.dm1, outputfile='g_modulation_multiset1.png')
+    plot_data_modulation(minimised.dm2, outputfile='g_modulation_multiset2.png')
   print "Saved plots of correction factors"
 
   '''clean up reflection table for outputting and save data'''
   minimised.dm1.clean_reflection_table()
-  minimised.dm1.save_sorted_reflections(output_path)
-  print "Saved output to " + str(output_path)
+  minimised.dm1.save_sorted_reflections(output_path_1)
+  minimised.dm2.clean_reflection_table()
+  minimised.dm2.save_sorted_reflections(output_path_2)
+  print "Saved outputs to %s,%s " % (output_path_1, output_path_2)
 
 
 
 
-def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
+def xds_multi_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
 
   '''create a data manager object. Upon creation, negative variance & d-values
   are filtered and the indices are mapped to the asu and sorted. scale factors
   are initialised to unity'''
-  #split the reflection table in half
+  '''#split the reflection table in half
   reflection_table_1 = reflections[0]
   reflection_table_1['z_value'] = reflection_table_1['xyzobs.px.value'].parts()[2]
   reflection_table_2 = copy.deepcopy(reflection_table_1)
@@ -204,10 +223,15 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   sel = reflection_table_1['z_value'] <= z_max/2.0
   reflection_table_1 = reflection_table_1.select(sel)
   sel = reflection_table_2['z_value'] > z_max/2.0
-  reflection_table_2 = reflection_table_2.select(sel)
+  reflection_table_2 = reflection_table_2.select(sel)'''
 
-  loaded_reflections = dmf.multicrystal_datamanager([reflection_table_1], experiments,
-                                                    [reflection_table_2], experiments,
+  reflection_table_1 = reflections[0]
+  reflection_table_2 = reflections[1]
+  experiments_1 = experiments[0]
+  experiments_2 = experiments[1]
+
+  loaded_reflections = dmf.multicrystal_datamanager(reflection_table_1, experiments_1,
+                                                    reflection_table_2, experiments_2,
                                                     scaling_options)
 
   '''call the optimiser on the Data Manager object'''

@@ -109,8 +109,8 @@ def main(argv):
   output_path = output_path[0].rstrip('.pickle') + '_scaled.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
-  reflections = flatten_reflections(params.input.reflections)
-  experiments = flatten_experiments(params.input.experiments)
+  reflections = flatten_reflections(params.input.reflections)[0]
+  experiments = flatten_experiments(params.input.experiments)[1]
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
