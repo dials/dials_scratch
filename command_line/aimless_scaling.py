@@ -110,7 +110,7 @@ def main(argv):
 
   # UNWRAP all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)[0]
-  experiments = flatten_experiments(params.input.experiments)[1]
+  experiments = flatten_experiments(params.input.experiments)[0]
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
@@ -122,7 +122,7 @@ def main(argv):
   print "Initialising data structures...."
 
   scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
-                     'rotation_interval' : None,
+                     'rotation_interval' : None, 'scaling_method' : 'aimless',
                      'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
                      'parameterization': 'standard', 'n_d_bins': None}
