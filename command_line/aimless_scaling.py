@@ -3,12 +3,11 @@
 
 """
 aimless_scaling.py performs an aimless-like parameterisation of scaling and outputs the
-calculated inverse scale factors to a integrated_scaled.pickle file.
-Unfortunately this currently runs quite slowly on large datasets such as the
-thaumatin tutorial data, particularly the data reshaping before minimisation.
+calculated inverse scale factors to a integrated_scaled.pickle file(s).
 
 Usage:
-  dials_scratch.aimless_scaling integrated.pickle integrated_experiments.json [options]
+  dials_scratch.aimless_scaling integrated.pickle(1) integrated_experiments.json(1) 
+  [integrated.pickle(2) integrated_experiments.json(2)] [options]
 
 A number of options can be specified, see the phil_scope below.
 """
@@ -109,8 +108,22 @@ def main(argv):
   output_path = 'integrated_scaled.pickle'
 
   # UNWRAP all of the data objects from the PHIL parser
-  reflections = flatten_reflections(params.input.reflections)[0]
-  experiments = flatten_experiments(params.input.experiments)[0]
+  reflections = flatten_reflections(params.input.reflections)
+  experiments = flatten_experiments(params.input.experiments)
+
+  scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
+                     'rotation_interval' : None, 'scaling_method' : 'aimless',
+                     'integration_method' : None, 'Isigma_min' : 3.0,
+                     'd_min' : 0.0, 'decay_correction_rescaling': False,
+                     'parameterization': 'standard', 'n_d_bins': None}
+
+  if len(reflections) == 2 and len(experiments) == 2:
+    scaling_options['multi_mode'] = True
+  elif len(reflections) == 1 and len(experiments) == 1:
+    scaling_options['multi_mode'] = False
+  else:
+    assert 0, """Incorrect number of reflection and/or experiment files entered
+    in the command line (must be 1 or 2 of each)"""
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
@@ -121,11 +134,7 @@ def main(argv):
   logger.info("")
   print "Initialising data structures...."
 
-  scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
-                     'rotation_interval' : None, 'scaling_method' : 'aimless',
-                     'integration_method' : None, 'Isigma_min' : 3.0,
-                     'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard', 'n_d_bins': None}
+  
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
@@ -148,27 +157,46 @@ def main(argv):
   minimised = aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger)
 
   '''calculate R metrics'''
-  Rmeas = R_meas(minimised)
-  Rpim = R_pim(minimised)
-  print "R_meas is %s" % (Rmeas)
-  print "R_pim is %s" % (Rpim)
+  if scaling_options['multi_mode']:
+    for datamanager in [minimised, minimised.dm1, minimised.dm2]:
+      Rmeas = R_meas(datamanager)
+      Rpim = R_pim(datamanager)
+      print "R_meas is %s" % (Rmeas)
+      print "R_pim is %s" % (Rpim)
+  else:
+    Rmeas = R_meas(minimised)
+    Rpim = R_pim(minimised)
+    print "R_meas is %s" % (Rmeas)
+    print "R_pim is %s" % (Rpim)
 
-  plot_smooth_scales(minimised)
+  if scaling_options['multi_mode']:
+    plot_smooth_scales(minimised.dm1, outputfile='Smooth_scale_factors_1.png')
+    plot_smooth_scales(minimised.dm2, outputfile='Smooth_scale_factors_2.png')
+  else:
+    plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
   print "Saved plots of correction factors"
 
   '''clean up reflection table for outputting and save data'''
-  minimised.clean_reflection_table()
-  minimised.save_sorted_reflections(output_path)
-  print "Saved output to " + str(output_path)
+  if scaling_options['multi_mode']:
+    minimised.dm1.clean_reflection_table()
+    minimised.dm1.save_sorted_reflections('integrated_scaled_1.pickle')
+    minimised.dm2.clean_reflection_table()
+    minimised.dm2.save_sorted_reflections('integrated_scaled_2.pickle')
+    print "Saved output to %s, %s" % ('integrated_scaled_1.pickle', 'integrated_scaled_2.pickle')
+  else:
+    minimised.clean_reflection_table()
+    minimised.save_sorted_reflections(output_path)
+    print "Saved output to %s" % (output_path)
 
 
 def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an aimless-like scaling"""
 
-  '''initilise a data_manager object, which creates a sorted reflection table,
-  tracks the groups of unique reflections and initialises scale factor objects
-  to be used in minimisation'''
-  loaded_reflections = dmf.aimless_Data_Manager(reflections, experiments, scaling_options)
+  if scaling_options['multi_mode']:
+    loaded_reflections = dmf.multicrystal_datamanager(reflections[0], 
+      experiments[0], reflections[1], experiments[1], scaling_options)
+  else:
+    loaded_reflections = dmf.aimless_Data_Manager(reflections[0], experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
   loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
@@ -177,7 +205,8 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
-
+  if scaling_options['multi_mode']:
+    loaded_reflections.join_multiple_datasets()
   return loaded_reflections
 
 
