@@ -74,7 +74,7 @@ from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
-plot_data_absorption, plot_data_modulation, plot_smooth_scales)
+plot_data_absorption, plot_data_modulation, plot_smooth_scales, plot_absorption_surface)
 
 
 def main(argv):
@@ -174,6 +174,7 @@ def main(argv):
     plot_smooth_scales(minimised.dm2, outputfile='Smooth_scale_factors_2.png')
   else:
     plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
+    plot_absorption_surface(minimised)
   print "Saved plots of correction factors"
 
   '''clean up reflection table for outputting and save data'''
