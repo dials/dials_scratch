@@ -200,9 +200,9 @@ def main(argv):
 
   '''clean up reflection table for outputting and save data'''
   minimised.dm1.clean_reflection_table()
-  minimised.dm1.save_sorted_reflections(output_path_1)
+  minimised.dm1.save_reflection_table(output_path_1)
   minimised.dm2.clean_reflection_table()
-  minimised.dm2.save_sorted_reflections(output_path_2)
+  minimised.dm2.save_reflection_table(output_path_2)
   print "Saved outputs to %s,%s " % (output_path_1, output_path_2)
 
 
@@ -214,15 +214,6 @@ def xds_multi_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   '''create a data manager object. Upon creation, negative variance & d-values
   are filtered and the indices are mapped to the asu and sorted. scale factors
   are initialised to unity'''
-  '''#split the reflection table in half
-  reflection_table_1 = reflections[0]
-  reflection_table_1['z_value'] = reflection_table_1['xyzobs.px.value'].parts()[2]
-  reflection_table_2 = copy.deepcopy(reflection_table_1)
-  z_max = max(reflection_table_1['z_value'])
-  sel = reflection_table_1['z_value'] <= z_max/2.0
-  reflection_table_1 = reflection_table_1.select(sel)
-  sel = reflection_table_2['z_value'] > z_max/2.0
-  reflection_table_2 = reflection_table_2.select(sel)'''
 
   reflection_table_1 = reflections[0]
   reflection_table_2 = reflections[1]

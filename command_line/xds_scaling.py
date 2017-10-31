@@ -215,13 +215,13 @@ def main(argv):
   '''clean up reflection table for outputting and save data'''
   if scaling_options['multi_mode']:
     minimised.dm1.clean_reflection_table()
-    minimised.dm1.save_sorted_reflections('integrated_scaled_1.pickle')
+    minimised.dm1.save_reflection_table('integrated_scaled_1.pickle')
     minimised.dm2.clean_reflection_table()
-    minimised.dm2.save_sorted_reflections('integrated_scaled_2.pickle')
+    minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
     print "Saved outputs to %s,%s " % ('integrated_scaled_1.pickle', 'integrated_scaled_2.pickle')
   else:
     minimised.clean_reflection_table()
-    minimised.save_sorted_reflections(output_path)
+    minimised.save_reflection_table(output_path)
     print "Saved output to " + str(output_path)
 
 

@@ -52,6 +52,10 @@ phil_scope = phil.parse('''
   n_scale_bins = 10
     .type = int
     .help = "Number of bins for scale binning"
+  lmax = 4
+    .type = int
+    .help = "Number of spherical harmonics to include for absorption correction,
+             recommended to be no more than 6."
   rotation_interval = None
     .type = float
     .help = "User specified rotation (phi) interval in degrees for phi binning"
@@ -111,7 +115,7 @@ def main(argv):
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
 
-  scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None,
+  scaling_options = {'n_B_bins' : None, 'n_scale_bins' : None, 'lmax' : 4,
                      'rotation_interval' : None, 'scaling_method' : 'aimless',
                      'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
@@ -172,6 +176,8 @@ def main(argv):
   if scaling_options['multi_mode']:
     plot_smooth_scales(minimised.dm1, outputfile='Smooth_scale_factors_1.png')
     plot_smooth_scales(minimised.dm2, outputfile='Smooth_scale_factors_2.png')
+    plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
+    plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
   else:
     plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
     plot_absorption_surface(minimised)
@@ -180,13 +186,13 @@ def main(argv):
   '''clean up reflection table for outputting and save data'''
   if scaling_options['multi_mode']:
     minimised.dm1.clean_reflection_table()
-    minimised.dm1.save_sorted_reflections('integrated_scaled_1.pickle')
+    minimised.dm1.save_reflection_table('integrated_scaled_1.pickle')
     minimised.dm2.clean_reflection_table()
-    minimised.dm2.save_sorted_reflections('integrated_scaled_2.pickle')
+    minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
     print "Saved output to %s, %s" % ('integrated_scaled_1.pickle', 'integrated_scaled_2.pickle')
   else:
     minimised.clean_reflection_table()
-    minimised.save_sorted_reflections(output_path)
+    minimised.save_reflection_table(output_path)
     print "Saved output to %s" % (output_path)
 
 
