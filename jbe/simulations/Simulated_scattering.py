@@ -1,7 +1,7 @@
 from dials.array_family import flex
+import cPickle as pickle
 
-
-dimensions = (2,2,5)
+dimensions = (1, 2, 5)
 
 def generate_crystal(dimensions):
   crystal_points = flex.vec3_double([])
@@ -28,9 +28,9 @@ def calc_dist_to_surface(k, p0, planes):
   for plane in planes:
     n_u = ((plane[1][0] * k[0]) + (plane[1][1] * k[1]) + (plane[1][2] * k[2]))
     if n_u != 0.0:
-      s = -((plane[1][0] * (p0[0] - plane[0][0])) 
-           +(plane[1][1] * (p0[1] - plane[0][1]))
-           +(plane[1][2] * (p0[2] - plane[0][2])))/n_u
+      s = -((plane[1][0] * (p0[0] - plane[0][0]))
+            + (plane[1][1] * (p0[1] - plane[0][1]))
+            + (plane[1][2] * (p0[2] - plane[0][2])))/n_u
       if s > 0:
         s_list.append(s)
   return min(s_list)
@@ -45,9 +45,13 @@ def normalise_vec(v):
   s = ((v[0]**2) + (v[1]**2) + (v[2]**2))**0.5
   return (v[0]/s, v[1]/s, v[2]/s)
 
+def mod_of_vec(v):
+  s = ((v[0]**2) + (v[1]**2) + (v[2]**2))**0.5
+  return s
+
 def calculate_intensity_of_reflection(k0, k1, crystal_points, cryst_planes):
   from math import exp
-  mu = 1.0
+  mu = 5.0
   I = 0.0
   k0 = normalise_vec(k0)
   k1 = normalise_vec(k1)
@@ -106,9 +110,11 @@ def calculate_spot_positions(scattering_vectors, ms):
   miller_indices = []
   spot_vectors = []
   for idx, vector in enumerate(scattering_vectors):
-    if vector[0] > 0.0:
+    #if vector == (1,0,0):
+    #
+    if vector[0] > 0.0: #only want forward scatters!
       vector_size = ((vector[0]**2) + (vector[1]**2) + (vector[2]**2))**0.5
-      if 0.995 < vector_size < 1.005:
+      if 0.998 < vector_size < 1.002:
         y_at_det = x_det * vector[1]/vector[0]
         z_at_det = x_det * vector[2]/vector[0]
         if abs(y_at_det) < y_det and abs(z_at_det) < z_det:
@@ -122,26 +128,24 @@ def calculate_spot_positions(scattering_vectors, ms):
 from cctbx import miller
 from cctbx import crystal
 
-def simulate_dataset():
-  a = 4.0
-  b = 4.0
-  c = 6.0
-  dimensions = (2,2,5)
+def simulate_dataset(ms):
+  
+  dimensions = (1,2,5)
   crystal_points = generate_crystal(dimensions)
   cryst_planes = crystal_planes(dimensions)
 
-  ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P1",
-    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=False, d_min=0.5)
   B = ((1.0/a, 0.0, 0.0), (0.0, 1.0/b, 0.0), (0.0, 0.0, 1.0/c))
   U = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
-  UB = multiply_matrices(U, B)
+  R1 = rotation_matrix(16.0)
+  U2 = multiply_matrices(R1, U)
+  UB = multiply_matrices(U2, B)
   #define direction of incoming beam
   k0 = (1.0, 0.0, 0.0)
   reflections_list = []
   miller_indices_list = []
   spot_vectors_list = []
-  for p in range(0, 40, 1):
-    phi = float(p/2)
+  for p in range(0, 720, 1):
+    phi = float(p/2.0)
     R = rotation_matrix(phi)
     reciprocal_lattice_points = transform_to_lab_frame(UB, R, ms)
     #calculate scattering vectors of all rlps
@@ -162,37 +166,85 @@ def simulate_dataset():
     k0prime = rotate_vector(r, k0)
     #calculate the intensity based on paths through the crystal
     I = calculate_intensity_of_reflection(k0prime, k1prime, crystal_points, cryst_planes)
-    Ilist.append(I)
+    #scale_factor = 500.0 - reflections_list[idx][2]
+    Ilist.append(I)# * scale_factor)
+    if I < 0.0:
+      print "negative I calculated"
 
-
+  dlist = []
   #apply LP correction
-  from math import acos, sin
+  from math import acos, sin, pi
   for idx, I in enumerate(Ilist):
     k1 = spot_vectors_list[idx]
-    twotheta = acos(((k1[0]*k0[0]) + (k1[1]*k0[1]) + (k1[2]*k0[2])) / normalise_vec(k1))
+    twotheta = acos(((k1[0]*k0[0]) + (k1[1]*k0[1]) + (k1[2]*k0[2])) / mod_of_vec(k1))
     LP = 1.0 / (sin(twotheta / 2.0) * sin(twotheta))
-    Ilist[idx] = I * LP
+    if LP < 0.0:
+      print "negative LP calculated"
+    Ilist[idx] = I * LP * 1e3
+    dlist.append(pi/(sin(twotheta/2.0)*mod_of_vec(k0)))
+
+  #add statistical noise to intensity and give a sigma
+  from scitbx.random import variate, poisson_distribution
+  variance_list = []
+  for idx, I in enumerate(Ilist):
+    #I_noise = variate(poisson_distribution(I))
+    #I_samp = I_noise.next()
+    variance_list.append(I)
+    #if I_noise < 0.0:
+    #  print "negative I_noise"
+    #Ilist[idx] = I_samp
 
   #return objects
-  return reflections_list, miller_indices_list, spot_vectors_list, Ilist
+  return reflections_list, miller_indices_list, spot_vectors_list, dlist, Ilist, variance_list
 
+a = 10.0
+b = 10.0
+c = 15.0
+ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
+    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=0.5)
 
-refls, miller_idx, k1s, Is = simulate_dataset()
+refls, miller_idx, k1s, ds, Is, variances = simulate_dataset(ms)
 
 miller_indices = flex.miller_index(miller_idx)
 intensities = flex.double(Is)
+variances = flex.double(variances)
 xyzpositions = flex.vec3_double(refls)
+
+k0 = (1.0, 0.0, 0.0)
 
 #now create a reflection table
 reflections = flex.reflection_table()
 reflections['miller_index'] = miller_indices
 reflections['intensity'] = intensities
+reflections['variance'] = variances
+reflections['d'] = flex.double(ds)
 reflections['xyz'] = xyzpositions
 
+#calculate scattering vectors in frame of crystal
+s2d_list = []
+for idx, k1 in enumerate(k1s):
+  s2 = (k1[0] - k0[0], k1[1] - k0[1], k1[2] - k0[2])
+  phi = xyzpositions[idx][2]
+  R = rotation_matrix(-1.0*phi)
+  s2d_list.append(rotate_vector(R, s2))
 
-print "(x,y,phi) pos, k1 vector, (h,k,l), Intensity"
+reflections['s2d'] = flex.vec3_double(s2d_list)
+
+#calculate d-values
+def save_data(minimised,filename):
+  data_file = open(filename,'w')
+  pickle.dump(minimised, data_file)
+  data_file.close()
+
+ms = miller.set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
+    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, indices=reflections['miller_index'])
+
+save_data((reflections, ms), 'test_dataset_mu5.pickle')
+
+print "(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance"
 for i in range(len(refls)):
-  print (("(%.4f,%.4f,%.4f), (%.4f,%.4f,%.4f), %s, %s")
+  print (("(%.4f,%.4f,%.4f), (%.4f,%.4f,%.4f), (%.4f,%.4f,%.4f), %s, %s, %s")
          % (refls[i][0], refls[i][1], refls[i][2],
             k1s[i][0], k1s[i][1], k1s[i][2],
-            miller_idx[i], Is[i]))
+            s2d_list[i][0], s2d_list[i][1], s2d_list[i][2],
+            miller_idx[i], Is[i], variances[i]))
