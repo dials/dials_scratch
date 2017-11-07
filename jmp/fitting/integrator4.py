@@ -298,7 +298,7 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
                                              grid_size=grid_size,
                                              detector_space=detector_space,
                                              deconvolution=deconvolution),
-    nthreads           = 1,
+    nthreads           = 8,
     debug = False
   )
 
@@ -378,7 +378,8 @@ if __name__ == '__main__':
 
   print "Read %d reflections" % len(reflections)
 
-  deconvolution = True
+  detector_space = True
+  deconvolution = False
 
   from time import time
   st = time()
