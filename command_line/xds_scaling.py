@@ -43,7 +43,7 @@ phil_scope = phil.parse('''
     .type = int(value_min=0)
     .help = "The verbosity level"
 
-  n_d_bins = 20
+  n_d_bins = 10
     .type = int
     .help = "Number of bins for resolution gridding"
   rotation_interval = None
