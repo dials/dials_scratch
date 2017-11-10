@@ -56,9 +56,14 @@ phil_scope = phil.parse('''
     .type = int
     .help = "Number of spherical harmonics to include for absorption correction,
              recommended to be no more than 6."
-  rotation_interval = None
+  rotation_interval = 15.0
     .type = float
-    .help = "User specified rotation (phi) interval in degrees for phi binning"
+    .help = "User specified rotation (phi) interval in degrees for phi binning
+             for the scale term"
+  B_factor_interval = 20.0
+    .type = float
+    .help = "User specified rotation (phi) interval in degrees for phi binning
+             for the decay term"
   integration_method = 'prf'
     .type = str
     .help = "Option to choose from profile fitted intensities (prf)
@@ -72,6 +77,12 @@ phil_scope = phil.parse('''
   d_min = 0.0
     .type = float
     .help = "Option to use a d-value subset of reflections to determine scale factors"
+  decay_term = True
+    .type = bool
+    .help = "Option to turn off decay correction"
+  absorption_term = True
+    .type = bool
+    .help = "Option to turn off absorption correction"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -119,7 +130,9 @@ def main(argv):
                      'rotation_interval' : None, 'scaling_method' : 'aimless',
                      'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard', 'n_d_bins': None}
+                     'parameterization': 'standard', 'n_d_bins': None,
+                     'scale_term' : True, 'decay_term' : True, 
+                     'absorption_term' : True, 'B_factor_interval' : None,}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
@@ -176,11 +189,13 @@ def main(argv):
   if scaling_options['multi_mode']:
     plot_smooth_scales(minimised.dm1, outputfile='Smooth_scale_factors_1.png')
     plot_smooth_scales(minimised.dm2, outputfile='Smooth_scale_factors_2.png')
-    plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
-    plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
+    if minimised.scaling_options['absorption_term']:
+      plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
+      plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
   else:
     plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
-    plot_absorption_surface(minimised)
+    if minimised.scaling_options['absorption_term']:
+      plot_absorption_surface(minimised)
   print "Saved plots of correction factors"
 
   '''clean up reflection table for outputting and save data'''
@@ -206,9 +221,16 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = dmf.aimless_Data_Manager(reflections[0], experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
-  loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                          param_name=None).return_data_manager()
-
+  #for now, assume you want a scale, therefore option of doing decay as well
+  if scaling_options['decay_term']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name=['g_scale','g_decay']).return_data_manager()
+  else: #just do scale factor if you don't want scale.
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name=['g_scale']).return_data_manager()
+  if scaling_options['absorption_term']:
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                            param_name=['g_absorption']).return_data_manager()
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()

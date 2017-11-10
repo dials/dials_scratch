@@ -180,8 +180,9 @@ def main(args):
   import matplotlib.pyplot as plt
   y_ideal = [x for x in i_s_dials]
 
+
   plt.figure(figsize=(10,7))
-  plt.scatter(i_s_dials, i_s_aimless, s=3)
+  plt.scatter(i_s_dials, i_s_aimless, s=0.1)
   plt.plot(i_s_dials, y_ideal, color='r')
   plt.xlabel('Inverse scale factor in DIALS')
   plt.ylabel('Inverse scale factor in aimless')
@@ -193,6 +194,8 @@ def main(args):
   return correlation_coefficient, R_factor
 
 if __name__=="__main__":
+  #this expects two arguments - a integrated_scaled pickle file from DIALS
+  #and a scaled.mtz file from aimless.
   import sys
   args = sys.argv[1:]
   main(args)
