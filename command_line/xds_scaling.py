@@ -228,7 +228,7 @@ def main(argv):
 def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
   if scaling_options['multi_mode']:
-    loaded_reflections = dmf.targeted_datamanager(reflections[0], 
+    loaded_reflections = dmf.multicrystal_datamanager(reflections[0], 
       experiments[0], reflections[1], experiments[1], scaling_options)
   else:
     loaded_reflections = dmf.XDS_Data_Manager(reflections[0], experiments[0], scaling_options)
