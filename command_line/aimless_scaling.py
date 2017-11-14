@@ -83,6 +83,9 @@ phil_scope = phil.parse('''
   absorption_term = True
     .type = bool
     .help = "Option to turn off absorption correction"
+  space_group = None
+    .type = str
+    .help = "Option to specify space group for scaling"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -132,7 +135,8 @@ def main(argv):
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
                      'parameterization': 'standard', 'n_d_bins': None,
                      'scale_term' : True, 'decay_term' : True, 
-                     'absorption_term' : True, 'B_factor_interval' : None,}
+                     'absorption_term' : True, 'B_factor_interval' : None,
+                     'space_group' : None}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
@@ -225,7 +229,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   if scaling_options['decay_term']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name=['g_scale','g_decay']).return_data_manager()
-  else: #just do scale factor if you don't want scale.
+  else: #just do scale factor if you don't want decay.
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                             param_name=['g_scale']).return_data_manager()
   if scaling_options['absorption_term']:

@@ -77,6 +77,9 @@ phil_scope = phil.parse('''
   absorption = True
     .type = bool
     .help = "Option to turn off absorption correction"
+  space_group = None
+    .type = str
+    .help = "Option to specify space group for scaling"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -125,7 +128,8 @@ def main(argv):
                      'integration_method' : None, 'modulation' : True,
                      'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard', 'scaling_method' : 'xds'}
+                     'parameterization': 'standard', 'scaling_method' : 'xds',
+                     'space_group' : None}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
