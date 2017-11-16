@@ -80,12 +80,19 @@ phil_scope = phil.parse('''
   decay_term = True
     .type = bool
     .help = "Option to turn off decay correction"
+  scale_term = True
+    .type = bool
+    .help = "Option to turn off scale correction"
   absorption_term = True
     .type = bool
     .help = "Option to turn off absorption correction"
   space_group = None
     .type = str
     .help = "Option to specify space group for scaling"
+  concurrent_scaling = True
+    .type = bool
+    .help = "Option to allow absorption correction after decay/scale, 
+             if concurrent_scaling is set to False"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -136,7 +143,7 @@ def main(argv):
                      'parameterization': 'standard', 'n_d_bins': None,
                      'scale_term' : True, 'decay_term' : True, 
                      'absorption_term' : True, 'B_factor_interval' : None,
-                     'space_group' : None}
+                     'space_group' : None, 'concurrent_scaling' : True }
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
@@ -225,16 +232,33 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = dmf.aimless_Data_Manager(reflections[0], experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
-  #for now, assume you want a scale, therefore option of doing decay as well
-  if scaling_options['decay_term']:
+  #for now, assume you always want a scale, therefore option of doing decay as well
+  if scaling_options['concurrent_scaling']:
+    param_name = []
+    if scaling_options['scale_term']:
+      param_name.append('g_scale')
+    if scaling_options['decay_term']:
+      param_name.append('g_decay')
+    if scaling_options['absorption_term']:
+      param_name.append('g_absorption')
+    if not param_name:
+      assert 0, 'no parameters have been chosen for scaling, aborting process'
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_scale','g_decay']).return_data_manager()
-  else: #just do scale factor if you don't want decay.
-    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_scale']).return_data_manager()
-  if scaling_options['absorption_term']:
-    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_absorption']).return_data_manager()
+                                            param_name
+                                           ).return_data_manager()
+  else: #not concurrent_scaling, so do scale/decay term first then absorption
+    if scaling_options['decay_term']:
+      loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                              param_name=['g_scale', 'g_decay']
+                                             ).return_data_manager()
+    else: #just do scale factor if you don't want decay.
+      loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                              param_name=['g_scale']
+                                             ).return_data_manager()
+    if scaling_options['absorption_term']:
+      loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+                                              param_name=['g_absorption']
+                                             ).return_data_manager()
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
