@@ -51,7 +51,7 @@ def mod_of_vec(v):
 
 def calculate_intensity_of_reflection(k0, k1, crystal_points, cryst_planes):
   from math import exp
-  mu = 5.0
+  mu = 2.5
   I = 0.0
   k0 = normalise_vec(k0)
   k1 = normalise_vec(k1)
@@ -180,7 +180,7 @@ def simulate_dataset(ms):
     LP = 1.0 / (sin(twotheta / 2.0) * sin(twotheta))
     if LP < 0.0:
       print "negative LP calculated"
-    Ilist[idx] = I * LP * 1e3
+    Ilist[idx] = I * LP #* #1e3
     dlist.append(pi/(sin(twotheta/2.0)*mod_of_vec(k0)))
 
   #add statistical noise to intensity and give a sigma
@@ -239,7 +239,7 @@ def save_data(minimised,filename):
 ms = miller.set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
     unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, indices=reflections['miller_index'])
 
-save_data((reflections, ms), 'test_dataset_mu5.pickle')
+save_data((reflections, ms), 'test_dataset_mu2p5.pickle')
 
 print "(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance"
 for i in range(len(refls)):

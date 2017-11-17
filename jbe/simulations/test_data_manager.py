@@ -33,13 +33,18 @@ class test_data_manager(aimless_Data_Manager):
     self.g_absorption = None
     self.g_scale = None
     self.g_decay = None
-    self.n_active_params = 0
-    self.active_parameters = flex.double([])
+    #self.n_active_params = 0
+    self.g_parameterisation = {}
+    #self.active_parameters = flex.double([])
     self.scaling_options = {}
     self.scaling_options['lmax'] = 4
     self.scaling_options['Isigma_min'] = 0.0
     self.scaling_options['d_min'] = 0.0
     self.scaling_options['scaling_method'] = 'aimless'
+    self.scaling_options['multi_mode'] = True
+    self.scaling_options['decay_term'] = False
+    self.scaling_options['scale_term'] = False
+    self.scaling_options['absorption_term'] = True
     '''bin reflections, determine outliers, extract reflections and weights for
     scaling and set normalised values.'''
     self.initialise_scale_factors(self.reflection_table)
@@ -69,12 +74,6 @@ class test_data_manager(aimless_Data_Manager):
     self.initialise_scale_term(reflection_table)
     self.initialise_decay_term(reflection_table)
     self.initialise_absorption_scales(reflection_table, self.scaling_options['lmax'])
-    self.active_parameters.extend(self.g_scale.get_scale_factors())
-    print "extended params by %s g_scale scale factors" % (len(self.g_scale.get_scale_factors()))
-    self.active_parameters.extend(self.g_decay.get_scale_factors())
-    print "extended params by %s g_decay scale factors" % (len(self.g_decay.get_scale_factors()))
-    self.active_parameters.extend(self.g_absorption.get_scale_factors())
-    print "extended params by %s g_absorption scale factors" % (len(self.g_absorption.get_scale_factors()))
 
   def initialise_decay_term(self, reflection_table):
     '''calculate the relative, normalised rotation angle. Here this is called
@@ -89,8 +88,7 @@ class test_data_manager(aimless_Data_Manager):
     n_decay_parameters =  highest_parameter_value - lowest_parameter_value + 1
     self.g_decay = SF.SmoothScaleFactor_1D_Bfactor(0.0, n_decay_parameters, reflection_table['d'])
     #self.g_decay.set_normalised_values(reflection_table['normalised_time_values'])
-    self.n_active_params += n_decay_parameters
-    self.n_g_decay_params = n_decay_parameters
+    self.g_parameterisation['g_decay'] = self.g_decay
 
   def initialise_scale_term(self, reflection_table):
     '''calculate the relative, normalised rotation angle.
@@ -104,8 +102,7 @@ class test_data_manager(aimless_Data_Manager):
     n_scale_parameters = highest_parameter_value - lowest_parameter_value + 1
     self.g_scale = SF.SmoothScaleFactor_1D(1.0, n_scale_parameters)
     #self.g_scale.set_normalised_values(reflection_table['normalised_rotation_angle'])
-    self.n_active_params += n_scale_parameters
-    self.n_g_scale_params = n_scale_parameters
+    self.g_parameterisation['g_scale'] = self.g_scale
 
   def initialise_absorption_scales(self, reflection_table, lmax):
     n_abs_params = 0
@@ -113,14 +110,25 @@ class test_data_manager(aimless_Data_Manager):
       n_abs_params += (2*(i+1))+1
     self.g_absorption = SF.SphericalAbsorption_ScaleFactor(0.0, n_abs_params,
       sph_harm_table(reflection_table, lmax))
-    self.n_active_params += n_abs_params
-    self.n_g_abs_params = n_abs_params
+    self.g_parameterisation['g_absorption'] = self.g_absorption
 
-  def calc_absorption_constraint(self):
-    n_g_scale = self.n_g_scale_params
-    n_g_decay = self.n_g_decay_params
-    return (0.0 * (self.active_parameters[n_g_scale + n_g_decay:])**2)
-
+  def calc_absorption_constraint(self, apm):
+    idx = apm.active_parameterisation.index('g_absorption')
+    start_idx = apm.cumulative_active_params[idx]
+    end_idx = apm.cumulative_active_params[idx+1]
+    weight = 0e6
+    abs_params = apm.x[start_idx:end_idx]
+    residual = (weight * (abs_params)**2)
+    gradient = (2 * weight * abs_params)
+    #need to make sure gradient is returned is same size as gradient calculated in target fn-
+    #would only be triggered if refining absorption as same time as another scale factor.
+    gradient_vector = flex.double([])
+    for i, param in enumerate(apm.active_parameterisation):
+      if param != 'g_absorption':
+        gradient_vector.extend(flex.double([0.0]*apm.active_params_list[i]))
+      elif param == 'g_absorption':
+        gradient_vector.extend(gradient)
+    return (residual, gradient_vector)
 
 def load_data(filename):
   data_file = open(filename)
@@ -128,23 +136,52 @@ def load_data(filename):
   data_file.close()
   return data
 
-(reflections, ms) = load_data('test_dataset_mu5.pickle')
+def run_main(reflections, ms):
+  #(reflections, ms) = load_data('test_dataset_mu5.pickle')
 
-loaded_reflections = test_data_manager(reflections, ms)
 
-minimised = mf.LBFGS_optimiser(loaded_reflections,
-                                        param_name=None).return_data_manager()
-#print list(minimised.active_parameters)
-minimised.expand_scales_to_all_reflections()
+  loaded_reflections = test_data_manager(reflections, ms)
 
-Rmeas = R_meas(minimised)
-Rpim = R_pim(minimised)
-print "R_meas is %s" % (Rmeas)
-print "R_pim is %s" % (Rpim)
+  minimised = mf.LBFGS_optimiser(loaded_reflections,
+                                param_name=['g_absorption']).return_data_manager()
+  #print list(minimised.active_parameters)
+  minimised.expand_scales_to_all_reflections()
 
-plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
-plot_absorption_surface(minimised)
-print "Saved plots of correction factors"
+  Rmeas = R_meas(minimised)
+  Rpim = R_pim(minimised)
+  print "R_meas is %s" % (Rmeas)
+  print "R_pim is %s" % (Rpim)
 
-minimised.save_reflection_table('integrated_scaled.pickle')
-print "Saved output to %s" % ('integrated_scaled.pickle')
+  plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
+  plot_absorption_surface(minimised)
+  print "Saved plots of correction factors"
+
+  minimised.save_reflection_table('integrated_scaled.pickle')
+  print "Saved output to %s" % ('integrated_scaled.pickle')
+
+##########
+if __name__ == "__main__":
+  m_idx = [(1,0,0),(0,1,0), (-1,0,0), (0,-1,0)]
+  intensities = flex.double([5000.0,10000.0,5000.0,10000.0])
+  variances = flex.double([1000.0,1000.0,1000.0,1000.0])
+  s2d = flex.vec3_double([(1.0,0.0,0.0),(0.0,1.0,0.0),(-1.0,0.0,0.0),(0.0,-1.0,0.0)])
+  ds = [2.0,2.0, 2.0,2.0]
+  refls = [(1.0,0.0,0.0),(1.0,0.0,0.0),(1.0,0.0,0.0),(1.0,0.0,0.0)]
+  xyzpositions = flex.vec3_double(refls)
+  miller_indices = flex.miller_index(m_idx)
+
+  reflections = flex.reflection_table()
+  reflections['miller_index'] = miller_indices
+  reflections['intensity'] = intensities
+  reflections['variance'] = variances
+  reflections['d'] = flex.double(ds)
+  reflections['s2d'] = s2d
+  reflections['xyz'] = xyzpositions
+
+  ms = miller.set(crystal_symmetry=crystal.symmetry(
+    space_group_symbol="P4",
+        unit_cell=(6,6,6,90,90,90)),
+        anomalous_flag=False,
+        indices=miller_indices)
+
+  run_main(reflections,ms)
