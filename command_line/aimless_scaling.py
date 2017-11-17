@@ -96,6 +96,7 @@ phil_scope = phil.parse('''
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
+from dials_scratch.jbe.scaling_code import target_Ih as target_Ih
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
@@ -259,6 +260,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
                                               param_name=['g_absorption']
                                              ).return_data_manager()
+
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
