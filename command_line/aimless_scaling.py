@@ -93,6 +93,10 @@ phil_scope = phil.parse('''
     .type = bool
     .help = "Option to allow absorption correction after decay/scale, 
              if concurrent_scaling is set to False"
+  error_model_params = None
+    .type = floats(size=2)
+    .help = "Ability to force an error model adjustment, using the model 
+             in aimless - factors are called SDFac, SDadd in aimless."
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -144,7 +148,8 @@ def main(argv):
                      'parameterization': 'standard', 'n_d_bins': None,
                      'scale_term' : True, 'decay_term' : True, 
                      'absorption_term' : True, 'B_factor_interval' : None,
-                     'space_group' : None, 'concurrent_scaling' : True }
+                     'space_group' : None, 'concurrent_scaling' : True,
+                     'error_model_params' : None}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
