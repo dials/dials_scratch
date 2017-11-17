@@ -1,4 +1,12 @@
 from __future__ import division, print_function
+from iotbx import phil
+
+scope = phil.parse('''
+  dx = 0.0
+    .type = float
+  dy = 0.0
+    .type = float
+''')
 
 def main():
   from dials.util.options import OptionParser
@@ -10,6 +18,7 @@ def main():
 
   parser = OptionParser(
     usage=usage,
+    phil=scope,
     read_datablocks=True,
     read_datablocks_from_images=True)
 
@@ -40,8 +49,8 @@ def main():
   dy = []
 
   for block in image:
-    dx.append(flex.double(flex.grid(block.focus()), 0.0))
-    dy.append(flex.double(flex.grid(block.focus()), 0.0))
+    dx.append(flex.double(flex.grid(block.focus()), params.dx))
+    dy.append(flex.double(flex.grid(block.focus()), params.dy))
 
   dx = tuple(dx)
   dy = tuple(dy)
