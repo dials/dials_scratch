@@ -25,13 +25,16 @@ def squishGain(cbf_file, out_name, force_gain=None):
       fast = int(record.split()[-1])
     elif 'X-Binary-Size-Second-Dimension' in record:
       slow = int(record.split()[-1])
-    elif 'X-Binary-Number-of-Elements' in record:
+    elif 'X-Binary-Size:' in record:
+      xbsize_record = record
       length = int(record.split()[-1])
-
-  assert(length == fast * slow)
 
   values = uncompress(packed = data[data_offset:data_offset+length],
                             fast = fast, slow = slow)
+
+  # remainder of the file, contains another CIF-BINARY-FORMAT-SECTION that looks
+  # like just zero padding.
+  tail = data[data_offset+length:]
 
   modified = copy.deepcopy(values)
 
@@ -48,10 +51,19 @@ def squishGain(cbf_file, out_name, force_gain=None):
   print "Setting flat gain of {0}".format(new_val / 1000.)
   modified.set_selected(modified >= 0, new_val)
 
-  # Write the file out. ADXV no longer reads the file for some reason, but
-  # XDS still does, which is all we want.
-  open(out_name, 'wb').write(cbf_header + start_tag +
-                                compress(modified))
+  # Compress the data
+  compressed = compress(modified)
+  nbytes = len(compressed)
+
+  # Update the header
+  pre, post = cbf_header.split(xbsize_record)
+  new_xbsize_record = 'X-Binary-Size:{0:10d}'.format(nbytes)
+  if xbsize_record.endswith('\r'):
+     new_xbsize_record += '\r'
+  new_cbf_header = pre + new_xbsize_record + post
+
+  # Write the file out.
+  open(out_name, 'wb').write(new_cbf_header + start_tag + compressed + tail)
 
 if __name__ == '__main__':
 
