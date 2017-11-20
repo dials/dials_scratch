@@ -1,13 +1,13 @@
 from dials.array_family import flex
 import cPickle as pickle
 
-dimensions = (1, 2, 5)
+#dimensions = (1, 2, 5)
 
 def generate_crystal(dimensions):
   crystal_points = flex.vec3_double([])
-  for i in range(dimensions[0]*10):
-    for j in range(dimensions[1]*10):
-      for k in range(dimensions[2]*10):
+  for i in range(int(dimensions[0])*10):
+    for j in range(int(dimensions[1])*10):
+      for k in range(int(dimensions[2])*10):
         crystal_points.append(((i+0.5)/10.0,(j+0.5)/10.0,(k+0.5)/10.0))
   return crystal_points
 
@@ -51,13 +51,13 @@ def mod_of_vec(v):
 
 def calculate_intensity_of_reflection(k0, k1, crystal_points, cryst_planes):
   from math import exp
-  mu = 2.5
+  mu = 0.2
   I = 0.0
   k0 = normalise_vec(k0)
   k1 = normalise_vec(k1)
   for point in crystal_points:
     d = calc_path_through_crystal(k0, k1, point, cryst_planes)
-    I += exp(- mu * d)
+    I += exp(- mu * d)*0.01
   return I
 
 def rotation_matrix(phi):
@@ -88,7 +88,9 @@ def transform_to_lab_frame(UB, R, millerset):
   RUB = multiply_matrices(R, UB)
   rotated_indices = flex.vec3_double([])
   for index in millerset.indices():
+    #print index
     rotated_indices.append(rotate_vector(RUB, index))
+    #print rotate_vector(RUB, index)
   return rotated_indices
 
 def calculate_scattering_vectors(k0, rlps):
@@ -114,7 +116,7 @@ def calculate_spot_positions(scattering_vectors, ms):
     #
     if vector[0] > 0.0: #only want forward scatters!
       vector_size = ((vector[0]**2) + (vector[1]**2) + (vector[2]**2))**0.5
-      if 0.998 < vector_size < 1.002:
+      if 0.997 < vector_size < 1.003:
         y_at_det = x_det * vector[1]/vector[0]
         z_at_det = x_det * vector[2]/vector[0]
         if abs(y_at_det) < y_det and abs(z_at_det) < z_det:
@@ -130,13 +132,13 @@ from cctbx import crystal
 
 def simulate_dataset(ms):
   
-  dimensions = (1,2,5)
+  dimensions = (1.5,1,1)
   crystal_points = generate_crystal(dimensions)
   cryst_planes = crystal_planes(dimensions)
 
   B = ((1.0/a, 0.0, 0.0), (0.0, 1.0/b, 0.0), (0.0, 0.0, 1.0/c))
   U = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
-  R1 = rotation_matrix(16.0)
+  R1 = rotation_matrix(0.0)
   U2 = multiply_matrices(R1, U)
   UB = multiply_matrices(U2, B)
   #define direction of incoming beam
@@ -144,10 +146,15 @@ def simulate_dataset(ms):
   reflections_list = []
   miller_indices_list = []
   spot_vectors_list = []
-  for p in range(0, 720, 1):
-    phi = float(p/2.0)
+  for p in range(0, 181, 1):
+  #for p in [0.0,0.5,1.0,1.5,2.0,88.0,88.5,89.0,89.5,90.0]:
+  #for p in range(0, 30, 10):
+    #phi = float(p)
+    phi = float(p*2.0)
     R = rotation_matrix(phi)
+    #print list(ms.indices())[100:105]
     reciprocal_lattice_points = transform_to_lab_frame(UB, R, ms)
+    #print list(reciprocal_lattice_points)[100:105]
     #calculate scattering vectors of all rlps
     scattering_vectors = calculate_scattering_vectors(k0, reciprocal_lattice_points)
     #determine which scattering vectors will cause a spot on the detector.
@@ -177,10 +184,10 @@ def simulate_dataset(ms):
   for idx, I in enumerate(Ilist):
     k1 = spot_vectors_list[idx]
     twotheta = acos(((k1[0]*k0[0]) + (k1[1]*k0[1]) + (k1[2]*k0[2])) / mod_of_vec(k1))
-    LP = 1.0 / (sin(twotheta / 2.0) * sin(twotheta))
-    if LP < 0.0:
-      print "negative LP calculated"
-    Ilist[idx] = I * LP #* #1e3
+    #LP = 1.0 / (sin(twotheta / 2.0) * sin(twotheta))
+    #if LP < 0.0:
+    #  print "negative LP calculated"
+    #Ilist[idx] = I * LP #* #1e3
     dlist.append(pi/(sin(twotheta/2.0)*mod_of_vec(k0)))
 
   #add statistical noise to intensity and give a sigma
@@ -200,8 +207,8 @@ def simulate_dataset(ms):
 a = 10.0
 b = 10.0
 c = 15.0
-ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
-    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=0.5)
+ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P1",
+    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=2.0)
 
 refls, miller_idx, k1s, ds, Is, variances = simulate_dataset(ms)
 
@@ -236,10 +243,14 @@ def save_data(minimised,filename):
   pickle.dump(minimised, data_file)
   data_file.close()
 
+print reflections.size()
+#ms = ms.change_symmetry(space_group_symbol="P4")
+#print ms.size()
 ms = miller.set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
     unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, indices=reflections['miller_index'])
+print ms.size()
 
-save_data((reflections, ms), 'test_dataset_mu2p5.pickle')
+save_data((reflections, ms), 'test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
 
 print "(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance"
 for i in range(len(refls)):

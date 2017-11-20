@@ -37,13 +37,13 @@ class test_data_manager(aimless_Data_Manager):
     self.g_parameterisation = {}
     #self.active_parameters = flex.double([])
     self.scaling_options = {}
-    self.scaling_options['lmax'] = 4
+    self.scaling_options['lmax'] = 6
     self.scaling_options['Isigma_min'] = 0.0
     self.scaling_options['d_min'] = 0.0
     self.scaling_options['scaling_method'] = 'aimless'
-    self.scaling_options['multi_mode'] = True
+    self.scaling_options['multi_mode'] = False
     self.scaling_options['decay_term'] = False
-    self.scaling_options['scale_term'] = False
+    self.scaling_options['scale_term'] = True
     self.scaling_options['absorption_term'] = True
     '''bin reflections, determine outliers, extract reflections and weights for
     scaling and set normalised values.'''
@@ -116,7 +116,7 @@ class test_data_manager(aimless_Data_Manager):
     idx = apm.active_parameterisation.index('g_absorption')
     start_idx = apm.cumulative_active_params[idx]
     end_idx = apm.cumulative_active_params[idx+1]
-    weight = 0e6
+    weight = 1e2
     abs_params = apm.x[start_idx:end_idx]
     residual = (weight * (abs_params)**2)
     gradient = (2 * weight * abs_params)
@@ -143,7 +143,8 @@ def run_main(reflections, ms):
   loaded_reflections = test_data_manager(reflections, ms)
 
   minimised = mf.LBFGS_optimiser(loaded_reflections,
-                                param_name=['g_absorption']).return_data_manager()
+                                 param_name=['g_scale','g_absorption']).return_data_manager()
+  print list(minimised.g_absorption.get_scale_factors())
   #print list(minimised.active_parameters)
   minimised.expand_scales_to_all_reflections()
 
@@ -161,7 +162,10 @@ def run_main(reflections, ms):
 
 ##########
 if __name__ == "__main__":
-  m_idx = [(1,0,0),(0,1,0), (-1,0,0), (0,-1,0)]
+  (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
+
+  
+  '''m_idx = [(1,0,0),(0,1,0), (-1,0,0), (0,-1,0)]
   intensities = flex.double([5000.0,10000.0,5000.0,10000.0])
   variances = flex.double([1000.0,1000.0,1000.0,1000.0])
   s2d = flex.vec3_double([(1.0,0.0,0.0),(0.0,1.0,0.0),(-1.0,0.0,0.0),(0.0,-1.0,0.0)])
@@ -182,6 +186,6 @@ if __name__ == "__main__":
     space_group_symbol="P4",
         unit_cell=(6,6,6,90,90,90)),
         anomalous_flag=False,
-        indices=miller_indices)
+        indices=miller_indices)'''
 
   run_main(reflections,ms)
