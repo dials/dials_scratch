@@ -71,4 +71,4 @@ if __name__ == '__main__':
     force_gain = None
 
   with open(sys.argv[1], 'rb') as cbf:
-    squishGain(cbf, 'squishedGAIN.cbf')
+    squishGain(cbf, 'squishedGAIN.cbf', force_gain)
