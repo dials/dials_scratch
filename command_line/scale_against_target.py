@@ -68,6 +68,12 @@ phil_scope = phil.parse('''
   d_min = 0.0
     .type = float
     .help = "Option to use a d-value subset of reflections to determine scale factors"
+  scale_term = True
+    .type = bool
+    .help = "Option to turn off scale term"
+  decay_term = True
+    .type = bool
+    .help = "Option to turn off decay term"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -110,10 +116,11 @@ def main(argv):
   experiments = flatten_experiments(params.input.experiments)
 
   scaling_options = {'n_d_bins' : None, 'rotation_interval' : None, 'n_detector_bins' : None,
-                     'integration_method' : None, 'modulation' : True,
-                     'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
+                     'integration_method' : None, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard', 'scaling_method' : 'KB'}
+                     'parameterization': 'standard', 'scaling_method' : 'KB',
+                     'space_group' : None, 'multi_mode' : False, 'decay_term' : True,
+                     'scale_term' : True}
 
   if len(reflections) != 2:
     assert 0, """Incorrect number of reflection files entered
@@ -197,8 +204,15 @@ def scaling_lbfgs(reflections, experiments, scaling_options, logger):
     experiments[0], reflections[1], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
+  param_name = []
+  if scaling_options['scale_term']:
+    param_name.append('g_scale')
+  if scaling_options['decay_term']:
+    param_name.append('g_decay')
+  if not param_name:
+      assert 0, 'no parameters have been chosen for scaling, aborting process'
   loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                          param_name=None
+                                          param_name=param_name
                                           ).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the
