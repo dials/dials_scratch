@@ -65,6 +65,12 @@ phil_scope = phil.parse('''
   Isigma_min = -5.0
     .type = float
     .help = "Option to use a I/sigma subset of reflections to determine scale factors"
+  E2min = 0.8
+    .type = float
+    .help = "Minimum normalised E^2 value to select reflections for scaling"
+  E2max = 5.0
+    .type = float
+    .help = "Maximum normalised E^2 value to select reflections for scaling"
   d_min = 0.0
     .type = float
     .help = "Option to use a d-value subset of reflections to determine scale factors"
@@ -129,7 +135,7 @@ def main(argv):
                      'decay' : True, 'absorption' : True, 'Isigma_min' : 3.0,
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
                      'parameterization': 'standard', 'scaling_method' : 'xds',
-                     'space_group' : None}
+                     'space_group' : None, 'E2max' : 5.0, 'E2min' : 0.8}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
