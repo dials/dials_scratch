@@ -12,7 +12,7 @@ Usage:
 A number of options can be specified, see the phil_scope below.
 """
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function
 import libtbx.load_env
 import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
@@ -74,6 +74,12 @@ phil_scope = phil.parse('''
   decay_term = True
     .type = bool
     .help = "Option to turn off decay term"
+  E2min = 0.8
+    .type = float
+    .help = "Minimum normalised E^2 value to select reflections for scaling"
+  E2max = 5.0
+    .type = float
+    .help = "Maximum normalised E^2 value to select reflections for scaling"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -120,7 +126,7 @@ def main(argv):
                      'd_min' : 0.0, 'decay_correction_rescaling': False,
                      'parameterization': 'standard', 'scaling_method' : 'KB',
                      'space_group' : None, 'multi_mode' : False, 'decay_term' : True,
-                     'scale_term' : True}
+                     'scale_term' : True, 'E2max' : 5.0, 'E2min' : 0.8}
 
   if len(reflections) != 2:
     assert 0, """Incorrect number of reflection files entered
@@ -130,13 +136,6 @@ def main(argv):
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
-
-  logger.info("=" * 80)
-  logger.info("")
-  logger.info("Initialising")
-  logger.info("")
-  print "Initialising data structures...."
-
   
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
@@ -146,10 +145,10 @@ def main(argv):
       scaling_options[obj.name] = obj.extract()
   '''handling of choice of integration method'''
   if scaling_options['integration_method'] not in ['prf', 'sum', 'combine']:
-    print 'Invalid integration_method choice, using default profile fitted intensities'
+    print('Invalid integration_method choice, using default profile fitted intensities')
     scaling_options['integration_method'] = 'prf'
   if scaling_options['parameterization'] not in ['standard', 'log']:
-    print 'Invalid parameterization choice, using standard g-value parameterisation'
+    print('Invalid parameterization choice, using standard g-value parameterisation')
     scaling_options['integration_method'] = 'standard'
 
   logger.info("Scaling options being used are :")
@@ -159,47 +158,17 @@ def main(argv):
   '''do lbfgs minimisation'''
   minimised = scaling_lbfgs(reflections, experiments, scaling_options, logger)
 
-  """'''output plots of scale factors'''
-  if scaling_options['multi_mode']:
-    if scaling_options['absorption']:
-      plot_data_absorption(minimised.dm1, outputfile='g_absorption_multiset1.png')
-      n_time_pos = minimised.dm1.g_absorption.ntime_parameters
-      plot_correction_at_multiple_detector_areas(minimised.dm1, [0, n_time_pos // 5,
-        2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2],
-        outputfile='g_absorption_surfaces_multiset1.png')
-      plot_data_absorption(minimised.dm2, outputfile='g_absorption_multiset2.png')
-      n_time_pos = minimised.dm2.g_absorption.ntime_parameters
-      plot_correction_at_multiple_detector_areas(minimised.dm2, [0, n_time_pos // 5,
-        2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2],
-        outputfile='g_absorption_surfaces_multiset2.png')
-    if scaling_options['decay']:
-      plot_data_decay(minimised.dm1, outputfile='g_decay_multiset1.png')
-      plot_data_decay(minimised.dm2, outputfile='g_decay_multiset2.png')
-    if scaling_options['modulation']:
-      plot_data_modulation(minimised.dm1, outputfile='g_modulation_multiset1.png')
-      plot_data_modulation(minimised.dm2, outputfile='g_modulation_multiset2.png')
-    print "Saved plots of correction factors"
-  else:
-    if scaling_options['absorption']:
-      plot_data_absorption(minimised)
-      n_time_pos = minimised.g_absorption.ntime_parameters
-      plot_correction_at_multiple_detector_areas(minimised, [0, n_time_pos // 5,
-        2 * n_time_pos // 5, 3 * n_time_pos // 5, 4 * n_time_pos // 5, n_time_pos - 2])
-    if scaling_options['decay']:
-      plot_data_decay(minimised)
-    if scaling_options['modulation']:
-      plot_data_modulation(minimised)
-    print Saved plots of correction factors"""
 
   '''clean up reflection table for outputting and save data'''
   #minimised.dm1.clean_reflection_table()
   minimised.dm1.save_reflection_table('integrated_targetscaled.pickle')
-  print "Saved output to " + str('integrated_targetscaled.pickle')
+  print("Saved output to " + str('integrated_targetscaled.pickle'))
 
+  print('\n'+'*'*40+'\n')
 
 def scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs scaling against a target scaled reflection table"""
-
+  print('\n'+'*'*40+'\n')
   loaded_reflections = dmf.targeted_datamanager(reflections[0], 
     experiments[0], reflections[1], scaling_options)
 

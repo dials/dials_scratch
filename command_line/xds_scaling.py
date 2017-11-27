@@ -12,7 +12,7 @@ Usage:
 A number of options can be specified, see the phil_scope below.
 """
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function
 import libtbx.load_env
 import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
@@ -147,13 +147,6 @@ def main(argv):
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
-
-  logger.info("=" * 80)
-  logger.info("")
-  logger.info("Initialising")
-  logger.info("")
-  print "Initialising data structures...."
-
   
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
@@ -163,10 +156,10 @@ def main(argv):
       scaling_options[obj.name] = obj.extract()
   '''handling of choice of integration method'''
   if scaling_options['integration_method'] not in ['prf', 'sum', 'combine']:
-    print 'Invalid integration_method choice, using default profile fitted intensities'
+    print('Invalid integration_method choice, using default profile fitted intensities')
     scaling_options['integration_method'] = 'prf'
   if scaling_options['parameterization'] not in ['standard', 'log']:
-    print 'Invalid parameterization choice, using standard g-value parameterisation'
+    print('Invalid parameterization choice, using standard g-value parameterisation')
     scaling_options['integration_method'] = 'standard'
 
   logger.info("Scaling options being used are :")
@@ -176,19 +169,21 @@ def main(argv):
   '''do lbfgs minimisation'''
   minimised = xds_scaling_lbfgs(reflections, experiments, scaling_options, logger)
 
+  print('Calculating metrics for scaling quality assessment.')
   '''calculate R metrics'''
   if scaling_options['multi_mode']:
     for datamanager in [minimised, minimised.dm1, minimised.dm2]:
       Rmeas = R_meas(datamanager)
       Rpim = R_pim(datamanager)
-      print "R_meas is %s" % (Rmeas)
-      print "R_pim is %s" % (Rpim)
+      print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
+      print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
   else:
     Rmeas = R_meas(minimised)
     Rpim = R_pim(minimised)
-    print "R_meas is %s" % (Rmeas)
-    print "R_pim is %s" % (Rpim)
+    print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
+    print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
 
+  print('\nPlotting graphs of scale factors. \n')
 
   '''output plots of scale factors'''
   if scaling_options['multi_mode']:
@@ -209,7 +204,7 @@ def main(argv):
     if scaling_options['modulation']:
       plot_data_modulation(minimised.dm1, outputfile='g_modulation_multiset1.png')
       plot_data_modulation(minimised.dm2, outputfile='g_modulation_multiset2.png')
-    print "Saved plots of correction factors"
+    print('Saved plots of correction factors. \n')
   else:
     if scaling_options['absorption']:
       plot_data_absorption(minimised)
@@ -220,7 +215,7 @@ def main(argv):
       plot_data_decay(minimised)
     if scaling_options['modulation']:
       plot_data_modulation(minimised)
-    print "Saved plots of correction factors"
+    print('Saved plots of correction factors. \n')
 
   '''clean up reflection table for outputting and save data'''
   if scaling_options['multi_mode']:
@@ -228,15 +223,18 @@ def main(argv):
     minimised.dm1.save_reflection_table('integrated_scaled_1.pickle')
     minimised.dm2.clean_reflection_table()
     minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
-    print "Saved outputs to %s,%s " % ('integrated_scaled_1.pickle', 'integrated_scaled_2.pickle')
+    print(('Saved output to {0}, {1}').format('integrated_scaled_1.pickle', 
+          'integrated_scaled_2.pickle'))
   else:
     minimised.clean_reflection_table()
     minimised.save_reflection_table(output_path)
-    print "Saved output to " + str(output_path)
+    print(('Saved output to {0}').format(output_path))
 
+  print('\n'+'*'*40+'\n')
 
 def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
+  print('\n'+'*'*40+'\n')
   if scaling_options['multi_mode']:
     loaded_reflections = dmf.multicrystal_datamanager(reflections[0], 
       experiments[0], reflections[1], experiments[1], scaling_options)
@@ -246,15 +244,15 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   '''call the optimiser on the Data Manager object'''
   if scaling_options['absorption']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_absorption'
+                                            param_name=['g_absorption']
                                            ).return_data_manager()
   if scaling_options['decay']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_decay'
+                                            param_name=['g_decay']
                                            ).return_data_manager()
   if scaling_options['modulation']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name='g_modulation'
+                                            param_name=['g_modulation']
                                            ).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the
