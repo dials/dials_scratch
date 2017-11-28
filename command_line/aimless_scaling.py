@@ -206,13 +206,13 @@ def main(argv):
   print('\nPlotting graphs of scale factors. \n')
 
   if scaling_options['multi_mode']:
-    plot_smooth_scales(minimised.dm1, outputfile='Smooth_scale_factors_1.png')
-    plot_smooth_scales(minimised.dm2, outputfile='Smooth_scale_factors_2.png')
+    plot_smooth_scales(minimised.dm1, outputfile='smooth_scale_factors_1.png')
+    plot_smooth_scales(minimised.dm2, outputfile='smooth_scale_factors_2.png')
     if minimised.scaling_options['absorption_term']:
       plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
       plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
   else:
-    plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
+    plot_smooth_scales(minimised, outputfile='smooth_scale_factors.png')
     if minimised.scaling_options['absorption_term']:
       plot_absorption_surface(minimised)
   print('Saved plots of correction factors. \n')
