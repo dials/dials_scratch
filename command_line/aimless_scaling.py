@@ -240,7 +240,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = dmf.multicrystal_datamanager(reflections[0],
       experiments[0], reflections[1], experiments[1], scaling_options)
   else:
-    loaded_reflections = dmf.aimless_Data_Manager(reflections[0],
+    loaded_reflections = dmf.aimless_Data_Manager(reflections[0], 
       experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
