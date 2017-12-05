@@ -237,13 +237,14 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an aimless-like scaling"""
   print('\n'+'*'*40+'\n')
   if scaling_options['multi_mode']:
-    loaded_reflections = dmf.multicrystal_datamanager(reflections[0], 
+    loaded_reflections = dmf.multicrystal_datamanager(reflections[0],
       experiments[0], reflections[1], experiments[1], scaling_options)
   else:
-    loaded_reflections = dmf.aimless_Data_Manager(reflections[0], experiments[0], scaling_options)
+    loaded_reflections = dmf.aimless_Data_Manager(reflections[0],
+      experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
-  #for now, assume you always want a scale, therefore option of doing decay as well
+  #for now, assume you always want a scale, therefore option of doing decay also
   if scaling_options['concurrent_scaling']:
     param_name = []
     if scaling_options['scale_term']:
