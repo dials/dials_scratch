@@ -195,19 +195,19 @@ def main(argv):
   print('Calculating metrics for scaling quality assessment.')
   '''calculate R metrics'''
   if scaling_options['multi_mode']:
-    for datamanager in [minimised, minimised.dm1, minimised.dm2]:
-      Rmeas = R_meas(datamanager)
-      Rpim = R_pim(datamanager)
-      print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
-      print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
+    Rpim, Rmeas = R_pim_meas(minimised)
+    print(("R_meas of the combined scaled dataset is {0:.6f}").format(Rmeas))
+    print(("R_pim of the combined scaled dataset is {0:.6f}").format(Rpim))
+    Rpim, Rmeas = R_pim_meas(minimised.dm1)
+    print(("R_meas of the first scaled dataset is {0:.6f}").format(Rmeas))
+    print(("R_pim of the first scaled dataset is {0:.6f}").format(Rpim))
+    Rpim, Rmeas = R_pim_meas(minimised.dm2)
+    print(("R_meas of the second scaled dataset is {0:.6f}").format(Rmeas))
+    print(("R_pim of the second scaled dataset is {0:.6f}").format(Rpim))
   else:
-    #Rmeas = R_meas(minimised)
-    #Rpim = R_pim_new(minimised)
     Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
     print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
-    
-    #print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
 
   if scaling_options['plot_scalefactors']:
     from dials_scratch.jbe.scaling_code.data_plotter import (plot_smooth_scales, 

@@ -10,7 +10,7 @@ from dials_scratch.jbe.scaling_code.basis_functions import *
 from dials_scratch.jbe.scaling_code.scaling_utilities import sph_harm_table
 import dials_scratch.jbe.scaling_code.scale_factor as SF
 from dials_scratch.jbe.scaling_code.reflection_weighting import *
-from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
+from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
 from dials_scratch.jbe.scaling_code.target_Ih import single_Ih_table
 import matplotlib.pyplot as plt
 from dials_scratch.jbe.scaling_code.data_manager_functions import aimless_Data_Manager
@@ -148,8 +148,7 @@ def run_main(reflections, ms):
   #print list(minimised.active_parameters)
   minimised.expand_scales_to_all_reflections()
 
-  Rmeas = R_meas(minimised)
-  Rpim = R_pim(minimised)
+  Rpim, Rmeas = R_pim_meas(minimised)
   print "R_meas is %s" % (Rmeas)
   print "R_pim is %s" % (Rpim)
 
