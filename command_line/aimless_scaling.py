@@ -111,7 +111,7 @@ phil_scope = phil.parse('''
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import target_Ih as target_Ih
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
-from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
+from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
 
 
 
@@ -201,10 +201,13 @@ def main(argv):
       print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
       print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
   else:
-    Rmeas = R_meas(minimised)
-    Rpim = R_pim(minimised)
+    #Rmeas = R_meas(minimised)
+    #Rpim = R_pim_new(minimised)
+    Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
     print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
+    
+    #print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
 
   if scaling_options['plot_scalefactors']:
     from dials_scratch.jbe.scaling_code.data_plotter import (plot_smooth_scales, 
