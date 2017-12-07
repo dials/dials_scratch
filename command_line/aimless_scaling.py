@@ -103,14 +103,16 @@ phil_scope = phil.parse('''
     .type = floats(size=2)
     .help = "Ability to force an error model adjustment, using the model 
              in aimless - factors are called SDFac, SDadd in aimless."
+  plot_scalefactors = True
+    .type = bool
+    .help = "Option to switch off scalefactor plotting."
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import target_Ih as target_Ih
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_meas, R_pim
-from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
-plot_data_absorption, plot_data_modulation, plot_smooth_scales, plot_absorption_surface)
+
 
 
 def main(argv):
@@ -155,7 +157,8 @@ def main(argv):
                      'scale_term' : True, 'decay_term' : True, 
                      'absorption_term' : True, 'B_factor_interval' : None,
                      'space_group' : None, 'concurrent_scaling' : True,
-                     'error_model_params' : None, 'E2max' : 5.0, 'E2min' : 0.8}
+                     'error_model_params' : None, 'E2max' : 5.0, 'E2min' : 0.8,
+                     'plot_scalefactors' : True}
 
   if len(reflections) == 2 and len(experiments) == 2:
     scaling_options['multi_mode'] = True
@@ -203,19 +206,22 @@ def main(argv):
     print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
     print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
 
-  print('\nPlotting graphs of scale factors. \n')
+  if scaling_options['plot_scalefactors']:
+    from dials_scratch.jbe.scaling_code.data_plotter import (plot_smooth_scales, 
+      plot_absorption_surface)
+    print('\nPlotting graphs of scale factors. \n')
 
-  if scaling_options['multi_mode']:
-    plot_smooth_scales(minimised.dm1, outputfile='smooth_scale_factors_1.png')
-    plot_smooth_scales(minimised.dm2, outputfile='smooth_scale_factors_2.png')
-    if minimised.scaling_options['absorption_term']:
-      plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
-      plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
-  else:
-    plot_smooth_scales(minimised, outputfile='smooth_scale_factors.png')
-    if minimised.scaling_options['absorption_term']:
-      plot_absorption_surface(minimised)
-  print('Saved plots of correction factors. \n')
+    if scaling_options['multi_mode']:
+      plot_smooth_scales(minimised.dm1, outputfile='smooth_scale_factors_1.png')
+      plot_smooth_scales(minimised.dm2, outputfile='smooth_scale_factors_2.png')
+      if minimised.scaling_options['absorption_term']:
+        plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
+        plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
+    else:
+      plot_smooth_scales(minimised, outputfile='smooth_scale_factors.png')
+      if minimised.scaling_options['absorption_term']:
+        plot_absorption_surface(minimised)
+    print('Saved plots of correction factors. \n')
 
   '''clean up reflection table for outputting and save data'''
   if scaling_options['multi_mode']:
@@ -240,7 +246,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     loaded_reflections = dmf.multicrystal_datamanager(reflections[0],
       experiments[0], reflections[1], experiments[1], scaling_options)
   else:
-    loaded_reflections = dmf.aimless_Data_Manager(reflections[0], 
+    loaded_reflections = dmf.aimless_Data_Manager(reflections[0],
       experiments[0], scaling_options)
 
   '''call the optimiser on the Data Manager object'''
@@ -256,21 +262,17 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     if not param_name:
       assert 0, 'no parameters have been chosen for scaling, aborting process'
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name
-                                           ).return_data_manager()
+      param_name=param_name).return_data_manager()
   else: #not concurrent_scaling, so do scale/decay term first then absorption
     if scaling_options['decay_term']:
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                              param_name=['g_scale', 'g_decay']
-                                             ).return_data_manager()
+        param_name=['g_scale', 'g_decay']).return_data_manager()
     else: #just do scale factor if you don't want decay.
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                              param_name=['g_scale']
-                                             ).return_data_manager()
+        param_name=['g_scale']).return_data_manager()
     if scaling_options['absorption_term']:
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                              param_name=['g_absorption']
-                                             ).return_data_manager()
+        param_name=['g_absorption']).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''

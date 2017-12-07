@@ -236,24 +236,22 @@ def xds_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an xds-like scaling"""
   print('\n'+'*'*40+'\n')
   if scaling_options['multi_mode']:
-    loaded_reflections = dmf.multicrystal_datamanager(reflections[0], 
+    loaded_reflections = dmf.multicrystal_datamanager(reflections[0],
       experiments[0], reflections[1], experiments[1], scaling_options)
   else:
-    loaded_reflections = dmf.XDS_Data_Manager(reflections[0], experiments[0], scaling_options)
+    loaded_reflections = dmf.XDS_Data_Manager(reflections[0], experiments[0],
+      scaling_options)
 
   '''call the optimiser on the Data Manager object'''
   if scaling_options['absorption']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_absorption']
-                                           ).return_data_manager()
+      param_name=['g_absorption']).return_data_manager()
   if scaling_options['decay']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_decay']
-                                           ).return_data_manager()
+      param_name=['g_decay']).return_data_manager()
   if scaling_options['modulation']:
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                            param_name=['g_modulation']
-                                           ).return_data_manager()
+      param_name=['g_modulation']).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
