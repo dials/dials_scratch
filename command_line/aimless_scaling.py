@@ -237,7 +237,7 @@ def main(argv):
   else:
     minimised.clean_reflection_table()
     minimised.save_reflection_table(output_path)
-    print(('Saved output to {0}').format(output_path))
+    print(('\nSaved output to {0}').format(output_path))
 
   print('\n'+'*'*40+'\n')
 
@@ -246,8 +246,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
   """This algorithm performs an aimless-like scaling"""
   print('\n'+'*'*40+'\n')
   if scaling_options['multi_mode']:
-    loaded_reflections = dmf.multicrystal_datamanager(reflections[0],
-      experiments[0], reflections[1], experiments[1], scaling_options)
+    loaded_reflections = dmf.multicrystal_datamanager(reflections, experiments, scaling_options)
   else:
     loaded_reflections = dmf.aimless_Data_Manager(reflections[0],
       experiments[0], scaling_options)
