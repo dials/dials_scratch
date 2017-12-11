@@ -160,13 +160,15 @@ def main(argv):
                      'error_model_params' : None, 'E2max' : 5.0, 'E2min' : 0.8,
                      'plot_scalefactors' : True}
 
-  if len(reflections) == 2 and len(experiments) == 2:
+  len_refl = len(reflections)
+  len_exp = len(experiments)
+  if len_refl > 1 and len_exp >1 and (len_exp == len_refl):
     scaling_options['multi_mode'] = True
-  elif len(reflections) == 1 and len(experiments) == 1:
+  elif len_refl == 1 and len_exp == 1:
     scaling_options['multi_mode'] = False
   else:
     assert 0, """Incorrect number of reflection and/or experiment files entered
-    in the command line (must be 1 or 2 of each)"""
+    in the command line must be an equal number of each"""
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
@@ -198,12 +200,13 @@ def main(argv):
     Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the combined scaled dataset is {0:.6f}").format(Rmeas))
     print(("R_pim of the combined scaled dataset is {0:.6f}").format(Rpim))
-    Rpim, Rmeas = R_pim_meas(minimised.dm1)
-    print(("R_meas of the first scaled dataset is {0:.6f}").format(Rmeas))
-    print(("R_pim of the first scaled dataset is {0:.6f}").format(Rpim))
-    Rpim, Rmeas = R_pim_meas(minimised.dm2)
-    print(("R_meas of the second scaled dataset is {0:.6f}").format(Rmeas))
-    print(("R_pim of the second scaled dataset is {0:.6f}").format(Rpim))
+    for j, dm in enumerate(minimised.data_managers):
+      Rpim, Rmeas = R_pim_meas(dm)
+      print(("R_meas of the scaled dataset {0} is {1:.6f}").format(j+1,Rmeas))
+      print(("R_pim of the scaled dataset {0} is {1:.6f}").format(j+1,Rpim))
+    #Rpim, Rmeas = R_pim_meas(minimised.dm2)
+    #print(("R_meas of the second scaled dataset is {0:.6f}").format(Rmeas))
+    #print(("R_pim of the second scaled dataset is {0:.6f}").format(Rpim))
   else:
     Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
@@ -215,11 +218,12 @@ def main(argv):
     print('\nPlotting graphs of scale factors. \n')
 
     if scaling_options['multi_mode']:
-      plot_smooth_scales(minimised.dm1, outputfile='smooth_scale_factors_1.png')
-      plot_smooth_scales(minimised.dm2, outputfile='smooth_scale_factors_2.png')
-      if minimised.scaling_options['absorption_term']:
-        plot_absorption_surface(minimised.dm1, outputfile='absorption_surface_1.png')
-        plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
+      for j, dm in enumerate(minimised.data_managers):
+        plot_smooth_scales(dm, outputfile='smooth_scale_factors_'+str(j+1)+'.png')
+      #plot_smooth_scales(minimised.dm2, outputfile='smooth_scale_factors_2.png')
+        if minimised.scaling_options['absorption_term']:
+          plot_absorption_surface(dm, outputfile='absorption_surface_'+str(j+1)+'.png')
+        #plot_absorption_surface(minimised.dm2, outputfile='absorption_surface_2.png')
     else:
       plot_smooth_scales(minimised, outputfile='smooth_scale_factors.png')
       if minimised.scaling_options['absorption_term']:
@@ -228,12 +232,12 @@ def main(argv):
 
   '''clean up reflection table for outputting and save data'''
   if scaling_options['multi_mode']:
-    minimised.dm1.clean_reflection_table()
-    minimised.dm1.save_reflection_table('integrated_scaled_1.pickle')
-    minimised.dm2.clean_reflection_table()
-    minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
-    print(('Saved output to {0}, {1}').format('integrated_scaled_1.pickle', 
-          'integrated_scaled_2.pickle'))
+    for j, dm in enumerate(minimised.data_managers):
+      dm.clean_reflection_table()
+      dm.save_reflection_table('integrated_scaled_'+str(j+1)+'.pickle')
+    #minimised.dm2.clean_reflection_table()
+    #minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
+      print(('Saved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
   else:
     minimised.clean_reflection_table()
     minimised.save_reflection_table(output_path)
