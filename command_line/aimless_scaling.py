@@ -106,6 +106,9 @@ phil_scope = phil.parse('''
   plot_scalefactors = True
     .type = bool
     .help = "Option to switch off scalefactor plotting."
+  reject_outliers = False
+    .type = bool
+    .help = "Option to turn on outlier rejection"
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -158,7 +161,7 @@ def main(argv):
                      'absorption_term' : True, 'B_factor_interval' : None,
                      'space_group' : None, 'concurrent_scaling' : True,
                      'error_model_params' : None, 'E2max' : 5.0, 'E2min' : 0.8,
-                     'plot_scalefactors' : True}
+                     'plot_scalefactors' : True, 'reject_outliers': False}
 
   len_refl = len(reflections)
   len_exp = len(experiments)
@@ -267,8 +270,16 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
       param_name.append('g_absorption')
     if not param_name:
       assert 0, 'no parameters have been chosen for scaling, aborting process'
+
+    #first pass
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
       param_name=param_name).return_data_manager()
+    error_model_params = mf.error_scale_LBFGSoptimiser(loaded_reflections.Ih_table,flex.double([1.0,0.01])).x
+    loaded_reflections.apply_updated_error_model(error_model_params)
+    #second pass
+    loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
+      param_name=param_name).return_data_manager()
+    
   else: #not concurrent_scaling, so do scale/decay term first then absorption
     if scaling_options['decay_term']:
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
