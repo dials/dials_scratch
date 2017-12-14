@@ -2,7 +2,7 @@
 # coding: utf-8
 
 """
-Usage: dials_scratch.aimless_scaling integrated.pickle integrated_experiments.json 
+Usage: dials_scratch.aimless_scaling integrated.pickle integrated_experiments.json
 [integrated.pickle(2) integrated_experiments.json(2) ....] [options]
 
 This program performs scaling on the input datasets, using a physical
@@ -101,14 +101,14 @@ phil_scope = phil.parse('''
       .type = str
       .help = "Option to choose from profile fitted intensities (prf)
               or summation integrated intensities (sum)"
-    parameterization = 'standard'
+    minimisation_parameterisation = 'standard'
       .type = str
-      .help = "Choice of g-value parameterisation - 'standard' (multiplicative) or 'log'"
+      .help = "Choice of 'standard' (multiplicative) or 'log' g-value 
+               minimisation parameterisation"
   }
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
-from dials_scratch.jbe.scaling_code import target_Ih as target_Ih
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
 
@@ -150,7 +150,7 @@ def main(argv):
     'integration_method' : params.scaling_options.integration_method,
     'Isigma_min' : params.reflection_selection.Isigma_min,
     'd_min' : params.reflection_selection.d_min,
-    'parameterization': params.scaling_options.parameterization,
+    'parameterization': params.scaling_options.minimisation_parameterisation,
     'decay_term' : params.parameterisation.decay_term,
     'absorption_term' : params.parameterisation.absorption_term,
     'B_factor_interval' : params.parameterisation.B_factor_interval,
@@ -195,15 +195,17 @@ def main(argv):
   if scaling_options['multi_mode']:
     Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the combined scaled dataset is {0:.6f}").format(Rmeas))
-    print(("R_pim of the combined scaled dataset is {0:.6f}").format(Rpim))
+    print(("R_pim of the combined scaled dataset is {0:.6f} {sep}").format(
+      Rpim, sep='\n'))
     for j, dm in enumerate(minimised.data_managers):
       Rpim, Rmeas = R_pim_meas(dm)
       print(("R_meas of the scaled dataset {0} is {1:.6f}").format(j+1, Rmeas))
-      print(("R_pim of the scaled dataset {0} is {1:.6f}").format(j+1, Rpim))
+      print(("R_pim of the scaled dataset {0} is {1:.6f} {sep}").format(j+1, 
+        Rpim, sep='\n'))
   else:
     Rpim, Rmeas = R_pim_meas(minimised)
     print(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
-    print(("R_pim of the scaled dataset is {0:.6f}").format(Rpim))
+    print(("R_pim of the scaled dataset is {0:.6f} {sep}").format(Rpim,  sep='\n'))
 
   # Plot scalefactors
   if scaling_options['plot_scalefactors']:
@@ -267,7 +269,7 @@ def aimless_scaling_lbfgs(reflections, experiments, scaling_options, logger):
     # Optimise the error model and then do another minimisation
     if scaling_options['optimise_error_model']:
       loaded_reflections.update_error_model()
-      # Second pass
+      # Second minimisation with new weights
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
         param_name=param_name).return_data_manager()
 
