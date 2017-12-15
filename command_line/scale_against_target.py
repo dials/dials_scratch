@@ -2,9 +2,6 @@
 # coding: utf-8
 
 """
-xds_scaling.py performs an xds-like parameterisation of scaling and outputs the
-calculated inverse scale factors to a integrated_scaled.pickle file(s).
-
 Usage:
   dials_scratch.xds_scaling integrated.pickle integrated_experiments.json
   target_integrated_scaled.pickle [options]
@@ -15,10 +12,9 @@ A number of options can be specified, see the phil_scope below.
 from __future__ import absolute_import, division, print_function
 import libtbx.load_env
 import logging
-logger = logging.getLogger(libtbx.env.dispatcher_name)
+logger = logging.getLogger('dials.scale')
 
 import sys
-import numpy as np
 
 
 from dials.util import halraiser
@@ -31,55 +27,87 @@ phil_scope = phil.parse('''
     .type = bool
     .help = "Output additional debugging information"
   output {
-    log = 'dials_scratch.xds_scaling.log'
+    log = 'dials_scratch.aimless_scaling.log'
       .type = str
       .help = "The log filename"
-
-    debug_log = 'dials_scratch.xds_scaling.debug.log'
+    debug_log = 'dials_scratch.aimless_scaling.debug.log'
       .type = str
       .help = "The debug log filename"
+    plot_scalefactors = True
+      .type = bool
+      .help = "Option to switch off scalefactor plotting."
   }
-  verbosity = 1
-    .type = int(value_min=0)
-    .help = "The verbosity level"
-
-  n_d_bins = 20
-    .type = int
-    .help = "Number of bins for resolution gridding"
-  rotation_interval = None
-    .type = float
-    .help = "User specified rotation (phi) interval in degrees for phi binning"
-  n_detector_bins = 19
-    .type = int
-    .help = "Number of bins in each detector dimension for modulation gridding"
-  integration_method = 'prf'
-    .type = str
-    .help = "Option to choose from profile fitted intensities (prf)
-             or summation integrated intensities (sum)"
-  parameterization = 'standard'
-    .type = str
-    .help = "Choice of g-value parameterisation - 'standard' (multiplicative) or 'log'"
-  decay_correction_rescaling = False
-    .type = bool
-    .help = "Option to turn on a relative-B factor rescale to the decay scale factors"
-  Isigma_min = -5.0
-    .type = float
-    .help = "Option to use a I/sigma subset of reflections to determine scale factors"
-  d_min = 0.0
-    .type = float
-    .help = "Option to use a d-value subset of reflections to determine scale factors"
-  scale_term = True
-    .type = bool
-    .help = "Option to turn off scale term"
-  decay_term = True
-    .type = bool
-    .help = "Option to turn off decay term"
-  E2min = 0.8
-    .type = float
-    .help = "Minimum normalised E^2 value to select reflections for scaling"
-  E2max = 5.0
-    .type = float
-    .help = "Maximum normalised E^2 value to select reflections for scaling"
+  parameterisation {
+    scale_term = True
+      .type = bool
+      .help = "Option to turn off decay correction (only for KB scaling)"
+    rotation_interval = 15.0
+      .type = float
+      .help = "User specified rotation (phi) interval in degrees for phi binning
+              for the scale term"
+    decay_term = True
+      .type = bool
+      .help = "Option to turn off decay correction"
+    B_factor_interval = 20.0
+      .type = float
+      .help = "User specified rotation (phi) interval in degrees for phi binning
+              for the decay term"
+    absorption_term = True
+      .type = bool
+      .help = "Option to turn off absorption correction"
+    lmax = 4
+      .type = int
+      .help = "Number of spherical harmonics to include for absorption correction,
+              recommended to be no more than 6."
+  }
+  reflection_selection {
+    E2min = 0.8
+      .type = float
+      .help = "Minimum normalised E^2 value to select reflections for scaling"
+    E2max = 5.0
+      .type = float
+      .help = "Maximum normalised E^2 value to select reflections for scaling"
+    Isigma_min = -5.0
+      .type = float
+      .help = "Option to use a I/sigma subset of reflections to determine scale factors"
+    d_min = 0.0
+      .type = float
+      .help = "Option to use a d-value subset of reflections to determine scale factors"
+  }
+  scaling_options {
+    force_space_group = None
+      .type = str
+      .help = "Option to specify space group for scaling"
+    concurrent_scaling = True
+      .type = bool
+      .help = "Option to allow absorption correction after decay/scale, 
+              if concurrent_scaling is set to False"
+    optimise_error_model = True
+      .type = bool
+      .help = "Option to allow optimisation of weights for scaling. Performs
+               and additional scale factor minimisation after adjusting weights."
+    error_model_params = None
+      .type = floats(size=2)
+      .help = "Ability to force an error model adjustment, using the model 
+              in aimless - factors are called SDFac, SDadd in aimless."
+    reject_outliers = True
+      .type = bool
+      .help = "Option to turn on outlier rejection"
+    verbosity = 1
+      .type = int(value_min=0)
+      .help = "The verbosity level"
+    integration_method = 'prf'
+      .type = str
+      .help = "Option to choose from profile fitted intensities (prf)
+              or summation integrated intensities (sum)"
+    minimisation_parameterisation = 'standard'
+      .type = str
+      .help = "Choice of 'standard' (multiplicative) or 'log' g-value 
+               minimisation parameterisation"
+    target = None
+      .type = str
+      .help = "Choice to specify a target dataset for scaling"
+  }
 ''')
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
@@ -121,13 +149,6 @@ def main(argv):
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
 
-  scaling_options = {'n_d_bins' : None, 'rotation_interval' : None, 'n_detector_bins' : None,
-                     'integration_method' : None, 'Isigma_min' : 3.0,
-                     'd_min' : 0.0, 'decay_correction_rescaling': False,
-                     'parameterization': 'standard', 'scaling_method' : 'KB',
-                     'space_group' : None, 'multi_mode' : False, 'decay_term' : True,
-                     'scale_term' : True, 'E2max' : 5.0, 'E2min' : 0.8}
-
   if len(reflections) != 2:
     assert 0, """Incorrect number of reflection files entered
     in the command line (must be 2, one to scale and one integrated_scaled.pickle)"""
@@ -136,53 +157,38 @@ def main(argv):
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
-  
-  for obj in phil_parameters.objects:
-    if obj.name in scaling_options:
-      scaling_options[obj.name] = obj.extract()
-  for obj in diff_phil_parameters.objects:
-    if obj.name in scaling_options:
-      scaling_options[obj.name] = obj.extract()
-  '''handling of choice of integration method'''
-  if scaling_options['integration_method'] not in ['prf', 'sum', 'combine']:
-    print('Invalid integration_method choice, using default profile fitted intensities')
-    scaling_options['integration_method'] = 'prf'
-  if scaling_options['parameterization'] not in ['standard', 'log']:
-    print('Invalid parameterization choice, using standard g-value parameterisation')
-    scaling_options['integration_method'] = 'standard'
 
-  logger.info("Scaling options being used are :")
-  for k, v in scaling_options.iteritems():
-    logger.info('%s : %s' % (k, v))
+  params.scaling_options.__inject__('multi_mode', False)
+  params.__inject__('scaling_method', 'KB')
+
 
   '''do lbfgs minimisation'''
-  minimised = scaling_lbfgs(reflections, experiments, scaling_options, logger)
+  minimised = scaling_lbfgs(reflections, experiments, params, logger)
 
 
   '''clean up reflection table for outputting and save data'''
   #minimised.dm1.clean_reflection_table()
   minimised.dm1.save_reflection_table('integrated_targetscaled.pickle')
-  print("Saved output to " + str('integrated_targetscaled.pickle'))
+  logger.info("Saved output to " + str('integrated_targetscaled.pickle'))
 
-  print('\n'+'*'*40+'\n')
+  logger.info('\n'+'*'*40+'\n')
 
-def scaling_lbfgs(reflections, experiments, scaling_options, logger):
+def scaling_lbfgs(reflections, experiments, params, logger):
   """This algorithm performs scaling against a target scaled reflection table"""
-  print('\n'+'*'*40+'\n')
+  logger.info('\n'+'*'*40+'\n')
   loaded_reflections = dmf.targeted_datamanager(reflections[0], 
-    experiments[0], reflections[1], scaling_options)
+    experiments[0], reflections[1], params)
 
   '''call the optimiser on the Data Manager object'''
   param_name = []
-  if scaling_options['scale_term']:
+  if params.parameterisation.scale_term:
     param_name.append('g_scale')
-  if scaling_options['decay_term']:
+  if params.parameterisation.decay_term:
     param_name.append('g_decay')
   if not param_name:
       assert 0, 'no parameters have been chosen for scaling, aborting process'
   loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
-                                          param_name=param_name
-                                          ).return_data_manager()
+    param_name=param_name).return_data_manager()
 
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
