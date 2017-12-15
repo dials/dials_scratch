@@ -24,35 +24,37 @@ class MaskCalculatorFactory(object):
 
   @classmethod
   def build(Class, experiments):
-    from dials_scratch.jmp.fitting import MaskCalculator
-    return MaskCalculator(
-      experiments[0].beam,
-      experiments[0].detector,
-      experiments[0].goniometer,
-      experiments[0].scan,
-      experiments[0].profile.delta_b(deg=False),
-      experiments[0].profile.delta_m(deg=False))
+    from dials.algorithms.integration.parallel_integrator import MaskCalculator
+    from dials.algorithms.integration.parallel_integrator import MultiCrystalMaskCalculator
+    result = MultiCrystalMaskCalculator()
+    for e in experiments:
+      alg = MaskCalculator(
+        e.beam,
+        e.detector,
+        e.goniometer,
+        e.scan,
+        e.profile.delta_b(deg=False),
+        e.profile.delta_m(deg=False))
+      result.append(alg)
+    return result
 
 
 class BackgroundCalculatorFactory(object):
 
   @classmethod
   def build(Class, experiments):
-    from dials_scratch.jmp.fitting import BackgroundCalculator
-    from dials.algorithms.background.glm import Creator
-    return BackgroundCalculator(
-      Creator.model.constant3d,
-      1.345,
-      100,
-      10)
+    from dials.algorithms.integration.parallel_integrator import GLMBackgroundCalculatorFactory
+    return GLMBackgroundCalculatorFactory.create(experiments)
 
 class IntensityCalculatorFactory(object):
 
   @classmethod
   def build(self, experiments, reference, grid_size=5, detector_space=False,
             deconvolution=False):
-    from dials_scratch.jmp.fitting import IntensityCalculator
-    from dials_scratch.jmp.fitting import Reference
+    from dials.algorithms.integration.parallel_integrator import GaussianRSIntensityCalculatorFactory
+    from dials.algorithms.integration.parallel_integrator import GaussianRSReferenceProfileData
+    from dials.algorithms.integration.parallel_integrator import GaussianRSMultiCrystalReferenceProfileData
+    from dials.algorithms.integration.parallel_integrator import ReferenceProfileData
     from dials.algorithms.profile_model.modeller import CircleSampler
     from dials.array_family import flex
     from dials.algorithms.profile_model.gaussian_rs.transform import TransformSpec
@@ -60,33 +62,40 @@ class IntensityCalculatorFactory(object):
 
     assert len(reference) % 9 == 0
     num_scan_points = len(reference) // 9
+    
+    data_spec = GaussianRSMultiCrystalReferenceProfileData()
+    for e in experiments:
 
-    sampler = CircleSampler(
-      experiments[0].detector[0].get_image_size(),
-      experiments[0].scan.get_array_range(),
-      num_scan_points)
+      sampler = CircleSampler(
+        e.detector[0].get_image_size(),
+        e.scan.get_array_range(),
+        num_scan_points)
 
 
-    spec = TransformSpec(
-      experiments[0].beam,
-      experiments[0].detector,
-      experiments[0].goniometer,
-      experiments[0].scan,
-      experiments[0].profile.sigma_b(deg=False),
-      experiments[0].profile.sigma_m(deg=False),
-      experiments[0].profile.n_sigma() * 1.5,
-      grid_size)
+      spec = TransformSpec(
+        e.beam,
+        e.detector,
+        e.goniometer,
+        e.scan,
+        e.profile.sigma_b(deg=False),
+        e.profile.sigma_m(deg=False),
+        e.profile.n_sigma() * 1.5,
+        grid_size)
 
-    temp = reference
+      temp = reference
 
-    reference = Reference()
-    for d, m in temp:
-      reference.append(d, m)
-    print detector_space, deconvolution
-    return IntensityCalculator(
-      reference,
-      sampler,
-      spec,
+      reference = ReferenceProfileData()
+      for d, m in temp:
+        reference.append(d, m)
+      print detector_space, deconvolution
+
+
+      spec = GaussianRSReferenceProfileData(reference, sampler, spec)
+
+      data_spec.append(spec)
+
+    return GaussianRSIntensityCalculatorFactory.create(
+      data_spec,
       detector_space,
       deconvolution)
 
@@ -111,7 +120,7 @@ class IntensityCalculatorFactory(object):
 #     from dials.array_family import flex
 #     from dials.model.data import make_image
 #     from dials.array_family import flex
-#     from dials_scratch.jmp.fitting import get_reflection
+#     from dials.algorithms.integration.parallel_integrator import get_reflection
 #     reflections = reflection.to_table()
 
 #     grid_size = self.grid_size
@@ -281,7 +290,7 @@ class IntensityCalculatorFactory(object):
 
 def integrate_job(block, experiments, reflections, reference, grid_size=5,
                   detector_space=False, deconvolution=False):
-  from dials_scratch.jmp.fitting import Integrator
+  from dials.algorithms.integration.parallel_integrator import Integrator
   from dials.array_family import flex
 
   reflections["intensity.prf_old.value"] = reflections["intensity.prf.value"]
@@ -299,6 +308,7 @@ def integrate_job(block, experiments, reflections, reference, grid_size=5,
                                              detector_space=detector_space,
                                              deconvolution=deconvolution),
     nthreads           = 8,
+    use_dynamic_mask = False,
     debug = False
   )
 
@@ -374,13 +384,14 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
   reference = read_reference(reference_filename)
 
-  experiments[0].profile._sigma_b *= 2
+  print "Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask()
+
+  #experiments[0].profile._sigma_b *= 2
 
   print "Read %d reflections" % len(reflections)
 
   detector_space = True
   deconvolution = False
-
   from time import time
   st = time()
   reflections = integrate(experiments, reflections, reference[0],
@@ -388,5 +399,7 @@ if __name__ == '__main__':
                           deconvolution=deconvolution)
   print "Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True)
   print "Time taken: ", time() - st
+
+  print list(reflections.keys())
 
   reflections.as_pickle("integrated.pickle")

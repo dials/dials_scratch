@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 #include <dials/algorithms/integration/parallel_integrator.h>
+#include <dials/algorithms/integration/algorithms.h>
 /* #include <scitbx/constants.h> */
 /* #include <dials/array_family/scitbx_shared_and_versa.h> */
 /* #include <dials/array_family/reflection_table.h> */
@@ -1808,65 +1809,65 @@ namespace dials { namespace algorithms { namespace boost_python {
     /*   .def("compute_intensity", &PixelList::compute_intensity) */
     /*   ; */
 
-    class_<MaskCalculatorIface, boost::noncopyable>("MaskCalculatorIface", no_init)
-      ;
+    /* class_<MaskCalculatorIface, boost::noncopyable>("MaskCalculatorIface", no_init) */
+    /*   ; */
 
-    class_<BackgroundCalculatorIface, boost::noncopyable>("BackgroundCalculatorIface", no_init)
-      ;
+    /* class_<BackgroundCalculatorIface, boost::noncopyable>("BackgroundCalculatorIface", no_init) */
+    /*   ; */
 
-    class_<IntensityCalculatorIface, boost::noncopyable>("IntensityCalculatorIface", no_init)
-      ;
+    /* class_<IntensityCalculatorIface, boost::noncopyable>("IntensityCalculatorIface", no_init) */
+    /*   ; */
 
-    class_<MaskCalculator, bases<MaskCalculatorIface> >("MaskCalculator", no_init)
-      .def(init<const BeamBase&,
-                const Detector&,
-                const Goniometer&,
-                const Scan&,
-                double,
-                double>())
-      ;
+    /* class_<MaskCalculator, bases<MaskCalculatorIface> >("MaskCalculator", no_init) */
+    /*   .def(init<const BeamBase&, */
+    /*             const Detector&, */
+    /*             const Goniometer&, */
+    /*             const Scan&, */
+    /*             double, */
+    /*             double>()) */
+    /*   ; */
 
-    class_<BackgroundCalculator, bases<BackgroundCalculatorIface> >("BackgroundCalculator", no_init)
-      .def(init<Creator::Model,
-                double,
-                std::size_t,
-                std::size_t>())
-      ;
-
-
-    class_<Reference>("Reference")
-      .def("append", &Reference::append)
-      ;
-
-    class_<IntensityCalculator, bases<IntensityCalculatorIface> >("IntensityCalculator", no_init)
-      .def(init<
-          const Reference&,
-          const CircleSampler&,
-          const TransformSpec&,
-          bool,
-          bool>())
-      ;
+    /* class_<BackgroundCalculator, bases<BackgroundCalculatorIface> >("BackgroundCalculator", no_init) */
+    /*   .def(init<Creator::Model, */
+    /*             double, */
+    /*             std::size_t, */
+    /*             std::size_t>()) */
+    /*   ; */
 
 
-    class_<Integrator>("Integrator", no_init)
-      .def(init<
-          const af::reflection_table&,
-          ImageSweep,
-          const MaskCalculatorIface&,
-          const BackgroundCalculatorIface&,
-          const IntensityCalculatorIface&,
-          std::size_t,
-          bool>((
-              arg("reflections"),
-              arg("imageset"),
-              arg("compute_mask"),
-              arg("compute_background"),
-              arg("compute_intensity"),
-              arg("nthreads") = 1,
-              arg("debug") = false)))
-      .def("reflections",
-          &Integrator::reflections)
-      ;
+    /* class_<Reference>("Reference") */
+    /*   .def("append", &Reference::append) */
+    /*   ; */
+
+    /* class_<IntensityCalculator, bases<IntensityCalculatorIface> >("IntensityCalculator", no_init) */
+    /*   .def(init< */
+    /*       const Reference&, */
+    /*       const CircleSampler&, */
+    /*       const TransformSpec&, */
+    /*       bool, */
+    /*       bool>()) */
+    /*   ; */
+
+
+    /* class_<ParallelIntegrator>("Integrator", no_init) */
+    /*   .def(init< */
+    /*       const af::reflection_table&, */
+    /*       ImageSweep, */
+    /*       const MaskCalculatorIface&, */
+    /*       const BackgroundCalculatorIface&, */
+    /*       const IntensityCalculatorIface&, */
+    /*       std::size_t, */
+    /*       bool>(( */
+    /*           arg("reflections"), */
+    /*           arg("imageset"), */
+    /*           arg("compute_mask"), */
+    /*           arg("compute_background"), */
+    /*           arg("compute_intensity"), */
+    /*           arg("nthreads") = 1, */
+    /*           arg("debug") = false))) */
+    /*   .def("reflections", */
+    /*       &ParallelIntegrator::reflections) */
+    /*   ; */
 
   }
 
