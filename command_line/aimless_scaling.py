@@ -23,10 +23,13 @@ scaling run.
 
 from __future__ import absolute_import, division, print_function
 import libtbx.load_env
+import time
+start_time=time.time()
 import logging
 logger = logging.getLogger('dials.scale')
 
 import sys
+
 from dials.util import halraiser
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 from libtbx import phil
@@ -46,78 +49,9 @@ phil_scope = phil.parse('''
       .type = bool
       .help = "Option to switch off scalefactor plotting."
   }
-  parameterisation {
-    scale_term = True
-      .type = bool
-      .help = "Option to turn off decay correction (only for KB scaling)"
-    rotation_interval = 15.0
-      .type = float
-      .help = "User specified rotation (phi) interval in degrees for phi binning
-              for the scale term"
-    decay_term = True
-      .type = bool
-      .help = "Option to turn off decay correction"
-    B_factor_interval = 20.0
-      .type = float
-      .help = "User specified rotation (phi) interval in degrees for phi binning
-              for the decay term"
-    absorption_term = True
-      .type = bool
-      .help = "Option to turn off absorption correction"
-    lmax = 4
-      .type = int
-      .help = "Number of spherical harmonics to include for absorption correction,
-              recommended to be no more than 6."
-  }
-  reflection_selection {
-    E2min = 0.8
-      .type = float
-      .help = "Minimum normalised E^2 value to select reflections for scaling"
-    E2max = 5.0
-      .type = float
-      .help = "Maximum normalised E^2 value to select reflections for scaling"
-    Isigma_min = -5.0
-      .type = float
-      .help = "Option to use a I/sigma subset of reflections to determine scale factors"
-    d_min = 0.0
-      .type = float
-      .help = "Option to use a d-value subset of reflections to determine scale factors"
-  }
-  scaling_options {
-    force_space_group = None
-      .type = str
-      .help = "Option to specify space group for scaling"
-    concurrent_scaling = True
-      .type = bool
-      .help = "Option to allow absorption correction after decay/scale, 
-              if concurrent_scaling is set to False"
-    optimise_error_model = True
-      .type = bool
-      .help = "Option to allow optimisation of weights for scaling. Performs
-               and additional scale factor minimisation after adjusting weights."
-    error_model_params = None
-      .type = floats(size=2)
-      .help = "Ability to force an error model adjustment, using the model 
-              in aimless - factors are called SDFac, SDadd in aimless."
-    reject_outliers = True
-      .type = bool
-      .help = "Option to turn on outlier rejection"
-    verbosity = 1
-      .type = int(value_min=0)
-      .help = "The verbosity level"
-    integration_method = 'prf'
-      .type = str
-      .help = "Option to choose from profile fitted intensities (prf)
-              or summation integrated intensities (sum)"
-    minimisation_parameterisation = 'standard'
-      .type = str
-      .help = "Choice of 'standard' (multiplicative) or 'log' g-value 
-               minimisation parameterisation"
-    target = None
-      .type = str
-      .help = "Choice to specify a target dataset for scaling"
-  }
-''')
+  include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
+''', process_includes=True)
+
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
@@ -172,10 +106,6 @@ def main(argv):
     assert 0, """Incorrect number of reflection and/or experiment files entered
     in the command line: must be an equal number of each"""
 
-  # Handle of choice of integration method.
-  if params.scaling_options.integration_method not in ['prf', 'sum', 'combine']:
-    logger.info('Invalid integration_method choice, using default profile fitted intensities')
-    params.scaling_options.integration_method = 'prf'
   if params.scaling_options.minimisation_parameterisation not in ['standard', 'log']:
     msg = ('Invalid minimisation parameterisation choice, proceeding using {sep}'
            'using standard g-value parameterisation').format(sep='\n')
@@ -241,6 +171,8 @@ def main(argv):
     logger.info(('\nSaved output to {0}').format('integrated_scaled.pickle'))
 
   # All done!
+  finish_time=time.time()
+  logger.info("\nTime taken: {0:.4f}s ".format((finish_time - start_time)))
   logger.info('\n'+'*'*40+'\n')
 
 def scale_against_target(reflections, experiments, target_reflections, params):
