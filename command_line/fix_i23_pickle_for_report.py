@@ -7,7 +7,7 @@ def fix_xy(reflections_in, reflections_out):
     # validate that input is from P12M@DLS => 24 panels
 
     assert flex.max(reflections['panel']) == 23
-    
+
     delta = 195 + 17
     y_offset = delta * reflections['panel']
 

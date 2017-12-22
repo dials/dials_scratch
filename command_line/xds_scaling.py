@@ -6,7 +6,7 @@ xds_scaling.py performs an xds-like parameterisation of scaling and outputs the
 calculated inverse scale factors to a integrated_scaled.pickle file(s).
 
 Usage:
-  dials_scratch.xds_scaling integrated.pickle(1) integrated_experiments.json(1) 
+  dials_scratch.xds_scaling integrated.pickle(1) integrated_experiments.json(1)
   [integrated.pickle(2) integrated_experiments.json(2)] [options]
 
 A number of options can be specified, see the phil_scope below.
@@ -147,7 +147,7 @@ def main(argv):
 
   phil_parameters = optionparser.phil
   diff_phil_parameters = optionparser.diff_phil
-  
+
   for obj in phil_parameters.objects:
     if obj.name in scaling_options:
       scaling_options[obj.name] = obj.extract()
@@ -223,7 +223,7 @@ def main(argv):
     minimised.dm1.save_reflection_table('integrated_scaled_1.pickle')
     minimised.dm2.clean_reflection_table()
     minimised.dm2.save_reflection_table('integrated_scaled_2.pickle')
-    print(('Saved output to {0}, {1}').format('integrated_scaled_1.pickle', 
+    print(('Saved output to {0}, {1}').format('integrated_scaled_1.pickle',
           'integrated_scaled_2.pickle'))
   else:
     minimised.clean_reflection_table()
