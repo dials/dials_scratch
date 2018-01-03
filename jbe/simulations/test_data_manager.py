@@ -11,7 +11,7 @@ from dials_scratch.jbe.scaling_code.scaling_utilities import sph_harm_table
 import dials_scratch.jbe.scaling_code.scale_factor as SF
 from dials_scratch.jbe.scaling_code.reflection_weighting import *
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
-from dials_scratch.jbe.scaling_code.target_Ih import single_Ih_table
+from dials_scratch.jbe.scaling_code.target_Ih import SingleIhTable
 import matplotlib.pyplot as plt
 from dials_scratch.jbe.scaling_code.data_manager_functions import aimless_Data_Manager
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
@@ -50,7 +50,7 @@ class test_data_manager(aimless_Data_Manager):
     self.initialise_scale_factors(self.reflection_table)
     (reflections_for_scaling, weights_for_scaling) = (
       self.extract_reflections_for_scaling(self.reflection_table))
-    self.Ih_table = single_Ih_table(reflections_for_scaling, weights_for_scaling.get_weights())
+    self.Ih_table = SingleIhTable(reflections_for_scaling, weights_for_scaling.get_weights())
     '''refactor the next two operations into extract_reflections?
     reset the normalised values within the scale_factor object to current'''
     self.g_scale.set_normalised_values(reflections_for_scaling[
