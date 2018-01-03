@@ -8,7 +8,7 @@ Unfortunately this currently runs quite slowly on large datasets such as the
 thaumatin tutorial data, particularly the data reshaping before minimisation.
 
 Usage:
-  dials_scratch.multicrystal_scaling integrated.pickle(1) integrated_experiments.json(1) 
+  dials_scratch.multicrystal_scaling integrated.pickle(1) integrated_experiments.json(1)
   integrated.pickle(2) integrated_experiments.json(2) [options]
 
 A number of options can be specified, see the phil_scope below.

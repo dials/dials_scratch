@@ -178,7 +178,7 @@ def main(argv):
 def scale_against_target(reflections, experiments, target_reflections, params):
   """This algorithm performs scaling against a target scaled reflection table"""
   logger.info('\n'+'*'*40+'\n')
-  loaded_reflections = dmf.targeted_datamanager(reflections[0], experiments[0], 
+  loaded_reflections = dmf.targeted_datamanager(reflections[0], experiments[0],
     target_reflections, params)
 
   '''call the optimiser on the Data Manager object'''

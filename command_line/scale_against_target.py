@@ -80,7 +80,7 @@ phil_scope = phil.parse('''
       .help = "Option to specify space group for scaling"
     concurrent_scaling = True
       .type = bool
-      .help = "Option to allow absorption correction after decay/scale, 
+      .help = "Option to allow absorption correction after decay/scale,
               if concurrent_scaling is set to False"
     optimise_error_model = True
       .type = bool
@@ -88,7 +88,7 @@ phil_scope = phil.parse('''
                and additional scale factor minimisation after adjusting weights."
     error_model_params = None
       .type = floats(size=2)
-      .help = "Ability to force an error model adjustment, using the model 
+      .help = "Ability to force an error model adjustment, using the model
               in aimless - factors are called SDFac, SDadd in aimless."
     reject_outliers = True
       .type = bool
@@ -102,7 +102,7 @@ phil_scope = phil.parse('''
               or summation integrated intensities (sum)"
     minimisation_parameterisation = 'standard'
       .type = str
-      .help = "Choice of 'standard' (multiplicative) or 'log' g-value 
+      .help = "Choice of 'standard' (multiplicative) or 'log' g-value
                minimisation parameterisation"
     target = None
       .type = str
@@ -176,7 +176,7 @@ def main(argv):
 def scaling_lbfgs(reflections, experiments, params, logger):
   """This algorithm performs scaling against a target scaled reflection table"""
   logger.info('\n'+'*'*40+'\n')
-  loaded_reflections = dmf.targeted_datamanager(reflections[0], 
+  loaded_reflections = dmf.targeted_datamanager(reflections[0],
     experiments[0], reflections[1], params)
 
   '''call the optimiser on the Data Manager object'''
