@@ -86,7 +86,7 @@ class test_data_manager(aimless_Data_Manager):
     highest_parameter_value = int((max(reflection_table['normalised_time_values'])//1)+3)#was +2
     lowest_parameter_value = int((min(reflection_table['normalised_time_values'])//1)-2)#was -1
     n_decay_parameters =  highest_parameter_value - lowest_parameter_value + 1
-    self.g_decay = SF.SmoothScaleFactor_1D_Bfactor(0.0, n_decay_parameters, reflection_table['d'])
+    self.g_decay = SF.SmoothBScaleFactor1D(0.0, n_decay_parameters, reflection_table['d'])
     #self.g_decay.set_normalised_values(reflection_table['normalised_time_values'])
     self.g_parameterisation['g_decay'] = self.g_decay
 
@@ -100,7 +100,7 @@ class test_data_manager(aimless_Data_Manager):
     highest_parameter_value = int((max(reflection_table['normalised_rotation_angle'])//1)+3)#was +2
     lowest_parameter_value = int((min(reflection_table['normalised_rotation_angle'])//1)-2)#was -1
     n_scale_parameters = highest_parameter_value - lowest_parameter_value + 1
-    self.g_scale = SF.SmoothScaleFactor_1D(1.0, n_scale_parameters)
+    self.g_scale = SF.SmoothScaleFactor1D(1.0, n_scale_parameters)
     #self.g_scale.set_normalised_values(reflection_table['normalised_rotation_angle'])
     self.g_parameterisation['g_scale'] = self.g_scale
 
@@ -108,7 +108,7 @@ class test_data_manager(aimless_Data_Manager):
     n_abs_params = 0
     for i in range(lmax):
       n_abs_params += (2*(i+1))+1
-    self.g_absorption = SF.SphericalAbsorption_ScaleFactor(0.0, n_abs_params,
+    self.g_absorption = SF.SHScaleFactor(0.0, n_abs_params,
       sph_harm_table(reflection_table, lmax))
     self.g_parameterisation['g_absorption'] = self.g_absorption
 
