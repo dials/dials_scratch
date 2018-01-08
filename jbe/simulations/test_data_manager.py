@@ -13,11 +13,11 @@ from dials_scratch.jbe.scaling_code.reflection_weighting import *
 from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
 from dials_scratch.jbe.scaling_code.target_Ih import SingleIhTable
 import matplotlib.pyplot as plt
-from dials_scratch.jbe.scaling_code.data_manager_functions import aimless_Data_Manager
+from dials_scratch.jbe.scaling_code.data_manager_functions import AimlessDataManager
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
 plot_data_absorption, plot_data_modulation, plot_smooth_scales, plot_absorption_surface)
 
-class test_data_manager(aimless_Data_Manager):
+class test_data_manager(AimlessDataManager):
   def __init__(self, reflections, miller_set):
     self.reflection_table = reflections
     self.miller_set = miller_set

@@ -178,7 +178,7 @@ def main(argv):
 def scale_against_target(reflections, experiments, target_reflections, params):
   """This algorithm performs scaling against a target scaled reflection table"""
   logger.info('\n'+'*'*40+'\n')
-  loaded_reflections = dmf.targeted_datamanager(reflections[0], experiments[0],
+  loaded_reflections = dmf.TargetedDataManager(reflections[0], experiments[0],
     target_reflections, params)
 
   '''call the optimiser on the Data Manager object'''
@@ -204,10 +204,10 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
 
   # Initialise the datamanager.
   if params.scaling_options.multi_mode:
-    loaded_reflections = dmf.multicrystal_datamanager(reflections, experiments,
+    loaded_reflections = dmf.MultiCrystalDataManager(reflections, experiments,
       params)
   else:
-    loaded_reflections = dmf.aimless_Data_Manager(reflections[0], experiments[0],
+    loaded_reflections = dmf.AimlessDataManager(reflections[0], experiments[0],
       params)
 
   # for now, assume you always want a scale, therefore option of doing decay also ////fix this?
