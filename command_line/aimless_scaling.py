@@ -38,6 +38,9 @@ phil_scope = phil.parse('''
   debug = False
     .type = bool
     .help = "Output additional debugging information"
+  scaling_method = 'aimless'
+      .type = str
+      .help = "Set method for scaling - 'aimless' or 'KB for simple KB scaling"
   output {
     log = dials_scratch.scaling.log
       .type = str
@@ -114,11 +117,11 @@ def main(argv):
 
   # do the main scaling
   if target_reflections:
-    params.__inject__('scaling_method', 'KB')
     minimised = scale_against_target(reflections, experiments, target_reflections,
       params)
   else:
-    params.__inject__('scaling_method', 'aimless')
+    #params.__inject__('scaling_method', 'aimless') #add this as a command line
+    #parameter when XSCALE choice available?
     minimised = aimless_scaling_lbfgs(reflections, experiments, params)
 
   # calculate R metrics

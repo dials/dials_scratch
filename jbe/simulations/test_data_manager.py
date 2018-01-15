@@ -54,7 +54,7 @@ class test_data_manager(AimlessDataManager):
     '''refactor the next two operations into extract_reflections?
     reset the normalised values within the scale_factor object to current'''
     self.g_scale.set_normalised_values(reflections_for_scaling[
-      'normalised_rotation_angle'])
+      'norm_rot_angle'])
     self.g_decay.set_normalised_values(reflections_for_scaling[
       'normalised_time_values'])
     self.g_decay.set_d_values(reflections_for_scaling['d'])
@@ -95,13 +95,13 @@ class test_data_manager(AimlessDataManager):
     A SmoothScaleFactor_1D object is then initialised'''
     rotation_interval = 15.0
     rotation_interval = rotation_interval + 0.001
-    reflection_table['normalised_rotation_angle'] = reflection_table['xyz'].parts()[2] / rotation_interval
+    reflection_table['norm_rot_angle'] = reflection_table['xyz'].parts()[2] / rotation_interval
     'define the highest and lowest gridpoints: go out two further than the max/min int values'
-    highest_parameter_value = int((max(reflection_table['normalised_rotation_angle'])//1)+3)#was +2
-    lowest_parameter_value = int((min(reflection_table['normalised_rotation_angle'])//1)-2)#was -1
+    highest_parameter_value = int((max(reflection_table['norm_rot_angle'])//1)+3)#was +2
+    lowest_parameter_value = int((min(reflection_table['norm_rot_angle'])//1)-2)#was -1
     n_scale_parameters = highest_parameter_value - lowest_parameter_value + 1
     self.g_scale = SF.SmoothScaleFactor1D(1.0, n_scale_parameters)
-    #self.g_scale.set_normalised_values(reflection_table['normalised_rotation_angle'])
+    #self.g_scale.set_normalised_values(reflection_table['norm_rot_angle'])
     self.g_parameterisation['g_scale'] = self.g_scale
 
   def initialise_absorption_scales(self, reflection_table, lmax):
