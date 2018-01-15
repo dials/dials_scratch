@@ -15,10 +15,12 @@ dataset is used. An 'inverse_scale_factor' column is added to the integrated pic
 file for each dataset (output to an integrated_scaled pickle file), and if there
 are multiple datasets a combined reflection table is also saved.
 
-Simple KB scaling against a target can also be performed, by inputting one dataset
+Scaling against a target can also be performed, by inputting one dataset
 followed by the option target=integrated_scaled.pickle, where integrated_scaled.pickle
 is a reflection table with an 'inverse_scale_factor' column from a previous
 scaling run.
+It is necessary to use the command scaling_method=KB in order to perform simple
+KB scaling of a small-wedge dataset against a target dataset.
 """
 
 from __future__ import absolute_import, division, print_function
