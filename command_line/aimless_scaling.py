@@ -230,7 +230,7 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
     loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
       param_name=param_name).return_data_manager()
     # Optimise the error model and then do another minimisation
-    if params.scaling_options.optimise_error_model:
+    if params.weighting.optimise_error_model:
       loaded_reflections.update_error_model()
       # Second minimisation with new weights
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
@@ -247,7 +247,7 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
       loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
         param_name=['g_absorption']).return_data_manager()
     # Optimise the error model and then do another minimisation
-    if params.scaling_options.optimise_error_model:
+    if params.weighting.optimise_error_model:
       loaded_reflections.update_error_model()
       # Second pass
       if params.parameterisation.decay_term:
