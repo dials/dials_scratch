@@ -998,7 +998,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   /*         std::copy(p2.begin(), p2.end(), profile.begin() + (j+1)*p2.size()); */
   /*       } */
-       
+
   /*       /1* std::cout << "Num reflections " << adjacent_reflections.size() << std::endl; *1/ */
   /*       /1* std::cout << "Mask" << std::endl; *1/ */
   /*       /1* for (std::size_t k = 0; k < m.accessor()[0]; ++k) { *1/ */

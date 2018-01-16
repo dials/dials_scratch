@@ -50,10 +50,10 @@ def process_reference(reference):
 def compute_reference(experiments, reflections, params):
   from dials.algorithms.integration.parallel_integrator import ReferenceCalculatorManager
 
-  
+
   reference_manager = ReferenceCalculatorManager(
-    experiments, 
-    reflections, 
+    experiments,
+    reflections,
     params)
   print reference_manager.summary()
 
@@ -79,12 +79,12 @@ if __name__ == '__main__':
 
   experiments = read_experiments(experiments_filename)
   reflections = read_reflections(reflections_filename)
-  reflections = process_reference(reflections) 
+  reflections = process_reference(reflections)
 
   from dials.command_line.integrate import phil_scope
 
   params = phil_scope.extract()
-  
+
   params.integration.block.size = 20
   params.integration.block.units = "frames"
   params.integration.mp.nproc = 8
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
 
   matched, reference, unmatched = predicted.match_with_reference(reflections)
-    
+
   predicted.compute_bbox(experiments)
 
   print "Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask()
@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
   from time import time
   st = time()
-  
+
   reflections, reference = compute_reference(experiments, predicted, params)
   print "Num used in modelling", reflections.get_flags(reflections.flags.used_in_modelling).count(True)
   print "Time taken: ", time() - st

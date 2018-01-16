@@ -131,7 +131,7 @@ from cctbx import miller
 from cctbx import crystal
 
 def simulate_dataset(ms):
-  
+
   dimensions = (1.5,1,1)
   crystal_points = generate_crystal(dimensions)
   cryst_planes = crystal_planes(dimensions)

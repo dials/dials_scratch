@@ -101,21 +101,21 @@ def read_aimless(unmerged_mtz):
   #indices = intensities.indices()
   observations = []
 
-  for hkl, x,y,z, Isigma, LP, scale in zip(indices, xdet.data(), ydet.data(), rot.data(), 
+  for hkl, x,y,z, Isigma, LP, scale in zip(indices, xdet.data(), ydet.data(), rot.data(),
   intensities, lp.data(), scales.data()):
     observations.append((hkl, (x,y,z), [Isigma[1:2][0], Isigma[2:][0]], 1/scale))
   return observations
 
 
 def read_dials_scaled(reflections):
-  
+
   hkls = reflections['miller_index']
   xs = reflections['xyzobs.px.value'].parts()[0]
   ys = reflections['xyzobs.px.value'].parts()[1]
   zs = reflections['phi']
-  Is = (reflections['intensity.prf.value'] * reflections['lp'] 
+  Is = (reflections['intensity.prf.value'] * reflections['lp']
   / (reflections['dqe'] * reflections['inverse_scale_factor']))
-  sigmas = ((reflections['intensity.prf.variance']**0.5) * reflections['lp'] 
+  sigmas = ((reflections['intensity.prf.variance']**0.5) * reflections['lp']
   / (reflections['dqe'] * reflections['inverse_scale_factor']))
   scales = reflections['inverse_scale_factor']
 
@@ -137,7 +137,7 @@ def main(args):
 
   print 'Read %d observations from %s' % \
         (len(aimless_hkl_xyz_isigi), aimless_scaled_file)
-  
+
   # treat aimless as reference, dials as query
   reference = flex.double()
   query = flex.double()
@@ -187,7 +187,7 @@ def main(args):
   plt.xlabel('Inverse scale factor in DIALS')
   plt.ylabel('Inverse scale factor in aimless')
   plt.axes().set_aspect('equal')
-  plt.title('''Comparison inverse scale factors from aimless and 
+  plt.title('''Comparison inverse scale factors from aimless and
     dials.aimless_scaling, CC = %.5f, R = %.3f''' % (correlation_coefficient, R_factor))
   plt.savefig('Aimless_DIALS_comparison.png')
   plt.show()

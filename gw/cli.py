@@ -47,4 +47,3 @@ class clui(cmd.Cmd):
 if __name__ == '__main__':
     interp = clui()
     interp.cmdloop('DIALS command interpreter')
-

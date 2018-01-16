@@ -25,7 +25,7 @@ def construct_reference(experiments, reference):
 
     assert len(reference) % 9 == 0
     num_scan_points = len(reference) // 9
-    
+
     data_spec = GaussianRSMultiCrystalReferenceProfileData()
     for e in experiments:
 
@@ -60,10 +60,10 @@ def construct_reference(experiments, reference):
 def integrate(experiments, reflections, reference, params):
   from dials.algorithms.integration.parallel_integrator import IntegrationManager
 
-  
+
   integrator_manager = IntegrationManager(
-    experiments, 
-    reflections, 
+    experiments,
+    reflections,
     reference,
     params)
   print integrator_manager.summary()
@@ -113,16 +113,16 @@ if __name__ == '__main__':
   params = phil_scope.extract()
 
   params.integration.mp.nproc = 8
-  
+
   from time import time
   st = time()
 
-  from dials.array_family import flex 
+  from dials.array_family import flex
   reflections["intensity.prf_old.value"] = reflections["intensity.prf.value"]
   reflections["intensity.prf_old.variance"] = reflections["intensity.prf.variance"]
   reflections["intensity.prf.value"] = flex.double(len(reflections))
   reflections["intensity.prf.variance"] = flex.double(len(reflections))
-  
+
   reflections = integrate(experiments, reflections, reference, params)
   print "Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True)
   print "Time taken: ", time() - st

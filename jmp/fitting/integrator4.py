@@ -62,7 +62,7 @@ class IntensityCalculatorFactory(object):
 
     assert len(reference) % 9 == 0
     num_scan_points = len(reference) // 9
-    
+
     data_spec = GaussianRSMultiCrystalReferenceProfileData()
     for e in experiments:
 

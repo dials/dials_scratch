@@ -40,7 +40,3 @@ print "Mean = ", 1
 print "Var = ", 2/(N-1)
 print "Mean D(N-1) = ", mean
 print "Var D(N-1) = ", var
-
-
-
-

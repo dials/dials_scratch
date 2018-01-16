@@ -163,7 +163,7 @@ def run_main(reflections, ms):
 if __name__ == "__main__":
   (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
 
-  
+
   '''m_idx = [(1,0,0),(0,1,0), (-1,0,0), (0,-1,0)]
   intensities = flex.double([5000.0,10000.0,5000.0,10000.0])
   variances = flex.double([1000.0,1000.0,1000.0,1000.0])
