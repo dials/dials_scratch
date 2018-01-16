@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# dials.custard.py
+# dials.integrate_still.py
 #
 #  Copyright (C) 2013 Diamond Light Source
 #

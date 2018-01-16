@@ -418,7 +418,7 @@ class Integrator(object):
     Find the strong spots on the image
 
     '''
-    from dials.algorithms.spot_finding.threshold import XDSThresholdStrategy
+    from dials.algorithms.spot_finding.threshold import DispersionThresholdStrategy
     from dials.model.data import PixelList
     from dials.model.data import PixelListLabeller
     from dials.array_family import flex
@@ -430,7 +430,7 @@ class Integrator(object):
     print ""
 
     # Instantiate the threshold function
-    threshold = XDSThresholdStrategy()
+    threshold = DispersionThresholdStrategy()
 
     # Get the raw data and image mask
     image = self.experiment.imageset.get_raw_data(0)[0]
