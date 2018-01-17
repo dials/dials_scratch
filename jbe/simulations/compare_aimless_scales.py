@@ -62,7 +62,7 @@ def R(calc, obs):
     assert(len(calc) == len(obs))
 
     scale = sum(obs) / sum(calc)
-    print "scale",scale
+    print "scale difference",scale
 
     return sum([math.fabs(math.fabs(o) - math.fabs(scale * c)) \
                 for c, o in zip(calc, obs)]) / \

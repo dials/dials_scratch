@@ -146,20 +146,17 @@ def simulate_dataset(ms):
   reflections_list = []
   miller_indices_list = []
   spot_vectors_list = []
-  for p in range(0, 181, 1):
-  #for p in [0.0,0.5,1.0,1.5,2.0,88.0,88.5,89.0,89.5,90.0]:
-  #for p in range(0, 30, 10):
-    #phi = float(p)
-    phi = float(p*2.0)
+  scan_width = 1.0
+  for p in range(0, 361, 1):
+    phi = float(p * scan_width)
     R = rotation_matrix(phi)
-    #print list(ms.indices())[100:105]
     reciprocal_lattice_points = transform_to_lab_frame(UB, R, ms)
-    #print list(reciprocal_lattice_points)[100:105]
     #calculate scattering vectors of all rlps
     scattering_vectors = calculate_scattering_vectors(k0, reciprocal_lattice_points)
     #determine which scattering vectors will cause a spot on the detector.
     xs, ys, miller_indices, spot_vectors = calculate_spot_positions(scattering_vectors, ms)
     phis = [phi]*len(xs)
+    #zs = [p]*len(xs)
     xyzs = zip(xs, ys, phis)
     reflections_list.extend(xyzs)
     miller_indices_list.extend(miller_indices)
@@ -186,8 +183,8 @@ def simulate_dataset(ms):
     twotheta = acos(((k1[0]*k0[0]) + (k1[1]*k0[1]) + (k1[2]*k0[2])) / mod_of_vec(k1))
     #LP = 1.0 / (sin(twotheta / 2.0) * sin(twotheta))
     #if LP < 0.0:
-    #  print "negative LP calculated"
     #Ilist[idx] = I * LP #* #1e3
+    ##  print "negative LP calculated"
     dlist.append(pi/(sin(twotheta/2.0)*mod_of_vec(k0)))
 
   #add statistical noise to intensity and give a sigma
@@ -204,8 +201,8 @@ def simulate_dataset(ms):
   #return objects
   return reflections_list, miller_indices_list, spot_vectors_list, dlist, Ilist, variance_list
 
-a = 10.0
-b = 10.0
+a = 20.0
+b = 20.0
 c = 15.0
 ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P1",
     unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=2.0)
@@ -222,10 +219,11 @@ k0 = (1.0, 0.0, 0.0)
 #now create a reflection table
 reflections = flex.reflection_table()
 reflections['miller_index'] = miller_indices
-reflections['intensity'] = intensities
-reflections['variance'] = variances
+reflections['intensity.prf.value'] = intensities
+reflections['intensity.prf.variance'] = variances/100.0
 reflections['d'] = flex.double(ds)
-reflections['xyz'] = xyzpositions
+reflections['xyzobs.px.value'] = xyzpositions
+reflections['s1'] = flex.vec3_double(k1s)
 
 #calculate scattering vectors in frame of crystal
 s2d_list = []
@@ -236,6 +234,14 @@ for idx, k1 in enumerate(k1s):
   s2d_list.append(rotate_vector(R, s2))
 
 reflections['s2d'] = flex.vec3_double(s2d_list)
+reflections['dqe'] = flex.double([1.0]*len(reflections))
+reflections['lp'] = flex.double([1.0]*len(reflections))
+reflections.set_flags(flex.bool([True]*len(reflections)), reflections.flags.integrated)
+reflections['id'] = flex.int([0]*len(reflections))
+reflections['intensity.sum.value'] = reflections['intensity.prf.value']
+reflections['intensity.sum.variance'] = reflections['intensity.prf.variance']
+reflections['xyzcal.px'] = reflections['xyzobs.px.value']
+reflections['partiality'] = flex.double([1.0]*len(reflections))
 
 #calculate d-values
 def save_data(minimised,filename):

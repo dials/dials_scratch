@@ -16,18 +16,24 @@ import matplotlib.pyplot as plt
 from dials_scratch.jbe.scaling_code.data_manager_functions import AimlessDataManager
 from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
 plot_data_absorption, plot_data_modulation, plot_smooth_scales, plot_absorption_surface)
+from dials.util.options import OptionParser
+from libtbx import phil
+from dxtbx.model.experiment_list import ExperimentList
+from dxtbx.model import Crystal, Scan, Beam, Goniometer
+
 
 class test_data_manager(AimlessDataManager):
-  def __init__(self, reflections, miller_set):
-    self.reflection_table = reflections
+  def __init__(self, reflections, experiments, params):
+    super(test_data_manager, self).__init__(reflections, experiments, params)
+    """self._reflection_table = reflections
     self.miller_set = miller_set
-    self.initial_keys = [key for key in self.reflection_table.keys()]
-    self.reflection_table['inverse_scale_factor'] = flex.double(
+    self._initial_keys = [key for key in self.reflection_table.keys()]
+    self._reflection_table['inverse_scale_factor'] = flex.double(
       [1.0] * len(self.reflection_table))
-    self.reflection_table['Ih_values'] = flex.double([0.0] * len(self.reflection_table))
-    self.reflection_table = self.map_indices_to_asu(self.reflection_table)
+    self._reflection_table['Ih_values'] = flex.double([0.0] * len(self.reflection_table))
+    self._reflection_table = self.map_indices_to_asu(self.reflection_table)
     'assign initial weights (will be statistical weights at this point)'
-    self.weights_for_scaling = self.update_weights_for_scaling(
+    self.weights_for_scaling = self._update_weights_for_scaling(
       self.reflection_table, weights_filter=False)
     #aimless initialisation
     self.g_absorption = None
@@ -59,9 +65,9 @@ class test_data_manager(AimlessDataManager):
       'normalised_time_values'])
     self.g_decay.set_d_values(reflections_for_scaling['d'])
     self.g_absorption.set_values(sph_harm_table(reflections_for_scaling,
-                                                self.scaling_options['lmax']))
+                                                self.scaling_options['lmax']))"""
 
-  def map_indices_to_asu(self, reflection_table):
+  """def map_indices_to_asu(self, reflection_table):
     '''Create a miller_set object, map to the asu and create a sorted
        reflection table, sorted by asu miller index'''
     reflection_table["asu_miller_index"] = self.miller_set.map_to_asu().indices()
@@ -128,7 +134,7 @@ class test_data_manager(AimlessDataManager):
         gradient_vector.extend(flex.double([0.0]*apm.active_params_list[i]))
       elif param == 'g_absorption':
         gradient_vector.extend(gradient)
-    return (residual, gradient_vector)
+    return (residual, gradient_vector)"""
 
 def load_data(filename):
   data_file = open(filename)
@@ -136,16 +142,15 @@ def load_data(filename):
   data_file.close()
   return data
 
-def run_main(reflections, ms):
+def run_main(reflections, experiments, params):
   #(reflections, ms) = load_data('test_dataset_mu5.pickle')
+  loaded_reflections = test_data_manager(reflections, experiments, params)
 
-
-  loaded_reflections = test_data_manager(reflections, ms)
 
   minimised = mf.LBFGS_optimiser(loaded_reflections,
-                                 param_name=['g_scale','g_absorption']).return_data_manager()
-  print list(minimised.g_absorption.get_scale_factors())
-  #print list(minimised.active_parameters)
+    param_name=['g_scale', 'g_decay', 'g_absorption']).return_data_manager()
+  #print list(minimised.g_absorption.inverse_scales)
+  #print list(minimised.apm.active_parameters)
   minimised.expand_scales_to_all_reflections()
 
   Rpim, Rmeas = R_pim_meas(minimised)
@@ -156,35 +161,45 @@ def run_main(reflections, ms):
   plot_absorption_surface(minimised)
   print "Saved plots of correction factors"
 
-  minimised.save_reflection_table('integrated_scaled.pickle')
-  print "Saved output to %s" % ('integrated_scaled.pickle')
+  print(len(reflections))
+
+  minimised.save_reflection_table('synthetic_scaled.pickle')
+  print "Saved output to %s" % ('synthetic_scaled.pickle')
+
+
+def generate_test_input():
+  (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
+  
+  #json.dump(datablock, open(datablock_json, 'w'))
+
+
+  experiments = ExperimentList()
+  exp_dict = {"__id__" : "crystal", "real_space_a": [20.0, 0.0, 0.0],
+              "real_space_b": [0.0, 20.0, 0.0], "real_space_c": [0.0, 0.0, 15.0],
+              "space_group_hall_symbol": " P 4"}
+  experiments.crystal = Crystal.from_dict(exp_dict)
+  experiments.scan = Scan(image_range=[0, 360], oscillation=[0.0, 1.0])
+  experiments.beam = Beam(s0=(0.0, 0.0, 1.01))
+  experiments.goniometer = Goniometer((1.0, 0.0, 0.0))
+
+
+
+  phil_scope = phil.parse('''
+      include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
+  ''', process_includes=True)
+
+  optionparser = OptionParser(phil=phil_scope, check_format=False)
+  parameters, _ = optionparser.parse_args(args=None, quick_parse=True,
+    show_diff_phil=False)
+  parameters.__inject__('scaling_method', 'aimless')
+  parameters.scaling_options.__inject__('multi_mode', False)
+  return (reflections, experiments, parameters)
+
 
 ##########
 if __name__ == "__main__":
   (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
 
+  reflections, experiments, params = generate_test_input()
 
-  '''m_idx = [(1,0,0),(0,1,0), (-1,0,0), (0,-1,0)]
-  intensities = flex.double([5000.0,10000.0,5000.0,10000.0])
-  variances = flex.double([1000.0,1000.0,1000.0,1000.0])
-  s2d = flex.vec3_double([(1.0,0.0,0.0),(0.0,1.0,0.0),(-1.0,0.0,0.0),(0.0,-1.0,0.0)])
-  ds = [2.0,2.0, 2.0,2.0]
-  refls = [(1.0,0.0,0.0),(1.0,0.0,0.0),(1.0,0.0,0.0),(1.0,0.0,0.0)]
-  xyzpositions = flex.vec3_double(refls)
-  miller_indices = flex.miller_index(m_idx)
-
-  reflections = flex.reflection_table()
-  reflections['miller_index'] = miller_indices
-  reflections['intensity'] = intensities
-  reflections['variance'] = variances
-  reflections['d'] = flex.double(ds)
-  reflections['s2d'] = s2d
-  reflections['xyz'] = xyzpositions
-
-  ms = miller.set(crystal_symmetry=crystal.symmetry(
-    space_group_symbol="P4",
-        unit_cell=(6,6,6,90,90,90)),
-        anomalous_flag=False,
-        indices=miller_indices)'''
-
-  run_main(reflections,ms)
+  run_main(reflections, experiments, params)
