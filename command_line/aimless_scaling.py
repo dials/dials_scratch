@@ -200,6 +200,7 @@ def scale_against_target(reflections, experiments, target_reflections, params):
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
+  loaded_reflections.export_parameters_to_json()
   return loaded_reflections
 
 
@@ -265,6 +266,7 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
   loaded_reflections.expand_scales_to_all_reflections()
   if params.scaling_options.multi_mode:
     loaded_reflections.join_multiple_datasets()
+  loaded_reflections.export_parameters_to_json()
   return loaded_reflections
 
 
