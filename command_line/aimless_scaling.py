@@ -24,9 +24,9 @@ KB scaling of a small-wedge dataset against a target dataset.
 """
 
 from __future__ import absolute_import, division, print_function
-import libtbx.load_env
+#import libtbx.load_env
 import time
-start_time=time.time()
+start_time = time.time()
 import logging
 logger = logging.getLogger('dials.scale')
 
@@ -53,6 +53,9 @@ phil_scope = phil.parse('''
     plot_scalefactors = True
       .type = bool
       .help = "Option to switch off scalefactor plotting."
+    plot_merging_stats = False
+      .type = bool
+      .help = "Option to switch on plotting of merging stats."
   }
   include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
 ''', process_includes=True)
@@ -68,10 +71,8 @@ def main(argv):
   optionparser = OptionParser(usage=__doc__.strip(), read_experiments=True,
     read_reflections=True, read_datablocks=False, phil=phil_scope,
     check_format=False)
-  params, options = optionparser.parse_args(argv, show_diff_phil=False)
+  params, _ = optionparser.parse_args(argv, show_diff_phil=False)
 
-  import libtbx.load_env
-  from libtbx.utils import Sorry
   from dials.util import log
   log.config(verbosity=1, info=params.output.log, debug=params.output.debug_log)
 
@@ -126,24 +127,29 @@ def main(argv):
     #parameter when XSCALE choice available?
     minimised = aimless_scaling_lbfgs(reflections, experiments, params)
 
-  # calculate R metrics
-  if not params.scaling_options.target:
-    logger.info('Calculating metrics for scaling quality assessment.')
-    '''calculate R metrics'''
-    if params.scaling_options.multi_mode:
-      Rpim, Rmeas = R_pim_meas(minimised)
-      logger.info(("R_meas of the combined scaled dataset is {0:.6f}").format(Rmeas))
-      logger.info(("R_pim of the combined scaled dataset is {0:.6f} {sep}").format(
-        Rpim, sep='\n'))
-      for j, dm in enumerate(minimised.data_managers):
-        Rpim, Rmeas = R_pim_meas(dm)
-        logger.info(("R_meas of the scaled dataset {0} is {1:.6f}").format(j+1, Rmeas))
-        logger.info(("R_pim of the scaled dataset {0} is {1:.6f} {sep}").format(
-          j+1, Rpim, sep='\n'))
+  #calculate merging stats
+  results = minimised.calc_merging_statistics()
+  logger.info('*'*40)
+  logger.info("Dataset statistics")
+  labels = []
+  #result.overall.show_summary(out=log.info_handle(logger))
+  for i, result in enumerate(results):
+    if len(results) == 1:
+      logger.info("")
+      result.overall.show_summary()
+      labels.append('Single dataset ')
     else:
-      Rpim, Rmeas = R_pim_meas(minimised)
-      logger.info(("R_meas of the scaled dataset is {0:.6f}").format(Rmeas))
-      logger.info(("R_pim of the scaled dataset is {0:.6f} {sep}").format(Rpim, sep='\n'))
+      if i < len(results) - 1:
+        logger.info("\nStatistics for dataset " + str(i+1))
+        result.overall.show_summary()
+        labels.append('Dataset ' + str(i+1))
+      else:
+        logger.info("\nStatistics for combined datasets")
+        result.overall.show_summary()
+        labels.append('Combined datasets')
+  if params.output.plot_merging_stats:
+    from xia2.command_line.compare_merging_stats import plot_merging_stats
+    plot_merging_stats(results, labels=labels)
 
   # Plot scalefactors
   if params.output.plot_scalefactors and not params.scaling_options.target:
@@ -166,10 +172,10 @@ def main(argv):
     for j, dm in enumerate(minimised.data_managers):
       dm.clean_reflection_table()
       dm.save_reflection_table('integrated_scaled_'+str(j+1)+'.pickle')
-      logger.info(('Saved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
+      logger.info(('\nSaved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
   elif params.scaling_options.target:
     minimised.dm1.save_reflection_table('integrated_targetscaled.pickle')
-    logger.info("Saved output to " + str('integrated_targetscaled.pickle'))
+    logger.info("\nSaved output to " + str('integrated_targetscaled.pickle'))
   else:
     minimised.clean_reflection_table()
     minimised.save_reflection_table('integrated_scaled.pickle')
@@ -267,6 +273,7 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
   if params.scaling_options.multi_mode:
     loaded_reflections.join_multiple_datasets()
   loaded_reflections.export_parameters_to_json()
+  #loaded_reflections.create_miller_output_array()
   return loaded_reflections
 
 
