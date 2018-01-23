@@ -56,9 +56,6 @@ phil_scope = phil.parse('''
     plot_merging_stats = False
       .type = bool
       .help = "Option to switch on plotting of merging stats."
-    export_to_json = True
-      .type = bool
-      .help = "Option to switch off exporting model parameters to son."
     experiments = "scaled_experiments.json"
       .type = str
       .help = "Option to set filepath for output json."
@@ -98,25 +95,6 @@ def main(argv):
   # Unwrap all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
-
-  target_reflections = None
-  if params.scaling_options.target:
-    target_params, _ = optionparser.parse_args([params.scaling_options.target])
-    target_reflections = flatten_reflections(target_params.input.reflections)[0]
-    logger.info(('{0} has been selected as a target dataset for scaling. \n').format(
-      params.scaling_options.target))
-
-  initial_target_reflections = None
-  if params.scaling_options.scale_with:
-    target_params, _ = optionparser.parse_args([params.scaling_options.scale_with])
-    initial_target_reflections = flatten_reflections(target_params.input.reflections)[0]
-    logger.info(('{0} has been selected as a dataset to scale with. \n').format(
-      params.scaling_options.scale_with))
-
-  # how to make sure correct experiments/reflections are matched for multiple datasets?
-
-  # Check number of input files and determine whether multi mode or not.
-  
   
   if params.scaling_options.minimisation_parameterisation not in ['standard', 'log']:
     msg = ('Invalid minimisation parameterisation choice, proceeding using {sep}'
@@ -125,22 +103,28 @@ def main(argv):
     params.scaling_options.minimisation_parameterisation = 'standard'
 
   #additional parsing to determine the type of reflection files.
+  n_already_scaled = 0
   if len(reflections) > 1:
     single_reflection_tables = []
+    is_already_scaled = []
     for refl_table in reflections:
       if 'dataset_id' in refl_table.keys():
         if refl_table['dataset_id'].count(0) < len(refl_table):
           dataset_ids = set(refl_table['dataset_id'])
-          print(('Detected existence of a multi-dataset scaled reflection table, {sep}'
+          logger.info(('Detected existence of a multi-dataset scaled reflection table, {sep}'
             'containing {0} datasets. {sep}').format(len(dataset_ids), sep='\n'))
           for dataset_id in dataset_ids:
             single_refl_table = refl_table.select(refl_table['dataset_id'] == dataset_id)
             single_reflection_tables.append(single_refl_table)
-          print("Successfully parsed multiple scaled reflection tables. \n")
+            n_already_scaled += 1
+            is_already_scaled.append(True)
+          logger.info("Successfully parsed multiple scaled reflection tables. \n")
         else:
           single_reflection_tables.append(refl_table)
+          is_already_scaled.append(True)
       else:
         single_reflection_tables.append(refl_table)
+        is_already_scaled.append(False)
     reflections = single_reflection_tables
 
   len_refl = len(reflections)
@@ -156,18 +140,11 @@ def main(argv):
 
   #first create the scaling model
   experiments = ScalingModelFactory.Factory.create(params, experiments, reflections)
-  
-  # do the main scaling
-  if target_reflections:
-    minimised = scale_against_target(reflections, experiments, target_reflections,
-      params)
-  elif initial_target_reflections:
-    initial_minimised = scale_against_target(reflections, experiments, initial_target_reflections,
-      params)
-    minimised = aimless_scaling_lbfgs([initial_minimised.reflection_table], experiments, params)
+
+  #do initial targeted scaling if some already scaled.
+  if n_already_scaled > 0 and n_already_scaled != len_refl:
+    minimised = scale_against_target(reflections, experiments, is_already_scaled, params)
   else:
-    #params.__inject__('scaling_method', 'aimless') #add this as a command line
-    #parameter when XSCALE choice available?
     minimised = aimless_scaling_lbfgs(reflections, experiments, params)
 
   #calculate merging stats
@@ -210,48 +187,37 @@ def main(argv):
         plot_absorption_surface(minimised)
     logger.info('Saved plots of correction factors. \n')
 
-  
   def save_experiments(experiments, filename):
     ''' Save the profile model parameters. '''
-    import json
     from time import time
     from dxtbx.model.experiment_list import ExperimentListDumper
     st = time()
+    logger.info('\nSaving the experiments to %s' % filename)
     dump = ExperimentListDumper(experiments)
     with open(filename, "w") as outfile:
       outfile.write(dump.as_json(split=True))
-    logger.info(' time taken: %g' % (time() - st))
+    logger.info('Time taken: %g' % (time() - st))
 
+  #save scaled_experiments.json file
   save_experiments(experiments, params.output.experiments)
-
-
   # Clean up reflection table for outputting and save data
-  if params.scaling_options.multi_mode:
-    #for j, dm in enumerate(minimised.data_managers):
-    #  dm.clean_reflection_table()
-    #  dm.save_reflection_table('integrated_scaled_'+str(j+1)+'.pickle')
-    #  logger.info(('\nSaved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
-    minimised.clean_reflection_table()
-    minimised.save_reflection_table('integrated_scaled.pickle')
-    logger.info('\nSaved output to integrated_scaled.pickle')
-  elif params.scaling_options.target:
-    minimised.dm1.save_reflection_table('integrated_targetscaled.pickle')
-    logger.info("\nSaved output to " + str('integrated_targetscaled.pickle'))
-  else:
-    minimised.clean_reflection_table()
-    minimised.save_reflection_table('integrated_scaled.pickle')
-    logger.info(('\nSaved output to {0}').format('integrated_scaled.pickle'))
+  minimised.clean_reflection_table()
+  minimised.save_reflection_table('integrated_scaled.pickle')
+  logger.info(('\nSaved reflection table to {0}').format('integrated_scaled.pickle'))
 
   # All done!
   finish_time=time.time()
-  logger.info("\nTime taken: {0:.4f}s ".format((finish_time - start_time)))
+  logger.info("\nTotal time taken: {0:.4f}s ".format((finish_time - start_time)))
   logger.info('\n'+'*'*40+'\n')
 
-def scale_against_target(reflections, experiments, target_reflections, params):
+  
+
+def scale_against_target(reflections, experiments, is_already_scaled, params):
   """This algorithm performs scaling against a target scaled reflection table"""
   logger.info('\n'+'*'*40+'\n')
-  loaded_reflections = dmf.TargetedDataManager(reflections[0], experiments[0],
-    target_reflections, params)
+  params.scaling_options.multi_mode = False
+  loaded_reflections = dmf.TargetedDataManager(reflections, experiments,
+    is_already_scaled, params)
 
   '''call the optimiser on the Data Manager object'''
   param_name = []
@@ -259,6 +225,8 @@ def scale_against_target(reflections, experiments, target_reflections, params):
     param_name.append('g_scale')
   if params.parameterisation.decay_term:
     param_name.append('g_decay')
+  if params.parameterisation.absorption_term:
+    param_name.append('g_absorption')
   if not param_name:
       assert 0, 'no parameters have been chosen for scaling, aborting process'
   loaded_reflections = mf.LBFGS_optimiser(loaded_reflections,
@@ -268,17 +236,29 @@ def scale_against_target(reflections, experiments, target_reflections, params):
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
 
-  return loaded_reflections
+  #reflections = [i.reflection_table for i in loaded_reflections.data_managers]
+  #experiments = [i.experiments for i in loaded_reflections.data_managers]
+  #reflections.append(loaded_reflections.dm1.reflection_table)
+  #experiments.append(loaded_reflections.dm1.experiments)
+  loaded_reflections.params.scaling_options.multi_mode = True
+  return aimless_scaling_lbfgs(multi_data_manager=loaded_reflections,
+    reflections=None, experiments=None, params=loaded_reflections.params)#reflections, experiments, params)
 
 
-def aimless_scaling_lbfgs(reflections, experiments, params):
+def aimless_scaling_lbfgs(reflections, experiments, params, multi_data_manager=None):
   """This algorithm performs an aimless-like scaling"""
   logger.info('\n'+'*'*40+'\n')
 
   # Initialise the datamanager.
   if params.scaling_options.multi_mode:
-    loaded_reflections = dmf.MultiCrystalDataManager(reflections, experiments,
-      params)
+    if multi_data_manager is not None:
+      loaded_reflections = dmf.MultiCrystalDataManager()
+      loaded_reflections.init_from_datamanager(
+        multi_data_manager)
+    else:
+      loaded_reflections = dmf.MultiCrystalDataManager()
+      loaded_reflections.init_from_refl_tables(
+        reflections, experiments, params)
   else:
     loaded_reflections = dmf.AimlessDataManager(reflections[0], experiments[0],
       params)
