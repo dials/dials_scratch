@@ -19,7 +19,7 @@ Scaling against a target can also be performed, by inputting one dataset
 followed by the option target=integrated_scaled.pickle, where integrated_scaled.pickle
 is a reflection table with an 'inverse_scale_factor' column from a previous
 scaling run.
-It is necessary to use the command scaling_method=KB in order to perform simple
+It is necessary to use the command scaling_model=KB in order to perform simple
 KB scaling of a small-wedge dataset against a target dataset.
 """
 
@@ -40,7 +40,7 @@ phil_scope = phil.parse('''
   debug = False
     .type = bool
     .help = "Output additional debugging information"
-  scaling_method = 'aimless'
+  scaling_model = 'aimless'
       .type = str
       .help = "Set method for scaling - 'aimless' or 'KB for simple KB scaling"
   output {
@@ -56,6 +56,12 @@ phil_scope = phil.parse('''
     plot_merging_stats = False
       .type = bool
       .help = "Option to switch on plotting of merging stats."
+    export_to_json = True
+      .type = bool
+      .help = "Option to switch off exporting model parameters to son."
+    experiments = "scaled_experiments.json"
+      .type = str
+      .help = "Option to set filepath for output json."
   }
   include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
 ''', process_includes=True)
@@ -63,7 +69,7 @@ phil_scope = phil.parse('''
 
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import data_manager_functions as dmf
-from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
+from dials_scratch.jbe.scaling_code import ScalingModelFactory
 
 def main(argv):
   '''main script to run the scaling algorithm'''
@@ -95,15 +101,51 @@ def main(argv):
 
   target_reflections = None
   if params.scaling_options.target:
-    target_params, options = optionparser.parse_args([params.scaling_options.target])
+    target_params, _ = optionparser.parse_args([params.scaling_options.target])
     target_reflections = flatten_reflections(target_params.input.reflections)[0]
     logger.info(('{0} has been selected as a target dataset for scaling. \n').format(
       params.scaling_options.target))
+
+  initial_target_reflections = None
+  if params.scaling_options.scale_with:
+    target_params, _ = optionparser.parse_args([params.scaling_options.scale_with])
+    initial_target_reflections = flatten_reflections(target_params.input.reflections)[0]
+    logger.info(('{0} has been selected as a dataset to scale with. \n').format(
+      params.scaling_options.scale_with))
+
   # how to make sure correct experiments/reflections are matched for multiple datasets?
 
   # Check number of input files and determine whether multi mode or not.
+  
+  
+  if params.scaling_options.minimisation_parameterisation not in ['standard', 'log']:
+    msg = ('Invalid minimisation parameterisation choice, proceeding using {sep}'
+           'using standard g-value parameterisation').format(sep='\n')
+    logger.info(msg)
+    params.scaling_options.minimisation_parameterisation = 'standard'
+
+  #additional parsing to determine the type of reflection files.
+  if len(reflections) > 1:
+    single_reflection_tables = []
+    for refl_table in reflections:
+      if 'dataset_id' in refl_table.keys():
+        if refl_table['dataset_id'].count(0) < len(refl_table):
+          dataset_ids = set(refl_table['dataset_id'])
+          print(('Detected existence of a multi-dataset scaled reflection table, {sep}'
+            'containing {0} datasets. {sep}').format(len(dataset_ids), sep='\n'))
+          for dataset_id in dataset_ids:
+            single_refl_table = refl_table.select(refl_table['dataset_id'] == dataset_id)
+            single_reflection_tables.append(single_refl_table)
+          print("Successfully parsed multiple scaled reflection tables. \n")
+        else:
+          single_reflection_tables.append(refl_table)
+      else:
+        single_reflection_tables.append(refl_table)
+    reflections = single_reflection_tables
+
   len_refl = len(reflections)
   len_exp = len(experiments)
+
   if len_refl > 1 and len_exp > 1 and (len_exp == len_refl):
     params.scaling_options.__inject__('multi_mode', True)
   elif len_refl == 1 and len_exp == 1:
@@ -112,16 +154,17 @@ def main(argv):
     assert 0, """Incorrect number of reflection and/or experiment files entered
     in the command line: must be an equal number of each"""
 
-  if params.scaling_options.minimisation_parameterisation not in ['standard', 'log']:
-    msg = ('Invalid minimisation parameterisation choice, proceeding using {sep}'
-           'using standard g-value parameterisation').format(sep='\n')
-    logger.info(msg)
-    params.scaling_options.minimisation_parameterisation = 'standard'
-
+  #first create the scaling model
+  experiments = ScalingModelFactory.Factory.create(params, experiments, reflections)
+  
   # do the main scaling
   if target_reflections:
     minimised = scale_against_target(reflections, experiments, target_reflections,
       params)
+  elif initial_target_reflections:
+    initial_minimised = scale_against_target(reflections, experiments, initial_target_reflections,
+      params)
+    minimised = aimless_scaling_lbfgs([initial_minimised.reflection_table], experiments, params)
   else:
     #params.__inject__('scaling_method', 'aimless') #add this as a command line
     #parameter when XSCALE choice available?
@@ -167,12 +210,30 @@ def main(argv):
         plot_absorption_surface(minimised)
     logger.info('Saved plots of correction factors. \n')
 
+  
+  def save_experiments(experiments, filename):
+    ''' Save the profile model parameters. '''
+    import json
+    from time import time
+    from dxtbx.model.experiment_list import ExperimentListDumper
+    st = time()
+    dump = ExperimentListDumper(experiments)
+    with open(filename, "w") as outfile:
+      outfile.write(dump.as_json(split=True))
+    logger.info(' time taken: %g' % (time() - st))
+
+  save_experiments(experiments, params.output.experiments)
+
+
   # Clean up reflection table for outputting and save data
   if params.scaling_options.multi_mode:
-    for j, dm in enumerate(minimised.data_managers):
-      dm.clean_reflection_table()
-      dm.save_reflection_table('integrated_scaled_'+str(j+1)+'.pickle')
-      logger.info(('\nSaved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
+    #for j, dm in enumerate(minimised.data_managers):
+    #  dm.clean_reflection_table()
+    #  dm.save_reflection_table('integrated_scaled_'+str(j+1)+'.pickle')
+    #  logger.info(('\nSaved output to {0}').format('integrated_scaled_'+str(j+1)+'.pickle'))
+    minimised.clean_reflection_table()
+    minimised.save_reflection_table('integrated_scaled.pickle')
+    logger.info('\nSaved output to integrated_scaled.pickle')
   elif params.scaling_options.target:
     minimised.dm1.save_reflection_table('integrated_targetscaled.pickle')
     logger.info("\nSaved output to " + str('integrated_targetscaled.pickle'))
@@ -206,7 +267,7 @@ def scale_against_target(reflections, experiments, target_reflections, params):
   '''the minimisation has only been done on a subset on the data, so apply the
   scale factors to the sorted reflection table.'''
   loaded_reflections.expand_scales_to_all_reflections()
-  loaded_reflections.export_parameters_to_json()
+
   return loaded_reflections
 
 
@@ -272,8 +333,6 @@ def aimless_scaling_lbfgs(reflections, experiments, params):
   loaded_reflections.expand_scales_to_all_reflections()
   if params.scaling_options.multi_mode:
     loaded_reflections.join_multiple_datasets()
-  loaded_reflections.export_parameters_to_json()
-  #loaded_reflections.create_miller_output_array()
   return loaded_reflections
 
 
