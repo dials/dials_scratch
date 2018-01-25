@@ -32,6 +32,7 @@ from libtbx import phil
 from dials_scratch.jbe.scaling_code import minimiser_functions as mf
 from dials_scratch.jbe.scaling_code import ScalingModelFactory
 from dials_scratch.jbe.scaling_code import ScalerFactory
+from dials_scratch.jbe.scaling_code import ParameterHandler
 
 start_time = time.time()
 logger = logging.getLogger('dials.scale')
@@ -40,8 +41,8 @@ phil_scope = phil.parse('''
   debug = False
     .type = bool
     .help = "Output additional debugging information"
-  scaling_model = 'aimless'
-      .type = str
+  scaling_model = aimless
+      .type = choice
       .help = "Set method for scaling - 'aimless' or 'KB for simple KB scaling"
   output {
     log = dials_scratch.scaling.log
@@ -64,6 +65,7 @@ phil_scope = phil.parse('''
       .help = "Option to set filepath for output pickle file of scaled intensities."
   }
   include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
+  include scope dials_scratch.jbe.scaling_code.ScalingModelFactory.phil_scope
 ''', process_includes=True)
 
 def main(argv):
@@ -84,33 +86,51 @@ def main(argv):
   from dials.util.version import dials_version
   logger.info(dials_version())
 
-  # Log the diff phil
   diff_phil = optionparser.diff_phil.as_str()
   if diff_phil is not '':
     logger.info('The following parameters have been modified:\n')
     logger.info(diff_phil)
 
-  # Unwrap all of the data objects from the PHIL parser
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
 
-  #put this bit somewhere else?
-  if params.scaling_options.minimisation_parameterisation not in ['standard', 'log']:
-    msg = ('Invalid minimisation parameterisation choice, proceeding using {sep}'
-           'using standard g-value parameterisation').format(sep='\n')
-    logger.info(msg)
-    params.scaling_options.minimisation_parameterisation = 'standard'
+  def parse_multiple_datasets(reflections):
+    'method to parse multiple datasets to see if any have already been scaled.'
+    single_reflection_tables = []
+    for refl_table in reflections:
+      if 'dataset_id' in refl_table.keys():
+        dataset_ids = set(refl_table['dataset_id'])
+        if len(dataset_ids) > 1: #more than one scaled dataset in refl_tab
+          logger.info(('\nDetected existence of a multi-dataset scaled reflection table {sep}'
+            'containing {0} datasets. {sep}').format(len(dataset_ids), sep='\n'))
+          for dataset_id in dataset_ids:
+            single_refl_table = refl_table.select(refl_table['dataset_id'] == dataset_id)
+            single_reflection_tables.append(single_refl_table)
+        else: #only one already scaled dataset in refl_tab
+          single_reflection_tables.append(refl_table)
+      else: #refl_table has not previously been scaled
+        single_reflection_tables.append(refl_table)
+    logger.info("Found %s reflection tables in total." % len(single_reflection_tables))
+    return single_reflection_tables
 
-  #first create the scaling model
+  if len(experiments) != 1:
+    logger.info(('Checking for the existence of a reflection table containing {sep}'
+    'multiple scaled datasets. {sep}').format(sep='\n'))
+    reflections = parse_multiple_datasets(reflections)
+    logger.info("Found %s experiments in total." % len(experiments))
+    logger.info('\n'+'*'*40)
+
+  assert len(experiments) == len(reflections), ''' mismatched number of
+  experiments and reflection tables found'''
+
+  '''first create the scaling model'''
   experiments = ScalingModelFactory.Factory.create(params, experiments, reflections)
 
-  #now create the scaler
+  '''now create the scaler and do the scaling'''
   scaler = ScalerFactory.Factory.create(params, experiments, reflections)
-
-  #do the scaling
   minimised = lbfgs_scaling(scaler)
 
-  #calculate merging stats
+  '''calculate merging stats'''
   results = minimised.calc_merging_statistics()
   logger.info('*'*40)
   logger.info("Dataset statistics")
@@ -130,25 +150,21 @@ def main(argv):
         logger.info("\nStatistics for combined datasets")
         result.overall.show_summary()
         plot_labels.append('Combined datasets')
+  
+  '''plot merging stats if requested'''
   if params.output.plot_merging_stats:
     from xia2.command_line.compare_merging_stats import plot_merging_stats
     plot_merging_stats(results, labels=plot_labels)
 
-
-  #save scaled_experiments.json file
+  '''save scaled_experiments.json file'''
   save_experiments(experiments, params.output.experiments_out)
 
-  # Clean up reflection table for outputting and save data
-  minimised.clean_reflection_table()
-  minimised.save_reflection_table(params.output.scaled_out)
-  logger.info(('\nSaved reflection table to {0}').format(params.output.scaled_out))
-
-  # Plot scalefactors
-  if params.output.plot_scalefactors and not params.scaling_options.target:
+  '''plot scalefactors if requested'''
+  if params.output.plot_scalefactors:# and not params.scaling_options.target:
     from dials_scratch.jbe.scaling_code.data_plotter import (plot_smooth_scales,
       plot_absorption_surface)
     logger.info('\nPlotting graphs of scale factors. \n')
-    if params.scaling_options.multi_mode:
+    if isinstance(scaler, ScalerFactory.MultiScaler):
       for j, dm in enumerate(minimised.data_managers):
         plot_smooth_scales(dm, outputfile='smooth_scale_factors_'+str(j+1)+'.png')
         if params.parameterisation.absorption_term:
@@ -159,86 +175,54 @@ def main(argv):
         plot_absorption_surface(minimised)
     logger.info('Saved plots of correction factors. \n')
 
-  # All done!
+    '''Clean up reflection table for outputting and save data'''
+  minimised.clean_reflection_table()
+  minimised.save_reflection_table(params.output.scaled_out)
+  logger.info(('\nSaved reflection table to {0}').format(params.output.scaled_out))
+
+  '''All done!'''
   finish_time = time.time()
   logger.info("\nTotal time taken: {0:.4f}s ".format((finish_time - start_time)))
   logger.info('\n'+'*'*40+'\n')
 
 def lbfgs_scaling(scaler):
   '''main function to do lbfbs scaling'''
-  logger.info('\n'+'*'*40+'\n')
-
-  scaler.params.scaling_options.__inject__('multi_mode', False)
 
   if isinstance(scaler, ScalerFactory.TargetScaler):
-    #do a prescaling round against a target
-    param_name = []
-    if scaler.params.parameterisation.scale_term:
-      param_name.append('g_scale')
-    if scaler.params.parameterisation.decay_term:
-      param_name.append('g_decay')
-    if scaler.params.parameterisation.absorption_term:
-      param_name.append('g_absorption')
-    if not param_name:
-        assert 0, 'no parameters have been chosen for scaling, aborting process'
+    '''do a scaling round against a target of already scaled datasets'''
+    param_name = ParameterHandler.ParameterlistFactory.full_active_list(scaler.params)
+    '''Pass the scaler to the optimiser'''
     scaler = mf.LBFGS_optimiser(scaler,
-      param_name=param_name).return_data_manager()
+      param_name=param_name[0]).return_scaler()
 
     '''the minimisation has only been done on a subset on the data, so apply the
     scale factors to the sorted reflection table.'''
     scaler.expand_scales_to_all_reflections()
-    #now pass to a multiscaler
+    if scaler.params.scaling_options.only_target is True:
+      scaler.join_multiple_datasets()
+      return scaler
+    '''now pass to a multiscaler ready for next round of scaling.'''
     scaler = ScalerFactory.MultiScalerFactory.create_from_targetscaler(scaler)
 
-  #from here onwards, scaler should only be a SingleScaler
-  #or MultiScaler (not TargetScaler)
-  if isinstance(scaler, ScalerFactory.MultiScaler):
-    scaler.params.scaling_options.multi_mode = True
-
+  '''from here onwards, scaler should only be a SingleScaler
+  or MultiScaler (not TargetScaler)'''
   if scaler.params.scaling_options.concurrent_scaling:
-    param_name = ['g_scale'] # force a scale term for now
-    if scaler.params.parameterisation.decay_term:
-      param_name.append('g_decay')
-    if scaler.params.parameterisation.absorption_term:
-      param_name.append('g_absorption')
-    if not param_name:
-      assert 0, 'no parameters have been chosen for scaling, aborting process'
-    # Call the optimiser on the Data Manager object
+    param_name = ParameterHandler.ParameterlistFactory.full_active_list(scaler.params)
+  else:
+    param_name = ParameterHandler.ParameterlistFactory.consecutive_list(scaler.params)
+  for param in param_name:
+    '''Pass the scaler to the optimiser'''
     scaler = mf.LBFGS_optimiser(scaler,
-      param_name=param_name).return_data_manager()
-    # Optimise the error model and then do another minimisation
-    if scaler.params.weighting.optimise_error_model:
-      scaler.update_error_model()
-      # Second minimisation with new weights
+      param_name=param).return_scaler()
+  '''Optimise the error model and then do another minimisation'''
+  if scaler.params.weighting.optimise_error_model:
+    scaler.update_error_model()
+    for param in param_name:
       scaler = mf.LBFGS_optimiser(scaler,
-        param_name=param_name).return_data_manager()
+        param_name=param).return_scaler()
 
-  else: # Not concurrent_scaling, so do scale/decay term first then absorption
-    if scaler.params.parameterisation.decay_term:
-      scaler = mf.LBFGS_optimiser(scaler,
-        param_name=['g_scale', 'g_decay']).return_data_manager()
-    else: #just do scale factor if you don't want decay.
-      scaler = mf.LBFGS_optimiser(scaler,
-        param_name=['g_scale']).return_data_manager()
-    if scaler.params.parameterisation.absorption_term:
-      scaler = mf.LBFGS_optimiser(scaler,
-        param_name=['g_absorption']).return_data_manager()
-    # Optimise the error model and then do another minimisation
-    if scaler.params.weighting.optimise_error_model:
-      scaler.update_error_model()
-      # Second pass
-      if scaler.params.parameterisation.decay_term:
-        scaler = mf.LBFGS_optimiser(scaler,
-          param_name=['g_scale', 'g_decay']).return_data_manager()
-      else: #just do scale factor if you don't want decay.
-        scaler = mf.LBFGS_optimiser(scaler,
-          param_name=['g_scale']).return_data_manager()
-      if scaler.params.parameterisation.absorption_term:
-        scaler = mf.LBFGS_optimiser(scaler,
-          param_name=['g_absorption']).return_data_manager()
-
-  # The minimisation has only been done on a subset on the data, so apply the
-  # scale factors to the whole reflection table.
+  '''The minimisation has only been done on a subset on the data, so apply the
+  scale factors to the whole reflection table.'''
   scaler.expand_scales_to_all_reflections()
   if isinstance(scaler, ScalerFactory.MultiScaler):
     scaler.join_multiple_datasets()
