@@ -35,14 +35,16 @@ from dials_scratch.jbe.scaling_code import ScalerFactory
 from dials_scratch.jbe.scaling_code import ParameterHandler
 
 start_time = time.time()
-logger = logging.getLogger('dials.scale')
+#logger = logging.getLogger()#'dials.scale')
+import libtbx.load_env
+logger = logging.getLogger('dials')
 
 phil_scope = phil.parse('''
   debug = False
     .type = bool
     .help = "Output additional debugging information"
   scaling_model = aimless
-      .type = choice
+      .type = str
       .help = "Set method for scaling - 'aimless' or 'KB for simple KB scaling"
   output {
     log = dials_scratch.scaling.log
@@ -65,7 +67,6 @@ phil_scope = phil.parse('''
       .help = "Option to set filepath for output pickle file of scaled intensities."
   }
   include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
-  include scope dials_scratch.jbe.scaling_code.ScalingModelFactory.phil_scope
 ''', process_includes=True)
 
 def main(argv):
