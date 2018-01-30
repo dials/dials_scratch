@@ -101,7 +101,7 @@ def simulate_reflection(experiment,
 
   # Draw reciprocal lattice vectors from a multi variate normal distribution
   if rlp_covariance is not None:
-    r0 = multivariate_normal(r0, matrix.sqr(rlp_covariance).as_list_of_lists())
+    r0 = matrix.col(multivariate_normal(r0, matrix.sqr(rlp_covariance).as_list_of_lists()))
 
   # Draw reciprocal lattice vectors from a von mises distribution (spherical cap)
   if angular_spread > 0:
