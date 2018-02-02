@@ -14,14 +14,14 @@ def monte_carlo_pixel_volume(experiment, i, j):
   scan = experiment.scan
 
   s0_length = 1.0 / beam.get_wavelength()
-  
+
   phi0, phi1 = scan.get_oscillation()
 
   DPHI = phi1 - phi0
 
   m2 = matrix.col(goniometer.get_rotation_axis_datum())
   s0 = matrix.col(beam.get_s0())
-  
+
   N = 1000000
 
   s00 = matrix.col(panel.get_pixel_lab_coord((i,j))).normalize() * s0_length
@@ -36,14 +36,14 @@ def monte_carlo_pixel_volume(experiment, i, j):
   phi3 = scc.angle(s10)
 
   phi_max = max(phi0, phi1, phi2, phi3)
-  
+
   phi_max = phi_max * 1.1
 
   vmin = (cos(phi_max) + 1)/2.0
 
   count = 0
   for n in range(N):
-    
+
     u = uniform(0,1)
     v = uniform(vmin,1)
 
@@ -53,7 +53,7 @@ def monte_carlo_pixel_volume(experiment, i, j):
     a = matrix.col((0, 0, 1))
     b = scc.normalize()
     r = s0.length()
-    
+
     x = matrix.col((
       r*sin(phi)*cos(theta),
       r*sin(phi)*sin(theta),
@@ -68,7 +68,7 @@ def monte_carlo_pixel_volume(experiment, i, j):
       s = -x
     else:
       s = x.rotate_around_origin(axis=axis, angle=angle) * scc.length()
-   
+
     px, py = panel.get_ray_intersection_px(s)
 
     px, py = int(floor(px)), int(floor(py))
@@ -97,14 +97,14 @@ def pixel_polygon_area(experiment, i, j):
   scan = experiment.scan
 
   s0_length = 1.0 / beam.get_wavelength()
-  
+
   phi0, phi1 = scan.get_oscillation()
 
   DPHI = phi1 - phi0
 
   m2 = matrix.col(goniometer.get_rotation_axis_datum())
   s0 = matrix.col(beam.get_s0())
-  
+
   s00 = matrix.col(panel.get_pixel_lab_coord((i,j))).normalize() * s0_length
   s01 = matrix.col(panel.get_pixel_lab_coord((i+1,j))).normalize() * s0_length
   s10 = matrix.col(panel.get_pixel_lab_coord((i,j+1))).normalize() * s0_length
@@ -135,14 +135,14 @@ def pixel_volume(experiment, i, j):
   scan = experiment.scan
 
   s0_length = 1.0 / beam.get_wavelength()
-  
+
   phi0, phi1 = scan.get_oscillation()
 
   DPHI = phi1 - phi0
 
   m2 = matrix.col(goniometer.get_rotation_axis_datum())
   s0 = matrix.col(beam.get_s0())
-  
+
   s00 = matrix.col(panel.get_pixel_lab_coord((i,j))).normalize() * s0_length
   s01 = matrix.col(panel.get_pixel_lab_coord((i+1,j))).normalize() * s0_length
   s10 = matrix.col(panel.get_pixel_lab_coord((i,j+1))).normalize() * s0_length
@@ -173,7 +173,7 @@ def pixel_volume(experiment, i, j):
   Ca = acos(cosC)
 
   A1 = (Aa + Ba + Ca - pi)*s0_length**2
-  
+
   cosa = D.dot(C)
   cosb = A.dot(C)
   cosc = A.dot(D)
@@ -189,7 +189,7 @@ def pixel_volume(experiment, i, j):
   Aa = acos(cosA)
   Ba = acos(cosB)
   Ca = acos(cosC)
-  
+
   A2 = (Aa + Ba + Ca - pi)*s0_length**2
 
   A = A1+A2
@@ -239,7 +239,7 @@ def pixel_volume_all_pixels(experiment):
 
 
 def display(data):
-  
+
   class Formatter(object):
     def __init__(self, im):
         self.im = im
@@ -247,7 +247,7 @@ def display(data):
         z = self.im.get_array()[int(y), int(x)]
         print z
         return 'x={:.01f}, y={:.01f}, z={:f}'.format(x, y, z)
-  
+
   from matplotlib import pylab
   fig, ax = pylab.subplots()
   im = ax.imshow(data.as_numpy_array(), interpolation='none')
@@ -268,7 +268,7 @@ if __name__ == '__main__':
 
   #pickle.dump(volume1, open("volume.pickle", "w"))
   # pickle.dump(volume2, open("monte_carlo_volume.pickle", "w"))
-  
+
   # volume1 = pickle.load(open("volume.pickle"))
 
   # display(volume1)
