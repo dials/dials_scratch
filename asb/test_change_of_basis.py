@@ -8,12 +8,9 @@ from libtbx.test_utils import approx_equal
 
 """
 Jiffy script to show that crystal_orientation.change_basis and
-Crystal.change_basis can give different answers
-
-To make the two objects give the same answer, remove the call to
-transpose in Crystal.change_basis. This will make both classes
-have the same behavior, but will cause many DIALS tests to
-break.
+Crystal.change_basis work properly! Just need to add a transpose
+call when using change_of_basis_op with the crystal_orientation
+object.
 """
 
 def print_matrix(m):
@@ -56,7 +53,7 @@ def test_op(op):
   print "Crystal A"; print_matrix(crystal.get_A())
   print "cctbx   A"; print_matrix(co.reciprocal_matrix())
   dxtbx_a = sqr(crystal.change_basis(op).get_A())
-  cctbx_a = sqr(co.change_basis(op).reciprocal_matrix())
+  cctbx_a = sqr(co.change_basis(sqr(op.c().as_double_array()[0:9]).transpose()).reciprocal_matrix())
   print "Crystal A COB"; print_matrix(dxtbx_a)
   print "cctbx   A COB"; print_matrix(cctbx_a)
 
