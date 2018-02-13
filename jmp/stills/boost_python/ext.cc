@@ -997,7 +997,6 @@ namespace dials { namespace algorithms { namespace boost_python {
             const Beam&,
             const Detector&,
             const Crystal&,
-            double,
             mat3<double>,
             mat3<double>,
             mat3<double>,

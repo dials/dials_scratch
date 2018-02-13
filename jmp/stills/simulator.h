@@ -36,7 +36,6 @@ namespace dials {
           const Beam &beam,
           const Detector &detector,
           const Crystal &crystal,
-          double wavelength_spread,
           mat3<double> sigma_wavelength_spread,
           mat3<double> sigma_angular_spread,
           mat3<double> sigma_rlp_mosaicity,
@@ -70,28 +69,36 @@ namespace dials {
 
       // The reciprocal lattice vector
       vec3<double> rlp = A * h;
-
-      // Construct the convolution. Both components scale with the length of the
-      // reciprocal lattice vector so multiply this here.
-      mat3<double> sigma_lw = (sigma_wavelength_spread_ + sigma_angular_spread_) * rlp.length();
-  
-      // The coordinate system at the end of the rlp
-      vec3<double> s2 = s0 + rlp;
-      vec3<double> e1 = s2.cross(s0).normalize();
-      vec3<double> e2 = -e1.cross(rlp).normalize();
-      vec3<double> e3 = rlp.normalize();
-  
-      // The change of basis matrix
-      mat3<double> E(
-          e1[0], e2[0], e3[0],
-          e1[1], e2[1], e3[1],
-          e1[2], e2[2], e3[2]);
-      /* DIALS_ASSERT(E.is_r3_rotation_matrix()); */
-
-      // Construct the rotated covariance matrices
+        
+      // Construct the rotated covariance matrix
       mat3<double> sigma_M = U * sigma_rlp_mosaicity_ * U.transpose();
-      mat3<double> sigma_E = E * sigma_lw * E.transpose();
-      mat3<double> sigma = sigma_M + sigma_E;
+
+      // Construct the full covariance matrix
+      mat3<double> sigma = sigma_M;
+      if (rlp.length() > 0) {
+
+        // Construct the convolution. Both components scale with the length of the
+        // reciprocal lattice vector so multiply this here.
+        mat3<double> sigma_lw = (sigma_wavelength_spread_ + sigma_angular_spread_) * rlp.length();
+    
+        // The coordinate system at the end of the rlp
+        vec3<double> s2 = s0 + rlp;
+        vec3<double> e1 = s2.cross(s0).normalize();
+        vec3<double> e2 = -e1.cross(rlp).normalize();
+        vec3<double> e3 = rlp.normalize();
+    
+        // The change of basis matrix
+        mat3<double> E(
+            e1[0], e2[0], e3[0],
+            e1[1], e2[1], e3[1],
+            e1[2], e2[2], e3[2]);
+        /* DIALS_ASSERT(E.is_r3_rotation_matrix()); */
+      
+        // Construct the rotated covariance matrices
+        mat3<double> sigma_E = E * sigma_lw * E.transpose();
+        sigma += sigma_E;
+
+      }
 
       // Get beam vectors at each corner
       double s0_length = s0.length();
