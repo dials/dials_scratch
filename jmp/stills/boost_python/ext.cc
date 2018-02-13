@@ -11,6 +11,7 @@
 #include <dials/algorithms/integration/sum/summation.h>
 #include <dials/model/data/mask_code.h>
 #include <dials/model/data/shoebox.h>
+#include <dials_scratch/jmp/stills/simulator.h>
 #include <dials/error.h>
 
 using namespace boost::python;
@@ -989,6 +990,24 @@ namespace dials { namespace algorithms { namespace boost_python {
       .def("mask", &Model::mask)
       .def("pred", &Model::pred)
       .def("__len__", &Model::size)
+      ;
+
+    class_<StillsSimulator>("StillsSimulator", no_init)
+      .def(init<
+            const Beam&,
+            const Detector&,
+            const Crystal&,
+            double,
+            mat3<double>,
+            mat3<double>,
+            mat3<double>,
+            std::size_t>())
+      .def("normal_pdf",
+          &StillsSimulator::normal_pdf)
+      .def("pixel_area",
+          &StillsSimulator::pixel_area)
+      .def("integrate_pixel",
+          &StillsSimulator::integrate_pixel)
       ;
   }
 
