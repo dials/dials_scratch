@@ -51,8 +51,8 @@ class LBFGS_optimiser(object):
 
   def return_scaler(self):
     '''return scaler method'''
-    from dials_scratch.jbe.scaling_code.Scaler import MultiScaler
-    if not isinstance(self.scaler, MultiScaler):
+    from dials_scratch.jbe.scaling_code.Scaler import MultiScalerBase
+    if not isinstance(self.scaler, MultiScalerBase):
       if 'g_scale' in self.apm.active_parameterisation:
         self.scaler.normalise_scale_component()
       if 'g_decay' in self.apm.active_parameterisation:
