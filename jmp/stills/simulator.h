@@ -69,9 +69,15 @@ namespace dials {
 
       // The reciprocal lattice vector
       vec3<double> rlp = A * h;
-        
+
       // Construct the rotated covariance matrix
       mat3<double> sigma_M = U * sigma_rlp_mosaicity_ * U.transpose();
+      
+      // Normalize the ewald sphere and boost the rlp and sigma
+      double wavelength = 1.0 / s0.length();
+      rlp = wavelength * rlp;
+      s0 = s0.normalize();
+      sigma_M = wavelength * wavelength * sigma_M;
 
       // Construct the full covariance matrix
       mat3<double> sigma = sigma_M;
