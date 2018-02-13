@@ -62,9 +62,9 @@ def calculate_intensity_of_reflection(k0, k1, crystal_points, cryst_planes):
 
 def rotation_matrix(phi):
   from math import cos, sin, pi
-  return ((cos(pi*phi/180.0),-1.0*sin(pi*phi/180.0),0.0),
-          (sin(pi*phi/180.0),cos(pi*phi/180.0),0.0),
-          (0.0,0.0,1.0))
+  return ((cos(pi * phi / 180.0), -1.0 * sin(pi * phi / 180.0), 0.0),
+          (sin(pi * phi / 180.0), cos(pi * phi / 180.0), 0.0),
+          (0.0, 0.0, 1.0))
 
 def multiply_matrices(M1, M2):
   a11 = (M1[0][0] * M2[0][0]) + (M1[0][1] * M2[1][0]) + (M1[0][2] * M2[2][0])
@@ -96,9 +96,9 @@ def transform_to_lab_frame(UB, R, millerset):
 def calculate_scattering_vectors(k0, rlps):
   scattering_vectors = flex.vec3_double([])
   for rlp in rlps:
-    k1_0 = k0[0]+rlp[0]
-    k1_1 = k0[1]+rlp[1]
-    k1_2 = k0[2]+rlp[2]
+    k1_0 = k0[0] + rlp[0]
+    k1_1 = k0[1] + rlp[1]
+    k1_2 = k0[2] + rlp[2]
     scattering_vectors.append((k1_0, k1_1, k1_2))
   return scattering_vectors
 
@@ -147,14 +147,23 @@ def simulate_dataset(ms):
   miller_indices_list = []
   spot_vectors_list = []
   scan_width = 1.0
-  for p in range(0, 361, 1):
+  for p in range(0, 2, 1):
     phi = float(p * scan_width)
+    print('phi = %s' % phi)
     R = rotation_matrix(phi)
-    reciprocal_lattice_points = transform_to_lab_frame(UB, R, ms)
+    print('rotation matrix is:')
+    print(R)
+    reciprocal_lattice_points = transform_to_lab_frame(UB, R, ms) #in lab frame
+    print(list(reciprocal_lattice_points)[0:10])
     #calculate scattering vectors of all rlps
-    scattering_vectors = calculate_scattering_vectors(k0, reciprocal_lattice_points)
+    scattering_vectors = calculate_scattering_vectors(k0, reciprocal_lattice_points) #good
+    print(list(scattering_vectors)[0:10])
     #determine which scattering vectors will cause a spot on the detector.
     xs, ys, miller_indices, spot_vectors = calculate_spot_positions(scattering_vectors, ms)
+    print(list(spot_vectors)[0:10])
+    #print('spots detected (xs, ys, miller_indices, spot_vectors:')
+    #for i in range(len(xs)):
+    #  print(xs[i], ys[i], miller_indices[i], spot_vectors[i])
     phis = [phi]*len(xs)
     #zs = [p]*len(xs)
     xyzs = zip(xs, ys, phis)
@@ -205,7 +214,7 @@ a = 20.0
 b = 20.0
 c = 15.0
 ms = miller.build_set(crystal_symmetry=crystal.symmetry(space_group_symbol="P1",
-    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=2.0)
+    unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, d_min=5.0) #dmin=2.0
 
 refls, miller_idx, k1s, ds, Is, variances = simulate_dataset(ms)
 
@@ -256,7 +265,7 @@ ms = miller.set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
     unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, indices=reflections['miller_index'])
 print ms.size()
 
-save_data((reflections, ms), 'test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
+save_data((reflections, ms), 'test_dataset_mu0p2_smalldetector_P4_rot0_test.pickle')
 
 print "(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance"
 for i in range(len(refls)):
