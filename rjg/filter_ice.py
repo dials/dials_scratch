@@ -164,38 +164,6 @@ def filter_ice(reflections, n_bins=200):
   plt.clf()
   return
 
-  hist = flex.histogram(d_star_sq, n_slots=n_bins)
-  potential_ice_sel = flex.bool(n_bins, False)
-  for i, (count, dss) in enumerate(zip(hist.slots(), hist.slot_centers())):
-    for ice_dss in ice_d_star_sq:
-      if ((dss - hist.slot_width()) < ice_dss) and ((dss + hist.slot_width()) > ice_dss):
-        potential_ice_sel[i] = True
-
-  print flex.mean(hist.slots().select(potential_ice_sel).as_double())
-  non_ice_slots = hist.slots().select(~potential_ice_sel)
-  print flex.mean(non_ice_slots.select(non_ice_slots > 0).as_double())
-
-  fig = plt.figure(figsize=(12,8))
-  plt.bar(hist.slot_centers(), hist.slots(), align="center",
-          width=hist.slot_width(), zorder=10, color='black', edgecolor=None)
-  plt.bar(hist.slot_centers().select(potential_ice_sel),
-          hist.slots().select(potential_ice_sel), align="center",
-          width=hist.slot_width(), zorder=10, color='red', edgecolor=None)
-  ylim = plt.ylim()
-  for dss in ice_d_star_sq:
-    plt.plot([dss, dss], (0, ylim[1]), c='r', zorder=0, linestyle=':', alpha=0.3)
-  for dss in cubic_ice_d_star_sq:
-    plt.plot([dss, dss], (0, ylim[1]), c='g', zorder=1, linestyle=':', alpha=0.3)
-  plt.ylim(ylim)
-  ax = plt.gca()
-  xticks = ax.get_xticks()
-  xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-  ax.set_xticklabels(['%.2f' %x for x in xticks_d])
-  plt.xlabel('d spacing (A^-1)')
-  plt.ylabel('Frequency')
-  plt.tight_layout()
-  plt.savefig('d_spacings_hist.png')
-  plt.clf()
 
 if __name__ == '__main__':
   import sys
