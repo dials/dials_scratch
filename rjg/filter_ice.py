@@ -27,13 +27,12 @@ matplotlib.use('Agg')
 help_message = '''
 '''
 
-from dials.algorithms.indexing.indexer import max_cell_phil_str
-
 phil_scope = iotbx.phil.parse('''\
 figsize = 12, 8
   .type = floats(size=2, value_min=0)
-%s
-''' %max_cell_phil_str)
+steps = 25
+  .type = int(value_min=1)
+''')
 
 
 def run(args):
@@ -47,6 +46,7 @@ def run(args):
     phil=phil_scope,
     read_reflections=True,
     read_datablocks=True,
+    read_datablocks_from_images=True,
     check_format=False,
     epilog=help_message)
 
@@ -108,10 +108,10 @@ def run(args):
       goniometer=imageset.get_goniometer())
     reflections.extend(refl)
 
-  filter_ice(reflections)
+  filter_ice(reflections, steps=params.steps)
   return
 
-def filter_ice(reflections, n_bins=200):
+def filter_ice(reflections, steps):
 
   from cctbx import miller, sgtbx, uctbx
   from matplotlib import pyplot as plt
@@ -139,7 +139,7 @@ def filter_ice(reflections, n_bins=200):
   cubic_ice_d_star_sq = uctbx.d_as_d_star_sq(cubic_ice_d_spacings)
 
   import numpy
-  widths = flex.double(numpy.geomspace(start=0.0001, stop=0.01, num=50))
+  widths = flex.double(numpy.geomspace(start=0.0001, stop=0.01, num=steps))
   n_spots = flex.double()
   total_intensity = flex.double()
   for width in widths:
