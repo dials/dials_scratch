@@ -32,6 +32,7 @@ from dials.array_family import flex
 from dials.command_line.show import beam_centre_mm
 from libtbx import phil
 from libtbx import easy_run
+from libtbx.utils import Sorry
 from libtbx.table_utils import simple_table
 import os
 from math import sqrt
