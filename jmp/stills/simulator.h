@@ -56,8 +56,24 @@ namespace dials {
       return A * std::exp(-0.5 * B);
     }
 
-    double pixel_area(vec3<double> A, vec3<double> B, vec3<double> C, vec3<double> D) const {
+    double polygon_area(vec3<double> A, vec3<double> B, vec3<double> C, vec3<double> D) const {
       return ((A-B).cross(A-D)).length() / 2.0 + ((C-B).cross(C-D)).length() / 2.0;
+    }
+
+    double pixel_area(std::size_t panel, double s0_length, int x, int y) const {
+
+      // Get beam vectors at each corner
+      vec3<double> s00 = detector_[panel].get_pixel_lab_coord(
+          vec2<double>(x,y)).normalize() * s0_length;
+      vec3<double> s01 = detector_[panel].get_pixel_lab_coord(
+          vec2<double>(x+1,y)).normalize() * s0_length;
+      vec3<double> s10 = detector_[panel].get_pixel_lab_coord(
+          vec2<double>(x,y+1)).normalize() * s0_length;
+      vec3<double> s11 = detector_[panel].get_pixel_lab_coord(
+          vec2<double>(x+1,y+1)).normalize() * s0_length;
+
+      // Compute the pixel area
+      return polygon_area(s00, s01, s11, s10);
     }
 
     double integrate_pixel(cctbx::miller::index<> h, std::size_t panel, int x, int y) const {
@@ -106,19 +122,9 @@ namespace dials {
 
       }
 
-      // Get beam vectors at each corner
-      double s0_length = s0.length();
-      vec3<double> s00 = detector_[panel].get_pixel_lab_coord(
-          vec2<double>(x,y)).normalize() * s0_length;
-      vec3<double> s01 = detector_[panel].get_pixel_lab_coord(
-          vec2<double>(x+1,y)).normalize() * s0_length;
-      vec3<double> s10 = detector_[panel].get_pixel_lab_coord(
-          vec2<double>(x,y+1)).normalize() * s0_length;
-      vec3<double> s11 = detector_[panel].get_pixel_lab_coord(
-          vec2<double>(x+1,y+1)).normalize() * s0_length;
-
       // Compute the pixel area
-      double area = pixel_area(s00, s01, s11, s10);
+      double s0_length = s0.length();
+      double area = pixel_area(panel, s0_length, x, y);
 
       // Do the integration over the pixel
       double N = num_points_;
