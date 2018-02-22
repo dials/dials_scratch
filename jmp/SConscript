@@ -6,6 +6,11 @@ env.SharedLibrary(
  source=['stills/boost_python/ext.cc'],
  LIBS=env["LIBS"])
 
+env.SharedLibrary(
+ target='#/lib/dials_scratch_jmp_stills_potato_ext',
+ source=['stills/potato/boost_python/ext.cc'],
+ LIBS=env["LIBS"])
+
 #env.SharedLibrary(
 # target='#/lib/dials_scratch_jmp_fitting_ext',
 # source=['fitting/boost_python/ext.cc'],

@@ -77,7 +77,7 @@ namespace dials {
     }
 
     double integrate_pixel(cctbx::miller::index<> h, std::size_t panel, int x, int y) const {
-    
+
       // Get some stuff from the models
       mat3<double> A = crystal_.get_A();
       mat3<double> U = crystal_.get_U();
@@ -88,7 +88,7 @@ namespace dials {
 
       // Construct the rotated covariance matrix
       mat3<double> sigma_M = U * sigma_rlp_mosaicity_ * U.transpose();
-      
+
       // Normalize the ewald sphere and boost the rlp and sigma
       double wavelength = 1.0 / s0.length();
       rlp = wavelength * rlp;
@@ -102,20 +102,20 @@ namespace dials {
         // Construct the convolution. Both components scale with the length of the
         // reciprocal lattice vector so multiply this here.
         mat3<double> sigma_lw = (sigma_wavelength_spread_ + sigma_angular_spread_) * rlp.length();
-    
+
         // The coordinate system at the end of the rlp
         vec3<double> s2 = s0 + rlp;
         vec3<double> e1 = s2.cross(s0).normalize();
         vec3<double> e2 = -e1.cross(rlp).normalize();
         vec3<double> e3 = rlp.normalize();
-    
+
         // The change of basis matrix
         mat3<double> E(
             e1[0], e2[0], e3[0],
             e1[1], e2[1], e3[1],
             e1[2], e2[2], e3[2]);
         /* DIALS_ASSERT(E.is_r3_rotation_matrix()); */
-      
+
         // Construct the rotated covariance matrices
         mat3<double> sigma_E = E * sigma_lw * E.transpose();
         sigma += sigma_E;
