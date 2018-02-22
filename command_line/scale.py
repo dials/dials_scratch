@@ -28,8 +28,8 @@ from dials.util import halraiser
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 
 from dials_scratch.jbe.scaling_code.minimiser_functions import LBFGS_optimiser
-from dials_scratch.jbe.scaling_code.ScalingRefiner import \
-  AdaptLbfgs, GaussNewtonIterations, LevenbergMarquardtIterations
+from dials_scratch.jbe.scaling_code.ScalingRefiner import ScalingSimpleLBFGS,\
+  ScalingGaussNewtonIterations, ScalingLevenbergMarquardtIterations
 from dials_scratch.jbe.scaling_code.model import ScalingModelFactory
 from dials_scratch.jbe.scaling_code import ScalerFactory
 from dials_scratch.jbe.scaling_code import Scaler
@@ -172,7 +172,7 @@ def perform_scaling(scaler, target_type=ScalingTarget):
   apm_factory = ParameterHandler.ActiveParameterFactory.create(scaler)
   for _ in range(apm_factory.n_cycles):
     apm = apm_factory.make_next_apm()
-    refinery = AdaptLbfgs(scaler, target=target_type(scaler, apm),
+    refinery = ScalingSimpleLBFGS(scaler, target=target_type(scaler, apm),
       prediction_parameterisation=apm, max_iterations=25)
     refinery.run()
     scaler = refinery.return_scaler()
@@ -204,7 +204,7 @@ def scaling_algorithm(scaler):
   apm_factory = ParameterHandler.ActiveParameterFactory.create(scaler)
   for _ in range(apm_factory.n_cycles):
     apm = apm_factory.make_next_apm()
-    refinery = GaussNewtonIterations(scaler, target=ScalingTarget(scaler, apm),
+    refinery = ScalingGaussNewtonIterations(scaler, target=ScalingTarget(scaler, apm),
       prediction_parameterisation=apm, max_iterations=1)
     refinery.run()
     scaler = refinery.return_scaler()
