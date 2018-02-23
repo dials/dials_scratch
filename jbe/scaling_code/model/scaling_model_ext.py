@@ -28,19 +28,21 @@ class AimlessScalingModelExt(ScalingModelIface):
   @classmethod
   def factory(cls):
     '''returns the scaling Model Factory'''
-    from dials_scratch.jbe.scaling_code.model.ScalingModelFactory import AimlessSMFactory
+    from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
+      AimlessSMFactory
     return AimlessSMFactory
 
   @classmethod
   def scaler(cls):
     '''returns the scaler factory'''
-    from dials_scratch.jbe.scaling_code.Scaler import AimlessScaler
+    from dials_scratch.jbe.scaling_code.scaler import AimlessScaler
     return AimlessScaler
 
   @staticmethod
   def from_dict(d):
     '''creates a scaling model from a dict'''
-    from dials_scratch.jbe.scaling_code.model.Model import AimlessScalingModel
+    from dials_scratch.jbe.scaling_code.model.model import \
+      AimlessScalingModel
     return AimlessScalingModel.from_dict(d)
 
 class KBScalingModelExt(ScalingModelIface):
@@ -51,19 +53,20 @@ class KBScalingModelExt(ScalingModelIface):
   @classmethod
   def factory(cls):
     '''returns the scaling Model Factory'''
-    from dials_scratch.jbe.scaling_code.model.ScalingModelFactory import KBSMFactory
+    from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
+      KBSMFactory
     return KBSMFactory
 
   @classmethod
   def scaler(cls):
     '''returns the scaler factory'''
-    from dials_scratch.jbe.scaling_code.Scaler import KBScaler
+    from dials_scratch.jbe.scaling_code.scaler import KBScaler
     return KBScaler
 
   @staticmethod
   def from_dict(d):
     '''creates a scaling model from a dict'''
-    from dials_scratch.jbe.scaling_code.model.Model import KBScalingModel
+    from dials_scratch.jbe.scaling_code.model.model import KBScalingModel
     return KBScalingModel.from_dict(d)
 
 class XscaleScalingModelExt(ScalingModelIface):
@@ -74,17 +77,18 @@ class XscaleScalingModelExt(ScalingModelIface):
   @classmethod
   def factory(cls):
     '''returns the scaling Model Factory'''
-    from dials_scratch.jbe.scaling_code.model.ScalingModelFactory import XscaleSMFactory
+    from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
+      XscaleSMFactory
     return XscaleSMFactory
 
   @classmethod
   def scaler(cls):
     '''returns the scaler factory'''
-    from dials_scratch.jbe.scaling_code.Scaler import XscaleScaler
+    from dials_scratch.jbe.scaling_code.scaler import XscaleScaler
     return XscaleScaler
 
   @staticmethod
   def from_dict(d):
     '''creates a scaling model from a dict'''
-    from dials_scratch.jbe.scaling_code.model.Model import XscaleScalingModel
+    from dials_scratch.jbe.scaling_code.model.model import XscaleScalingModel
     return XscaleScalingModel.from_dict(d)
