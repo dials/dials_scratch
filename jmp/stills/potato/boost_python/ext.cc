@@ -6,6 +6,7 @@
 #include <scitbx/mat2.h>
 #include <scitbx/mat3.h>
 #include <scitbx/math/r3_rotation.h>
+#include <scitbx/matrix/multiply.h>
 #include <dials/error.h>
 
 using namespace boost::python;
@@ -33,6 +34,8 @@ namespace dials { namespace algorithms { namespace boost_python {
        */
       ConditionalDistributionAtZ(vec3<double> mu, mat3<double> sigma, double z) {
 
+        using scitbx::matrix::multiply_transpose;
+
         // Partition the covariance matrix
         // | | S11 S12 | | S13 | |
         // | | S21 S22 | | S23 | |
@@ -57,7 +60,33 @@ namespace dials { namespace algorithms { namespace boost_python {
         mu_ = mu1 + sigma12 * (1/sigma22) * (z - mu2);
 
         // Compute the covariance matrix of the conditional distribution
-        sigma_ = sigma11 - sigma12 * (1/sigma22) * sigma21;
+        mat2<double> A;
+        multiply_transpose(&sigma12[0], &sigma21[0], 2, 1, 2, &A[0]);
+        sigma_ = sigma11 - A;
+
+/*         if (sigma_.determinant() <= 0) { */
+/*           std::cout << "SIGMA: "; */
+/*           for (std::size_t i = 0; i < 9; ++i) { */
+/*             std::cout << sigma[i] << ", "; */
+/*           } */
+/*           std::cout << std::endl; */
+          
+/*           std::cout << "MU: "; */
+/*           for (std::size_t i = 0; i < 3; ++i) { */
+/*             std::cout << mu[i] << ", "; */
+/*           } */
+/*           std::cout << std::endl; */
+          
+/*           std::cout << "SIGMA': "; */
+/*           for (std::size_t i = 0; i < 4; ++i) { */
+/*             std::cout << sigma_[i] << ", "; */
+/*           } */
+/*           std::cout << std::endl; */
+
+/*           std::cout << "Z: " << z << std::endl; */
+/*           std::cout << "DET: " << sigma_.determinant() << std::endl; */
+/*           DIALS_ASSERT(false); */
+/*         } */
       }
 
       /**
@@ -101,6 +130,31 @@ namespace dials { namespace algorithms { namespace boost_python {
     }
 
     /**
+     * Return the likelihood of the point at this distance from the Ewald sphere
+     * Note that here sigma comes from the covariance matrix so is the variance
+     * not the standard deviation.
+     */
+    double log_likelihood() const {
+      double mu = mup_[2];
+      double sigma = sigmap_[8];
+      return -0.5 * (std::log(sigma) + (1/sigma) * (radius_-mu)*(radius_-mu));
+    }
+
+    double conditional_likelihood(double x, double y) const {
+      
+      detail::ConditionalDistributionAtZ distribution(mup_, sigmap_, radius_);
+      vec2<double> v(x, y);
+      vec2<double> mu = distribution.mu();
+      mat2<double> sigma = distribution.sigma();
+      double D = sigma.determinant();
+      if (D <= 0) {
+        std::cout << "NOO" << std::endl;
+        return -1e10;
+      }
+      return -0.5 * (std::log(sigma.determinant()) + (x-mu)*sigma.inverse()*(x-mu));
+    }
+
+    /**
      * Compute the scale factor for the reflection. This is calculated by taking
      * the marginal probability along mu, P(z) and then calculating the ratio
      * P(z=z0) / P(z=mu_z) where z0 is the radius of the ewald sphere.
@@ -130,6 +184,14 @@ namespace dials { namespace algorithms { namespace boost_python {
 
       // Rotate the normalized vector back to the original coodinate system
       return R_ * (v.normalize() * radius_);
+    }
+
+    vec2<double> conditional_mean() const {
+      return detail::ConditionalDistributionAtZ(mup_, sigmap_, radius_).mu();
+    }
+   
+    mat2<double> conditional_sigma() const {
+      return detail::ConditionalDistributionAtZ(mup_, sigmap_, radius_).sigma();
     }
 
   protected:
@@ -187,6 +249,14 @@ namespace dials { namespace algorithms { namespace boost_python {
           &PotatoOnEwaldSphere::scale_factor)
       .def("centre_of_mass_on_ewald_sphere",
           &PotatoOnEwaldSphere::centre_of_mass_on_ewald_sphere)
+      .def("log_likelihood",
+          &PotatoOnEwaldSphere::log_likelihood)
+      .def("conditional_mean",
+          &PotatoOnEwaldSphere::conditional_mean)
+      .def("conditional_sigma",
+          &PotatoOnEwaldSphere::conditional_sigma)
+      .def("conditional_likelihood",
+          &PotatoOnEwaldSphere::conditional_likelihood)
       ;
   }
 
