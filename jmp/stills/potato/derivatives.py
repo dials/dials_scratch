@@ -221,16 +221,10 @@ class ConditionalDistribution(object):
 
     def compute_d2S(dSi, dSj, d2S):
       
-      dSi11 = matrix.sqr((
-        dSi[0], dSi[1],
-        dSi[3], dSi[4]))
       dSi12 = matrix.col((dSi[2], dSi[5]))
       dSi21 = matrix.col((dSi[6], dSi[7])).transpose()
       dSi22 = dSi[8]
       
-      dSj11 = matrix.sqr((
-        dSj[0], dSj[1],
-        dSj[3], dSj[4]))
       dSj12 = matrix.col((dSj[2], dSj[5]))
       dSj21 = matrix.col((dSj[6], dSj[7])).transpose()
       dSj22 = dSj[8]
@@ -284,32 +278,46 @@ def rotate_mat3_double(R, A):
   RAR.reshape(accessor)
   return RAR
 
+def compute_change_of_basis_operation(s0, s2):
+  '''
+  Compute the change of basis operation that puts the s2 vector along the z axis
+
+  '''
+  e1 = s2.cross(s0).normalize()
+  e2 = s2.cross(e1).normalize()
+  e3 = s2.normalize()
+  R = matrix.sqr(
+    e1.elems + 
+    e2.elems + 
+    e3.elems)
+  return R
+
+
 class ReflectionProfileModel(object):
 
   def __init__(self, 
                model,
-               R,
-               mu2,
-               r,
+               s0,
+               s2,
                ctot,
                Sobs):
 
-    self.R = R
-    self.mu2 = mu2
-    self.r = r
+    self.s0 = s0
+    self.s2 = s2
+    self.R = compute_change_of_basis_operation(s0, s2)
     self.ctot = ctot
     self.Sobs = Sobs
 
     self.model = model
 
     # Rotate the covariance matrix
-    S = R*self.model.sigma()*R.transpose()
+    S = self.R*self.model.sigma()*self.R.transpose()
     
     # Rotate the first derivative matrices
-    dS = rotate_mat3_double(R, self.model.first_derivatives())
+    dS = rotate_mat3_double(self.R, self.model.first_derivatives())
    
-    # Partition the rotated second derivative matrices
-    d2S = rotate_mat3_double(R, self.model.second_derivatives())
+    # Rotate the second derivative matrices
+    d2S = rotate_mat3_double(self.R, self.model.second_derivatives())
 
     # Construct the marginal distribution
     self._marginal = MarginalDistribution(S, dS, d2S)
@@ -331,7 +339,7 @@ class ReflectionProfileModel(object):
     Sbar_inv = Sbar.inverse()
     Sbar_det = Sbar.determinant()
 
-    d = self.r-self.mu2
+    d = self.s0.length()-self.s2.length()
     A = log(S22)
     B = S22_inv*d**2
     C = log(Sbar_det)*self.ctot
@@ -350,6 +358,9 @@ class ReflectionProfileModel(object):
     Sbar = self.conditional().sigma()
     dSbar = self.conditional().first_derivatives()
     Sbar_inv = Sbar.inverse()
+      
+    # The distance from the ewald sphere
+    d = self.s0.length()-self.s2.length()
    
     # Compute the derivative wrt parameter i
     dL = flex.double()
@@ -359,7 +370,7 @@ class ReflectionProfileModel(object):
         1, 0,
         0, 1))
 
-      U = S22_inv*dS22[i]*(1 - S22_inv*(self.r - self.mu2)**2)
+      U = S22_inv*dS22[i]*(1 - S22_inv*d**2)
       V = (Sbar_inv*dSbar[i]*(self.ctot*I - Sbar_inv*self.Sobs)).trace()
       
       dL.append(-0.5*(U+V))
@@ -380,6 +391,9 @@ class ReflectionProfileModel(object):
     dSbar = self.conditional().first_derivatives()
     d2Sbar = self.conditional().second_derivatives()
     Sbar_inv = Sbar.inverse()
+    
+    # The distance from the ewald sphere
+    d = self.s0.length()-self.s2.length()
    
     # Compute the derivative wrt parameter i
     d2L = flex.double(d2S22.accessor())
@@ -390,7 +404,6 @@ class ReflectionProfileModel(object):
           1, 0,
           0, 1))
 
-        d = self.r - self.mu2
         A1 = S22_inv*d2S22[j,i]*(1 - S22_inv*d**2)
         A2 = S22_inv*dS22[j]*S22_inv*dS22[i]*(1 - 2*S22_inv*d**2)
         B1 = Sbar_inv * d2Sbar[j][i]*(self.ctot*I - Sbar_inv*self.Sobs)

@@ -34,15 +34,12 @@ def generate_data():
 
   seed(0)
 
-  axis = matrix.col((
-    uniform(-1,1),
-    uniform(-1,1),
-    uniform(-1,1)))
-  angle=uniform(-pi/2,pi/2)
+  s2 = matrix.col((
+    uniform(0, 1),
+    uniform(0, 1),
+    uniform(0, 1))).normalize()*uniform(0.9,1.1)
 
-  R = axis.axis_and_angle_as_r3_rotation_matrix(angle=angle,deg=False)
-  mu2 = uniform(0.8,1.2)
-  r = 1
+  s0 = matrix.col((0, 0, 1))
 
   T = matrix.sqr((
     uniform(0.5,2.5), 0,
@@ -60,14 +57,14 @@ def generate_data():
 
   ctot = randint(100,1000)
 
-  return (b1, b2, b3, b4, b5, b6), R, mu2, r, S, ctot
+  return (b1, b2, b3, b4, b5, b6), s0, s2, S, ctot
 
 def test_dSdb_22(reflection_model):
   
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -105,12 +102,6 @@ def test_dSdb_22(reflection_model):
   dSdb5_22_num = first_derivative(f5, b5, h)
   dSdb6_22_num = first_derivative(f6, b6, h)
     
-  parameterisation = MosaicityParameterisation((b1,b2,b3,b4,b5,b6))
-    
-  model = ProfileModel(parameterisation)
-
-  reflection_model = ReflectionProfileModel(model, R, mu2, r, ctot, Sobs)
-
   dSdb1_22_cal = reflection_model.marginal().first_derivatives()[0]
   dSdb2_22_cal = reflection_model.marginal().first_derivatives()[1]
   dSdb3_22_cal = reflection_model.marginal().first_derivatives()[2]
@@ -131,8 +122,8 @@ def test_dS_bar_db(reflection_model):
 
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -195,8 +186,8 @@ def test_dLdb(reflection_model):
 
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -270,8 +261,8 @@ def test_d2S_dbij(i, j, reflection_model):
   
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -319,8 +310,8 @@ def test_d2S_bar_dbij(i, j, reflection_model):
   
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -368,8 +359,8 @@ def test_d2L_dbij(i, j, reflection_model):
   
   (b1, b2, b3, b4, b5, b6) = reflection_model.model.parameters()
   R = reflection_model.R
-  mu2 = reflection_model.mu2
-  r = reflection_model.r
+  mu2 = reflection_model.s2.length()
+  r = reflection_model.s0.length()
   Sobs = reflection_model.Sobs
   ctot = reflection_model.ctot
 
@@ -438,11 +429,11 @@ if __name__ == '__main__':
   for i in range(10):
     print i
   
-    (b1, b2, b3, b4, b5, b6), R, mu2, r, Sobs, ctot = generate_data()
+    (b1, b2, b3, b4, b5, b6), s0, s2, Sobs, ctot = generate_data()
   
     parameterisation = MosaicityParameterisation((b1,b2,b3,b4,b5,b6))
     model = ProfileModel(parameterisation)
-    reflection_model = ReflectionProfileModel(model, R, mu2, r, ctot, Sobs)
+    reflection_model = ReflectionProfileModel(model, s0, s2, ctot, Sobs)
     
     test_first_derivatives(reflection_model)
     test_second_derivatives(reflection_model)
