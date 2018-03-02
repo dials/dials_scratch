@@ -70,13 +70,13 @@ namespace dials { namespace algorithms { namespace boost_python {
 /*             std::cout << sigma[i] << ", "; */
 /*           } */
 /*           std::cout << std::endl; */
-          
+
 /*           std::cout << "MU: "; */
 /*           for (std::size_t i = 0; i < 3; ++i) { */
 /*             std::cout << mu[i] << ", "; */
 /*           } */
 /*           std::cout << std::endl; */
-          
+
 /*           std::cout << "SIGMA': "; */
 /*           for (std::size_t i = 0; i < 4; ++i) { */
 /*             std::cout << sigma_[i] << ", "; */
@@ -141,7 +141,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     }
 
     double conditional_likelihood(double x, double y) const {
-      
+
       detail::ConditionalDistributionAtZ distribution(mup_, sigmap_, radius_);
       vec2<double> v(x, y);
       vec2<double> mu = distribution.mu();
@@ -189,7 +189,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     vec2<double> conditional_mean() const {
       return detail::ConditionalDistributionAtZ(mup_, sigmap_, radius_).mu();
     }
-   
+
     mat2<double> conditional_sigma() const {
       return detail::ConditionalDistributionAtZ(mup_, sigmap_, radius_).sigma();
     }

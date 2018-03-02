@@ -17,7 +17,7 @@ def normal_pdf(x, mu, sigma):
 
 
 def integrate_non_scaled(s0, r, sigma):
-  
+
   R = s0.length()
   N = 1000
 
@@ -25,7 +25,7 @@ def integrate_non_scaled(s0, r, sigma):
 
   def func(theta):
     return R*normal_pdf(matrix.col((R*cos(theta), R*sin(theta))), s1, sigma)
-  
+
   a = -pi
   b = pi
 
@@ -54,7 +54,7 @@ def integrate_scaled(s0, r, sigma):
   def func(theta):
     return R*normal_pdf(matrix.col((R*cos(theta), R*sin(theta))), s1, sigma)
 
-  
+
   a = -pi
   b = pi
 
@@ -91,5 +91,3 @@ sigma = matrix.sqr((
 
 print test_non_scaled(s0, r, sigma)
 print test_scaled(s0, r, sigma)
-
-

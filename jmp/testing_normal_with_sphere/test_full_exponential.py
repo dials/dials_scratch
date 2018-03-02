@@ -19,7 +19,7 @@ def compute_peak_f(mu, sigma):
     y = sin(theta)
     v = matrix.col((x, y))
     f = normal_2d(v, mu, sigma)
-    
+
     if f > p:
       p = f
       w = theta
@@ -38,7 +38,7 @@ def compute_peak_g(mu, sigma):
     y = sin(theta)
     v = matrix.col((x, y))
     f = theta*normal_2d(v, mu, sigma)
-    
+
     if f > p:
       p = f
       w = theta
@@ -57,7 +57,7 @@ def compute_peak_g1(mu, sigma):
     y = sin(theta)
     v = matrix.col((x, y))
     f = x*normal_2d(v, mu, sigma)
-    
+
     if f > p:
       p = f
       w = x
@@ -77,7 +77,7 @@ def compute_peak_g1(mu, sigma):
     v = matrix.col((x, y))
     f = 0.5 * ((v - mu).transpose() * sigma.inverse() * (v - mu))[0] - log(x)
     #f = x*normal_2d(v, mu, sigma)
-    
+
     if p is None or f < p:
       p = f
       w = x
@@ -96,7 +96,7 @@ def compute_peak_g2(mu, sigma):
     y = sin(theta)
     v = matrix.col((x, y))
     f = y*normal_2d(v, mu, sigma)
-    
+
     if f > p:
       p = f
       w = y
@@ -130,7 +130,7 @@ def func(theta, mu, sigma):
   #return 0.5 * ((x - mu).transpose()*sigma.inverse()*(x-mu))[0] - log(x[0])
 
 def compute_peak_g1_it(mu, sigma):
-  
+
   #theta0 = atan2(sqrt(1 - 0.700506727462**2), 0.700506727462)
   theta0 = atan2(mu[1], mu[0])
   m1, m2 = mu
@@ -178,14 +178,14 @@ def compute_peak_g1_it(mu, sigma):
 
   #   x = x0 -0.00000001 * G
   #   print tuple(G), tuple(x), matrix.col((x[0], x[1])).length()
-  
+
 
   #   if (x - x0).length() < 1e-7:
   #     break
   #   x0 = x
 
   # while True:
-  
+
   #   m1, m2 = mu
   #   s1, _, _, s2 = sigma
   #   x1, x2, l = x0
@@ -211,7 +211,7 @@ def compute_peak_g1_it(mu, sigma):
   return x
 
 def compute_peak_g2_it(mu, sigma):
-  
+
   theta0 = atan2(mu[1], mu[0])
   m1, m2 = mu
   s1, _, _, s2 = sigma
@@ -243,7 +243,7 @@ def compute_peak_g2_it(mu, sigma):
   # x0 = matrix.col((mu[0], mu[1], 0))
 
   # while True:
-  
+
   #   m1, m2 = mu
   #   s1, _, _, s2 = sigma
   #   x1, x2, l = x0
@@ -309,11 +309,11 @@ def compute_l0(x, mu, s):
   return (1-mu[0]/x[0])/s[0]**2
 
 def compute_peak_f_it(mu, sigma):
-  
+
   theta0 = atan2(mu[1], mu[0])
   m1, m2 = mu
   s1, _, _, s2 = sigma
-  
+
   while True:
     A = sin(theta0)*cos(theta0)*(1/s2 - 1/s1)
     B = sin(theta0)*(m1 / s1)
@@ -332,7 +332,7 @@ def compute_peak_f_it(mu, sigma):
     if abs(theta - theta0) < 1e-7:
       break
     theta0 = theta
-  
+
   x = matrix.col((cos(theta), sin(theta)))
 
   # # Compute the initial value of the lagrange multiplier
@@ -395,7 +395,7 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, mu, sigma):
   yc = C / A
 
   x = matrix.col((xc, yc)).normalize()
-  
+
   return x
 
 

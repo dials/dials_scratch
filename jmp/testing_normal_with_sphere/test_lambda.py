@@ -68,7 +68,7 @@ for t in range(10):
 
   x1 = mu1 / (1 - l0*s1**2)
   x2 = mu2 / (1 - l0*s2**2)
-  
+
   print l0, x1, x2, x1**2 + x2**2
 
 find_maximum(mu1, mu2, s1, s2)
@@ -84,4 +84,3 @@ find_maximum(mu1, mu2, s1, s2)
 # from matplotlib import pylab
 # pylab.plot(X, Y)
 # pylab.show()
-

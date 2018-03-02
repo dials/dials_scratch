@@ -1,6 +1,7 @@
 from __future__ import division
 from dials.array_family import flex
 from scitbx import matrix
+from math import log, exp
 
 class MosaicityParameterisation(object):
 
@@ -15,11 +16,45 @@ class MosaicityParameterisation(object):
       self.params[0], 0, 0,
       self.params[1], self.params[2], 0,
       self.params[3], self.params[4], self.params[5]))
+    # M = matrix.sqr((
+    #   exp(self.params[0]), 0, 0,
+    #   self.params[1], exp(self.params[2]), 0,
+    #   self.params[3], self.params[4], exp(self.params[5])))
     return M*M.transpose()
 
   def first_derivatives(self):
     b1, b2, b3, b4, b5, b6 = self.params
-    
+
+    # dSdb1 = (
+    #   2*exp(2*b1),b2*exp(b1),b4*exp(b1),
+    #   b2*exp(b1),0,0,
+    #   b4*exp(b1),0,0)
+
+    # dSdb2 = (
+    #   0,exp(b1),0,
+    #   exp(b1),2*b2,b4,
+    #   0,b4,0)
+
+    # dSdb3 = (
+    #   0,0,0,
+    #   0,2*exp(2*b3),b5*exp(b3),
+    #   0,b5*exp(b3),0)
+
+    # dSdb4 = (
+    #   0,0,exp(b1),
+    #   0,0,b2,
+    #   exp(b1),b2,2*b4)
+
+    # dSdb5 = (
+    #   0,0,0,
+    #   0,0,exp(b3),
+    #   0,exp(b3),2*b5)
+
+    # dSdb6 = (
+    #   0,0,0,
+    #   0,0,0,
+    #   0,0,2*exp(2*b6))
+
     dSdb1 = (
       2*b1,b2,b4,
       b2,0,0,
@@ -53,11 +88,85 @@ class MosaicityParameterisation(object):
     return flex.mat3_double([dSdb1, dSdb2, dSdb3, dSdb4, dSdb5, dSdb6])
 
   def second_derivatives(self):
-    
+
+    b1, b2, b3, b4, b5, b6 = self.params
+
     zero = (
       0, 0, 0,
       0, 0, 0,
       0, 0, 0)
+
+    # d11 = (
+    #   4*exp(2*b1), b2*exp(b1), b4*exp(b1),
+    #   b2*exp(b1), 0, 0,
+    #   b4*exp(b1), 0, 0)
+    # d12 = (
+    #   0, exp(b1), 0,
+    #   exp(b1), 0, 0,
+    #   0, 0, 0)
+    # d13 = zero
+    # d14 = (
+    #   0, 0, exp(b1),
+    #   0, 0, 0,
+    #   exp(b1), 0, 0)
+    # d15 = zero
+    # d16 = zero
+
+    # d21 = d12
+    # d22 = (
+    #   0, 0, 0,
+    #   0, 2, 0,
+    #   0, 0, 0)
+    # d23 = zero
+    # d24 = (
+    #   0, 0, 0,
+    #   0, 0, 1,
+    #   0, 1, 0)
+    # d25 = zero
+    # d26 = zero
+
+    # d31 = zero
+    # d32 = zero
+    # d33 = (
+    #   0, 0, 0,
+    #   0, 4*exp(b3), b5*exp(b3),
+    #   0, b5*exp(b3), 0)
+    # d34 = zero
+    # d35 = (
+    #   0, 0, 0,
+    #   0, 0, exp(b3),
+    #   0, exp(b3), 0)
+    # d36 = zero
+
+    # d41 = d14
+    # d42 = d24
+    # d43 = zero
+    # d44 = (
+    #   0, 0, 0,
+    #   0, 0, 0,
+    #   0, 0, 2)
+    # d45 = zero
+    # d46 = zero
+
+    # d51 = zero
+    # d52 = zero
+    # d53 = d35
+    # d54 = zero
+    # d55 = (
+    #   0, 0, 0,
+    #   0, 0, 0,
+    #   0, 0, 2)
+    # d56 = zero
+
+    # d61 = zero
+    # d62 = zero
+    # d63 = zero
+    # d64 = zero
+    # d65 = zero
+    # d66 = (
+    #   0, 0, 0,
+    #   0, 0, 0,
+    #   0, 0, 4*exp(2*b6))
 
     d11 = (
       2, 0, 0,
@@ -126,7 +235,7 @@ class MosaicityParameterisation(object):
     d63 = zero
     d64 = zero
     d65 = zero
-    d66 = ( 
+    d66 = (
       0, 0, 0,
       0, 0, 0,
       0, 0, 2)
@@ -163,12 +272,12 @@ class ProfileModel(object):
 
 
 class MarginalDistribution(object):
-  
+
   def __init__(self, S, dS, d2S):
 
     # Compute the marginal variance
     self.S = S[8]
-
+    #return
     # Compute the marginal derivatives
     self.dS = flex.double(d[8] for d in dS)
 
@@ -188,7 +297,7 @@ class MarginalDistribution(object):
 class ConditionalDistribution(object):
 
   def __init__(self, S, dS, d2S):
-    
+
     # Partition the covariance matrix
     S11 = matrix.sqr((
       S[0], S[1],
@@ -196,12 +305,12 @@ class ConditionalDistribution(object):
     S12 = matrix.col((S[2], S[5]))
     S21 = matrix.col((S[6], S[7])).transpose()
     S22 = S[8]
-    
+
     # Compute the marginal covariance matrix
     self.S = S11 - S12*(1/S22)*S21
-    
+    #return
     def compute_dS(dS):
-      
+
       dS11 = matrix.sqr((
         dS[0], dS[1],
         dS[3], dS[4]))
@@ -210,7 +319,7 @@ class ConditionalDistribution(object):
       dS22 = dS[8]
 
       S22_inv = 1 / S22
-      
+
       A = dS11
       B = S12*S22_inv*dS22*S22_inv*S21
       C = S12*S22_inv*dS21
@@ -220,11 +329,11 @@ class ConditionalDistribution(object):
     self.dS = [compute_dS(d) for d in dS]
 
     def compute_d2S(dSi, dSj, d2S):
-      
+
       dSi12 = matrix.col((dSi[2], dSi[5]))
       dSi21 = matrix.col((dSi[6], dSi[7])).transpose()
       dSi22 = dSi[8]
-      
+
       dSj12 = matrix.col((dSj[2], dSj[5]))
       dSj21 = matrix.col((dSj[6], dSj[7])).transpose()
       dSj22 = dSj[8]
@@ -235,13 +344,13 @@ class ConditionalDistribution(object):
       d2S12 = matrix.col((d2S[2], d2S[5]))
       d2S21 = matrix.col((d2S[6], d2S[7])).transpose()
       d2S22 = d2S[8]
-     
+
       S22_inv = 1 / S22
 
       A = d2S11
       B = dSj12*S22_inv*dSi22*S22_inv*S21
       C = S12*S22_inv*dSj22*S22_inv*dSi22*S22_inv*S21
-      
+
       D = S12*S22_inv*d2S22*S22_inv*S21
       E = S12*S22_inv*dSi22*S22_inv*dSj22*S22_inv*S21
       F = S12*S22_inv*dSi22*S22_inv*dSj21
@@ -253,14 +362,14 @@ class ConditionalDistribution(object):
       J = d2S12*S22_inv*S21
       K = dSi12*S22_inv*(dSj22)*S22_inv*S21
       L = dSi12*S22_inv*dSj21
-  
+
       return A+B-C+D-E+F-G+H-I-J+K-L
 
     self.d2S = [[
       compute_d2S(dS[i], dS[j], d2S[i,j])
       for j in range(d2S.all()[1])
     ] for i in range(d2S.all()[0])]
-        
+
 
   def sigma(self):
     return self.S
@@ -287,15 +396,15 @@ def compute_change_of_basis_operation(s0, s2):
   e2 = s2.cross(e1).normalize()
   e3 = s2.normalize()
   R = matrix.sqr(
-    e1.elems + 
-    e2.elems + 
+    e1.elems +
+    e2.elems +
     e3.elems)
   return R
 
 
 class ReflectionProfileModel(object):
 
-  def __init__(self, 
+  def __init__(self,
                model,
                s0,
                s2,
@@ -312,16 +421,16 @@ class ReflectionProfileModel(object):
 
     # Rotate the covariance matrix
     S = self.R*self.model.sigma()*self.R.transpose()
-    
+
     # Rotate the first derivative matrices
     dS = rotate_mat3_double(self.R, self.model.first_derivatives())
-   
+
     # Rotate the second derivative matrices
     d2S = rotate_mat3_double(self.R, self.model.second_derivatives())
 
     # Construct the marginal distribution
     self._marginal = MarginalDistribution(S, dS, d2S)
-    
+
     # Construct the conditional distribution
     self._conditional = ConditionalDistribution(S, dS, d2S)
 
@@ -332,7 +441,7 @@ class ReflectionProfileModel(object):
     return self._conditional
 
   def log_likelihood(self):
-    
+
     S22 = self.marginal().sigma()
     S22_inv = 1 / S22
     Sbar = self.conditional().sigma()
@@ -358,26 +467,26 @@ class ReflectionProfileModel(object):
     Sbar = self.conditional().sigma()
     dSbar = self.conditional().first_derivatives()
     Sbar_inv = Sbar.inverse()
-      
+
     # The distance from the ewald sphere
     d = self.s0.length()-self.s2.length()
-   
+
     # Compute the derivative wrt parameter i
     dL = flex.double()
     for i in range(len(dS22)):
-      
+
       I = matrix.sqr((
         1, 0,
         0, 1))
 
       U = S22_inv*dS22[i]*(1 - S22_inv*d**2)
       V = (Sbar_inv*dSbar[i]*(self.ctot*I - Sbar_inv*self.Sobs)).trace()
-      
-      dL.append(-0.5*(U+V))
-   
+
+      dL.append(0.5*(U+V))
+
     # Return the derivative of the log likelihood
     return dL
-  
+
   def second_derivatives(self):
 
     # Get info about marginal distribution
@@ -391,10 +500,10 @@ class ReflectionProfileModel(object):
     dSbar = self.conditional().first_derivatives()
     d2Sbar = self.conditional().second_derivatives()
     Sbar_inv = Sbar.inverse()
-    
+
     # The distance from the ewald sphere
     d = self.s0.length()-self.s2.length()
-   
+
     # Compute the derivative wrt parameter i
     d2L = flex.double(d2S22.accessor())
     for j in range(d2S22.all()[0]):
@@ -410,8 +519,8 @@ class ReflectionProfileModel(object):
         B2 = Sbar_inv * dSbar[j] * Sbar_inv * dSbar[i] * (self.ctot*I - 2*Sbar_inv*self.Sobs)
         U = A1-A2
         V = (B1-B2).trace()
-        d2L[j,i] = -0.5*(U+V)
-   
+        d2L[j,i] = 0.5*(U+V)
+
     # Return the second derivative of the log likelihood
     return d2L
 

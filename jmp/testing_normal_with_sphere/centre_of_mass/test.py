@@ -16,7 +16,7 @@ def func_f(theta, phi, mu, s_sq):
   B = (sin_theta * sin_phi - mu[1])**2 / s_sq[1]
   C = (cos_theta           - mu[2])**2 / s_sq[2]
   return 0.5 * (A + B + C)
-  
+
 def func_f_gradient(theta, phi, mu, s_sq):
     sin_theta = sin(theta)
     cos_theta = cos(theta)
@@ -78,7 +78,7 @@ def compute_peak_f(mu, sigma, max_iter=100):
       break
 
     x0 = x
-  
+
   assert(it < max_iter-1)
 
   return x
@@ -113,7 +113,7 @@ def compute_peak_fx(mu, sigma, max_iter=100):
       break
 
     x0 = x
-  
+
   assert(it < max_iter-1)
 
   return x
@@ -148,7 +148,7 @@ def compute_peak_fy(mu, sigma, max_iter=100):
       break
 
     x0 = x
-  
+
   assert(it < max_iter-1)
 
   return x
@@ -181,9 +181,9 @@ def compute_peak_fz(mu, sigma, max_iter=100):
     x = x0 - H.inverse() * G
     if (x - x0).length() < 1e-7:
       break
-    
+
     x0 = x
-  
+
   assert(it < max_iter-1)
 
 
@@ -206,7 +206,7 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, peak_fz, mu, sigma):
     -1/peak_fx[0]**2, 0, 0,
     0, 0, 0,
     0, 0, 0))
-  
+
   H_fy = H_f + matrix.sqr((
     0, 0, 0,
     0, -1/peak_fy[1]**2, 0,
@@ -232,12 +232,12 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, peak_fz, mu, sigma):
   zc = D / A
 
   v = matrix.col((xc, yc, zc)).normalize()
-  
+
   return v
 
 
 def compute_laplace(mu, sigma):
-  
+
 
   theta_f, phi_f = compute_peak_f(mu, sigma)
   theta_fx, phi_fx = compute_peak_fx(mu, sigma)
@@ -248,24 +248,24 @@ def compute_laplace(mu, sigma):
   # print theta_fx, phi_fx
   # print theta_fy, phi_fy
   # print theta_fz, phi_fz
- 
+
   peak_f = matrix.col((
-    sin(theta_f)*cos(phi_f), 
+    sin(theta_f)*cos(phi_f),
     sin(theta_f)*sin(phi_f),
     cos(theta_f)))
-  
+
   peak_fx = matrix.col((
-    sin(theta_fx)*cos(phi_fx), 
+    sin(theta_fx)*cos(phi_fx),
     sin(theta_fx)*sin(phi_fx),
     cos(theta_fx)))
 
   peak_fy = matrix.col((
-    sin(theta_fy)*cos(phi_fy), 
+    sin(theta_fy)*cos(phi_fy),
     sin(theta_fy)*sin(phi_fy),
     cos(theta_fy)))
-  
+
   peak_fz = matrix.col((
-    sin(theta_fz)*cos(phi_fz), 
+    sin(theta_fz)*cos(phi_fz),
     sin(theta_fz)*sin(phi_fz),
     cos(theta_fz)))
 
@@ -301,7 +301,7 @@ def compute_mean_plane(mu, sigma):
 
   mu1 = matrix.col((mu_1[0], mu_1[1]))
   mu2 = mu_1[2]
-  
+
   z = 1
 
   mu_new_1 = mu1 + sigma_12 * (1/sigma_22) * (z - mu2)
@@ -311,7 +311,7 @@ def compute_mean_plane(mu, sigma):
     z)).normalize()
 
   x_new = R * v
-  
+
   return x_new
 
 def compute_mean_peak(mu, sigma):
@@ -350,7 +350,7 @@ if __name__ == '__main__':
     else:
       a3 = x.angle(x3)
       angle_peak.append(a3)
-    
+
     print i, a2, a3
 
   from matplotlib import pylab

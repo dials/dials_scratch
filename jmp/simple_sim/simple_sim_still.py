@@ -58,7 +58,7 @@ def simulate(experiment,
   # Allocate the image
   image = flex.double(flex.grid(ysize, xsize))
   model = flex.double(flex.grid(ysize, xsize))
-  
+
   L = matrix.sqr((
     0, 0, 0,
     0, 0, 0,
@@ -86,10 +86,10 @@ def simulate(experiment,
     Sigma_W,
     Sigma_M,
     10)
-  
+
   pixel_to_miller_index = PixelToMillerIndex(
-    experiment.beam, 
-    experiment.detector, 
+    experiment.beam,
+    experiment.detector,
     experiment.crystal)
 
   for j in range(ysize):
@@ -114,9 +114,9 @@ def display():
   print flex.max(data)
   pylab.imshow(data.as_numpy_array(), cmap=cm.Greys_r, vmax=1)
   pylab.show()
-  
+
   # image = pickle.load(open("image.pickle"))
-  
+
   # data = image
   # print flex.max(data)
   # pylab.imshow(data.as_numpy_array(), cmap=cm.Greys_r)

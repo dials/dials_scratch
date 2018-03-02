@@ -135,7 +135,7 @@ class ProfileRefiner(object):
 
     # Get the current values and generate some offsets
     values = flex.double((
-      0.001, 
+      0.001,
       0, 0.001,
       0, 0, 0.001))
     offset = flex.double(
@@ -151,7 +151,7 @@ class ProfileRefiner(object):
       values[3], values[4], values[5]))
     initial_sigma = M*M.transpose()
     initial_score = self.target(values)
-    
+
     self.sigma = initial_sigma
 
     # Perform the optimization
@@ -164,7 +164,7 @@ class ProfileRefiner(object):
     self.sigma = M*M.transpose()
     print 'Initial sigma:', initial_sigma
     print 'Final sigma:  ', self.sigma
-  
+
     # Compute the eigen decomposition of the covariance matrix
     eigen_decomposition = eigensystem.real_symmetric(self.sigma.as_flex_double_matrix())
     Q = matrix.sqr(eigen_decomposition.vectors())
@@ -272,7 +272,7 @@ if __name__ == '__main__':
   from matplotlib import pylab
   pylab.hist(I_obs, bins=50)
   pylab.show()
-  
+
 
   # from matplotlib import pylab
   # s0 = matrix.col(experiments[0].beam.get_s0())
@@ -292,7 +292,6 @@ if __name__ == '__main__':
   reflections['s1'] = s2_obs
   reflections['xyzobs.px'] = flex.vec2_double([experiments[0].detector[0].get_ray_intersection_px(s1) for s1 in s1_obs])
 
-  
+
   # Do the refinement
   refiner = ProfileRefiner(experiments[0], reflections)
-

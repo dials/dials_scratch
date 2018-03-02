@@ -38,31 +38,31 @@ def compute_dSdb1(b1, b2, b3, b4, b5, b6):
     2*b1,b2,b4,
     b2,0,0,
     b4,0,0))
-  
+
 def compute_dSdb2(b1, b2, b3, b4, b5, b6):
   return matrix.sqr((
     0,b1,0,
     b1,2*b2,b4,
     0,b4,0))
-  
+
 def compute_dSdb3(b1, b2, b3, b4, b5, b6):
   return matrix.sqr((
     0,0,0,
     0,2*b3,b5,
     0,b5,0))
-  
+
 def compute_dSdb4(b1, b2, b3, b4, b5, b6):
   return matrix.sqr((
     0,0,b1,
     0,0,b2,
     b1,b2,2*b4))
-  
+
 def compute_dSdb5(b1, b2, b3, b4, b5, b6):
   return matrix.sqr((
     0,0,0,
     0,0,b3,
     0,b3,2*b5))
-  
+
 def compute_dSdb6(b1, b2, b3, b4, b5, b6):
   return matrix.sqr((
     0,0,0,
@@ -163,7 +163,7 @@ def compute_d2Sdbij(i, j, b1, b2, b3, b4, b5, b6):
         0, 0, 2))
     ],
   }
-  
+
   m = data[i+1][j]
 
   if m is None:
@@ -226,10 +226,10 @@ def test_dSdb_22():
 
   def f4(x):
     return compute_sigma22(b1, b2, b3, x, b5, b6)
-  
+
   def f5(x):
     return compute_sigma22(b1, b2, b3, b4, x, b6)
-  
+
   def f6(x):
     return compute_sigma22(b1, b2, b3, b4, b5, x)
 
@@ -241,7 +241,7 @@ def test_dSdb_22():
   dSdb4_22_num = first_derivative(f4, b4, h)
   dSdb5_22_num = first_derivative(f5, b5, h)
   dSdb6_22_num = first_derivative(f6, b6, h)
-  
+
   dSdb1 = compute_dSdb1(b1, b2, b3, b4, b5, b6)
   dSdb2 = compute_dSdb2(b1, b2, b3, b4, b5, b6)
   dSdb3 = compute_dSdb3(b1, b2, b3, b4, b5, b6)
@@ -262,7 +262,7 @@ def test_dSdb_22():
   assert abs(dSdb4_22_num - dSdb4_22_cal) < 1e-7
   assert abs(dSdb5_22_num - dSdb5_22_cal) < 1e-7
   assert abs(dSdb6_22_num - dSdb6_22_cal) < 1e-7
- 
+
   #print 'OK'
 
 def test_dS_bar_db():
@@ -291,10 +291,10 @@ def test_dS_bar_db():
 
   def f4(x):
     return compute_sigma_bar(b1, b2, b3, x, b5, b6)
-  
+
   def f5(x):
     return compute_sigma_bar(b1, b2, b3, b4, x, b6)
-  
+
   def f6(x):
     return compute_sigma_bar(b1, b2, b3, b4, b5, x)
 
@@ -306,11 +306,11 @@ def test_dS_bar_db():
   dS_bar_db4_num = first_derivative(f4, b4, h)
   dS_bar_db5_num = first_derivative(f5, b5, h)
   dS_bar_db6_num = first_derivative(f6, b6, h)
-  
+
   def compute_dS_bar_db(S, dS):
     RSR = R*S*R.transpose()
     RdSR = R*dS*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -330,14 +330,14 @@ def test_dS_bar_db():
     C = S12*(1/S22)*dS21
     D = dS12*(1/S22)*S21
     return A + B - (C+D)
-  
+
   dSdb1 = compute_dSdb1(b1, b2, b3, b4, b5, b6)
   dSdb2 = compute_dSdb2(b1, b2, b3, b4, b5, b6)
   dSdb3 = compute_dSdb3(b1, b2, b3, b4, b5, b6)
   dSdb4 = compute_dSdb4(b1, b2, b3, b4, b5, b6)
   dSdb5 = compute_dSdb5(b1, b2, b3, b4, b5, b6)
   dSdb6 = compute_dSdb6(b1, b2, b3, b4, b5, b6)
-  
+
   S = compute_sigma(b1, b2, b3, b4, b5, b6)
 
   dS_bar_db1_cal = compute_dS_bar_db(S, dSdb1)
@@ -353,7 +353,7 @@ def test_dS_bar_db():
   assert all(abs(a-b) < 1e-7 for a, b in zip(dS_bar_db4_num, dS_bar_db4_cal))
   assert all(abs(a-b) < 1e-7 for a, b in zip(dS_bar_db5_num, dS_bar_db5_cal))
   assert all(abs(a-b) < 1e-7 for a, b in zip(dS_bar_db6_num, dS_bar_db6_cal))
- 
+
   #print 'OK'
 
 def test_dLdb():
@@ -369,9 +369,9 @@ def test_dLdb():
     sigma12 = matrix.col((sigmap[2], sigmap[5]))
     sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
     sigma22 = sigmap[8]
-    
+
     sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
-      
+
     d = r-mu2
     A = log(sigma22)
     B = (1/sigma22)*d**2
@@ -391,10 +391,10 @@ def test_dLdb():
 
   def f4(x):
     return compute_L(b1, b2, b3, x, b5, b6)
-  
+
   def f5(x):
     return compute_L(b1, b2, b3, b4, x, b6)
-  
+
   def f6(x):
     return compute_L(b1, b2, b3, b4, b5, x)
 
@@ -406,11 +406,11 @@ def test_dLdb():
   dLdb4_num = first_derivative(f4, b4, h)
   dLdb5_num = first_derivative(f5, b5, h)
   dLdb6_num = first_derivative(f6, b6, h)
-  
+
   def compute_dLdb(S, dS):
     RSR = R*S*R.transpose()
     RdSR = R*dS*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -447,7 +447,7 @@ def test_dLdb():
   dSdb4 = compute_dSdb4(b1, b2, b3, b4, b5, b6)
   dSdb5 = compute_dSdb5(b1, b2, b3, b4, b5, b6)
   dSdb6 = compute_dSdb6(b1, b2, b3, b4, b5, b6)
-  
+
   S = compute_sigma(b1, b2, b3, b4, b5, b6)
 
   dLdb1_cal = compute_dLdb(S, dSdb1)
@@ -463,11 +463,11 @@ def test_dLdb():
   assert abs(dLdb4_num - dLdb4_cal) < 1e-7
   assert abs(dLdb5_num - dLdb5_cal) < 1e-7
   assert abs(dLdb6_num - dLdb6_cal) < 1e-7
- 
+
   #print 'OK'
 
 def test_d2S_dbij(i, j):
-  
+
   (b1, b2, b3, b4, b5, b6), R, mu2, r, Sobs, ctot = generate_data()
 
   def compute_S(b1, b2, b3, b4, b5, b6):
@@ -493,7 +493,7 @@ def test_d2S_dbij(i, j):
     return compute_S(*params)
 
   h = 0.001
-  
+
   x = (b1, b2, b3, b4, b5, b6)[i]
   y = (b1, b2, b3, b4, b5, b6)[j]
 
@@ -502,7 +502,7 @@ def test_d2S_dbij(i, j):
   else:
     d2Sdb_22_num = second_derivative(f2, x=x, y=y, h=h)
 
-  
+
   d2Sdb = compute_d2Sdbij(i, j, b1, b2, b3, b4, b5, b6)
 
   d2Sdb_22_cal = (R*d2Sdb*R.transpose())[8]
@@ -512,7 +512,7 @@ def test_d2S_dbij(i, j):
   #print 'OK'
 
 def test_d2S_bar_dbij(i, j):
-  
+
   (b1, b2, b3, b4, b5, b6), R, mu2, r, Sobs, ctot = generate_data()
 
   def compute_Sbar(b1, b2, b3, b4, b5, b6):
@@ -538,7 +538,7 @@ def test_d2S_bar_dbij(i, j):
     return compute_Sbar(*params)
 
   h = 0.001
-  
+
   x = (b1, b2, b3, b4, b5, b6)[i]
   y = (b1, b2, b3, b4, b5, b6)[j]
 
@@ -548,12 +548,12 @@ def test_d2S_bar_dbij(i, j):
     d2S_bar_db_num = second_derivative(f2, x=x, y=y, h=h)
 
   def compute_d2S_bar_dbij(S, dSi, dSj, d2S):
-    
+
     RSR = R*S*R.transpose()
     RdSiR = R*dSi*R.transpose()
     RdSjR = R*dSj*R.transpose()
     Rd2SR = R*d2S*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -567,14 +567,14 @@ def test_d2S_bar_dbij(i, j):
     dSi12 = matrix.col((RdSiR[2], RdSiR[5]))
     dSi21 = matrix.col((RdSiR[6], RdSiR[7])).transpose()
     dSi22 = RdSiR[8]
-    
+
     dSj11 = matrix.sqr((
       RdSjR[0], RdSjR[1],
       RdSjR[3], RdSjR[4]))
     dSj12 = matrix.col((RdSjR[2], RdSjR[5]))
     dSj21 = matrix.col((RdSjR[6], RdSjR[7])).transpose()
     dSj22 = RdSjR[8]
-    
+
     d2S11 = matrix.sqr((
       Rd2SR[0], Rd2SR[1],
       Rd2SR[3], Rd2SR[4]))
@@ -585,7 +585,7 @@ def test_d2S_bar_dbij(i, j):
     A = d2S11
     B = dSj12*(1/S22)*dSi22*(1/S22)*S21
     C = S12*(1/S22)*dSj22*(1/S22)*dSi22*(1/S22)*S21
-    
+
     D = S12*(1/S22)*d2S22*(1/S22)*S21
     E = S12*(1/S22)*dSi22*(1/S22)*dSj22*(1/S22)*S21
     F = S12*(1/S22)*dSi22*(1/S22)*dSj21
@@ -597,11 +597,11 @@ def test_d2S_bar_dbij(i, j):
     J = d2S12*(1/S22)*S21
     K = dSi12*(1/S22)*(dSj22)*(1/S22)*S21
     L = dSi12*(1/S22)*dSj21
-  
+
     return A+B-C+D-E+F-G+H-I-J+K-L
 
   S = compute_sigma(b1, b2, b3, b4, b5, b6)
-  
+
   dS_func = {
     0 : compute_dSdb1(b1, b2, b3, b4, b5, b6),
     1 : compute_dSdb2(b1, b2, b3, b4, b5, b6),
@@ -617,14 +617,14 @@ def test_d2S_bar_dbij(i, j):
   d2Sdb = compute_d2Sdbij(i, j, b1, b2, b3, b4, b5, b6)
 
   d2S_bar_db_cal = compute_d2S_bar_dbij(S, dSi, dSj, d2Sdb)
-  
+
   assert all(abs(a-b) < 1e-5 for a, b in zip(d2S_bar_db_num, d2S_bar_db_cal))
 
   #print 'OK'
 
 
 def test_d2L_dbij(i, j):
-  
+
   (b1, b2, b3, b4, b5, b6), R, mu2, r, Sobs, ctot = generate_data()
 
   def compute_L(b1, b2, b3, b4, b5, b6):
@@ -636,9 +636,9 @@ def test_d2L_dbij(i, j):
     sigma12 = matrix.col((sigmap[2], sigmap[5]))
     sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
     sigma22 = sigmap[8]
-    
+
     sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
-      
+
     d = r-mu2
     A = log(sigma22)
     B = (1/sigma22)*d**2
@@ -658,7 +658,7 @@ def test_d2L_dbij(i, j):
     return compute_L(*params)
 
   h = 0.001
-  
+
   x = (b1, b2, b3, b4, b5, b6)[i]
   y = (b1, b2, b3, b4, b5, b6)[j]
 
@@ -666,11 +666,11 @@ def test_d2L_dbij(i, j):
     d2Ldb_num = second_derivative(f1, x=x, h=h)
   else:
     d2Ldb_num = second_derivative(f2, x=x, y=y, h=h)
-  
+
   def compute_dS_bar_db(S, dS):
     RSR = R*S*R.transpose()
     RdSR = R*dS*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -692,12 +692,12 @@ def test_d2L_dbij(i, j):
     return A + B - (C+D)
 
   def compute_d2S_bar_dbij(S, dSi, dSj, d2S):
-    
+
     RSR = R*S*R.transpose()
     RdSiR = R*dSi*R.transpose()
     RdSjR = R*dSj*R.transpose()
     Rd2SR = R*d2S*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -711,14 +711,14 @@ def test_d2L_dbij(i, j):
     dSi12 = matrix.col((RdSiR[2], RdSiR[5]))
     dSi21 = matrix.col((RdSiR[6], RdSiR[7])).transpose()
     dSi22 = RdSiR[8]
-    
+
     dSj11 = matrix.sqr((
       RdSjR[0], RdSjR[1],
       RdSjR[3], RdSjR[4]))
     dSj12 = matrix.col((RdSjR[2], RdSjR[5]))
     dSj21 = matrix.col((RdSjR[6], RdSjR[7])).transpose()
     dSj22 = RdSjR[8]
-    
+
     d2S11 = matrix.sqr((
       Rd2SR[0], Rd2SR[1],
       Rd2SR[3], Rd2SR[4]))
@@ -729,7 +729,7 @@ def test_d2L_dbij(i, j):
     A = d2S11
     B = dSj12*(1/S22)*dSi22*(1/S22)*S21
     C = S12*(1/S22)*dSj22*(1/S22)*dSi22*(1/S22)*S21
-    
+
     D = S12*(1/S22)*d2S22*(1/S22)*S21
     E = S12*(1/S22)*dSi22*(1/S22)*dSj22*(1/S22)*S21
     F = S12*(1/S22)*dSi22*(1/S22)*dSj21
@@ -741,7 +741,7 @@ def test_d2L_dbij(i, j):
     J = d2S12*(1/S22)*S21
     K = dSi12*(1/S22)*(dSj22)*(1/S22)*S21
     L = dSi12*(1/S22)*dSj21
-  
+
     return A+B-C+D-E+F-G+H-I-J+K-L
 
   def compute_dLdb(S, dSi, dSj, d2S):
@@ -750,7 +750,7 @@ def test_d2L_dbij(i, j):
     RdSiR = R*dSi*R.transpose()
     RdSjR = R*dSj*R.transpose()
     Rd2SR = R*d2S*R.transpose()
-    
+
     S11 = matrix.sqr((
       RSR[0], RSR[1],
       RSR[3], RSR[4]))
@@ -764,14 +764,14 @@ def test_d2L_dbij(i, j):
     dSi12 = matrix.col((RdSiR[2], RdSiR[5]))
     dSi21 = matrix.col((RdSiR[6], RdSiR[7])).transpose()
     dSi22 = RdSiR[8]
-    
+
     dSj11 = matrix.sqr((
       RdSjR[0], RdSjR[1],
       RdSjR[3], RdSjR[4]))
     dSj12 = matrix.col((RdSjR[2], RdSjR[5]))
     dSj21 = matrix.col((RdSjR[6], RdSjR[7])).transpose()
     dSj22 = RdSjR[8]
-    
+
     d2S11 = matrix.sqr((
       Rd2SR[0], Rd2SR[1],
       Rd2SR[3], Rd2SR[4]))
@@ -796,9 +796,9 @@ def test_d2L_dbij(i, j):
     A = A1-A2
     B = (B1-B2).trace()
     return -0.5 * (A+B)
-  
+
   S = compute_sigma(b1, b2, b3, b4, b5, b6)
-  
+
   dS_func = {
     0 : compute_dSdb1(b1, b2, b3, b4, b5, b6),
     1 : compute_dSdb2(b1, b2, b3, b4, b5, b6),
@@ -812,7 +812,7 @@ def test_d2L_dbij(i, j):
   dSj = dS_func[j]
 
   d2Sdb = compute_d2Sdbij(i, j, b1, b2, b3, b4, b5, b6)
-  
+
   d2Ldb_cal = compute_dLdb(S, dSi, dSj, d2Sdb)
 
   assert abs(d2Ldb_num - d2Ldb_cal) < 1e-5

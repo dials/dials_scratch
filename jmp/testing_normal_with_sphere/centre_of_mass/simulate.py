@@ -26,14 +26,14 @@ def compute_integrate(mu, sigma, N=1000, M=1000):
       cos_theta = cos(theta)
       sin_phi = sin(phi)
       cos_phi = cos(phi)
-      
+
       x = matrix.col((
-        sin_theta*cos_phi, 
+        sin_theta*cos_phi,
         sin_theta*sin_phi,
         cos_theta))
 
-      f = normal_3d(x, mu, sigma)      
-      
+      f = normal_3d(x, mu, sigma)
+
       I1 += x * f * sin_theta
       I2 += f * sin_theta
 
@@ -53,7 +53,7 @@ def generate_random_mu():
 def simulate(num_spots,
              num_integral,
              filename):
-  
+
   data = {
     'mu' : [],
     'sigma' : [],
@@ -76,7 +76,7 @@ def simulate(num_spots,
     data['x'].append(tuple(x))
 
   json.dump(data, open(filename, "w"), indent=2)
-    
+
 
 if __name__ == "__main__":
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
   #   0, 0, 0.03))
 
   # sest = compute_integrate(mu, sigma)
-  
+
   # theta = acos(sest[2])
   # phi = atan2(sest[1], sest[0])
   # print theta, phi

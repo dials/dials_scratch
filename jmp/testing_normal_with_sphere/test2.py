@@ -95,7 +95,7 @@ for t in range(5):
   x1 = mu1 / (1 - l0*s1**2)
   x2 = mu2 / (1 - l0*s2**2)
   x3 = mu3 / (1 - l0*s3**2)
-  
+
   print l0, x1, x2, x3, x1**2 + x2**2 + x3**2
 
 print tuple(x)
@@ -113,4 +113,3 @@ print tuple(x)
 # from matplotlib import pylab
 # pylab.plot(X, Y)
 # pylab.show()
-

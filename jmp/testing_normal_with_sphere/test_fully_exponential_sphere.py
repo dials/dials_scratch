@@ -16,7 +16,7 @@ def func_f(theta, phi, mu, s_sq):
   B = (sin_theta * sin_phi - mu[1])**2 / s_sq[1]
   C = (cos_theta           - mu[2])**2 / s_sq[2]
   return 0.5 * (A + B + C)
-  
+
 def func_f_gradient(theta, phi, mu, s_sq):
     sin_theta = sin(theta)
     cos_theta = cos(theta)
@@ -196,7 +196,7 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, peak_fz, mu, sigma):
     -1/peak_fx[0]**2, 0, 0,
     0, 0, 0,
     0, 0, 0))
-  
+
   H_fy = H_f + matrix.sqr((
     0, 0, 0,
     0, -1/peak_fy[1]**2, 0,
@@ -222,12 +222,12 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, peak_fz, mu, sigma):
   zc = D / A
 
   v = matrix.col((xc, yc, zc)).normalize()
-  
+
   return v
 
 
 def compute_laplace(mu, sigma):
-  
+
 
   theta_f, phi_f = compute_peak_f(mu, sigma)
   theta_fx, phi_fx = compute_peak_fx(mu, sigma)
@@ -238,24 +238,24 @@ def compute_laplace(mu, sigma):
   # print theta_fx, phi_fx
   # print theta_fy, phi_fy
   # print theta_fz, phi_fz
- 
+
   peak_f = matrix.col((
-    sin(theta_f)*cos(phi_f), 
+    sin(theta_f)*cos(phi_f),
     sin(theta_f)*sin(phi_f),
     cos(theta_f)))
-  
+
   peak_fx = matrix.col((
-    sin(theta_fx)*cos(phi_fx), 
+    sin(theta_fx)*cos(phi_fx),
     sin(theta_fx)*sin(phi_fx),
     cos(theta_fx)))
 
   peak_fy = matrix.col((
-    sin(theta_fy)*cos(phi_fy), 
+    sin(theta_fy)*cos(phi_fy),
     sin(theta_fy)*sin(phi_fy),
     cos(theta_fy)))
-  
+
   peak_fz = matrix.col((
-    sin(theta_fz)*cos(phi_fz), 
+    sin(theta_fz)*cos(phi_fz),
     sin(theta_fz)*sin(phi_fz),
     cos(theta_fz)))
 
@@ -292,22 +292,22 @@ def compute_integrate(mu, sigma):
       cos_theta = cos(theta)
       sin_phi = sin(phi)
       cos_phi = cos(phi)
-      
+
       x = matrix.col((
-        sin_theta*cos_phi, 
+        sin_theta*cos_phi,
         sin_theta*sin_phi,
         cos_theta))
 
-      f = normal_3d(x, mu, sigma)      
-      
+      f = normal_3d(x, mu, sigma)
+
       I1 += x * f * sin_theta
       I2 += f * sin_theta
 
   return (I1 / I2).normalize()
-  
+
 
 if __name__ == "__main__":
-  
+
   mu = matrix.col((1, 1, 1)).normalize() * 0.95
   sigma = matrix.sqr((
     0.01, 0, 0,
@@ -315,14 +315,13 @@ if __name__ == "__main__":
     0, 0, 0.03))
 
   scal = compute_laplace(mu, sigma)
-  
+
   print scal.length()
 
   sest = compute_integrate(mu, sigma)
-  
+
   theta = acos(sest[2])
   phi = atan2(sest[1], sest[0])
   print theta, phi
 
   print scal.angle(sest)
-  

@@ -1,7 +1,7 @@
 
 from matplotlib import pylab
 from math import sqrt, exp
-X = []     
+X = []
 Y = []
 s = 0.02
 for i in range(1001):

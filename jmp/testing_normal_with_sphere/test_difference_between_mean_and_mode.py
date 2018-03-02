@@ -92,7 +92,7 @@ def compute_plane_average(mu, sigma):
 
   def func(z):
     return z - mu2
-  
+
   def compute_z():
     mu3 = (mu2 + 1) / 2.0
     a = 0
@@ -107,7 +107,7 @@ def compute_plane_average(mu, sigma):
       return 0.5 * (1 + erf(x/sqrt(2)))
     Z = P(beta) - P(alpha)
     return mu3 + (p(alpha) - p(beta)) * s / Z
-  
+
   def compute_z():
     mu3 = (mu2+1) / 2.0
     a = 0
@@ -121,7 +121,7 @@ def compute_plane_average(mu, sigma):
       return 0.5 * (1 + erf(x/sqrt(2)))
     Z = P(beta) - P(alpha)
     return mu3 + (p(alpha) - p(beta)) * s / Z
-  
+
   # def compute_z():
   #   sigma_new = sigma_11 - sigma_12*(1/sigma_22)*sigma_21
   #   sigma_new_inv = sigma_new.inverse()
@@ -175,12 +175,12 @@ def compute_plane_average(mu, sigma):
     z)).normalize()
   # a = 1
   # b = 0.9
-  
+
   # w1 = normal_1d(a, mu2, sigma_22)
   # w2 = normal_1d(b, mu2, sigma_22)
   # w1, w2 = w1 / (w1 + w2), w2 / (w1 + w2)
 
-  
+
   # mu_new_1 = mu1 + sigma_12 * (1/sigma_22) * (a - mu2)
   # mu_new_2 = mu1 + sigma_12 * (1/sigma_22) * (b - mu2)
 
@@ -194,7 +194,7 @@ def compute_plane_average(mu, sigma):
   #v = matrix.col((mu_new[0], mu_new[1], 1)).normalize()
 
   x_new = R * v
-  
+
   return x_new
 
 
@@ -210,12 +210,12 @@ def compute_peak_and_mean(mu, sigma):
   # theta_1 = (45+30) * pi / 180
   # phi_0 = (45-30) * pi / 180
   # phi_1 = (45+30) * pi / 180
-  
+
   theta_0 = 0
   theta_1 = pi / 2
   phi_0 =  0
   phi_1 =  pi / 2
-  
+
   A = 1.0 / sqrt((2*pi)**3 * sigma.determinant())
   sigma_inverse = sigma.inverse()
 
@@ -234,7 +234,7 @@ def compute_peak_and_mean(mu, sigma):
       if g > peak_value:
         peak_value = g
         peak_coord = v
-      
+
       sin_theta = sin(theta)
       I1 += g * v * sin_theta
       I2 += g * sin_theta
@@ -243,12 +243,12 @@ def compute_peak_and_mean(mu, sigma):
   #   y = uniform(mu[1]-1, mu[1]+1)
   #   z = uniform(mu[2]-1, mu[2]+1)
   #   x = matrix.col((x, y, z)).normalize()
-  #   g = normal_3d(x, mu, sigma) 
+  #   g = normal_3d(x, mu, sigma)
   #   theta = atan2(x[1],x[0])
   #   if g > peak_value:
   #     peak_value = g
   #     peak_coord = x
-  #   I1 += g * x * sin(theta) 
+  #   I1 += g * x * sin(theta)
   #   I2 += g * sin(theta)
   return peak_coord, (I1 / I2).normalize()
 
@@ -263,13 +263,13 @@ def plot(mu, sigma):
   ax = fig.add_subplot(111, projection='3d')
 
   def draw_ewald_sphere():
-  
+
     u, v = np.mgrid[0:2*np.pi:100j, 0:np.pi:100j]
     x = np.cos(u)*np.sin(v)
     y = np.sin(u)*np.sin(v)
     z = np.cos(v)
     ax.plot_surface(x, y, z, color="r", rstride=4, cstride=4, alpha=0.2)
-  
+
   def draw_rlp():
 
     # Compute the eigen decomposition of the covariance matrix
@@ -300,7 +300,7 @@ def plot(mu, sigma):
   draw_ewald_sphere()
   draw_rlp()
   plt.show()
-  
+
 
 if __name__ == '__main__':
 
@@ -314,7 +314,7 @@ if __name__ == '__main__':
   mode = compute_mode(mu, sigma)
 
   mest = compute_plane_average(mu, sigma)
-  
+
   peak, mean = compute_peak_and_mean(mu, sigma)
 
   print "Mode: ", tuple(mode), mode.length()

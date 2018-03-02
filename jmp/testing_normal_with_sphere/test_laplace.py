@@ -75,7 +75,7 @@ def compute_mean(mu, sigma):
 
   peak_xx_value = 0
   peak_xx_coord = 0
-  
+
   peak_yy_value = 0
   peak_yy_coord = 0
 

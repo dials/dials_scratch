@@ -39,7 +39,7 @@ def integrate(angle=0):
   from scitbx import matrix
   from math import pi, cos, sin
 
-  # Spherical RLP at R = 10 
+  # Spherical RLP at R = 10
   mu = matrix.col((-1, 0))
   sigma = matrix.sqr((0.25*0.25, 0, 0, 0.1*0.1))
 
@@ -47,7 +47,7 @@ def integrate(angle=0):
 
   sigma = R * sigma * R.transpose()
 
-  # Spherical RLP at R = 10 
+  # Spherical RLP at R = 10
   # r = 10
   # theta = 10 * pi / 180.0
   # mu = matrix.col((r*cos(theta), r*sin(theta)))
@@ -84,7 +84,7 @@ exit(0)
 X = []
 Y = []
 for angle in range(0, 180):
-  x = angle 
+  x = angle
   y = integrate(angle * pi / 180.0) * 180.0 / pi
   print x, y
   X.append(x)
@@ -113,7 +113,7 @@ for i in range(1000):
   theta = i*2*pi / 1000.0
   X.append(r*cos(theta))
   Y.append(r*sin(theta))
-  
+
   r = 10
   theta = -10 * pi / 180.0
   mu = matrix.col((r*cos(theta), r*sin(theta)))

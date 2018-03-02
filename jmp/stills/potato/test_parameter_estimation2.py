@@ -96,7 +96,7 @@ def generate_transformed_data(experiments, reflections, sigma):
     points = multivariate_normal(
       (0,0), matrix.sqr(sigmap).as_list_of_lists(),
       int(scale*1000))
-    
+
     for (x, y) in points:
       jj = int(4.5 + b1*y)
       ii = int(4.5 + b2*x)
@@ -132,7 +132,7 @@ class ProfileRefiner(object):
 
     # Get the current values and generate some offsets
     values = flex.double((
-      0.001, 
+      0.001,
       0, 0.001,
       0, 0, 0.001))
     offset = flex.double(
@@ -148,7 +148,7 @@ class ProfileRefiner(object):
       values[3], values[4], values[5]))
     initial_sigma = M*M.transpose()
     initial_score = self.target(values)
-    
+
     self.sigma = initial_sigma
 
     # Perform the optimization
@@ -161,7 +161,7 @@ class ProfileRefiner(object):
     self.sigma = M*M.transpose()
     print 'Initial sigma:', initial_sigma
     print 'Final sigma:  ', self.sigma
-  
+
     # Compute the eigen decomposition of the covariance matrix
     eigen_decomposition = eigensystem.real_symmetric(self.sigma.as_flex_double_matrix())
     Q = matrix.sqr(eigen_decomposition.vectors())
@@ -199,7 +199,7 @@ class ProfileRefiner(object):
     for s2, I in zip(s2_cal, I_obs):
       model = PotatoOnEwaldSphere(1/s0.length(), s2, sigma)
       lnL += model.log_likelihood() * I
-  
+
     b1 = 9 / (2*0.01)
     b2 = 9 / (2*0.01)
 
@@ -278,14 +278,14 @@ if __name__ == '__main__':
 
   print len(selection), len(reflections)
 
-    
+
   transformed_data = generate_transformed_data(experiments, reflections, sigma)
 
 
   from matplotlib import pylab
   pylab.hist(I_obs, bins=50)
   pylab.show()
-  
+
 
   # from matplotlib import pylab
   # s0 = matrix.col(experiments[0].beam.get_s0())
@@ -305,7 +305,6 @@ if __name__ == '__main__':
   reflections['s1'] = s2_obs
   reflections['xyzobs.px'] = flex.vec2_double([experiments[0].detector[0].get_ray_intersection_px(s1) for s1 in s1_obs])
 
-  
+
   # Do the refinement
   refiner = ProfileRefiner(experiments[0], reflections, transformed_data)
-
