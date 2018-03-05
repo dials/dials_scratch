@@ -327,7 +327,7 @@ class ConditionalDistribution(object):
       return A + B - (C + D)
 
     self.dS = [compute_dS(d) for d in dS]
-
+    return
     def compute_d2S(dSi, dSj, d2S):
 
       dSi12 = matrix.col((dSi[2], dSi[5]))
@@ -434,6 +434,9 @@ class ReflectionProfileModel(object):
     # Construct the conditional distribution
     self._conditional = ConditionalDistribution(S, dS, d2S)
 
+    self.S = S
+    self.dS = dS
+
   def marginal(self):
     return self._marginal
 
@@ -523,6 +526,41 @@ class ReflectionProfileModel(object):
 
     # Return the second derivative of the log likelihood
     return d2L
+
+  def fisher_information(self):
+
+    # Get info about marginal distribution
+    S22 = self.marginal().sigma()
+    dS22 = self.marginal().first_derivatives()
+    S22_inv = 1 / S22
+
+    # Get info about conditional distribution
+    Sbar = self.conditional().sigma()
+    dSbar = self.conditional().first_derivatives()
+    Sbar_inv = Sbar.inverse()
+
+    # The distance from the ewald sphere
+    d = self.s0.length()-self.s2.length()
+
+    I = flex.double(flex.grid(len(dS22), len(dS22)))
+    for j in range(len(dS22)):
+      for i in range(len(dS22)):
+
+        # S12 = matrix.col((self.S[2], self.S[5]))
+        # dSi12 = matrix.col((self.dS[i][2],self.dS[i][5]))
+        # dSj12 = matrix.col((self.dS[j][2],self.dS[j][5]))
+        # dSi22 = self.dS[i][8]
+        # dSj22 = self.dS[j][8]
+
+        # dmbari = dSi12*S22_inv*d - S12*S22_inv*dSi22*S22_inv*d
+        # dmbarj = dSi12*S22_inv*d - S12*S22_inv*dSj22*S22_inv*d
+        #W = (dmbari.transpose()*Sbar_inv*dmbarj)[0]
+
+        U = S22_inv*dS22[j]*S22_inv*dS22[i]
+        V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*self.ctot).trace()
+        I[j,i] = 0.5*(U+V)
+
+    return I
 
 if __name__ == '__main__':
 
