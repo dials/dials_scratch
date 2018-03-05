@@ -562,6 +562,58 @@ class ReflectionProfileModel(object):
 
     return I
 
+
+def estimate_parameters(s0, s2_list, ctot_list, Sobs_list):
+
+  params_old = matrix.col((1, 0, 1, 0, 0, 1))
+
+  while True:
+
+    parameterisation = MosaicityParameterisation(params_old)
+
+    profile_model = ProfileModel(parameterisation)
+
+    reflection_models = []
+    for i in range(len(s2_list)):
+      s2 = s2_list[i]
+      ctot = ctot_list[i]
+      Sobs = Sobs_list[i]
+      reflection_models.append(ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs))
+
+    L = 0
+    dL = flex.double(6)
+    I = flex.double(flex.grid(6,6))
+    for r in reflection_models:
+      L += r.log_likelihood()
+      dL += r.first_derivatives()
+      I += r.fisher_information()
+
+    dL = matrix.col(list(dL))
+    I = matrix.sqr(list(I))
+
+    from scitbx import linalg
+    LL = flex.double()
+    for j in range(6):
+      for i in range(j+1):
+        LL.append(I[j*6+i])
+
+    ll = linalg.l_l_transpose_cholesky_decomposition_in_place(LL)
+    S = flex.double(-dL)
+    S = ll.solve(S)
+    params = params_old + matrix.col(S)
+    M = matrix.sqr((
+      params[0], 0, 0,
+      params[1], params[2], 0,
+      params[3], params[4], params[5]))
+    sigma = M*M.transpose()
+    print tuple(sigma),  L
+
+    if all(abs(a-b)<1e-7 for a, b in zip(params, params_old)):
+      break
+    params_old = params
+
+  return params
+
 if __name__ == '__main__':
 
   p = MosaicityParameterisation((1, 0.1, 2, 0.2, 0.3, 3))
