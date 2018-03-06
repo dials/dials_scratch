@@ -1,6 +1,7 @@
 from __future__ import division
 from dials.array_family import flex
 from scitbx import matrix
+from scitbx import linalg
 from math import log, exp
 
 class MosaicityParameterisation(object):
@@ -485,7 +486,7 @@ class ReflectionProfileModel(object):
       U = S22_inv*dS22[i]*(1 - S22_inv*d**2)
       V = (Sbar_inv*dSbar[i]*(self.ctot*I - Sbar_inv*self.Sobs)).trace()
 
-      dL.append(0.5*(U+V))
+      dL.append(-0.5*(U+V))
 
     # Return the derivative of the log likelihood
     return dL
@@ -522,7 +523,7 @@ class ReflectionProfileModel(object):
         B2 = Sbar_inv * dSbar[j] * Sbar_inv * dSbar[i] * (self.ctot*I - 2*Sbar_inv*self.Sobs)
         U = A1-A2
         V = (B1-B2).trace()
-        d2L[j,i] = 0.5*(U+V)
+        d2L[j,i] = -0.5*(U+V)
 
     # Return the second derivative of the log likelihood
     return d2L
@@ -595,19 +596,20 @@ def search(params, step, N, log_likelihood):
 
 
 
+
 def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
   '''
   Perform a line search
 
   '''
   fa = func(x)
-  min_delta = tolerance / p.length()
+  min_delta = min(tolerance, tolerance / p.length())
   while delta > min_delta:
     fb = func(x + delta*p)
     if fb <= fa:
       return delta
     delta *= tau
-  raise RuntimeError('Line search terminanted without solution')
+  return 0
 
 
 def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
@@ -619,8 +621,8 @@ def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
   for it in range(max_iter):
     p = -matrix.col(df(x0))
     delta = line_search(f, x0, p, delta=min(1.0, delta*2), tolerance=tolerance)
+    assert delta > 0
     x = x0 + delta*p
-    print delta, tuple(x), f(x)
     assert f(x) <= f(x0)
     if (x - x0).length() < tolerance:
       break
@@ -628,34 +630,343 @@ def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
   return x
 
 
-# def gradient_descent(params, dL, L, log_likelihood):
-#   def func(x):
-#     return -log_likelihood(x)
+def solve_update_equation(D, I):
+  '''
+  Solve the update equation using cholesky decomposition
 
-#   TINY = 1e-7
+  '''
   
-#   delta = line_search(func, params, matrix.col(-dL))
-#   p = params+delta*matrix.col(-dL)
-#   print delta, log_likelihood(params), log_likelihood(p)
-#   assert log_likelihood(params) <= log_likelihood(p)
-#   return p
+  # Construct triangular matrix
+  LL = flex.double()
+  for j in range(6):
+    for i in range(j+1):
+      LL.append(I[j*6+i])
 
-# def gradient_descent(params, dL, L, log_likelihood):
-#   def func(x):
-#     return -log_likelihood(x)
+  # Perform the decomposition
+  ll = linalg.l_l_transpose_cholesky_decomposition_in_place(LL)
+  p = flex.double(-D)
+  return ll.solve(p)
 
-#   TINY = 1e-7
+
+def fisher_scoring_maximum_likelihood(f, df, d2f, x0, tolerance=1e-7, max_iter=1000):
+  '''
+  Find the maximum likelihood estimate via fisher scoring
+
+  '''
+ 
+  # Loop through the maximum number of iterations
+  for it in range(max_iter):
+    
+    # Compute the derivative and fisher information at x0
+    D = df(x0)
+    I = d2f(x0)
+   
+    # Solve the update equation
+    p = matrix.col(solve_update_equation(D, I))
+
+    # Perform a line search to ensure that each step results in an increase the
+    # in log likelihood. In the rare case where the update does not result in an
+    # increase in the likelihood (only observed for absurdly small samples 
+    # (e.g. 2 reflections) do an iteration of gradient descent 
+    delta = line_search(lambda x: -f(x), x0, p, tolerance=tolerance)
+    if delta > 0:
+      x = x0 + delta*p
+    else:
+      x = gradient_descent(lambda x: -f(x), df, x0, max_iter=1, tolerance=tolerance)
+
+    print tuple(x), f(x)
+
+    # Break the loop if the parameters change less than the tolerance
+    if (x - x0).length() < tolerance:
+      break
+
+    # Update the parameter
+    x0 = x
+
+  return x
+
+
+class FisherScoringMaximumLikelihoodBase(object):
+
+  def __init__(self, x0, max_iter=1000, tolerance=1e-7):
+    self.x0 = x0
+    self.max_iter = max_iter
+    self.tolerance = tolerance
+
+  def solve(self):
+    '''
+    Find the maximum likelihood estimate via fisher scoring
+
+    '''
+    x0 = self.x0
+   
+    # Loop through the maximum number of iterations
+    for it in range(self.max_iter):
+      
+      # Compute the derivative and fisher information at x0
+      D, I = self.gradient_and_fisher_information(x0)
+     
+      # Solve the update equation to get direction
+      p = matrix.col(self.solve_update_equation(D, I))
+
+      # Perform a line search to ensure that each step results in an increase the
+      # in log likelihood. In the rare case where the update does not result in an
+      # increase in the likelihood (only observed for absurdly small samples 
+      # (e.g. 2 reflections) do an iteration of gradient descent 
+      delta = self.line_search(
+        self.negative_log_likelihood, 
+        x0, 
+        -p, 
+        tolerance=self.tolerance)
+      if delta > 0:
+        x = x0 + delta*p
+      else:
+        assert False
+        x = self.gradient_descent(
+          self.negative_log_likelihood, 
+          self.negative_gradient, 
+          x0, 
+          max_iter=1, 
+          tolerance=self.tolerance)
+
+      # Call an update
+      self.callback(x)
+
+      # Break the loop if the parameters change less than the tolerance
+      if (x - x0).length() < self.tolerance:
+        break
+
+      # Update the parameter
+      x0 = x
+
+    # Save the parameters
+    self.parameters = x
+
+  def solve_update_equation(self, D, I):
+    '''
+    Solve the update equation using cholesky decomposition
+
+    '''
+    
+    # Construct triangular matrix
+    LL = flex.double()
+    for j in range(6):
+      for i in range(j+1):
+        LL.append(I[j*6+i])
+
+    # Perform the decomposition
+    ll = linalg.l_l_transpose_cholesky_decomposition_in_place(LL)
+    p = flex.double(D)
+    return ll.solve(p)
+
+  def line_search(self, func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
+    '''
+    Perform a line search
+
+    '''
+    fa = func(x)
+    min_delta = min(tolerance, tolerance / p.length())
+    while delta > min_delta:
+      fb = func(x + delta*p)
+      if fb >= fa:
+        return delta
+      delta *= tau
+    return 0
+
+
+  def gradient_descent(self, f, df, x0, max_iter=1000, tolerance=1e-10):
+    '''
+    Find the minimum using gradient descent and a line search
+
+    '''
+    delta = 0.5
+    for it in range(max_iter):
+      p = -matrix.col(df(x0))
+      delta = line_search(f, x0, p, delta=min(1.0, delta*2), tolerance=tolerance)
+      assert delta > 0
+      x = x0 + delta*p
+      assert f(x) <= f(x0)
+      if (x - x0).length() < tolerance:
+        break
+      x0 = x
+    return x
+
+  def negative_log_likelihood(self, x):
+    return -self.log_likelihood(x)
+
+  def negative_gradient(self, x):
+    return -self.gradient(x)
+
+
+class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
   
-#   delta = line_search(func, params, matrix.col(-dL))
-#   p = params+delta*matrix.col(-dL)
-#   print delta, log_likelihood(params), log_likelihood(p)
-#   assert log_likelihood(params) <= log_likelihood(p)
-#   return p
+  def __init__(self, 
+               x0, 
+               s0, 
+               s2_list, 
+               ctot_list, 
+               Sobs_list,
+               max_iter=1000,
+               tolerance=1e-7):
+    
+    # Initialise the super class
+    super(FisherScoringMaximumLikelihood, self).__init__(
+      x0,
+      max_iter=max_iter,
+      tolerance=tolerance)
+
+    # Save some stuff
+    self.s0 = s0
+    self.s2_list = s2_list
+    self.ctot_list = ctot_list
+    self.Sobs_list = Sobs_list
+
+  def log_likelihood(self, x):
+    parameterisation = MosaicityParameterisation(x)
+    profile_model = ProfileModel(parameterisation)
+    L = 0
+    for i in range(len(self.s2_list)):
+      s2 = self.s2_list[i]
+      ctot = self.ctot_list[i]
+      Sobs = self.Sobs_list[i]
+      r = ReflectionProfileModel(profile_model, self.s0, s2, ctot, Sobs)
+      L += r.log_likelihood()
+    return L
+
+  def gradient(self, x):
+    parameterisation = MosaicityParameterisation(x)
+    profile_model = ProfileModel(parameterisation)
+    dL = 0
+    for i in range(len(self.s2_list)):
+      s2 = self.s2_list[i]
+      ctot = self.ctot_list[i]
+      Sobs = self.Sobs_list[i]
+      r = ReflectionProfileModel(profile_model, self.s0, s2, ctot, Sobs)
+      dL += r.first_derivatives()
+    return dL
+
+  def gradient_and_fisher_information(self, x):
+    parameterisation = MosaicityParameterisation(x)
+    profile_model = ProfileModel(parameterisation)
+    dL = 0
+    d2L = 0
+    for i in range(len(self.s2_list)):
+      s2 = self.s2_list[i]
+      ctot = self.ctot_list[i]
+      Sobs = self.Sobs_list[i]
+      r = ReflectionProfileModel(profile_model, self.s0, s2, ctot, Sobs)
+      dL += r.first_derivatives()
+      d2L += r.fisher_information()
+    return dL, d2L
+
+  def callback(self, x):
+    parameterisation = MosaicityParameterisation(x)
+    profile_model = ProfileModel(parameterisation)
+    sigma = profile_model.sigma()
+    L = self.log_likelihood(x)
+    print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f" % (tuple(sigma) + ( L,))
+
+
+class ProfileRefiner(object):
+
+  def __init__(self, s0, s2_list, ctot_list, Sobs_list):
+    self.s0 = s0
+    self.s2_list = s2_list
+    self.ctot_list = ctot_list
+    self.Sobs_list = Sobs_list
+
+  def refine(self):
+
+    # Set the initial parameter values
+    x0 = matrix.col((1, 0, 1, 0, 0, 1))
+
+    # Initialise the algorithm
+    ml = FisherScoringMaximumLikelihood(
+      x0, 
+      self.s0, 
+      self.s2_list, 
+      self.ctot_list,
+      self.Sobs_list)
+    
+    # Solve the maximum likelihood equations
+    ml.solve()
+
+    # Get the parameters
+    self.parameters = ml.parameters
+    # ml.log_likelihood()
+    
 
 def estimate_parameters(s0, s2_list, ctot_list, Sobs_list, verbose=False):
 
-  params_old = matrix.col((1, 0, 1, 0, 0, 1))
+  refiner = ProfileRefiner(
+    s0,
+    s2_list,
+    ctot_list,
+    Sobs_list)
 
+  refiner.refine()
+
+  return refiner.parameters
+
+  # def f(x):
+  #   parameterisation = MosaicityParameterisation(x)
+  #   profile_model = ProfileModel(parameterisation)
+  #   L = 0
+  #   for i in range(len(s2_list)):
+  #     s2 = s2_list[i]
+  #     ctot = ctot_list[i]
+  #     Sobs = Sobs_list[i]
+  #     r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
+  #     L += r.log_likelihood()
+  #   return L
+
+  # def df(x):
+  #   parameterisation = MosaicityParameterisation(x)
+  #   profile_model = ProfileModel(parameterisation)
+  #   dL = 0
+  #   for i in range(len(s2_list)):
+  #     s2 = s2_list[i]
+  #     ctot = ctot_list[i]
+  #     Sobs = Sobs_list[i]
+  #     r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
+  #     dL += r.first_derivatives()
+  #   return dL
+  
+  # def d2f(x):
+  #   parameterisation = MosaicityParameterisation(x)
+  #   profile_model = ProfileModel(parameterisation)
+  #   d2L = 0
+  #   for i in range(len(s2_list)):
+  #     s2 = s2_list[i]
+  #     ctot = ctot_list[i]
+  #     Sobs = Sobs_list[i]
+  #     r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
+  #     d2L += r.fisher_information()
+  #   return d2L
+
+  # return fisher_scoring_maximum_likelihood(f, df, d2f, x0, tolerance=1e-10, max_iter=1000)
+
+
+
+
+
+
+
+
+
+
+
+def gradient_descent_old(func, dL, params):
+  delta = line_search(func, params, matrix.col(-dL))
+  p = params+delta*matrix.col(-dL)
+  print delta, func(params), func(p)
+  assert func(params) >= func(p)
+  return p
+
+
+def estimate_parameters2(s0, s2_list, ctot_list, Sobs_list, verbose=False):
+
+  params_old = matrix.col((1, 0, 1, 0, 0, 1))
   while True:
 
     parameterisation = MosaicityParameterisation(params_old)
@@ -704,18 +1015,6 @@ def estimate_parameters(s0, s2_list, ctot_list, Sobs_list, verbose=False):
 
     def negative_log_likelihood(params):
       return -log_likelihood(params)
-    
-    def derivative(params):
-      parameterisation = MosaicityParameterisation(params)
-      profile_model = ProfileModel(parameterisation)
-      dL = 0
-      for i in range(len(s2_list)):
-        s2 = s2_list[i]
-        ctot = ctot_list[i]
-        Sobs = Sobs_list[i]
-        r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
-        dL += r.first_derivatives()
-      return dL
 
     TINY = 1e-7
     delta = 1
@@ -728,7 +1027,7 @@ def estimate_parameters(s0, s2_list, ctot_list, Sobs_list, verbose=False):
         delta /= 2
       if delta < 1.0 / (2**10):
         #params = console(locals())
-        params = gradient_descent(negative_log_likelihood, derivative, params_old)
+        params = gradient_descent_old(negative_log_likelihood, dL, params_old)
         use_submitted = True
         break 
         #raise RuntimeError("Cant find small step")
