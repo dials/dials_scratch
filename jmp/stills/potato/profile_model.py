@@ -1,284 +1,21 @@
 from __future__ import division
 from dials.array_family import flex
 from scitbx import matrix
-from scitbx import linalg
 from math import log, exp
-
-class MosaicityParameterisation(object):
-
-  def __init__(self, params):
-    self.params = params
-
-  def parameters(self):
-    return self.params
-
-  def sigma(self):
-    M = matrix.sqr((
-      self.params[0], 0, 0,
-      self.params[1], self.params[2], 0,
-      self.params[3], self.params[4], self.params[5]))
-    # M = matrix.sqr((
-    #   exp(self.params[0]), 0, 0,
-    #   self.params[1], exp(self.params[2]), 0,
-    #   self.params[3], self.params[4], exp(self.params[5])))
-    return M*M.transpose()
-
-  def first_derivatives(self):
-    b1, b2, b3, b4, b5, b6 = self.params
-
-    # dSdb1 = (
-    #   2*exp(2*b1),b2*exp(b1),b4*exp(b1),
-    #   b2*exp(b1),0,0,
-    #   b4*exp(b1),0,0)
-
-    # dSdb2 = (
-    #   0,exp(b1),0,
-    #   exp(b1),2*b2,b4,
-    #   0,b4,0)
-
-    # dSdb3 = (
-    #   0,0,0,
-    #   0,2*exp(2*b3),b5*exp(b3),
-    #   0,b5*exp(b3),0)
-
-    # dSdb4 = (
-    #   0,0,exp(b1),
-    #   0,0,b2,
-    #   exp(b1),b2,2*b4)
-
-    # dSdb5 = (
-    #   0,0,0,
-    #   0,0,exp(b3),
-    #   0,exp(b3),2*b5)
-
-    # dSdb6 = (
-    #   0,0,0,
-    #   0,0,0,
-    #   0,0,2*exp(2*b6))
-
-    dSdb1 = (
-      2*b1,b2,b4,
-      b2,0,0,
-      b4,0,0)
-
-    dSdb2 = (
-      0,b1,0,
-      b1,2*b2,b4,
-      0,b4,0)
-
-    dSdb3 = (
-      0,0,0,
-      0,2*b3,b5,
-      0,b5,0)
-
-    dSdb4 = (
-      0,0,b1,
-      0,0,b2,
-      b1,b2,2*b4)
-
-    dSdb5 = (
-      0,0,0,
-      0,0,b3,
-      0,b3,2*b5)
-
-    dSdb6 = (
-      0,0,0,
-      0,0,0,
-      0,0,2*b6)
-
-    return flex.mat3_double([dSdb1, dSdb2, dSdb3, dSdb4, dSdb5, dSdb6])
-
-  def second_derivatives(self):
-
-    b1, b2, b3, b4, b5, b6 = self.params
-
-    zero = (
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0)
-
-    # d11 = (
-    #   4*exp(2*b1), b2*exp(b1), b4*exp(b1),
-    #   b2*exp(b1), 0, 0,
-    #   b4*exp(b1), 0, 0)
-    # d12 = (
-    #   0, exp(b1), 0,
-    #   exp(b1), 0, 0,
-    #   0, 0, 0)
-    # d13 = zero
-    # d14 = (
-    #   0, 0, exp(b1),
-    #   0, 0, 0,
-    #   exp(b1), 0, 0)
-    # d15 = zero
-    # d16 = zero
-
-    # d21 = d12
-    # d22 = (
-    #   0, 0, 0,
-    #   0, 2, 0,
-    #   0, 0, 0)
-    # d23 = zero
-    # d24 = (
-    #   0, 0, 0,
-    #   0, 0, 1,
-    #   0, 1, 0)
-    # d25 = zero
-    # d26 = zero
-
-    # d31 = zero
-    # d32 = zero
-    # d33 = (
-    #   0, 0, 0,
-    #   0, 4*exp(b3), b5*exp(b3),
-    #   0, b5*exp(b3), 0)
-    # d34 = zero
-    # d35 = (
-    #   0, 0, 0,
-    #   0, 0, exp(b3),
-    #   0, exp(b3), 0)
-    # d36 = zero
-
-    # d41 = d14
-    # d42 = d24
-    # d43 = zero
-    # d44 = (
-    #   0, 0, 0,
-    #   0, 0, 0,
-    #   0, 0, 2)
-    # d45 = zero
-    # d46 = zero
-
-    # d51 = zero
-    # d52 = zero
-    # d53 = d35
-    # d54 = zero
-    # d55 = (
-    #   0, 0, 0,
-    #   0, 0, 0,
-    #   0, 0, 2)
-    # d56 = zero
-
-    # d61 = zero
-    # d62 = zero
-    # d63 = zero
-    # d64 = zero
-    # d65 = zero
-    # d66 = (
-    #   0, 0, 0,
-    #   0, 0, 0,
-    #   0, 0, 4*exp(2*b6))
-
-    d11 = (
-      2, 0, 0,
-      0, 0, 0,
-      0, 0, 0)
-    d12 = (
-      0, 1, 0,
-      1, 0, 0,
-      0, 0, 0)
-    d13 = zero
-    d14 = (
-      0, 0, 1,
-      0, 0, 0,
-      1, 0, 0)
-    d15 = zero
-    d16 = zero
-
-    d21 = d12
-    d22 = (
-      0, 0, 0,
-      0, 2, 0,
-      0, 0, 0)
-    d23 = zero
-    d24 = (
-      0, 0, 0,
-      0, 0, 1,
-      0, 1, 0)
-    d25 = zero
-    d26 = zero
-
-    d31 = zero
-    d32 = zero
-    d33 = (
-      0, 0, 0,
-      0, 2, 0,
-      0, 0, 0)
-    d34 = zero
-    d35 = (
-      0, 0, 0,
-      0, 0, 1,
-      0, 1, 0)
-    d36 = zero
-
-    d41 = d14
-    d42 = d24
-    d43 = zero
-    d44 = (
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 2)
-    d45 = zero
-    d46 = zero
-
-    d51 = zero
-    d52 = zero
-    d53 = d35
-    d54 = zero
-    d55 = (
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 2)
-    d56 = zero
-
-    d61 = zero
-    d62 = zero
-    d63 = zero
-    d64 = zero
-    d65 = zero
-    d66 = (
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 2)
-
-    d2 = flex.mat3_double([
-      d11, d12, d13, d14, d15, d16,
-      d21, d22, d23, d24, d25, d26,
-      d31, d32, d33, d34, d35, d36,
-      d41, d42, d43, d44, d45, d46,
-      d51, d52, d53, d54, d55, d56,
-      d61, d62, d63, d64, d65, d66])
-    d2.reshape(flex.grid(6,6))
-
-    return d2
-
-
-class ProfileModel(object):
-
-  def __init__(self,
-               parameterisation):
-    self.parameterisation = parameterisation
-
-  def parameters(self):
-    return self.parameterisation.parameters()
-
-  def sigma(self):
-    return self.parameterisation.sigma()
-
-  def first_derivatives(self):
-    return self.parameterisation.first_derivatives()
-
-  def second_derivatives(self):
-    return self.parameterisation.second_derivatives()
+from dials_scratch.jmp.stills.potato.parameterisation import MosaicityParameterisation
 
 
 class MarginalDistribution(object):
+  '''
+  A class to compute useful stuff about the marginal distribution
+
+  '''
 
   def __init__(self, S, dS, d2S):
 
     # Compute the marginal variance
     self.S = S[8]
-    #return
+
     # Compute the marginal derivatives
     self.dS = flex.double(d[8] for d in dS)
 
@@ -547,16 +284,6 @@ class ReflectionProfileModel(object):
     for j in range(len(dS22)):
       for i in range(len(dS22)):
 
-        # S12 = matrix.col((self.S[2], self.S[5]))
-        # dSi12 = matrix.col((self.dS[i][2],self.dS[i][5]))
-        # dSj12 = matrix.col((self.dS[j][2],self.dS[j][5]))
-        # dSi22 = self.dS[i][8]
-        # dSj22 = self.dS[j][8]
-
-        # dmbari = dSi12*S22_inv*d - S12*S22_inv*dSi22*S22_inv*d
-        # dmbarj = dSi12*S22_inv*d - S12*S22_inv*dSj22*S22_inv*d
-        #W = (dmbari.transpose()*Sbar_inv*dmbarj)[0]
-
         U = S22_inv*dS22[j]*S22_inv*dS22[i]
         V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*self.ctot).trace()
         I[j,i] = 0.5*(U+V)
@@ -564,11 +291,81 @@ class ReflectionProfileModel(object):
     return I
 
 
+class ReflectionProfileModelList(object):
+  '''
+  A class to hold all the reflection profile models
 
-if __name__ == '__main__':
+  '''
+  def __init__(self,
+               parameterisation,
+               s0,
+               s2_list,
+               ctot_list,
+               Sobs_list):
+    '''
+    Initialise
 
-  p = MosaicityParameterisation((1, 0.1, 2, 0.2, 0.3, 3))
+    '''
 
-  print p.sigma()
-  print list(p.first_derivatives())
-  print list(p.second_derivatives())
+    # Save the parameterisation
+    self._parameterisation = parameterisation
+
+    # Construct the models
+    self._models = []
+    for s2, ctot, Sobs in zip(s2_list, ctot_list, Sobs_list):
+      self._models.append(
+        ReflectionProfileModel(parameterisation, s0, s2, ctot, Sobs))
+
+  def __len__(self):
+    '''
+    The number of models
+
+    '''
+    return len(self._models)
+
+  def parameterisation(self):
+    '''
+    Return the parameterisation
+
+    '''
+    return self._parameterisation
+
+  def log_likelihood(self):
+    '''
+    The joint log likelihood
+
+    '''
+    lnL = 0
+    for i in range(len(self)):
+      lnL += self._models[i].log_likelihood()
+    return lnL
+
+  def first_derivatives(self):
+    '''
+    The joint first derivatives
+
+    '''
+    dL = 0
+    for i in range(len(self)):
+      dL += self._models[i].first_derivatives()
+    return dL
+
+  def second_derivatives(self):
+    '''
+    The joint second derivatives
+
+    '''
+    d2L = 0
+    for i in range(len(self)):
+      d2L += self._models[i].second_derivatives()
+    return d2L
+
+  def fisher_information(self):
+    '''
+    The joint fisher information
+
+    '''
+    I = 0
+    for i in range(len(self)):
+      I += self._models[i].fisher_information()
+    return I
