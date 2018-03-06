@@ -562,8 +562,97 @@ class ReflectionProfileModel(object):
 
     return I
 
+def console(l=locals()):
+  import readline
+  import code
+  variables = globals().copy()
+  variables.update(l)
+  shell = code.InteractiveConsole(variables)
+  shell.interact()
+  return variables['params']
 
-def estimate_parameters(s0, s2_list, ctot_list, Sobs_list):
+def search(params, step, N, log_likelihood):
+  max_L = 0
+  max_i = None
+  for i1 in range(-N,N+1):
+    for i2 in range(-N,N+1):
+      for i3 in range(-N,N+1):
+        for i4 in range(-N,N+1):
+          for i5 in range(-N,N+1):
+            for i6 in range(-N,N+1):
+              p = (params[0] + i1 * step,
+                   params[1] + i2 * step,
+                   params[2] + i3 * step,
+                   params[3] + i4 * step,
+                   params[4] + i5 * step,
+                   params[5] + i6 * step)
+              L = log_likelihood(p)
+              print (i1, i2, i3, i4, i5, i6), L
+              if max_i is None or L > max_L:
+                max_L = L
+                max_i = (i1, i2, i3, i4, i5, i6)
+  print "Best: ", max_i, max_L
+
+
+
+def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
+  '''
+  Perform a line search
+
+  '''
+  fa = func(x)
+  min_delta = tolerance / p.length()
+  while delta > min_delta:
+    fb = func(x + delta*p)
+    if fb <= fa:
+      return delta
+    delta *= tau
+  raise RuntimeError('Line search terminanted without solution')
+
+
+def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
+  '''
+  Find the minimum using gradient descent and a line search
+
+  '''
+  delta = 0.5
+  for it in range(max_iter):
+    p = -matrix.col(df(x0))
+    delta = line_search(f, x0, p, delta=min(1.0, delta*2), tolerance=tolerance)
+    x = x0 + delta*p
+    print delta, tuple(x), f(x)
+    assert f(x) <= f(x0)
+    if (x - x0).length() < tolerance:
+      break
+    x0 = x
+  return x
+
+
+# def gradient_descent(params, dL, L, log_likelihood):
+#   def func(x):
+#     return -log_likelihood(x)
+
+#   TINY = 1e-7
+  
+#   delta = line_search(func, params, matrix.col(-dL))
+#   p = params+delta*matrix.col(-dL)
+#   print delta, log_likelihood(params), log_likelihood(p)
+#   assert log_likelihood(params) <= log_likelihood(p)
+#   return p
+
+# def gradient_descent(params, dL, L, log_likelihood):
+#   def func(x):
+#     return -log_likelihood(x)
+
+#   TINY = 1e-7
+  
+#   delta = line_search(func, params, matrix.col(-dL))
+#   p = params+delta*matrix.col(-dL)
+#   print delta, log_likelihood(params), log_likelihood(p)
+#   assert log_likelihood(params) <= log_likelihood(p)
+#   return p
+
+def estimate_parameters(s0, s2_list, ctot_list, Sobs_list, verbose=False):
 
   params_old = matrix.col((1, 0, 1, 0, 0, 1))
 
@@ -600,13 +689,60 @@ def estimate_parameters(s0, s2_list, ctot_list, Sobs_list):
     ll = linalg.l_l_transpose_cholesky_decomposition_in_place(LL)
     S = flex.double(-dL)
     S = ll.solve(S)
-    params = params_old + matrix.col(S)
+
+    def log_likelihood(params):
+      parameterisation = MosaicityParameterisation(params)
+      profile_model = ProfileModel(parameterisation)
+      L = 0
+      for i in range(len(s2_list)):
+        s2 = s2_list[i]
+        ctot = ctot_list[i]
+        Sobs = Sobs_list[i]
+        r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
+        L += r.log_likelihood()
+      return L
+
+    def negative_log_likelihood(params):
+      return -log_likelihood(params)
+    
+    def derivative(params):
+      parameterisation = MosaicityParameterisation(params)
+      profile_model = ProfileModel(parameterisation)
+      dL = 0
+      for i in range(len(s2_list)):
+        s2 = s2_list[i]
+        ctot = ctot_list[i]
+        Sobs = Sobs_list[i]
+        r = ReflectionProfileModel(profile_model, s0, s2, ctot, Sobs)
+        dL += r.first_derivatives()
+      return dL
+
+    TINY = 1e-7
+    delta = 1
+    use_submitted = False
+    while True:
+      L_test = log_likelihood(params_old + delta*matrix.col(S))
+      if L_test >= (L-TINY):
+        break
+      else:
+        delta /= 2
+      if delta < 1.0 / (2**10):
+        #params = console(locals())
+        params = gradient_descent(negative_log_likelihood, derivative, params_old)
+        use_submitted = True
+        break 
+        #raise RuntimeError("Cant find small step")
+    
+    if use_submitted == False:
+      params = params_old + delta*matrix.col(S)
     M = matrix.sqr((
       params[0], 0, 0,
       params[1], params[2], 0,
       params[3], params[4], params[5]))
     sigma = M*M.transpose()
-    print tuple(sigma),  L
+    
+    if verbose:
+      print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, ): L = %f"  % (tuple(sigma) + (L,))
 
     if all(abs(a-b)<1e-7 for a, b in zip(params, params_old)):
       break
