@@ -1,0 +1,244 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Scaling in detail - cd44 &mdash; DIALS  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/button.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/dials-styles.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="DIALS  documentation" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="logoheader container">
+  <a href="../../index.html">
+  <img class="logoheader" alt="DIALS" src="../../_static/dials_header.png" />
+  </a>
+  </div>
+  
+
+
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="scaling-in-detail-cd44">
+<h1>Scaling in detail - cd44<a class="headerlink" href="#scaling-in-detail-cd44" title="Permalink to this headline">¶</a></h1>
+<p>After integration, the next step is scaling of the reflection intensities,
+which attempts to correct the measured intensities to the &#8216;true&#8217; scattering
+intensities due to the contents of the crystal unit cell. This correction is
+necessary as effects such as changes in sample illumination, absorption and
+radiation damage during the experiment result in symmetry-equivalent reflections
+having unequal measured intensities.
+For scaling multiple datasets in DIALS, there are two workflows. All datasets can
+be scaled simultaneously, by passing all <code class="samp docutils literal"><span class="pre">integrated.pickle</span></code> and
+<code class="samp docutils literal"><span class="pre">integrated_experiments.json</span></code> files to dials.scale. Alternatively, datasets
+can be scaled and added to a combined set of reflections one at a time.
+In this tutorial, we shall scale the datasets one at a time, which allows more
+control over the scaling models and options for each dataset.</p>
+<div class="section" id="scaling-the-first-dataset">
+<h2>Scaling the first dataset<a class="headerlink" href="#scaling-the-first-dataset" title="Permalink to this headline">¶</a></h2>
+<p>First, the datafiles are passed to dials.scale:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>dials.scale 14_integrated_experiments.json 14_integrated.pickle
+</pre></div>
+</div>
+<p>In order to perform scaling, a scaling model must be created,
+from which we can calculate an inverse scale factor for each reflection. By
+default, three components are used to create a physical model for scaling
+(<code class="samp docutils literal"><span class="pre">model=physical</span></code>), in a similar manner to that used in the
+program <a class="reference external" href="http://www.ccp4.ac.uk/html/aimless.html">aimless</a>. This model consists of a smoothly varying scale factor as a
+function of rotation angle (<code class="samp docutils literal"><span class="pre">scale_term</span></code>), a smoothly varying B-factor to
+account for radiation damage as a function of rotation angle (<code class="samp docutils literal"><span class="pre">decay_term</span></code>)
+and an absorption surface correction, dependent on the direction of the incoming
+and scattered beam vector relative to the crystal (<code class="samp docutils literal"><span class="pre">absorption_term</span></code>).
+Each component typically consists of 10 to 40 parameters, and during scaling
+these parameters are refined so that the symmetry-equivalent groups of corrected
+intensities have the best agreement across the dataset.</p>
+<p>Once the scaling has been performed, an inverse scale factor is added to the
+reflection data and saved to <code class="samp docutils literal"><span class="pre">scaled.pickle</span></code>, while details of the scaling
+model are saved in an updated experiments file <code class="samp docutils literal"><span class="pre">scaled_experiments.json</span></code>.
+The merging statistics are printed to the terminal, which give an indication of
+the quality of the scaled dataset.</p>
+</div>
+<div class="section" id="inspecting-the-results">
+<h2>Inspecting the results<a class="headerlink" href="#inspecting-the-results" title="Permalink to this headline">¶</a></h2>
+<p>To see what the scaling is telling us about the dataset, plots of the scaling
+model should be viewed. These can be generated by passing the output files to
+the utility program dials.plot_scaling_models:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>dials.plot_scaling_models scaled_experiments.json scaled.pickle
+
+open scale_model.png absorption_surface.png
+</pre></div>
+</div>
+<img alt="../../_images/scaling_cd44_14.png" src="../../_images/scaling_cd44_14.png" />
+<p>As the rotation angle increases, the inverse scale factor drops significantly
+(i.e the reflection intensities are getting weaker, so they need to be scaled
+up by dividing by a smaller inverse scale factor). This indicates some
+deterioration of the dataset towards the end of the rotation (a downward trend in the
+B-factor can also be seen), likely due to radiation damage.
+The absorption correction appears to indicate some
+anisotropy in the vertical direction, therefore it seems prudent to keep this
+correction (it could be turned off with the option <code class="samp docutils literal"><span class="pre">absorption_term=False</span></code>).
+To omit the most damaged images, scaling can be rerun
+with the option <code class="samp docutils literal"><span class="pre">exclude_image_range</span></code>. As an example, we shall cut the
+last 20 images:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>dials.scale 14_integrated_experiments.json 14_integrated.pickle exclude_image_range=120,140
+</pre></div>
+</div>
+<p>The merging statistics have changed slightly (Rpim has slightly increased from
+0.065 to 0.066), as a result of the reduced number of reflections. Unfortunately,
+the benefits of a given cutoff choice may only become apparent by comparing the
+results of full structure solution, but this seems like a reasonable choice for
+this dataset at this stage.</p>
+</div>
+<div class="section" id="adding-a-second-dataset">
+<h2>Adding a second dataset<a class="headerlink" href="#adding-a-second-dataset" title="Permalink to this headline">¶</a></h2>
+<p>Once we are happy with the first dataset, we can add in the second dataset. As this is
+a much thinner rotation wedge of 15 degrees, we should change the interval of the
+smoothly varying parameterisation, to have a finer sampling, such as at 5 degree intervals
+<code class="samp docutils literal"><span class="pre">scale_interval=5,</span> <span class="pre">decay_interval=5</span></code>. It also does not usually
+make sense to use an absorption surface for such a small wedge dataset, so let&#8217;s
+set <code class="samp docutils literal"><span class="pre">absorption_term=False</span></code>.
+For scaling the datasets together,
+we want to take advantage of the best intensity estimates determined from the previous
+scaling run, therefore we start from where we left off by passing in the
+<code class="samp docutils literal"><span class="pre">scaled.pickle</span></code> and <code class="samp docutils literal"><span class="pre">scaled_experiments.json</span></code> files.
+The full command is thus (typed all at once before hitting enter):</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>dials.scale 30_integrated_experiments.json 30_integrated.pickle
+scaled_experiments.json scaled.pickle scale_interval=5, decay_interval=5
+absorption_term=False
+</pre></div>
+</div>
+<p>During scaling, a first round of scaling is performed, where the model of the new
+dataset is refined against the intensity estimates from the previous dataset(s),
+before all scaling models are refined simultaneously. This allows quicker convergence, particularly
+for large datasets. All reflections and scaling model data are saved to one
+<code class="samp docutils literal"><span class="pre">scaled.pickle</span></code> and <code class="samp docutils literal"><span class="pre">scaled_experiments.json</span></code> file, allowing the
+scaling process to be repeated for additional datasets if applicable.
+At this stage, we could have also included a min/max resolution cutoff, with the
+<code class="samp docutils literal"><span class="pre">min_resolution=</span></code>, <code class="samp docutils literal"><span class="pre">max_resolution=</span></code> options.</p>
+<p>Including the second dataset has improved the overall Rpim to 0.063, and plotting
+the scaling models shows minimal variation in scale factors across the sweep.
+For this dataset, or for a thinner rotation wedge, <code class="samp docutils literal"><span class="pre">model=KB</span></code> may be an
+appropriate choice - for this model, a global scale factor and global B factor is applied
+to all reflections in that dataset. This may be preferable to avoid overfitting a physical model
+by using increasingly small parameter intervals, and will result in faster scaling
+for large or many datasets.</p>
+</div>
+<div class="section" id="scaling-several-similar-datasets">
+<h2>Scaling several similar datasets<a class="headerlink" href="#scaling-several-similar-datasets" title="Permalink to this headline">¶</a></h2>
+<p>If one has several datasets, the easiest option would be to scale all datasets
+together from the start:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>dials.scale *_integrated_experiments.json *_integrated.pickle
+</pre></div>
+</div>
+<p>This will pass in all <code class="samp docutils literal"><span class="pre">integrated_experiments.json</span></code> and
+<code class="samp docutils literal"><span class="pre">integrated.pickle</span></code> files from the current directory and perform joint
+scaling. While a different scaling model is used for each dataset, the model
+options used will be the same (e.g <code class="samp docutils literal"><span class="pre">scale_interval</span></code>), which may not be
+the most appropriate for all datasets if there is a mix of thin/wide datasets.</p>
+</div>
+<div class="section" id="other-useful-options">
+<h2>Other useful options<a class="headerlink" href="#other-useful-options" title="Permalink to this headline">¶</a></h2>
+<p>Absorption surface options
+Reflection selection for scaling
+Error model optimisation.
+Concurrent/scaling and full matrix round.
+Outlier rejection outlier_zmax</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><!--<h3>Navigation</h3>-->
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../howto.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workshops/index.html">Workshops</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../links.html">Links</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  <div class="footer container">
+  <a href="http://www.diamond.ac.uk/"><img class="logofooter" alt="Diamond" src="../../_static/diamond_logo.png" /></a>
+  <a href="http://www.ccp4.ac.uk/"><img class="logofooter" alt="CCP4" src="../../_static/CCP4-logo-plain.png" /></a>
+  <a href="http://www.lbl.gov/"><img class="logofooter" alt="LBL" src="../../_static/LBL-logo-wide.jpeg" /></a>
+  <a href="https://www.stfc.ac.uk/"><img class="logofooter" alt="STFC" src="../../_static/STFC_logo.png" /></a>
+  </div>
+
+  <script type="text/javascript">
+     $(document).ready(function() {
+         $(".toggle > *").hide();
+         $(".toggle .header").show();
+         $(".toggle .header").click(function() {
+             $(this).parent().children().not(".header").toggle(400);
+             $(this).parent().children(".header").toggleClass("open");
+         })
+     });
+  </script>
+  
+    <div class="footer">
+      &copy;2018, Diamond Light Source, Lawrence Berkeley National Laboratory and STFC.
+      
+    </div>
+
+    
+
+    
+
+  </body>
+</html>
