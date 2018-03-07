@@ -24,17 +24,38 @@ class MarginalDistribution(object):
     self.d2S.reshape(d2S.accessor())
 
   def sigma(self):
+    '''
+    Return the marginal sigma
+
+    '''
     return self.S
 
   def first_derivatives(self):
+    '''
+    Return the marginal first derivatives
+
+    '''
     return self.dS
 
   def second_derivatives(self):
+    '''
+    Return the maginal second derivatives
+
+    '''
     return self.d2S
 
+
 class ConditionalDistribution(object):
+  '''
+  A class to compute useful stuff about the conditional distribution
+
+  '''
 
   def __init__(self, S, dS, d2S):
+
+    self._S = S
+    self._dS = dS
+    self._d2S = d2S
 
     # Partition the covariance matrix
     S11 = matrix.sqr((
@@ -45,9 +66,29 @@ class ConditionalDistribution(object):
     S22 = S[8]
 
     # Compute the marginal covariance matrix
-    self.S = S11 - S12*(1/S22)*S21
-    #return
-    def compute_dS(dS):
+    self.Sbar = S11 - S12*(1/S22)*S21
+
+    # Set to None and compute on demand
+    self.dSbar = None
+    self.d2Sbar = None
+
+  def sigma(self):
+    '''
+    Return the conditional sigma
+
+    '''
+    return self.Sbar
+
+  def first_derivatives(self):
+    '''
+    Return the marginal first derivatives
+
+    '''
+    def compute_dSbar(S, dS):
+
+      S12 = matrix.col((S[2], S[5]))
+      S21 = matrix.col((S[6], S[7])).transpose()
+      S22 = S[8]
 
       dS11 = matrix.sqr((
         dS[0], dS[1],
@@ -64,9 +105,21 @@ class ConditionalDistribution(object):
       D = dS12*S22_inv*S21
       return A + B - (C + D)
 
-    self.dS = [compute_dS(d) for d in dS]
-    return
-    def compute_d2S(dSi, dSj, d2S):
+    if self.dSbar is None:
+      self.dSbar = [compute_dSbar(self._S, d) for d in self._dS]
+
+    return self.dSbar
+
+  def second_derivatives(self):
+    '''
+    Return the maginal second derivatives
+
+    '''
+    def compute_d2S(S, dSi, dSj, d2S):
+
+      S12 = matrix.col((S[2], S[5]))
+      S21 = matrix.col((S[6], S[7])).transpose()
+      S22 = S[8]
 
       dSi12 = matrix.col((dSi[2], dSi[5]))
       dSi21 = matrix.col((dSi[6], dSi[7])).transpose()
@@ -103,27 +156,25 @@ class ConditionalDistribution(object):
 
       return A+B-C+D-E+F-G+H-I-J+K-L
 
-    self.d2S = [[
-      compute_d2S(dS[i], dS[j], d2S[i,j])
-      for j in range(d2S.all()[1])
-    ] for i in range(d2S.all()[0])]
+    if self.d2Sbar is None:
+      self.d2Sbar = [[
+        compute_d2S(self._S, self._dS[i], self._dS[j], self._d2S[i,j])
+        for j in range(self._d2S.all()[1])
+      ] for i in range(self._d2S.all()[0])]
 
-
-  def sigma(self):
-    return self.S
-
-  def first_derivatives(self):
-    return self.dS
-
-  def second_derivatives(self):
-    return self.d2S
+    return self.d2Sbar
 
 
 def rotate_mat3_double(R, A):
+  '''
+  Helper function to rotate a flex.mat3_double array of matrices
+
+  '''
   accessor = A.accessor()
   RAR = flex.mat3_double([R*matrix.sqr(a)*R.transpose() for a in A])
   RAR.reshape(accessor)
   return RAR
+
 
 def compute_change_of_basis_operation(s0, s2):
   '''
@@ -141,7 +192,10 @@ def compute_change_of_basis_operation(s0, s2):
 
 
 class ReflectionProfileModel(object):
+  '''
+  A class to represent the model for a single reflection
 
+  '''
   def __init__(self,
                model,
                s0,
@@ -158,46 +212,61 @@ class ReflectionProfileModel(object):
     self.model = model
 
     # Rotate the covariance matrix
-    S = self.R*self.model.sigma()*self.R.transpose()
+    self.S = self.R*self.model.sigma()*self.R.transpose()
 
     # Rotate the first derivative matrices
-    dS = rotate_mat3_double(self.R, self.model.first_derivatives())
+    self.dS = rotate_mat3_double(self.R, self.model.first_derivatives())
 
     # Rotate the second derivative matrices
-    d2S = rotate_mat3_double(self.R, self.model.second_derivatives())
+    self.d2S = rotate_mat3_double(self.R, self.model.second_derivatives())
 
     # Construct the marginal distribution
-    self._marginal = MarginalDistribution(S, dS, d2S)
+    self._marginal = MarginalDistribution(self.S, self.dS, self.d2S)
 
     # Construct the conditional distribution
-    self._conditional = ConditionalDistribution(S, dS, d2S)
-
-    self.S = S
-    self.dS = dS
+    self._conditional = ConditionalDistribution(self.S, self.dS, self.d2S)
 
   def marginal(self):
+    '''
+    Return the marginal
+
+    '''
     return self._marginal
 
   def conditional(self):
+    '''
+    Return the conditional
+
+    '''
     return self._conditional
 
   def log_likelihood(self):
+    '''
+    Compute the log likelihood for the reflection
 
+    '''
+
+    # Get info about the marginal
     S22 = self.marginal().sigma()
     S22_inv = 1 / S22
+
+    # Get info about the conditional
     Sbar = self.conditional().sigma()
     Sbar_inv = Sbar.inverse()
     Sbar_det = Sbar.determinant()
 
+    # Compute the likelihood
     d = self.s0.length()-self.s2.length()
-    A = log(S22)
-    B = S22_inv*d**2
-    C = log(Sbar_det)*self.ctot
-    D = (Sbar_inv * self.Sobs).trace()
-    return -0.5 * (A + B + C + D)
+    A = log(S22) + S22_inv*d**2
+    B = log(Sbar_det)*self.ctot + (Sbar_inv * self.Sobs).trace()
+    return -0.5 * (A + B)
 
 
   def first_derivatives(self):
+    '''
+    Compute the first derivatives
+
+    '''
 
     # Get info about marginal distribution
     S22 = self.marginal().sigma()
@@ -229,6 +298,10 @@ class ReflectionProfileModel(object):
     return dL
 
   def second_derivatives(self):
+    '''
+    Compute the second derivatives
+
+    '''
 
     # Get info about marginal distribution
     S22 = self.marginal().sigma()
@@ -245,7 +318,7 @@ class ReflectionProfileModel(object):
     # The distance from the ewald sphere
     d = self.s0.length()-self.s2.length()
 
-    # Compute the derivative wrt parameter i
+    # Compute the derivative wrt parameter i j
     d2L = flex.double(d2S22.accessor())
     for j in range(d2S22.all()[0]):
       for i in range(d2S22.all()[1]):
@@ -266,6 +339,10 @@ class ReflectionProfileModel(object):
     return d2L
 
   def fisher_information(self):
+    '''
+    Compute the fisher information
+
+    '''
 
     # Get info about marginal distribution
     S22 = self.marginal().sigma()
@@ -280,6 +357,7 @@ class ReflectionProfileModel(object):
     # The distance from the ewald sphere
     d = self.s0.length()-self.s2.length()
 
+    # Compute the fisher information wrt parameter i j
     I = flex.double(flex.grid(len(dS22), len(dS22)))
     for j in range(len(dS22)):
       for i in range(len(dS22)):
@@ -312,9 +390,17 @@ class ReflectionProfileModelList(object):
 
     # Construct the models
     self._models = []
-    for s2, ctot, Sobs in zip(s2_list, ctot_list, Sobs_list):
+    for i in range(len(s2_list)):
+      s2 = s2_list[i]
+      ctot = ctot_list[i]
+      Sobs = Sobs_list[i:i+1,:]
       self._models.append(
-        ReflectionProfileModel(parameterisation, s0, s2, ctot, Sobs))
+        ReflectionProfileModel(
+          parameterisation,
+          matrix.col(s0),
+          matrix.col(s2),
+          ctot,
+          matrix.sqr(Sobs)))
 
   def __len__(self):
     '''

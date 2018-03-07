@@ -2,8 +2,10 @@ from __future__ import division
 from dials.array_family import flex
 from scitbx import matrix
 from scitbx import linalg
+from scitbx.linalg import eigensystem
 from dials_scratch.jmp.stills.potato.parameterisation import MosaicityParameterisation
 from dials_scratch.jmp.stills.potato.profile_model import ReflectionProfileModelList
+from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 
 
 def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
@@ -198,14 +200,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The log likelihood at x
 
     '''
-    parameterisation = MosaicityParameterisation(x)
-    model = ReflectionProfileModelList(
-      parameterisation,
-      self.s0,
-      self.s2_list,
-      self.ctot_list,
-      self.Sobs_list)
-    return model.log_likelihood()
+    return self.model(x).log_likelihood()
 
   def score(self, x):
     '''
@@ -213,14 +208,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The score at x
 
     '''
-    parameterisation = MosaicityParameterisation(x)
-    model = ReflectionProfileModelList(
-      parameterisation,
-      self.s0,
-      self.s2_list,
-      self.ctot_list,
-      self.Sobs_list)
-    return model.first_derivatives()
+    return self.model(x).first_derivatives()
 
   def score_and_fisher_information(self, x):
     '''
@@ -228,6 +216,17 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The score and fisher information at x
 
     '''
+    model = self.model(x)
+    S = model.first_derivatives()
+    I = model.fisher_information()
+    return S, I
+
+  def model(self, x):
+    '''
+    :param x: The parameter estimate
+    :return: The model
+
+    '''
     parameterisation = MosaicityParameterisation(x)
     model = ReflectionProfileModelList(
       parameterisation,
@@ -235,9 +234,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       self.s2_list,
       self.ctot_list,
       self.Sobs_list)
-    S = model.first_derivatives()
-    I = model.fisher_information()
-    return S, I
+    return model
 
   def callback(self, x):
     '''
@@ -254,20 +251,32 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
 class ProfileRefiner(object):
   '''
-  Top level profile refiner class that handles book keeping etc
+  High level profile refiner class that handles book keeping etc
 
   '''
 
-  def __init__(self, s0, s2_list, ctot_list, Sobs_list):
-    self.s0 = s0
-    self.s2_list = s2_list
-    self.ctot_list = ctot_list
-    self.Sobs_list = Sobs_list
+  def __init__(self, data, initial_parameters=None):
+    '''
+    Set the data and initial parameters
+
+    '''
+    self.s0 = data.s0
+    self.s2_list = data.s2_list
+    self.ctot_list = data.ctot_list
+    self.Sobs_list = data.Sobs_list
+    self.initial_parameters = initial_parameters
 
   def refine(self):
+    '''
+    Perform the profile refinement
+
+    '''
 
     # Set the initial parameter values
-    x0 = matrix.col((1, 0, 1, 0, 0, 1))
+    if self.initial_parameters is None:
+      x0 = matrix.col((1, 0, 1, 0, 0, 1))
+    else:
+      x0 = matrix.col((self.initial_parameters))
 
     # Initialise the algorithm
     ml = FisherScoringMaximumLikelihood(
@@ -282,3 +291,141 @@ class ProfileRefiner(object):
 
     # Get the parameters
     self.parameters = ml.parameters
+
+    # Get the covariance matrix
+    sigma = ml.model(self.parameters).parameterisation().sigma()
+
+    # Print the eigen values and vectors
+    print_eigen_values_and_vectors(sigma)
+
+
+class ProfileRefinerData(object):
+  '''
+  A class for holding the data needed for the profile refinement
+
+  '''
+  def __init__(self, s0, s2_list, ctot_list, Sobs_list):
+    '''
+    Init the data
+
+    '''
+    self.s0 = s0
+    self.s2_list = s2_list
+    self.ctot_list = ctot_list
+    self.Sobs_list = Sobs_list
+
+  @classmethod
+  def from_reflections(self, experiment, reflections):
+    '''
+    Generate the required data from the reflections
+
+    '''
+
+    # Get the beam vector
+    s0 = matrix.col(experiment.beam.get_s0())
+
+    # Get the reciprocal lattice vector
+    s2_list = reflections['s2']
+
+    # Initialise the list of observed intensities and covariances
+    ctot_list = flex.double(len(s2_list))
+    Sobs_list = flex.double(flex.grid(len(s2_list), 4))
+
+    print "Computing observed covariance for %d reflections" % len(reflections)
+    s0_length = s0.length()
+    assert len(experiment.detector) == 1
+    panel = experiment.detector[0]
+    sbox = reflections['shoebox']
+    for r in range(len(reflections)):
+
+      # Create the coordinate system
+      cs = CoordinateSystem2d(s0, s2_list[r])
+
+      # Get data and compute total counts
+      data = sbox[r].data
+      ctot = flex.sum(data)
+      assert ctot > 0
+
+      # Get array of vectors
+      i0 = sbox[r].bbox[0]
+      j0 = sbox[r].bbox[2]
+      assert data.all()[0] == 1
+      X = flex.vec2_double(flex.grid(data.all()[1], data.all()[2]))
+      for j in range(data.all()[1]):
+        for i in range(data.all()[2]):
+          ii = i + i0
+          jj = j + j0
+          s = panel.get_pixel_lab_coord((ii+0.5,jj+0.5))
+          s = matrix.col(s).normalize() * s0_length
+          X[j,i] = cs.from_beam_vector(s)
+
+      # Compute the mean vector
+      xbar = matrix.col((0,0))
+      for j in range(X.all()[0]):
+        for i in range(X.all()[1]):
+          x = matrix.col(X[j,i])
+          xbar += data[0,j,i] * x
+      xbar /= ctot
+
+      # Compute the covariance matrix
+      Sobs = matrix.sqr((0, 0, 0, 0))
+      for j in range(X.all()[0]):
+        for i in range(X.all()[1]):
+          x = matrix.col(X[j,i])
+          Sobs += (x-xbar)*(x-xbar).transpose()*data[0,j,i]
+
+      # Add to the lists
+      ctot_list[r] = ctot
+      Sobs_list[r,0] = Sobs[0]
+      Sobs_list[r,1] = Sobs[1]
+      Sobs_list[r,2] = Sobs[2]
+      Sobs_list[r,3] = Sobs[3]
+
+    # Print some information
+    print "I_min = %.2f, I_max = %.2f" % (flex.min(ctot_list),
+                                          flex.max(ctot_list))
+
+    # Return the profile refiner data
+    return ProfileRefinerData(s0, s2_list, ctot_list, Sobs_list)
+
+
+def print_eigen_values_and_vectors(A):
+  '''
+  Print the eigen values and vectors of a matrix
+
+  '''
+
+  # Compute the eigen decomposition of the covariance matrix
+  eigen_decomposition = eigensystem.real_symmetric(A.as_flex_double_matrix())
+  Q = matrix.sqr(eigen_decomposition.vectors())
+  L = matrix.diag(eigen_decomposition.values())
+
+  # Print the matrix eigen values
+  print ""
+  print "Eigen Values:"
+  print ""
+  print_matrix(L, indent=2)
+  print ""
+
+  print "Eigen Vectors:"
+  print ""
+  print_matrix(Q, indent=2)
+  print ""
+
+def print_matrix(A, fmt='%.3g', indent=0):
+  '''
+  Pretty print matrix
+
+  '''
+  t = [fmt % a for a in A]
+  l = [len(tt) for tt in t]
+  max_l = max(l)
+  fmt = "%" + ("%d" % (max_l+1)) + "s"
+  prefix = ' ' * indent
+  lines = []
+  for j in range(A.n[0]):
+    line = ''
+    for i in range(A.n[1]):
+      line += fmt % t[i+j*A.n[1]]
+    lines.append("%s|%s|" % (prefix, line))
+  print '\n'.join(lines)
