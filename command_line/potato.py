@@ -87,6 +87,7 @@ class Script(object):
     integrator = Integrator(experiments, reflections)
 
     # Do the integration
+    integrator.initial_integration()
     integrator.refine()
     integrator.predict()
     integrator.integrate()

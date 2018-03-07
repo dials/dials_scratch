@@ -194,6 +194,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     # Store the parameter history
     self.history = []
 
+    # Print initial
+    self.callback(x0)
+
   def log_likelihood(self, x):
     '''
     :param x: The parameter estimate
@@ -343,28 +346,34 @@ class ProfileRefinerData(object):
 
       # Get data and compute total counts
       data = sbox[r].data
-      ctot = flex.sum(data)
-      assert ctot > 0
+      mask = sbox[r].mask
+      bgrd = sbox[r].background
 
       # Get array of vectors
       i0 = sbox[r].bbox[0]
       j0 = sbox[r].bbox[2]
       assert data.all()[0] == 1
       X = flex.vec2_double(flex.grid(data.all()[1], data.all()[2]))
+      ctot = 0
+      C = flex.double(X.accessor())
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
-          ii = i + i0
-          jj = j + j0
-          s = panel.get_pixel_lab_coord((ii+0.5,jj+0.5))
-          s = matrix.col(s).normalize() * s0_length
-          X[j,i] = cs.from_beam_vector(s)
+          c = data[0,j,i] - bgrd[0,j,i]
+          if mask[0,j,i] == 5 and c > 0:
+            ctot += c
+            ii = i + i0
+            jj = j + j0
+            s = panel.get_pixel_lab_coord((ii+0.5,jj+0.5))
+            s = matrix.col(s).normalize() * s0_length
+            X[j,i] = cs.from_beam_vector(s)
+            C[j,i] = c
 
       # Compute the mean vector
       xbar = matrix.col((0,0))
       for j in range(X.all()[0]):
         for i in range(X.all()[1]):
           x = matrix.col(X[j,i])
-          xbar += data[0,j,i] * x
+          xbar += C[j,i] * x
       xbar /= ctot
 
       # Compute the covariance matrix
@@ -372,7 +381,7 @@ class ProfileRefinerData(object):
       for j in range(X.all()[0]):
         for i in range(X.all()[1]):
           x = matrix.col(X[j,i])
-          Sobs += (x-xbar)*(x-xbar).transpose()*data[0,j,i]
+          Sobs += (x-xbar)*(x-xbar).transpose()*C[j,i]
 
       # Add to the lists
       ctot_list[r] = ctot
@@ -384,6 +393,15 @@ class ProfileRefinerData(object):
     # Print some information
     print "I_min = %.2f, I_max = %.2f" % (flex.min(ctot_list),
                                           flex.max(ctot_list))
+
+    # Print the mean covariance
+    Smean = matrix.sqr((0,0,0,0))
+    for r in range(Sobs_list.all()[0]):
+      Smean += matrix.sqr(tuple(Sobs_list[r:r+1,:]))
+    Smean /= Sobs_list.all()[0]
+    print ""
+    print "Mean observed covariance:"
+    print_matrix(Smean)
 
     # Return the profile refiner data
     return ProfileRefinerData(s0, s2_list, ctot_list, Sobs_list)
