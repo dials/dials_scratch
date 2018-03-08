@@ -19,6 +19,7 @@ from dials.util import log
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
 from dials_scratch.jmp.stills.potato.potato import Integrator
+from dxtbx.model.experiment_list import ExperimentListDumper
 import logging
 
 
@@ -94,6 +95,14 @@ class Script(object):
     
     # Get the reflections
     reflections = integrator.reflections
+    experiments = integrator.experiments
+
+    # Save the reflections
+    reflections.as_pickle("integrated.pickle")
+
+    dump = ExperimentListDumper(experiments)
+    with open("integrated_experiments.json", "w") as outfile:
+      outfile.write(dump.as_json())
 
 
 if __name__ == '__main__':

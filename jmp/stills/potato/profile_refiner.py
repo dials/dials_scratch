@@ -6,6 +6,7 @@ from scitbx.linalg import eigensystem
 from dials_scratch.jmp.stills.potato.parameterisation import MosaicityParameterisation
 from dials_scratch.jmp.stills.potato.profile_model import ReflectionProfileModelList
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
+from math import sqrt, pi
 
 
 def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
@@ -132,7 +133,7 @@ class FisherScoringMaximumLikelihoodBase(object):
     p = flex.double(S)
     return ll.solve(p)
 
-  def line_search(self,  x, p, tau=0.5, delta=1.0, tolerance=1e-7):
+  def line_search(self, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
     '''
     Perform a line search
     :param x The initial position
@@ -429,6 +430,11 @@ def print_eigen_values_and_vectors(A):
   print ""
   print_matrix(Q, indent=2)
   print ""
+
+  print "Mosaicity in degrees equivalent units"
+  print "M1: %.5f degrees" % (sqrt(L[0])*180.0/pi)
+  print "M2: %.5f degrees" % (sqrt(L[4])*180.0/pi)
+  print "M3: %.5f degrees" % (sqrt(L[8])*180.0/pi)
 
 def print_matrix(A, fmt='%.3g', indent=0):
   '''

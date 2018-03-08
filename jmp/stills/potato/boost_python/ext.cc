@@ -1,5 +1,6 @@
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
 #include <scitbx/constants.h>
 #include <scitbx/vec2.h>
 #include <scitbx/vec3.h>
@@ -237,9 +238,19 @@ namespace dials { namespace algorithms { namespace boost_python {
   };
 
 
+  double chisq_quantile(int k, double p) {
+    DIALS_ASSERT(k > 0);
+    DIALS_ASSERT(p >= 0 && p <= 1);
+    boost::math::chi_squared_distribution<> dist(k);
+    return boost::math::quantile(dist, p);
+  }
+
 
   BOOST_PYTHON_MODULE(dials_scratch_jmp_stills_potato_ext)
   {
+    def("chisq_quantile", &chisq_quantile);
+
+
     class_<PotatoOnEwaldSphere>("PotatoOnEwaldSphere", no_init)
       .def(init<
           double,
