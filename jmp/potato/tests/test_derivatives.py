@@ -278,7 +278,7 @@ def test_dLdb(reflection_model):
     A = log(sigma22)
     B = (1/sigma22)*d**2
     C = log(sigma_bar.determinant())*ctot
-    D = (sigma_bar.inverse() * Sobs).trace()
+    D = (sigma_bar.inverse() * ctot*Sobs).trace()
     E = (sigma_bar.inverse() * ctot*c_d*c_d.transpose()).trace()
     return -0.5 * (A + B + C + D + E)
 
@@ -508,7 +508,7 @@ def test_d2L_dbij(i, j, reflection_model):
     A = log(sigma22)
     B = (1/sigma22)*d**2
     C = log(sigma_bar.determinant())*ctot
-    D = (sigma_bar.inverse() * Sobs).trace()
+    D = (sigma_bar.inverse() * ctot*Sobs).trace()
     E = (sigma_bar.inverse() * ctot*c_d*c_d.transpose()).trace()
     return -0.5 * (A + B + C + D + E)
 

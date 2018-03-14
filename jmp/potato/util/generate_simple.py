@@ -72,6 +72,7 @@ def generate_simple(s0, sigma, N = 100):
     for x in points:
       x = matrix.col(x)
       Sobs += (x-xbar)*(x-xbar).transpose()
+    Sobs /= ctot
 
     s2_list.append(s2)
     ctot_list.append(ctot)
@@ -167,6 +168,7 @@ def generate_simple_binned(s0, sigma, N = 100):
           (i+0.5-a)/b,
           (j+0.5-a)/c))
         Sobs += (x-xbar)*(x-xbar).transpose()*D[j,i]
+    Sobs /= ctot
 
     s2_list.append(s2)
     ctot_list.append(ctot)
@@ -246,6 +248,7 @@ def generate_from_reflections(s0, sigma, reflections):
     for x in points:
       x = matrix.col(x)
       Sobs += (x-xbar)*(x-xbar).transpose()
+    Sobs /= ctot
 
     s2_list.append(s2)
     ctot_list.append(ctot)
@@ -343,6 +346,7 @@ def generate_from_reflections_binned(s0, sigma, reflections):
           (i+0.5-a)/b,
           (j+0.5-a)/c))
         Sobs += (x-xbar)*(x-xbar).transpose()*D[j,i]
+    Sobs /= ctot
 
     s2_list.append(s2)
     ctot_list.append(ctot)

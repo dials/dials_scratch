@@ -337,7 +337,7 @@ class ReflectionData(object):
 
     # Compute the conditional likelihood
     c_d = mobs - mubar
-    c_lnL = log(Sbar_det)*ctot + (Sbar_inv * (Sobs + ctot*c_d*c_d.transpose())).trace()
+    c_lnL = ctot*(log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
 
     # Return the joint likelihood
     return -0.5 * (m_lnL + c_lnL)
@@ -380,8 +380,8 @@ class ReflectionData(object):
         0, 1))
 
       U = S22_inv*dS22[i]*(1 - S22_inv*m_d**2)
-      V = (Sbar_inv*dSbar[i]*(ctot*I - Sbar_inv*(Sobs+ctot*c_d*c_d.transpose()))).trace()
-      W = (-2*Sbar_inv*(ctot*c_d*dmbar[i].transpose())).trace()
+      V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
+      W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
 
       dL.append(-0.5*(U+V+W))
 
@@ -430,8 +430,8 @@ class ReflectionData(object):
 
         A1 = S22_inv*d2S22[j,i]*(1 - S22_inv*m_d**2)
         A2 = S22_inv*dS22[j]*S22_inv*dS22[i]*(1 - 2*S22_inv*m_d**2)
-        B1 = Sbar_inv * d2Sbar[j][i]*(ctot*I - Sbar_inv*(Sobs+ctot*c_d*c_d.transpose()))
-        B2 = Sbar_inv * dSbar[j] * Sbar_inv * dSbar[i] * (ctot*I - 2*Sbar_inv*(Sobs+ctot*c_d*c_d.transpose()))
+        B1 = Sbar_inv * d2Sbar[j][i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))
+        B2 = Sbar_inv * dSbar[j] * Sbar_inv * dSbar[i] * ctot*(I - 2*Sbar_inv*(Sobs+c_d*c_d.transpose()))
         B3 = Sbar_inv * dSbar[i] * 2 * Sbar_inv * ctot * c_d*dmbar[j].transpose()
         B4 = Sbar_inv * dSbar[j] * 2 * Sbar_inv * ctot * c_d*dmbar[i].transpose()
         B5 = 2*Sbar_inv * ctot*dmbar[j]*dmbar[i].transpose()
@@ -928,6 +928,7 @@ class ProfileRefinerData(object):
         for i in range(X.all()[1]):
           x = matrix.col(X[j,i])
           Sobs += (x-xbar)*(x-xbar).transpose()*C[j,i]
+      Sobs /= ctot
 
       # Add to the lists
       ctot_list[r] = ctot

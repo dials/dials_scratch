@@ -65,7 +65,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
       B1 = log(S22)
       B2 = (1/S22)*(s0.length()-mu2)**2
       A1 = log(Sbar.determinant())*ctot
-      A2 = ((Sbar.inverse())*(Sobs)).trace()
+      A2 = ((Sbar.inverse())*(ctot*Sobs)).trace()
       A3 = ((Sbar.inverse())*(ctot*(xbar-mubar)*(xbar-mubar).transpose())).trace()
       lnL += -0.5*(A1+A2+A3+(B1+B2))
     except Exception:
