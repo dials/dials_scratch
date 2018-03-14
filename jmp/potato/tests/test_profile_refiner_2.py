@@ -5,13 +5,13 @@ from math import sqrt, pi, sin, cos, log, exp, ceil
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from dials_scratch.jmp.potato.util.generate_simple import generate_from_reflections
 from dials_scratch.jmp.potato.util.generate_simple import generate_from_reflections_binned
-from dials_scratch.jmp.potato.profile_model import compute_change_of_basis_operation
+from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.array_family import flex
 
 
 def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list, test=0):
- 
+
 
   M = matrix.sqr((
     params[0], 0, 0,
@@ -22,11 +22,11 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list, test=0)
 
   lnL = 0
   for i in range(len(s2_list)):
-    
+
     s2 = s2_list[i]
     xbar = xbar_list[i]
     ctot = ctot_list[i]
-    Sobs = Sobs_list[i]            
+    Sobs = Sobs_list[i]
 
     R = compute_change_of_basis_operation(s0, s2)
     S = R*sigma*R.transpose()
@@ -56,7 +56,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list, test=0)
         lnL += -0.5*(A1+A2+A3+(B1+B2))
     except Exception:
       lnL += -1e15
-    
+
   print tuple(sigma), lnL
   return lnL
 
@@ -65,9 +65,9 @@ class Target(object):
 
   def __init__(self,
                s0,
-               s2_list, 
-               xbar_list, 
-               ctot_list, 
+               s2_list,
+               xbar_list,
+               ctot_list,
                Sobs_list,
                test=1):
     self.s0 = s0
@@ -104,7 +104,7 @@ def generate_observations2(experiments, reflections, sigma):
 
     r = A * h
     s2 = s0 + r
-    
+
     s2_obs.append(s2)
 
   reflections['s2'] = s2_obs
@@ -130,7 +130,7 @@ def tst_ideal():
   sigma = matrix.sqr((1e-6, 0, 0,
                       0, 2e-6, 0,
                       0, 0, 3e-6))
-  
+
   reflections = generate_observations2(experiments, reflections, sigma)
 
   s2_list, ctot_list, xbar_list, Sobs_list = generate_from_reflections(s0, sigma, reflections)
@@ -144,13 +144,13 @@ def tst_ideal():
   offset = flex.double(
     [sqrt(1e-7)  for v in values])
 
-    
+
   optimizer = SimpleSimplex(
-    values, 
-    offset, 
+    values,
+    offset,
     Target(
       s0,
-      s2_list, 
+      s2_list,
       xbar_list,
       ctot_list,
       Sobs_list,
@@ -194,7 +194,7 @@ def tst_binned():
   sigma = matrix.sqr((1e-6, 0, 0,
                       0, 2e-6, 0,
                       0, 0, 3e-6))
-  
+
   reflections = generate_observations2(experiments, reflections, sigma)
 
   s2_list, ctot_list, xbar_list, Sobs_list = generate_from_reflections_binned(s0, sigma, reflections)
@@ -208,13 +208,13 @@ def tst_binned():
   offset = flex.double(
     [sqrt(1e-7)  for v in values])
 
-    
+
   optimizer = SimpleSimplex(
-    values, 
-    offset, 
+    values,
+    offset,
     Target(
       s0,
-      s2_list, 
+      s2_list,
       xbar_list,
       ctot_list,
       Sobs_list,
@@ -237,7 +237,7 @@ def tst_binned():
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
   print 'OK'
-  
+
 if __name__ == '__main__':
   tst_ideal()
   tst_binned()

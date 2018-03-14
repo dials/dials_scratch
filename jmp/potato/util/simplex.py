@@ -33,7 +33,7 @@ class SimpleSimplex(object):
       next[j] += o
       start.append(next)
     return start
-  
+
   def get_solution(self):
     '''
     Get the solution
