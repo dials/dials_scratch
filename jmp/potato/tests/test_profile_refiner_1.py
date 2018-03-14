@@ -9,6 +9,8 @@ from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameterisation
 from dials_scratch.jmp.potato.profile_refiner_target import MaximumLikelihoodTarget
+from dials_scratch.jmp.potato.profile_refiner_target import ProfileRefiner
+from dials_scratch.jmp.potato.profile_refiner_target import ProfileRefinerData
 from dials.array_family import flex
 
 
@@ -114,7 +116,7 @@ def tst_ideal():
     0, 0, 3e-6))
 
   # The number of reflections
-  N = 1000
+  N = 100
 
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_simple(s0, sigma, N = N)
@@ -150,9 +152,9 @@ def tst_ideal():
   print sigma
 
   expected = matrix.sqr((
-    9.96410142906e-07, -2.21919325401e-09, 1.82450917959e-11,
-    -2.21919325401e-09, 1.98250217906e-06, -1.13761980971e-09,
-    1.82450917959e-11, -1.13761980971e-09, 2.99278336529e-06))
+    9.91047018199e-07, -1.98078253593e-09, 2.27093231797e-09,
+    -1.98078253593e-09, 1.98335548957e-06, 1.88051940862e-08,
+    2.27093231797e-09, 1.88051940862e-08, 2.99885951955e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
   print 'OK'
@@ -171,7 +173,7 @@ def tst_binned():
     0, 0, 3e-6))
 
   # The number of reflections
-  N = 1000
+  N = 100
 
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_simple_binned(s0, sigma, N = N)
@@ -204,12 +206,12 @@ def tst_binned():
     params[3], params[4], params[5]))
   sigma = M*M.transpose()
 
-  print sigma
+  # print sigma
 
   expected = matrix.sqr((
-    1.05670907537e-06, -1.78247842812e-09, -8.19788355586e-09,
-    -1.78247842812e-09, 2.08085121753e-06, 6.30026722264e-09,
-    -8.19788355586e-09, 6.30026722264e-09, 3.15006720619e-06))
+    1.04779078869e-06, -1.38584634956e-09, -5.72912737193e-09,
+    -1.38584634956e-09, 2.09196281286e-06, 3.30231414058e-08,
+    -5.72912737193e-09, 3.30231414058e-08, 3.1533805736e-06))
 
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
@@ -263,7 +265,7 @@ def tst_ml_target_class():
     0, 0, 3e-6))
 
   # The number of reflections
-  N = 1000
+  N = 100
 
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_simple(s0, sigma, N = N)
@@ -296,18 +298,68 @@ def tst_ml_target_class():
     params[3], params[4], params[5]))
   sigma = M*M.transpose()
 
-  # print sigma
-
   expected = matrix.sqr((
-    9.96410142906e-07, -2.21919325401e-09, 1.82450917959e-11,
-    -2.21919325401e-09, 1.98250217906e-06, -1.13761980971e-09,
-    1.82450917959e-11, -1.13761980971e-09, 2.99278336529e-06))
+    9.91047018199e-07, -1.98078253593e-09, 2.27093231797e-09,
+    -1.98078253593e-09, 1.98335548957e-06, 1.88051940862e-08,
+    2.27093231797e-09, 1.88051940862e-08, 2.99885951955e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
   print 'OK'
 
+def tst_ml_target_class_2():
+
+
+
+  numpy.random.seed(100)
+
+  # The beam vector
+  s0 = matrix.col((0, 0, 1))
+
+  # The covariance matrix
+  sigma = matrix.sqr((
+    1e-6, 0, 0,
+    0, 2e-6, 0,
+    0, 0, 3e-6))
+
+  # The number of reflections
+  N = 100
+
+  # Generate a load of reflections
+  s2_list, ctot_list, xbar_list, Sobs_list = generate_simple(s0, sigma, N = N)
+
+  parameterisation = SimpleMosaicityParameterisation((1,0,1,0,0,1))
+
+  data = ProfileRefinerData(
+    s0,
+    s2_list,
+    ctot_list,
+    xbar_list,
+    Sobs_list)
+  refiner = ProfileRefiner(parameterisation, data)
+  ml = refiner.refine()
+  params = refiner.parameters
+
+  # Create the covariance matrix
+  M = matrix.sqr((
+    params[0], 0, 0,
+    params[1], params[2], 0,
+    params[3], params[4], params[5]))
+  sigma = M*M.transpose()
+
+  #print sigma
+
+  expected = matrix.sqr((
+    9.91048657253e-07, -1.9828296735e-09, 2.25787032072e-09,
+    -1.9828296735e-09, 1.98334108426e-06, 1.88097904832e-08,
+    2.25787032072e-09, 1.88097904832e-08, 2.99884748097e-06))
+
+
+  assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
+
+  print 'OK'
 
 if __name__ == '__main__':
-  #tst_ideal()
-  #tst_binned()
+  tst_ideal()
+  tst_binned()
   tst_ml_target_class()
+  tst_ml_target_class_2()

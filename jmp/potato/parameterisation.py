@@ -16,9 +16,16 @@ class SimpleMosaicityParameterisation(object):
 
   '''
 
-  def __init__(self, params):
+  def __init__(self, params=None):
     '''
     Initialise with the parameters
+
+    '''
+    self.params = params
+
+  def set_parameters(self, params):
+    '''
+    Set the parameters
 
     '''
     self.params = params

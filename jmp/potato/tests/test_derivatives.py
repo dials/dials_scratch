@@ -564,7 +564,8 @@ def test():
     (b1, b2, b3, b4, b5, b6), s0, s2, ctot, mobs, Sobs = generate_data()
 
     parameterisation = SimpleMosaicityParameterisation((b1,b2,b3,b4,b5,b6))
-    reflection_model = ReflectionData(parameterisation, s0, s2, ctot, mobs, Sobs)
+    reflection_model = ReflectionData(parameterisation, s0, s2, ctot, mobs,
+                                      Sobs, second_derivatives=True)
 
     test_first_derivatives(reflection_model)
     test_second_derivatives(reflection_model)

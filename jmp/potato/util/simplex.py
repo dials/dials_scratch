@@ -17,7 +17,7 @@ class SimpleSimplex(object):
     optimizer = simplex.simplex_opt(dimension=self.n,
                                     matrix=self.starting_simplex,
                                     evaluator=evaluator,
-                                    tolerance=1e-7,
+                                    tolerance=1e-10,
                                     max_iter=max_iter)
     self.x = optimizer.get_solution()
 
