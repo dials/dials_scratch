@@ -3,7 +3,7 @@ from scitbx import matrix
 from math import log, pi
 from random import uniform, randint
 from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameterisation
-from dials_scratch.jmp.potato.profile_refiner_target import ReflectionData
+from dials_scratch.jmp.potato.profile_refiner import ReflectionData
 
 def first_derivative(func, x, h):
   return (-func(x+2*h)+8*func(x+h)-8*func(x-h)+func(x-2*h)) / (12*h)

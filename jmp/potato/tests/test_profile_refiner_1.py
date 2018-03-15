@@ -8,9 +8,9 @@ from dials_scratch.jmp.potato.util.generate_simple import generate_simple_binned
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameterisation
-from dials_scratch.jmp.potato.profile_refiner_target import MaximumLikelihoodTarget
-from dials_scratch.jmp.potato.profile_refiner_target import ProfileRefiner
-from dials_scratch.jmp.potato.profile_refiner_target import ProfileRefinerData
+from dials_scratch.jmp.potato.profile_refiner import MaximumLikelihoodTarget
+from dials_scratch.jmp.potato.profile_refiner import ProfileRefiner
+from dials_scratch.jmp.potato.profile_refiner import ProfileRefinerData
 from dials.array_family import flex
 
 
