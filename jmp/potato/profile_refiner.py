@@ -2,6 +2,7 @@ from __future__ import division
 from scitbx import matrix
 from scitbx import linalg
 from dials.array_family import flex
+from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from math import log, sqrt, pi
 
@@ -493,7 +494,7 @@ class MaximumLikelihoodTarget(object):
     # Check input
     assert len(s2_list) == len(ctot_list)
     assert len(s2_list) == len(mobs_list)
-    assert len(s2_list) == len(sobs_list)
+    assert len(s2_list) == sobs_list.all()[0]
 
     # Compute the change of basis for each reflection
     self.data = []
@@ -501,10 +502,10 @@ class MaximumLikelihoodTarget(object):
       self.data.append(ReflectionData(
         model,
         s0,
-        s2_list[i],
+        matrix.col(s2_list[i]),
         ctot_list[i],
-        mobs_list[i],
-        matrix.sqr(sobs_list[i])))
+        matrix.col(mobs_list[i]),
+        matrix.sqr(sobs_list[i:i+1,:])))
 
   def log_likelihood(self):
     '''

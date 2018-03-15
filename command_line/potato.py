@@ -18,7 +18,7 @@ from libtbx.phil import parse
 from dials.util import log
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
-from dials_scratch.jmp.stills.potato.potato import Integrator
+from dials_scratch.jmp.potato.potato import Integrator
 from dxtbx.model.experiment_list import ExperimentListDumper
 import logging
 

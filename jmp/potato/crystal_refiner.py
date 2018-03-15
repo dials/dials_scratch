@@ -60,7 +60,7 @@ class CrystalRefiner(object):
     Xcal, Ycal, _ = self.reflections['xyzcal.mm'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+    print 'RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y)
 
   def target(self, vector):
     '''

@@ -32,7 +32,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   }
 
 
-  BOOST_PYTHON_MODULE(dials_scratch_jmp_stills_potato_ext)
+  BOOST_PYTHON_MODULE(dials_scratch_jmp_potato_ext)
   {
     def("chisq_quantile", &chisq_quantile);
   }
