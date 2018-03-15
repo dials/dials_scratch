@@ -97,6 +97,7 @@ class FisherScoringMaximumLikelihoodBase(object):
       if delta > 0:
         x = x0 + delta*p
       else:
+        print "NOO"
         x = self.gradient_search(x0)
 
       # Call an update
@@ -308,7 +309,7 @@ class ProfileRefinerData(object):
   A class for holding the data needed for the profile refinement
 
   '''
-  def __init__(self, s0, s2_list, ctot_list, Sobs_list):
+  def __init__(self, s0, s2_list, ctot_list, xbar_list, Sobs_list):
     '''
     Init the data
 
@@ -316,6 +317,7 @@ class ProfileRefinerData(object):
     self.s0 = s0
     self.s2_list = s2_list
     self.ctot_list = ctot_list
+    self.xbar_list = xbar_list
     self.Sobs_list = Sobs_list
 
   @classmethod

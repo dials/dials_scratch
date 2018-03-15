@@ -72,6 +72,16 @@ class ConditionalDistribution(object):
     self.dSbar = None
     self.d2Sbar = None
 
+  def mean(self, d):
+    '''
+    Return the conditional mean
+
+    '''
+    S12 = matrix.col((self._S[2], self._S[5]))
+    S21 = matrix.col((self._S[6], self._S[7])).transpose()
+    S22 = self._S[8]
+    return S12*(1/S22)*d
+
   def sigma(self):
     '''
     Return the conditional sigma
@@ -201,12 +211,14 @@ class ReflectionProfileModel(object):
                s0,
                s2,
                ctot,
+               xbar,
                Sobs):
 
     self.s0 = s0
     self.s2 = s2
     self.R = compute_change_of_basis_operation(s0, s2)
     self.ctot = ctot
+    self.xbar = xbar
     self.Sobs = Sobs
 
     self.model = model
@@ -254,11 +266,16 @@ class ReflectionProfileModel(object):
     Sbar = self.conditional().sigma()
     Sbar_inv = Sbar.inverse()
     Sbar_det = Sbar.determinant()
+    mu_bar = self.conditional().mean(self.s0.length() - self.s2.length())
+
+    
+    SS = (mu_bar - self.xbar) * (mu_bar - self.xbar).transpose()
+    Sobs = self.Sobs + self.ctot * SS
 
     # Compute the likelihood
     d = self.s0.length()-self.s2.length()
-    A = log(S22) + S22_inv*d**2
-    B = log(Sbar_det)*self.ctot + (Sbar_inv * self.Sobs).trace()
+    A = self.ctot*(log(S22) + S22_inv*d**2)
+    B = log(Sbar_det)*self.ctot + (Sbar_inv * Sobs).trace()
     return -0.5 * (A + B)
 
 
@@ -379,6 +396,7 @@ class ReflectionProfileModelList(object):
                s0,
                s2_list,
                ctot_list,
+               xbar_list,
                Sobs_list):
     '''
     Initialise
@@ -393,6 +411,7 @@ class ReflectionProfileModelList(object):
     for i in range(len(s2_list)):
       s2 = s2_list[i]
       ctot = ctot_list[i]
+      xbar = xbar_list[i]
       Sobs = Sobs_list[i:i+1,:]
       self._models.append(
         ReflectionProfileModel(
@@ -400,6 +419,7 @@ class ReflectionProfileModelList(object):
           matrix.col(s0),
           matrix.col(s2),
           ctot,
+          matrix.col(xbar),
           matrix.sqr(Sobs)))
 
   def __len__(self):

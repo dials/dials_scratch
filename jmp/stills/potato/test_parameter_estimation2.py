@@ -198,7 +198,7 @@ class ProfileRefiner(object):
     lnL = 0
     for s2, I in zip(s2_cal, I_obs):
       model = PotatoOnEwaldSphere(1/s0.length(), s2, sigma)
-      lnL += model.log_likelihood() * I
+      lnL += model.log_likelihood() 
 
     b1 = 9 / (2*0.01)
     b2 = 9 / (2*0.01)
@@ -209,7 +209,7 @@ class ProfileRefiner(object):
         for i in range(data.all()[1]):
           x = (i + 0.5 - 4.5)/b2
           y = (i + 0.5 - 4.5)/b1
-          lnL += model.conditional_likelihood(x, y) * data[j,i]
+          lnLi += model.conditional_likelihood(x, y) * data[j,i]
       lnL += lnLi
 
     # Compute the rmsd between observed and calculated

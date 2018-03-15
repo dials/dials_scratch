@@ -3,6 +3,7 @@ from math import pi, cos, sin, log
 from dials.array_family import flex
 from scitbx import matrix
 from dials_scratch.jmp.stills.potato.profile_refiner import ProfileRefiner
+from dials_scratch.jmp.stills.potato.profile_refiner import ProfileRefinerData
 from dials_scratch.jmp.stills.potato.experiments.generate_simple import generate_simple
 from random import sample, uniform
 import numpy as np
@@ -75,7 +76,9 @@ def run():
     # Generate a covariance matrix
     print "Generating covariance matrix"
     sigma = generate_sigma()
-
+    # sigma = matrix.sqr((2.7e-05, -2.33e-05, -1.26e-06, 
+    #                     -2.33e-05, 6.08e-05, -1.01e-05, 
+    #                     -1.26e-06, -1.01e-05, 4.41e-05))
     print "Known Sigma"
     print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma)
 
@@ -90,6 +93,7 @@ def run():
     # N = (B - A) / 10.0
     # for t in np.arange(A, log(1001), N):
     #   n = int(floor(exp(t)))
+    # N_list = [900]
     N_list = list(range(3,20))
     N_list = list(range(3,20)) + \
              list(range(20, 200, 10)) + \
@@ -103,7 +107,9 @@ def run():
       # Estimate the parameters
       print "Estimating parameters"
       s2_list, ctot_list, Sobs_list = zip(*subsample)
-      refiner = ProfileRefiner(s0, s2_list, ctot_list, Sobs_list)
+      Sobs_list = flex.double(Sobs_list)
+      refiner = ProfileRefiner(
+        ProfileRefinerData(s0, s2_list, ctot_list, Sobs_list))
       refiner.refine()
       params = refiner.parameters
 
