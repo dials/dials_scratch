@@ -84,6 +84,10 @@ class Script(object):
       raise Sorry('no experiment list was specified')
     reflections = reflections[0]
 
+    # Remove duff spots i.e. those 
+    reflections = reflections.select(reflections.get_flags(
+      reflections.flags.indexed))
+
     # Contruct the integrator
     integrator = Integrator(experiments, reflections)
 
