@@ -6,8 +6,10 @@
 #include <scitbx/vec3.h>
 #include <scitbx/mat2.h>
 #include <scitbx/mat3.h>
+#include <scitbx/sym_mat2.h>
 #include <scitbx/math/r3_rotation.h>
 #include <scitbx/matrix/multiply.h>
+#include <scitbx/matrix/eigensystem.h>
 #include <dxtbx/model/experiment.h>
 #include <dials/model/data/shoebox.h>
 #include <dials/algorithms/profile_model/gaussian_rs/coordinate_system.h>
@@ -23,6 +25,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   using scitbx::vec3;
   using scitbx::mat2;
   using scitbx::mat3;
+  using scitbx::sym_mat2;
   using scitbx::matrix::transpose_multiply;
   using scitbx::matrix::multiply_transpose;
   using scitbx::af::int6;
@@ -71,6 +74,136 @@ namespace dials { namespace algorithms { namespace boost_python {
         e3[0], e3[1], e3[2]);
     return R;
   }
+
+
+  class BBoxCalculator {
+  public:
+
+    BBoxCalculator(Experiment experiment, mat3<double> sigma)
+      : experiment_(experiment),
+        sigma_(sigma) {
+    }
+
+    void compute(af::reflection_table reflections) const {
+
+      // Get some array from the reflection table
+      af::const_ref< vec3<double> > s1 = reflections["s1"];
+      af::const_ref< vec3<double> > s2 = reflections["s2"];
+      af::const_ref< std::size_t > panel = reflections["panel"];
+      af::ref< int6 > bbox = reflections["bbox"];
+
+      // Compute quantile
+      double D = chisq_quantile(2, 0.997) * 2;
+
+      // Compute mask for all reflections
+      for (std::size_t i = 0; i < reflections.size(); ++i) {
+        bbox[i] = compute_single(s1[i], s2[i], panel[i], D);
+      }
+    }
+
+  protected:
+
+    int6 compute_single(
+            vec3<double> s1,
+            vec3<double> s2,
+            std::size_t panel_id,
+            double D) const {
+
+      const double TINY = 1e-7;
+      DIALS_ASSERT(s1.length() > 0);
+      DIALS_ASSERT(s2.length() > 0);
+      DIALS_ASSERT(D > 0);
+
+      // Get the beam and detector
+      DIALS_ASSERT(experiment_.get_beam() != NULL);
+      DIALS_ASSERT(experiment_.get_detector() != NULL);
+      Detector detector = *experiment_.get_detector();
+
+      // The the indicident beam vector
+      vec3<double> s0 = experiment_.get_beam()->get_s0();
+      double s0_length = s0.length();
+      DIALS_ASSERT(std::abs(s0_length - s1.length()) < TINY);
+
+      // Compute the change of basis for the reflection
+      mat3<double> R = compute_change_of_basis_operation(s0, s2);
+
+      // Rotate the covariance matrix and s2 vector
+      mat3<double> S = R*sigma_*R.transpose();
+      vec3<double> mu = R*s2;
+      vec3<double> zaxis(0,0,1);
+      DIALS_ASSERT(std::abs((mu.normalize() * zaxis) - 1) < TINY);
+
+      // Partition the covariance matrix
+      mat2<double> S11(S[0], S[1], S[3], S[4]);
+      vec2<double> S12(S[2], S[5]);
+      vec2<double> S21(S[6], S[7]);
+      double S22 = S[8];
+
+      // Partition the mean vector
+      vec2<double> mu1(mu[0], mu[1]);
+      double mu2 = mu[2];
+
+      // Compute epsilon the distance to the Ewald sphere
+      double epsilon = s0.length() - mu2;
+
+      // Compute the mean of the conditional distribution
+      DIALS_ASSERT(S22 > 0);
+      double S22_inv = 1.0 / S22;
+      vec2<double> mubar = mu1 + S12*S22_inv*epsilon;
+
+      // Compute the covariance of the conditional distribution
+      mat2<double> S12_S21;
+      multiply_transpose(&S12[0], &S21[0], 2, 1, 2, &S12_S21[0]);
+      mat2<double> Sbar = S11 - S12_S21 * S22_inv;
+
+      // Get the panel model
+      Panel panel = detector[panel_id];
+
+      // Do the eigen decomposition of Sbar
+      sym_mat2<double> Sbar_lower_triangular(Sbar[0], Sbar[2], Sbar[3]);
+      scitbx::matrix::eigensystem::real_symmetric<> decomposition(Sbar_lower_triangular);
+      af::shared<double> L = decomposition.values();
+
+      // The distance from the origin
+      double delta = std::sqrt(af::max(L.const_ref())) * D;
+
+      // The corner points in conditional space
+      vec2<double> p1 = mubar + vec2<double>(-delta, -delta);
+      vec2<double> p2 = mubar + vec2<double>(-delta, +delta);
+      vec2<double> p3 = mubar + vec2<double>(+delta, -delta);
+      vec2<double> p4 = mubar + vec2<double>(+delta, +delta);
+
+      // The corner points in lab space
+      vec3<double> sp1 = R.transpose()*vec3<double>(p1[0], p1[1], s0.length());
+      vec3<double> sp2 = R.transpose()*vec3<double>(p2[0], p2[1], s0.length());
+      vec3<double> sp3 = R.transpose()*vec3<double>(p3[0], p3[1], s0.length());
+      vec3<double> sp4 = R.transpose()*vec3<double>(p4[0], p4[1], s0.length());
+
+      // The xy coordinates on the detector
+      vec2<double> xy1 = panel.get_ray_intersection_px(sp1);
+      vec2<double> xy2 = panel.get_ray_intersection_px(sp2);
+      vec2<double> xy3 = panel.get_ray_intersection_px(sp3);
+      vec2<double> xy4 = panel.get_ray_intersection_px(sp4);
+
+      // Get the min and max x and y coords
+      double xmin = std::min(std::min(xy1[0], xy2[0]), std::min(xy3[0], xy4[0]));
+      double ymin = std::min(std::min(xy1[1], xy2[1]), std::min(xy3[1], xy4[1]));
+      double xmax = std::max(std::max(xy1[0], xy2[0]), std::max(xy3[0], xy4[0]));
+      double ymax = std::max(std::max(xy1[1], xy2[1]), std::max(xy3[1], xy4[1]));
+
+      // Create bounding box
+      int x0 = ((int)std::floor(xmin))-1;
+      int y0 = ((int)std::floor(ymin))-1;
+      int x1 = ((int)std::ceil(xmax))+1;
+      int y1 = ((int)std::ceil(ymax))+1;
+      DIALS_ASSERT(x1 > x0);
+      DIALS_ASSERT(y1 > y0);
+      return int6(x0, x1, y0, y1, 0, 0);
+    }
+
+    Experiment experiment_;
+    mat3<double> sigma_;
+  };
 
   class MaskCalculator {
   public:
@@ -223,6 +356,10 @@ namespace dials { namespace algorithms { namespace boost_python {
   {
     def("chisq_quantile", &chisq_quantile);
 
+    class_<BBoxCalculator>("BBoxCalculator", no_init)
+      .def(init<Experiment, mat3<double> >())
+      .def("compute", &BBoxCalculator::compute)
+      ;
 
     class_<MaskCalculator>("MaskCalculator", no_init)
       .def(init<Experiment, mat3<double> >())

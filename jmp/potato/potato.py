@@ -22,6 +22,7 @@ from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameteris
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
 from dials_scratch.jmp.potato import chisq_quantile
+from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
 from dials.algorithms.spot_prediction import IndexGenerator
 from scitbx.linalg import eigensystem
@@ -139,99 +140,6 @@ class Predictor(object):
     return self._reflections
 
 
-class BBoxCalculatorNew(object):
-
-  def __init__(self, experiment, parameters):
-    self.experiment = experiment
-    self.parameters = parameters
-
-  def compute(self, reflections):
-
-    print "Computing bbox for %d reflections" % len(reflections)
-
-    # Compute quantile
-    quantile = chisq_quantile(2, 0.997)
-    D = sqrt(quantile) * 2
-    bbox = flex.int6()
-    print "ML: %f" % D
-    for i in range(len(reflections)):
-      s1 = matrix.col(reflections[i]['s1'])
-      s2 = matrix.col(reflections[i]['s2'])
-
-
-      s0 = matrix.col(self.experiment.beam.get_s0())
-
-      # Ensure our values are ok
-      assert s1.length() > 0
-
-      sigma = SimpleMosaicityParameterisation(self.parameters).sigma()
-      R = compute_change_of_basis_operation(s0, s2)
-      S = R*sigma*R.transpose()
-      mu = R*s2
-      assert(abs(1-mu.normalize().dot(matrix.col((0,0,1)))) < 1e-7)
-
-      S11 = matrix.sqr((
-        S[0], S[1],
-        S[3], S[4]))
-      S12 = matrix.col((S[2], S[5]))
-      S21 = matrix.col((S[6], S[7])).transpose()
-      S22 = S[8]
-
-      mu1 = matrix.col((mu[0], mu[1]))
-      mu2 = mu[2]
-
-      mubar = mu1 + S12*(1/S22)*(s0.length()-mu2)
-      Sbar = S11 - S12*(1/S22)*S21
-
-      eigen_decomposition = eigensystem.real_symmetric(Sbar.as_flex_double_matrix())
-      Q = matrix.sqr(eigen_decomposition.vectors())
-      L = matrix.diag(eigen_decomposition.values())
-      max_L = max(L)
-
-      delta = sqrt(max_L) * D
-
-
-      p1 = mubar + matrix.col((-delta, -delta))
-      p2 = mubar + matrix.col((-delta, +delta))
-      p3 = mubar + matrix.col((+delta, -delta))
-      p4 = mubar + matrix.col((+delta, +delta))
-
-      p1 = matrix.col((p1[0], p1[1], s0.length())).normalize()
-      p2 = matrix.col((p2[0], p2[1], s0.length())).normalize()
-      p3 = matrix.col((p3[0], p3[1], s0.length())).normalize()
-      p4 = matrix.col((p4[0], p4[1], s0.length())).normalize()
-
-      x1 = R.transpose()*p1
-      x2 = R.transpose()*p2
-      x3 = R.transpose()*p3
-      x4 = R.transpose()*p4
-
-      xy1 = self.experiment.detector[0].get_ray_intersection_px(x1)
-      xy2 = self.experiment.detector[0].get_ray_intersection_px(x2)
-      xy3 = self.experiment.detector[0].get_ray_intersection_px(x3)
-      xy4 = self.experiment.detector[0].get_ray_intersection_px(x4)
-
-      xx = (xy1[0], xy2[0], xy3[0], xy4[0])
-      yy = (xy1[1], xy2[1], xy3[1], xy4[1])
-      x0, x1 = int(floor(min(xx)))-1, int(ceil(max(xx)))+1
-      y0, y1 = int(floor(min(yy)))-1, int(ceil(max(yy)))+1
-      assert x1 > x0
-      assert y1 > y0
-      bbox.append((x0, x1, y0, y1, 0, 1))
-
-    reflections['bbox'] = bbox
-
-    x0, x1, y0, y1, _, _ = bbox.parts()
-    xsize, ysize = self.experiment.detector[0].get_image_size()
-    selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
-
-    reflections = reflections.select(selection)
-    print "Filtered reflecions with bbox outside image range"
-    print "Kept %d reflections" % len(reflections)
-    return reflections
-
-
-
 class Integrator(object):
   '''
   Class to perform integration of stills in the following way:
@@ -301,8 +209,16 @@ class Integrator(object):
     self._compute_partiality()
 
   def _compute_bbox_new(self):
-    calculator = BBoxCalculatorNew(self.experiments[0], self._profile_parameters)
-    self.reflections = calculator.compute(self.reflections)
+    sigma = SimpleMosaicityParameterisation(self._profile_parameters).sigma()
+    calculator = BBoxCalculatorNew(self.experiments[0], sigma)
+    calculator.compute(self.reflections)
+    x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
+    xsize, ysize = self.experiment.detector[0].get_image_size()
+    selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
+
+    self.reflections = self.reflections.select(selection)
+    print "Filtered reflecions with bbox outside image range"
+    print "Kept %d reflections" % len(self.reflections)
 
   def _compute_mask_new(self):
     sigma = SimpleMosaicityParameterisation(self._profile_parameters).sigma()
