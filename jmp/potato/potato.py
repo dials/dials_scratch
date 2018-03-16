@@ -22,6 +22,7 @@ from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameteris
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
 from dials_scratch.jmp.potato import chisq_quantile
+from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
 from dials.algorithms.spot_prediction import IndexGenerator
 from scitbx.linalg import eigensystem
 from dials.array_family import flex
@@ -229,79 +230,6 @@ class BBoxCalculatorNew(object):
     print "Kept %d reflections" % len(reflections)
     return reflections
 
-class MaskCalculatorNew(object):
-
-  def __init__(self, experiment, parameters):
-    self.experiment = experiment
-    self.parameters = parameters
-
-  def compute(self, reflections):
-    print "Computing mask for %d reflections" % len(reflections)
-
-    # Compute quantile
-    quantile = chisq_quantile(2, 0.997)
-    D = quantile
-    panel = self.experiment.detector[0]
-    print "ML: %f" % sqrt(D)
-    for k in range(len(reflections)):
-      s1 = matrix.col(reflections[k]['s1'])
-      s2 = matrix.col(reflections[k]['s2'])
-      sbox = reflections[k]['shoebox']
-
-
-      s0 = matrix.col(self.experiment.beam.get_s0())
-      s0_length = s0.length()
-
-      # Ensure our values are ok
-      assert s1.length() > 0
-
-      sigma = SimpleMosaicityParameterisation(self.parameters).sigma()
-      R = compute_change_of_basis_operation(s0, s2)
-      S = R*sigma*R.transpose()
-      mu = R*s2
-      assert(abs(1-mu.normalize().dot(matrix.col((0,0,1)))) < 1e-7)
-
-      S11 = matrix.sqr((
-        S[0], S[1],
-        S[3], S[4]))
-      S12 = matrix.col((S[2], S[5]))
-      S21 = matrix.col((S[6], S[7])).transpose()
-      S22 = S[8]
-
-      mu1 = matrix.col((mu[0], mu[1]))
-      mu2 = mu[2]
-
-      mubar = mu1 + S12*(1/S22)*(s0.length()-mu2)
-      Sbar = S11 - S12*(1/S22)*S21
-      Sbar_inv = Sbar.inverse()
-
-      mask = sbox.mask
-      x0, x1, y0, y1, _, _ = sbox.bbox
-      cs = CoordinateSystem2d(s0, s2)
-      for j in range(mask.all()[1]):
-        for i in range(mask.all()[2]):
-          ii = i + x0
-          jj = j + y0
-          s1 = panel.get_pixel_lab_coord((ii,jj))
-          s2 = panel.get_pixel_lab_coord((ii+1,jj))
-          s3 = panel.get_pixel_lab_coord((ii,jj+1))
-          s4 = panel.get_pixel_lab_coord((ii+1,jj+1))
-          s1 = matrix.col(s1).normalize() * s0_length
-          s2 = matrix.col(s2).normalize() * s0_length
-          s3 = matrix.col(s3).normalize() * s0_length
-          s4 = matrix.col(s4).normalize() * s0_length
-          x1 = matrix.col(cs.from_beam_vector(s1))
-          x2 = matrix.col(cs.from_beam_vector(s2))
-          x3 = matrix.col(cs.from_beam_vector(s3))
-          x4 = matrix.col(cs.from_beam_vector(s4))
-          d1 = ((x1 - mubar).transpose()*Sbar_inv*(x1 - mubar))[0]
-          d2 = ((x2 - mubar).transpose()*Sbar_inv*(x2 - mubar))[0]
-          d3 = ((x3 - mubar).transpose()*Sbar_inv*(x3 - mubar))[0]
-          d4 = ((x4 - mubar).transpose()*Sbar_inv*(x4 - mubar))[0]
-          if min([d1, d2, d3, d4]) < D:
-            mask[0,j,i] = mask[0,j,i] | MaskCode.Foreground
-          else:
-            mask[0,j,i] = mask[0,j,i] | MaskCode.Background
 
 
 class Integrator(object):
@@ -377,7 +305,8 @@ class Integrator(object):
     self.reflections = calculator.compute(self.reflections)
 
   def _compute_mask_new(self):
-    calculator = MaskCalculatorNew(self.experiments[0], self._profile_parameters)
+    sigma = SimpleMosaicityParameterisation(self._profile_parameters).sigma()
+    calculator = MaskCalculatorNew(self.experiments[0], sigma)
     calculator.compute(self.reflections)
 
   def _compute_partiality(self):
