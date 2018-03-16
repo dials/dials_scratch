@@ -36,7 +36,7 @@ for z0 in zs:
     sij[z1, z0] = s
 
 pickle.dump(sij, open('sij.pickle', 'w'))
-    
+
 hij = flex.histogram(sij.as_1d(), data_min=0, data_max=1, n_slots=100)
 for _c, _s in zip(hij.slot_centers(), hij.slots()):
   print(_c, _s)
