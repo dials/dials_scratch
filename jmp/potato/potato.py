@@ -22,6 +22,7 @@ from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameteris
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
 from dials_scratch.jmp.potato import chisq_quantile
+from dials_scratch.jmp.potato import Predictor
 from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
 from dials.algorithms.spot_prediction import IndexGenerator
@@ -33,111 +34,6 @@ from dials.algorithms.shoebox import MaskCode
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class Predictor(object):
-
-  def __init__(self, experiment, parameters, dmin=None):
-
-    print ""
-    print "Predicting reflections"
-
-    # Set a resolution range
-    if dmin is None:
-      s0 = experiment.beam.get_s0()
-      dmin = experiment.detector.get_max_resolution(s0)
-
-    # Create the index generator
-    index_generator = IndexGenerator(
-      experiment.crystal.get_unit_cell(),
-      experiment.crystal.get_space_group().type(),
-      dmin)
-
-    # Get an array of miller indices
-    miller_indices_to_test = index_generator.to_array()
-    print "Generated %d miller indices" % len(miller_indices_to_test)
-
-    # Get the covariance matrix
-    sigma = SimpleMosaicityParameterisation(parameters).sigma()
-    sigma_inv = sigma.inverse()
-
-    # Compute quantile
-    quantile = chisq_quantile(3, 0.997)
-
-    # Get stuff from experiment
-    A = matrix.sqr(experiment.crystal.get_A())
-    s0 = matrix.col(experiment.beam.get_s0())
-
-    # Loop through miller indices and check each is in range
-    print "Checking reflections against MVN quantile %f with Mahalabonis distance %f" % (
-      0.997, sqrt(quantile))
-    panel = experiment.detector[0]
-    miller_indices = flex.miller_index()
-    entering = flex.bool()
-    s1_list = flex.vec3_double()
-    s2_list = flex.vec3_double()
-    xyzcalpx = flex.vec3_double()
-    xyzcalmm = flex.vec3_double()
-    panel_list = flex.size_t()
-    for h in miller_indices_to_test:
-
-      r = A * h
-      s2 = s0 + r
-      s3 = s2.normalize()*s0.length()
-
-      d = ((s3-s2).transpose()*sigma_inv*(s3-s2))[0]
-
-      if d < quantile:
-        e = s2.length() < s0.length()
-
-        R = compute_change_of_basis_operation(s0, s2)
-
-        S =R*sigma*R.transpose()
-        mu = R*s2
-        assert(abs(1-mu.normalize().dot(matrix.col((0,0,1)))) < 1e-7)
-
-        S11 = matrix.sqr((
-          S[0], S[1],
-          S[3], S[4]))
-        S12 = matrix.col((S[2], S[5]))
-        S21 = matrix.col((S[6], S[7])).transpose()
-        S22 = S[8]
-
-        mu1 = matrix.col((mu[0], mu[1]))
-        mu2 = mu[2]
-
-        mubar = mu1 + S12*(1/S22)*(s0.length()-mu2)
-        v = matrix.col((mubar[0], mubar[1], s0.length())).normalize()*s0.length()
-        s1 = R.transpose()*v
-
-        try:
-          xymm = panel.get_ray_intersection(s1)
-        except Exception:
-          continue
-
-        xypx = panel.millimeter_to_pixel(xymm)
-        miller_indices.append(h)
-        entering.append(e)
-        panel_list.append(0)
-        s1_list.append(s1)
-        s2_list.append(s2)
-        xyzcalpx.append((xypx[0], xypx[1], 0))
-        xyzcalmm.append((xymm[0], xymm[1], 0))
-
-    self._reflections = flex.reflection_table()
-    self._reflections['miller_index'] = miller_indices
-    self._reflections['entering'] = entering
-    self._reflections['s1'] = s1_list
-    self._reflections['s2'] = s2_list
-    self._reflections['xyzcal.px'] = xyzcalpx
-    self._reflections['xyzcal.mm'] = xyzcalmm
-    self._reflections['panel'] = panel_list
-    self._reflections['id'] = flex.int(len(self._reflections), 0)
-    print "Predicted %d reflections" % len(self._reflections)
-
-
-  def reflections(self):
-    return self._reflections
 
 
 class Integrator(object):
@@ -195,8 +91,29 @@ class Integrator(object):
       self._refine_crystal()
 
   def predict(self):
-    predictor = Predictor(self.experiments[0], self._profile_parameters)
-    self.reflections = predictor.reflections()
+    print ""
+    print "Predicting reflections"
+
+    # Set a resolution range
+    s0 = self.experiments[0].beam.get_s0()
+    dmin = self.experiments[0].detector.get_max_resolution(s0)
+
+    # Create the index generator
+    index_generator = IndexGenerator(
+      self.experiments[0].crystal.get_unit_cell(),
+      self.experiments[0].crystal.get_space_group().type(),
+      dmin)
+
+    # Get an array of miller indices
+    miller_indices_to_test = index_generator.to_array()
+    print "Generated %d miller indices" % len(miller_indices_to_test)
+
+    # Get the covariance matrix
+    sigma = SimpleMosaicityParameterisation(self._profile_parameters).sigma()
+
+    predictor = Predictor(self.experiments[0], sigma, 0.997)
+    self.reflections = predictor.predict(miller_indices_to_test)
+    print "Predicted %d reflections" % len(self.reflections)
 
   def integrate(self):
 
@@ -213,7 +130,7 @@ class Integrator(object):
     calculator = BBoxCalculatorNew(self.experiments[0], sigma)
     calculator.compute(self.reflections)
     x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
-    xsize, ysize = self.experiment.detector[0].get_image_size()
+    xsize, ysize = self.experiments[0].detector[0].get_image_size()
     selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
 
     self.reflections = self.reflections.select(selection)

@@ -47,6 +47,11 @@ namespace dials { namespace algorithms { namespace boost_python {
       return ATB*A;
     }
 
+    double AT_B_A(vec3<double> A, mat3<double> B) {
+      vec3<double> ATB = A * B;
+      return ATB*A;
+    }
+
   }
 
 
@@ -75,6 +80,129 @@ namespace dials { namespace algorithms { namespace boost_python {
     return R;
   }
 
+  class Predictor {
+  public:
+
+    Predictor(Experiment experiment, mat3<double> sigma, double probability)
+      : experiment_(experiment),
+        sigma_(sigma),
+        probability_(probability) {
+      DIALS_ASSERT(probability > 0 && probability < 1);
+    }
+
+    af::reflection_table predict(af::const_ref< cctbx::miller::index<> > h) const {
+
+      // Get the beam and detector
+      const double TINY = 1e-7;
+      DIALS_ASSERT(experiment_.get_beam() != NULL);
+      DIALS_ASSERT(experiment_.get_crystal() != NULL);
+      DIALS_ASSERT(experiment_.get_detector() != NULL);
+      Detector detector = *experiment_.get_detector();
+
+      // Invert the matrix
+      mat3<double> sigma_inv = sigma_.inverse();
+
+      // Compute quantile
+      double quantile = chisq_quantile(3, probability_);
+
+      // Get stuff from experiment
+      mat3<double> A = experiment_.get_crystal()->get_A();
+      vec3<double> s0 = experiment_.get_beam()->get_s0();
+      Panel panel = detector[0];
+
+      // Initialise some arrays
+      af::shared< cctbx::miller::index<> > miller_indices;
+      af::shared< bool > entering;
+      af::shared< vec3<double> >s1_list;
+      af::shared< vec3<double> >s2_list;
+      af::shared< vec3<double> >xyzcalpx;
+      af::shared< vec3<double> >xyzcalmm;
+      af::shared< std::size_t > panel_list;
+      af::shared< std::size_t > experiment_id;
+
+      // Loop through the input miller indices
+      for (std::size_t i = 0; i < h.size(); ++i) {
+
+        // Compute the point and the distance from the Ewald sphere
+        vec3<double> r = A * h[i];
+        vec3<double> s2 = s0 + r;
+        vec3<double> s3 = s2.normalize()*s0.length();
+        double d = detail::AT_B_A(s3 - s2, sigma_inv);
+
+        // If it is close enough then predict stuff
+        if (d < quantile) {
+
+          // The entering flag
+          bool e = s2.length() < s0.length();
+
+          // Compute the rotation of the reflection
+          mat3<double> R = compute_change_of_basis_operation(s0, s2);
+
+          // Rotate the covariance matrix and s2 vector
+          mat3<double> S = R*sigma_*R.transpose();
+          vec3<double> mu = R*s2;
+          vec3<double> zaxis(0,0,1);
+          DIALS_ASSERT(std::abs((mu.normalize() * zaxis) - 1) < TINY);
+
+          // Partition the covariance matrix
+          mat2<double> S11(S[0], S[1], S[3], S[4]);
+          vec2<double> S12(S[2], S[5]);
+          vec2<double> S21(S[6], S[7]);
+          double S22 = S[8];
+
+          // Partition the mean vector
+          vec2<double> mu1(mu[0], mu[1]);
+          double mu2 = mu[2];
+
+          // Compute epsilon the distance to the Ewald sphere
+          double epsilon = s0.length() - mu2;
+
+          // Compute the mean of the conditional distribution
+          DIALS_ASSERT(S22 > 0);
+          double S22_inv = 1.0 / S22;
+          vec2<double> mubar = mu1 + S12*S22_inv*epsilon;
+
+          // Compute the diffracted beam vector
+          vec3<double> v(mubar[0], mubar[1], s0.length());
+          vec3<double> s1 = R.transpose()*(v.normalize()*s0.length());
+
+          try {
+
+            // Do the panel ray intersection
+            vec2<double> xymm = panel.get_ray_intersection(s1);
+            vec2<double> xypx = panel.millimeter_to_pixel(xymm);
+
+            // Append the stuff to arrays
+            experiment_id.push_back(0);
+            miller_indices.push_back(h[i]);
+            entering.push_back(e);
+            panel_list.push_back(0);
+            s1_list.push_back(s1);
+            s2_list.push_back(s2);
+            xyzcalpx.push_back(vec3<double>(xypx[0], xypx[1], 0));
+            xyzcalmm.push_back(vec3<double>(xymm[0], xymm[1], 0));
+          } catch(dxtbx::error) {
+            continue;
+          }
+        }
+      }
+
+      af::reflection_table reflections(miller_indices.size());
+      reflections["miller_index"] = miller_indices;
+      reflections["entering"] = entering;
+      reflections["s1"] = s1_list;
+      reflections["s2"] = s2_list;
+      reflections["xyzcal.px"] = xyzcalpx;
+      reflections["xyzcal.mm"] = xyzcalmm;
+      reflections["panel"] = panel_list;
+      reflections["id"] = experiment_id;
+      return reflections;
+    }
+
+    Experiment experiment_;
+    mat3<double> sigma_;
+    double probability_;
+  };
 
   class BBoxCalculator {
   public:
@@ -93,7 +221,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       af::ref< int6 > bbox = reflections["bbox"];
 
       // Compute quantile
-      double D = chisq_quantile(2, 0.997) * 2;
+      double D = std::sqrt(chisq_quantile(2, 0.997)) * 2;
 
       // Compute mask for all reflections
       for (std::size_t i = 0; i < reflections.size(); ++i) {
@@ -198,7 +326,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       int y1 = ((int)std::ceil(ymax))+1;
       DIALS_ASSERT(x1 > x0);
       DIALS_ASSERT(y1 > y0);
-      return int6(x0, x1, y0, y1, 0, 0);
+      return int6(x0, x1, y0, y1, 0, 1);
     }
 
     Experiment experiment_;
@@ -355,6 +483,11 @@ namespace dials { namespace algorithms { namespace boost_python {
   BOOST_PYTHON_MODULE(dials_scratch_jmp_potato_ext)
   {
     def("chisq_quantile", &chisq_quantile);
+
+    class_<Predictor>("Predictor", no_init)
+      .def(init<Experiment, mat3<double>, double >())
+      .def("predict", &Predictor::predict)
+      ;
 
     class_<BBoxCalculator>("BBoxCalculator", no_init)
       .def(init<Experiment, mat3<double> >())
