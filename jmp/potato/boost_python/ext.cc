@@ -1,3 +1,13 @@
+/*
+ * ext.cc
+ *
+ *  Copyright (C) 2018 Diamond Light Source
+ *
+ *  Author: James Parkhurst
+ *
+ *  This code is distributed under the BSD license, a copy of which is
+ *  included in the root directory of this package.
+ */
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
@@ -42,11 +52,17 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   namespace detail {
 
+    /**
+     * Helper function to do matrix multiplication
+     */
     double AT_B_A(vec2<double> A, mat2<double> B) {
       vec2<double> ATB = A * B;
       return ATB*A;
     }
 
+    /**
+     * Helper function to do matrix multiplication
+     */
     double AT_B_A(vec3<double> A, mat3<double> B) {
       vec3<double> ATB = A * B;
       return ATB*A;
@@ -67,6 +83,13 @@ namespace dials { namespace algorithms { namespace boost_python {
     return boost::math::quantile(dist, p);
   }
 
+  /**
+   * Perform the change of basis from lab coordinates to the kabsch coordinate
+   * system
+   * @param s0 The incident beam vector
+   * @param s2 The diffracted beam vector
+   * @return The change of basis matrix
+   */
   mat3<double> compute_change_of_basis_operation(vec3<double> s0, vec3<double> s2) {
     const double TINY = 1e-7;
     DIALS_ASSERT((s2 - s0).length() > TINY);
@@ -80,9 +103,19 @@ namespace dials { namespace algorithms { namespace boost_python {
     return R;
   }
 
+
+  /**
+   * A class to predict the reflections
+   */
   class Predictor {
   public:
 
+    /**
+     * Initialise the predictor
+     * @param experiment The experiment
+     * @param sigma The covariance matrix
+     * @param probability The probability
+     */
     Predictor(Experiment experiment, mat3<double> sigma, double probability)
       : experiment_(experiment),
         sigma_(sigma),
@@ -90,6 +123,11 @@ namespace dials { namespace algorithms { namespace boost_python {
       DIALS_ASSERT(probability > 0 && probability < 1);
     }
 
+    /**
+     * Predict the reflections
+     * @param h The list of miller indices
+     * @returns The reflection table
+     */
     af::reflection_table predict(af::const_ref< cctbx::miller::index<> > h) const {
 
       // Get the beam and detector
@@ -187,6 +225,7 @@ namespace dials { namespace algorithms { namespace boost_python {
         }
       }
 
+      // Construct the reflection table
       af::reflection_table reflections(miller_indices.size());
       reflections["miller_index"] = miller_indices;
       reflections["entering"] = entering;
@@ -204,14 +243,27 @@ namespace dials { namespace algorithms { namespace boost_python {
     double probability_;
   };
 
+
+  /**
+   * A class to compute the bounding box
+   */
   class BBoxCalculator {
   public:
 
+    /**
+     * Initialise the class
+     * @param experiment The experiment
+     * @param sigma The covariance matrix
+     */
     BBoxCalculator(Experiment experiment, mat3<double> sigma)
       : experiment_(experiment),
         sigma_(sigma) {
     }
 
+    /**
+     * Compute the bounding box
+     * @param reflections The reflection table
+     */
     void compute(af::reflection_table reflections) const {
 
       // Get some array from the reflection table
@@ -231,6 +283,13 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   protected:
 
+    /**
+     * Compute the bounding box for a single reflection
+     * @param s1 The diffracted beam vector touching the Ewald sphere
+     * @param s2 The diffracted beam vector to the centre of the rlp
+     * @param panel_id The panel id
+     * @param D the distance
+     */
     int6 compute_single(
             vec3<double> s1,
             vec3<double> s2,
@@ -333,14 +392,26 @@ namespace dials { namespace algorithms { namespace boost_python {
     mat3<double> sigma_;
   };
 
+  /**
+   * A class to compute the reflection mask
+   */
   class MaskCalculator {
   public:
 
+    /**
+     * Initialise the class
+     * @param experiment The experiment
+     * @param sigma The covariance matrix
+     */
     MaskCalculator(Experiment experiment, mat3<double> sigma)
       : experiment_(experiment),
         sigma_(sigma) {
     }
 
+    /**
+     * Compute the reflection mask
+     * @param reflections The reflection table
+     */
     void compute(af::reflection_table reflections) const {
 
       // Get some array from the reflection table
@@ -359,6 +430,13 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   protected:
 
+    /**
+     * Compute the bounding box for a single reflection
+     * @param s1 The diffracted beam vector touching the Ewald sphere
+     * @param s2 The diffracted beam vector to the centre of the rlp
+     * @param sbox The shoebox
+     * @param D the distance
+     */
     void compute_single(
             vec3<double> s1,
             vec3<double> s2,
@@ -479,6 +557,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     Experiment experiment_;
     mat3<double> sigma_;
   };
+
 
   BOOST_PYTHON_MODULE(dials_scratch_jmp_potato_ext)
   {
