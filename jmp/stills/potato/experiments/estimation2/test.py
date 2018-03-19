@@ -76,8 +76,8 @@ def run():
     # Generate a covariance matrix
     print "Generating covariance matrix"
     sigma = generate_sigma()
-    # sigma = matrix.sqr((2.7e-05, -2.33e-05, -1.26e-06, 
-    #                     -2.33e-05, 6.08e-05, -1.01e-05, 
+    # sigma = matrix.sqr((2.7e-05, -2.33e-05, -1.26e-06,
+    #                     -2.33e-05, 6.08e-05, -1.01e-05,
     #                     -1.26e-06, -1.01e-05, 4.41e-05))
     print "Known Sigma"
     print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma)

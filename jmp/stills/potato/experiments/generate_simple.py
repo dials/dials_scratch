@@ -70,17 +70,17 @@ def generate_simple(s0, sigma, N = 100):
     #   j = int(a + c*y)
     #   if j >= 0 and j < D.all()[0] and i >= 0 and i < D.all()[1]:
     #     D[j,i] += 1
-    
+
     # Compute the observed mean for each observation
     ctot = 0
     xbar = matrix.col((0, 0))
     for x in points:
       xbar += matrix.col(x)
-  
+
     ctot = len(points)
 
     xbar /= ctot
-    
+
     # Compute the observed covariance for each observation
     Sobs = matrix.sqr((0, 0, 0, 0))
     for x in points:
@@ -182,17 +182,17 @@ def generate_from_reflections(s0, sigma, reflections):
     #   j = int(a + c*y)
     #   if j >= 0 and j < D.all()[0] and i >= 0 and i < D.all()[1]:
     #     D[j,i] += 1
-    
+
     # Compute the observed mean for each observation
     ctot = 0
     xbar = matrix.col((0, 0))
     for x in points:
       xbar += matrix.col(x)
-  
+
     ctot = len(points)
 
     xbar /= ctot
-    
+
     # Compute the observed covariance for each observation
     Sobs = matrix.sqr((0, 0, 0, 0))
     for x in points:

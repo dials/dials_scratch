@@ -9,12 +9,12 @@ from dxtbx.model.experiment_list import ExperimentListFactory
 def compute_mean_plane(mu, sigma, s0):
   z = matrix.col((0, 0, 1))
   R = compute_change_of_basis_operation(s0, mu)
-  
+
   sigma_1 = R * sigma * R.transpose()
   mu_1 = R * mu
-  
+
   assert abs(1-mu_1.normalize().dot(z)) < 1e-7
-  
+
   sigma_11 = matrix.sqr((
     sigma_1[0], sigma_1[1],
     sigma_1[3], sigma_1[4]))
@@ -93,12 +93,12 @@ if __name__ == '__main__':
   # Do the ray intersection
   reflections['s1_obs'] = s1_obs
   reflections['s1'] = s2_obs
-  
+
   xyzobs = flex.vec3_double()
   for j in range(len(s1_obs)):
     px = experiments[0].detector[0].get_ray_intersection_px(s1_obs[j])
     xyzobs.append((px[0], px[1], 0))
-  
+
   reflections['xyzobs.px.value'] = xyzobs
 
   # Offset the crystal orientation matrix

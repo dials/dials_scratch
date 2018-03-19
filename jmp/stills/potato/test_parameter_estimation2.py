@@ -198,7 +198,7 @@ class ProfileRefiner(object):
     lnL = 0
     for s2, I in zip(s2_cal, I_obs):
       model = PotatoOnEwaldSphere(1/s0.length(), s2, sigma)
-      lnL += model.log_likelihood() 
+      lnL += model.log_likelihood()
 
     b1 = 9 / (2*0.01)
     b2 = 9 / (2*0.01)

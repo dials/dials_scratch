@@ -268,7 +268,7 @@ class ReflectionProfileModel(object):
     Sbar_det = Sbar.determinant()
     mu_bar = self.conditional().mean(self.s0.length() - self.s2.length())
 
-    
+
     SS = (mu_bar - self.xbar) * (mu_bar - self.xbar).transpose()
     Sobs = self.Sobs + self.ctot * SS
 
