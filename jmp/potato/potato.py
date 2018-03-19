@@ -10,6 +10,7 @@
 #  included in the root directory of this package.
 
 from __future__ import absolute_import, division
+from libtbx.phil import parse
 from dials.algorithms.profile_model.gaussian_rs.calculator import ComputeEsdBeamDivergence
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
@@ -34,6 +35,35 @@ from dials.algorithms.shoebox import MaskCode
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Parameters
+phil_scope = parse('''
+
+  refinement {
+
+    n_macro_cycles=3
+      .type = int
+
+  }
+
+  prediction {
+    d_min = None
+      .type = float
+
+    probability = 0.997
+      .type = float
+  }
+
+  debug {
+    output {
+      shoeboxes = True
+        .type = bool
+
+    }
+  }
+
+
+''')
 
 
 class InitialIntegrator(object):
@@ -66,7 +96,6 @@ class InitialIntegrator(object):
     Compute and initial spot size estimate
 
     '''
-
     print "Computing initial sigma d estimate for %d reflections" % len(self.reflections)
     compute_sigma_d = ComputeEsdBeamDivergence(
       self.experiments[0].detector,
@@ -82,6 +111,8 @@ class InitialIntegrator(object):
     '''
 
     print "Computing the bounding box for %d reflections" % len(self.reflections)
+
+    # Initialise the bounding box calculator
     compute_bbox = BBoxCalculator(
       self.experiments[0].crystal,
       self.experiments[0].beam,
@@ -91,11 +122,13 @@ class InitialIntegrator(object):
       self.sigma_d * 6,
       0)
 
+    # Compute the bounding box
     bbox = compute_bbox(
       self.reflections['s1'],
       self.reflections['xyzcal.px'].parts()[2],
       self.reflections['panel'])
-    self.reflections['bbox_old'] = self.reflections['bbox']
+
+    # Set in the reflection table
     self.reflections['bbox'] = bbox
 
   def _allocate_shoebox(self):
@@ -114,6 +147,8 @@ class InitialIntegrator(object):
 
     '''
     print "Creating the foreground mask for %d reflections" % len(self.reflections)
+
+    # Initialise the mask calculator
     mask_foreground = MaskCalculator(
       self.experiments[0].crystal,
       self.experiments[0].beam,
@@ -122,6 +157,8 @@ class InitialIntegrator(object):
       self.experiments[0].scan,
       self.sigma_d * 3,
       0)
+
+    # Compute the reflection mask
     mask_foreground(
       self.reflections['shoebox'],
       self.reflections['s1'],
@@ -135,25 +172,20 @@ class InitialIntegrator(object):
     '''
     print "Extracting shoebox from image for %d reflections" % len(self.reflections)
     self.reflections.extract_shoeboxes(self.experiments[0].imageset)
-    if False:
-      for r in self.reflections:
-        print r['shoebox'].data.as_numpy_array()
 
   def _compute_background(self):
+    '''
+    Compute the reflection background
+
+    '''
     print "Computing background for %d reflections" % len(self.reflections)
     self.reflections.compute_background(self.experiments)
-    if False:
-      for r in self.reflections:
-        d = r['shoebox'].data
-        b = r['shoebox'].background
-        m = r['shoebox'].mask
-        diff = (d-b)
-        mask = (diff > 0).as_1d().as_int()
-        mask.reshape(diff.accessor())
-        diff = diff*mask.as_double().as_float()
-        print (flex.floor(diff)).as_numpy_array()
 
   def _compute_intensity(self):
+    '''
+    Compute the reflection intensity
+
+    '''
     print "Computing intensity for %d reflections" % len(self.reflections)
     self.reflections.compute_summed_intensity()
     print "%d reflections integrated" % self.reflections.get_flags(
@@ -161,13 +193,21 @@ class InitialIntegrator(object):
 
 
 class Refiner(object):
+  '''
+  A class to do the refinement
 
-  def __init__(self, experiments, reflections, sigma_d):
+  '''
+
+  def __init__(self, experiments, reflections, sigma_d, params):
+    '''
+    Initialise the refiner
+
+    '''
 
     # Save the experiments and reflections
+    self.params = params
     self.experiments = experiments
     self.reflections = reflections
-    self.n_macro_cycles = 3
     self.sigma_d = sigma_d
     self._profile_parameters = None
 
@@ -176,12 +216,13 @@ class Refiner(object):
 
     # Do the macro cycles of refinement between refining the profile parameters
     # and refining the crystal orientation and unit cell
-    for cycle in range(self.n_macro_cycles):
+    for cycle in range(self.params.refinement.n_macro_cycles):
       print ""
       print "Macro cycle %d" % (cycle+1)
       self._refine_profile()
       self._refine_crystal()
 
+    # Create the profile model
     self.profile_model = SimpleMosaicityParameterisation(self._profile_parameters)
 
 
@@ -235,12 +276,16 @@ class Refiner(object):
     self.reflections['s2'] = s2
 
     # Compute the ray intersections
-    self.reflections['xyzcal.mm'] = flex.vec3_double([
-      self.experiments[0].detector[0].get_ray_intersection(s1) + (0,)
-      for s1 in s2])
-    self.reflections['xyzcal.px'] = flex.vec3_double([
-      self.experiments[0].detector[0].millimeter_to_pixel((mm[0], mm[1])) + (0,)
-      for mm in self.reflections['xyzcal.mm']])
+    xyzpx = flex.vec3_double()
+    xyzmm = flex.vec3_double()
+    for i in range(len(s2)):
+      s1 = s2[i]
+      mm = self.experiments[0].detector[0].get_ray_intersection(s1)
+      px = self.experiments[0].detector[0].millimeter_to_pixel(mm)
+      xyzpx.append(px + (0,))
+      xyzmm.append(mm + (0,))
+    self.reflections['xyzcal.mm'] = xyzmm
+    self.reflections['xyzcal.px'] = xyzpx
 
   def _refine_profile(self):
     '''
@@ -249,6 +294,8 @@ class Refiner(object):
     '''
     print ""
     print "Refining profile parmameters"
+
+    # If we have no profile parameters to from sigma d
     if self._profile_parameters is None:
       self._profile_parameters = matrix.col((
         self.sigma_d,
@@ -257,11 +304,17 @@ class Refiner(object):
         0,
         0,
         self.sigma_d))
+
+    # Create the parameterisation
     parameterisation = SimpleMosaicityParameterisation(self._profile_parameters)
+
+    # Create the refiner and refine
     refiner = ProfileRefiner(
       parameterisation,
       self._refiner_data)
     refiner.refine()
+
+    # Set the profile parameters
     self._profile_parameters = refiner.parameters
 
   def _refine_crystal(self):
@@ -271,35 +324,63 @@ class Refiner(object):
     '''
     print ""
     print "Refining crystal unit cell and orientation parameters"
+
+    # Create the parameterisation
     model = SimpleMosaicityParameterisation(self._profile_parameters)
+
+    # Create the refiner and refine
     refiner = CrystalRefiner(
       self.experiments[0],
       self.reflections,
       model)
+
+    # Set the experiments
     self.experiments[0] = refiner.experiment
 
+
 class FinalIntegrator(object):
+  '''
+  Do the final refinement
+
+  '''
 
   def __init__(self, experiments, reflections, profile_model):
+    '''
+    Initialise the refiner
+
+    '''
+
+    # Save some stuff
     self.experiments = experiments
     self.reflections = reflections
     self.profile_model = profile_model
-    self._compute_bbox_new()
+
+    # Do the processing
+    self._compute_bbox()
     self._allocate_shoebox()
     self._extract_shoebox()
-    self._compute_mask_new()
+    self._compute_mask()
     self._compute_background()
     self._compute_intensity()
     self._compute_partiality()
 
-  def _compute_bbox_new(self):
+  def _compute_bbox(self):
+    '''
+    Compute the bounding box
+
+    '''
+
+    # Get the sigma
     sigma = self.profile_model.sigma()
+
+    # Compute the bounding boxes
     calculator = BBoxCalculatorNew(self.experiments[0], sigma)
     calculator.compute(self.reflections)
+
+    # Select reflections within detector
     x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
     xsize, ysize = self.experiments[0].detector[0].get_image_size()
     selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
-
     self.reflections = self.reflections.select(selection)
     print "Filtered reflecions with bbox outside image range"
     print "Kept %d reflections" % len(self.reflections)
@@ -314,7 +395,11 @@ class FinalIntegrator(object):
       self.reflections['bbox'],
       allocate=True)
 
-  def _compute_mask_new(self):
+  def _compute_mask(self):
+    '''
+    Compute the reflection mask
+
+    '''
     sigma = self.profile_model.sigma()
     calculator = MaskCalculatorNew(self.experiments[0], sigma)
     calculator.compute(self.reflections)
@@ -326,31 +411,30 @@ class FinalIntegrator(object):
     '''
     print "Extracting shoebox from image for %d reflections" % len(self.reflections)
     self.reflections.extract_shoeboxes(self.experiments[0].imageset)
-    if False:
-      for r in self.reflections:
-        print r['shoebox'].data.as_numpy_array()
 
   def _compute_background(self):
+    '''
+    Compute the reflection background
+
+    '''
     print "Computing background for %d reflections" % len(self.reflections)
     self.reflections.compute_background(self.experiments)
-    if False:
-      for r in self.reflections:
-        d = r['shoebox'].data
-        b = r['shoebox'].background
-        m = r['shoebox'].mask
-        diff = (d-b)
-        mask = (diff > 0).as_1d().as_int()
-        mask.reshape(diff.accessor())
-        diff = diff*mask.as_double().as_float()
-        print (flex.floor(diff)).as_numpy_array()
 
   def _compute_intensity(self):
+    '''
+    Compute the reflection intensity
+
+    '''
     print "Computing intensity for %d reflections" % len(self.reflections)
     self.reflections.compute_summed_intensity()
     print "%d reflections integrated" % self.reflections.get_flags(
       self.reflections.flags.integrated_sum).count(True)
 
   def _compute_partiality(self):
+    '''
+    Compute the partiality
+
+    '''
     s0 = matrix.col(self.experiments[0].beam.get_s0())
     partiality = flex.double(len(self.reflections))
     for k in range(len(self.reflections)):
@@ -390,7 +474,8 @@ class Integrator(object):
 
   def __init__(self,
                experiments,
-               reflections):
+               reflections,
+               params=None):
     '''
     Initialise the integrator
 
@@ -400,13 +485,17 @@ class Integrator(object):
     if len(experiments) > 1:
       raise RuntimeError('Only 1 experiment can be processed')
 
+    # Set the parameters
+    if params is not None:
+      self.params = params
+    else:
+      self.params = phil_scope.extract(parse(""))
+
     # Save some stuff
     self.experiments = experiments
     self.reflections = reflections
     self.profile_model = None
     self.sigma_d = None
-    self.dmin = None
-    self.prediction_probability = 0.997
 
   def initial_integration(self):
     '''
@@ -424,11 +513,11 @@ class Integrator(object):
     Do the refinement of profile and crystal parameters
 
     '''
-
     refiner = Refiner(
       self.experiments,
       self.reflections,
-      self.sigma_d)
+      self.sigma_d,
+      self.params)
     self.experiments = refiner.experiments
     self.reflections = refiner.reflections
     self.profile_model = refiner.profile_model
@@ -442,17 +531,17 @@ class Integrator(object):
     print "Predicting reflections"
 
     # Set a resolution range
-    if self.dmin is None:
+    if self.params.prediction.d_min is None:
       s0 = self.experiments[0].beam.get_s0()
-      dmin = self.experiments[0].detector.get_max_resolution(s0)
+      d_min = self.experiments[0].detector.get_max_resolution(s0)
     else:
-      dmin = self.dmin
+      d_min = self.params.predictions.d_min
 
     # Create the index generator
     index_generator = IndexGenerator(
       self.experiments[0].crystal.get_unit_cell(),
       self.experiments[0].crystal.get_space_group().type(),
-      dmin)
+      d_min)
 
     # Get an array of miller indices
     miller_indices_to_test = index_generator.to_array()
@@ -465,7 +554,7 @@ class Integrator(object):
     predictor = Predictor(
       self.experiments[0],
       sigma,
-      self.prediction_probability)
+      self.params.prediction.probability)
 
     # Do the prediction
     self.reflections = predictor.predict(miller_indices_to_test)
@@ -481,5 +570,7 @@ class Integrator(object):
       self.reflections,
       self.profile_model)
     self.reflections = integrator.reflections
-    #del self.reflections['shoebox']
 
+    # Delete shoeboxes if necessary
+    if not self.params.debug.output.shoeboxes:
+      del self.reflections['shoebox']

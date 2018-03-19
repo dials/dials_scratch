@@ -35,24 +35,26 @@ This script does profile modelling for stills
 phil_scope = parse(
 '''
 
+  include scope dials_scratch.jmp.potato.potato.phil_scope
+
 ''', process_includes=True)
 
 
 class Script(object):
-  ''' 
-  The integration program. 
-  
+  '''
+  The integration program.
+
   '''
 
   def __init__(self):
     '''
     Initialise the script.
-    
+
     '''
 
     # The script usage
     usage  = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
-    
+
     # Create the parser
     self.parser = OptionParser(
       usage=usage,
@@ -63,8 +65,8 @@ class Script(object):
 
   def run(self):
     '''
-    Perform the integration. 
-    
+    Perform the integration.
+
     '''
     from time import time
 
@@ -84,19 +86,19 @@ class Script(object):
       raise Sorry('no experiment list was specified')
     reflections = reflections[0]
 
-    # Remove duff spots i.e. those 
+    # Remove duff spots i.e. those
     reflections = reflections.select(reflections.get_flags(
       reflections.flags.indexed))
 
     # Contruct the integrator
-    integrator = Integrator(experiments, reflections)
+    integrator = Integrator(experiments, reflections, params)
 
     # Do the integration
     integrator.initial_integration()
     integrator.refine()
     integrator.predict()
     integrator.integrate()
-    
+
     # Get the reflections
     reflections = integrator.reflections
     experiments = integrator.experiments
