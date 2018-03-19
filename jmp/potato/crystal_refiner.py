@@ -23,6 +23,20 @@ class CrystalRefiner(object):
     self.reflections = reflections
     self.model = model
 
+    # Print RMSD
+    Xobs, Yobs, _ = self.reflections['xyzobs.mm.value'].parts()
+    Xcal, Ycal, _ = self.reflections['xyzcal.mm'].parts()
+    rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
+    rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
+    print 'Initial RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y)
+
+    # Print RMSD
+    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
+    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
+    rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
+    rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
+    print 'Initial RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+
     # Get the crystal model and the parameterisation
     self.crystal = self.experiment.crystal
     self.cucp = CrystalUnitCellParameterisation(self.crystal)
@@ -62,6 +76,13 @@ class CrystalRefiner(object):
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
     print 'RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y)
 
+    # Print RMSD
+    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
+    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
+    rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
+    rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
+    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+
   def target(self, vector):
     '''
     The target function
@@ -91,6 +112,9 @@ class CrystalRefiner(object):
     self.reflections['xyzcal.mm'] = flex.vec3_double([
       self.experiment.detector[0].get_ray_intersection(s1) + (0,)
       for s1 in s1_cal])
+    self.reflections['xyzcal.px'] = flex.vec3_double([
+      self.experiment.detector[0].millimeter_to_pixel((mm[0], mm[1])) + (0,)
+      for mm in self.reflections['xyzcal.mm']])
 
     # Get predictions and observations
     Xobs, Yobs, _ = self.reflections['xyzobs.mm.value'].parts()
