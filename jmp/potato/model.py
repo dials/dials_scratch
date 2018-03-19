@@ -119,36 +119,3 @@ def compute_change_of_basis_operation(s0, s2):
 #       self.s0.length())).normalize() * self.s0.length()
 #     return self.R.transpose() * v
 
-
-
-
-
-
-
-
-
-class Predictor(object):
-
-  def __init__(self, experiments, model):
-    pass
-
-  def __call__(self):
-    pass
-
-
-class BBoxCalculator(object):
-
-  def __init__(self, experiments, model):
-    pass
-
-  def __call__(self, reflections):
-    pass
-
-
-class MaskCalculator(object):
-
-  def __init__(self, experiments, model):
-    pass
-
-  def __call__(self, reflections):
-    pass
