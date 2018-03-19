@@ -194,10 +194,25 @@ class Refiner(object):
     # Don't trust the predictions in the reflection file.
     self._update_observed_reflection_predictions()
 
+    # Filter based on centroid distance
+    self._filter_reflections_based_on_centroid_distance()
+
     # Construct the profile refiner data
     self._refiner_data = ProfileRefinerData.from_reflections(
       self.experiments[0],
       self.reflections)
+
+  def _filter_reflections_based_on_centroid_distance(self):
+    '''
+    Filter reflections too far from predicted position
+
+    '''
+    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
+    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
+    D = flex.sqrt((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
+    selection = D < 2
+    self.reflections = self.reflections.select(selection)
+    print "Selected %d reflections with centroid-prediction distance < 2px" % len(self.reflections)
 
   def _update_observed_reflection_predictions(self):
     '''
@@ -218,6 +233,14 @@ class Refiner(object):
       r = A*matrix.col(h[i])
       s2[i] = s0 + r
     self.reflections['s2'] = s2
+
+    # Compute the ray intersections
+    self.reflections['xyzcal.mm'] = flex.vec3_double([
+      self.experiments[0].detector[0].get_ray_intersection(s1) + (0,)
+      for s1 in s2])
+    self.reflections['xyzcal.px'] = flex.vec3_double([
+      self.experiments[0].detector[0].millimeter_to_pixel((mm[0], mm[1])) + (0,)
+      for mm in self.reflections['xyzcal.mm']])
 
   def _refine_profile(self):
     '''
@@ -458,3 +481,5 @@ class Integrator(object):
       self.reflections,
       self.profile_model)
     self.reflections = integrator.reflections
+    #del self.reflections['shoebox']
+
