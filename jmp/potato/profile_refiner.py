@@ -1047,6 +1047,13 @@ class ProfileRefinerData(object):
     print "Mean observed bias^2:"
     print_matrix(Bmean)
 
+    # Compute the distance from the Ewald sphere
+    epsilon = flex.double(s0.length() - matrix.col(s).length() for s in reflections['s2'])
+    mv = flex.mean_and_variance(epsilon)
+    print ""
+    print "Mean distance from Ewald sphere: %.3g" % mv.mean()
+    print "Variance in distance from Ewald sphere: %.3g" % mv.unweighted_sample_variance()
+
     # Return the profile refiner data
     return ProfileRefinerData(s0, s2_list, ctot_list, mobs_list, Sobs_list)
 
