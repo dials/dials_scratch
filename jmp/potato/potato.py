@@ -59,6 +59,8 @@ phil_scope = parse('''
       shoeboxes = True
         .type = bool
 
+      plots = False
+        .type = bool
     }
   }
 
@@ -72,7 +74,7 @@ class InitialIntegrator(object):
 
   '''
 
-  def __init__(self, experiments, reflections):
+  def __init__(self, params, experiments, reflections):
     '''
     Do the initial integration
 
@@ -238,6 +240,10 @@ class Refiner(object):
     # Filter based on centroid distance
     self._filter_reflections_based_on_centroid_distance()
 
+    # Make some plots
+    if self.params.debug.output.plots:
+      self._plot_distance_from_ewald_sphere()
+
     # Construct the profile refiner data
     self._refiner_data = ProfileRefinerData.from_reflections(
       self.experiments[0],
@@ -336,6 +342,22 @@ class Refiner(object):
 
     # Set the experiments
     self.experiments[0] = refiner.experiment
+
+  def _plot_distance_from_ewald_sphere(self):
+    '''
+    Plot distance from Ewald sphere
+
+    '''
+    from matplotlib import pylab
+    s0 = matrix.col(self.experiments[0].beam.get_s0())
+    s2 = self.reflections['s2']
+    D = flex.double(s0.length() - matrix.col(s).length() for s in s2)
+    Dmean = flex.sum(D) / len(D)
+    Dvar = flex.sum(flex.double([(d - Dmean)**2 for d in D])) / len(D)
+    print "Mean D: ", Dmean
+    print "Variance: ", Dvar
+    pylab.hist(D, bins=20)
+    pylab.show()
 
 
 class FinalIntegrator(object):
@@ -503,6 +525,7 @@ class Integrator(object):
 
     '''
     integrator = InitialIntegrator(
+      self.params,
       self.experiments,
       self.reflections)
     self.reflections = integrator.reflections
