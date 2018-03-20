@@ -41,7 +41,10 @@ phil_scope = parse('''
 
   refinement {
 
-    n_macro_cycles=3
+    max_centroid_distance = 2
+      .type = float
+
+    n_macro_cycles = 3
       .type = int
 
   }
@@ -309,9 +312,11 @@ class Refiner(object):
     Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
     D = flex.sqrt((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
-    selection = D < 2
+    selection = D < self.params.refinement.max_centroid_distance
     self.reflections = self.reflections.select(selection)
-    logger.info("Selected %d reflections with centroid-prediction distance < 2px" % len(self.reflections))
+    logger.info("Selected %d reflections with centroid-prediction distance < %d pixels" % (
+      len(self.reflections),
+      self.params.refinement.max_centroid_distance))
 
   def _refine_profile(self):
     '''
