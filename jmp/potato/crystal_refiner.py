@@ -5,7 +5,9 @@ from scitbx import matrix
 from dials.array_family import flex
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
+import logging
 
+logger = logging.getLogger("dials." + __name__)
 
 class CrystalRefiner(object):
 
@@ -28,14 +30,14 @@ class CrystalRefiner(object):
     Xcal, Ycal, _ = self.reflections['xyzcal.mm'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'Initial RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y)
+    logger.info('Initial RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y))
 
     # Print RMSD
     Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'Initial RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+    logger.info('Initial RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y))
 
     # Get the crystal model and the parameterisation
     self.crystal = self.experiment.crystal
@@ -64,24 +66,24 @@ class CrystalRefiner(object):
 
     # Print some information
     fmt = "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
-    print 'Initial cell:', initial_cell
-    print 'Final cell:  ', self.crystal.get_unit_cell()
-    print 'Initial orientation: ', fmt % tuple(initial_orientation)
-    print 'Final orientation: ', fmt % tuple(self.crystal.get_U())
+    logger.info('Initial cell: %s' % initial_cell)
+    logger.info('Final cell: %s' % self.crystal.get_unit_cell())
+    logger.info('Initial orientation: %s' % (fmt % tuple(initial_orientation)))
+    logger.info('Final orientation: %s' % (fmt % tuple(self.crystal.get_U())))
 
     # Print RMSD
     Xobs, Yobs, _ = self.reflections['xyzobs.mm.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.mm'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y)
+    logger.info('RMSD X, Y (mm): %f, %f' % (rmsd_x, rmsd_y))
 
     # Print RMSD
     Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+    logger.info('RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y))
 
   def target(self, vector):
     '''
@@ -127,10 +129,10 @@ class CrystalRefiner(object):
     self.history.append((tst_cell, tst_orientation, score))
 
     # Print some info
-    print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
+    logger.info('Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
       tuple(self.crystal.get_unit_cell().parameters()) +
       tuple(tst_orientation) +
-      tuple((sqrt(score / len(Xobs)),)))
+      tuple((sqrt(score / len(Xobs)),))))
     return score
 
   def generate_predictions(self, experiment, reflections, model):

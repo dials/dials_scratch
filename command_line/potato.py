@@ -85,6 +85,11 @@ class Script(object):
     elif len(experiments) == 0:
       raise Sorry('no experiment list was specified')
     reflections = reflections[0]
+    
+    # Configure logging
+    log.config(
+      info="dials.potato.log",
+      debug="dials.potato.debug.log")
 
     # Remove duff spots i.e. those
     reflections = reflections.select(reflections.get_flags(

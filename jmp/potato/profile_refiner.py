@@ -6,6 +6,9 @@ from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from math import log, sqrt, pi
+import logging
+
+logger = logging.getLogger("dials." + __name__)
 
 class MarginalDistribution(object):
   '''
@@ -805,7 +808,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     sigma = self.parameterisation.sigma()
     lnL = self.log_likelihood(x)
     format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
-    print format_string % (tuple(sigma) + (lnL,))
+    logger.info(format_string % (tuple(sigma) + (lnL,)))
     self.history.append(x)
 
 
@@ -870,7 +873,7 @@ class ProfileRefiner(object):
         lnL = ml.log_likelihood()
         sigma = self.model.sigma()
         format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
-        print format_string % (tuple(sigma) + (lnL,))
+        logger.info(format_string % (tuple(sigma) + (lnL,)))
         return -lnL
 
     # Starting values for simplex
@@ -965,7 +968,7 @@ class ProfileRefinerData(object):
     Sobs_list = flex.double(flex.grid(len(s2_list), 4))
     Bmean = matrix.sqr((0, 0, 0, 0))
 
-    print "Computing observed covariance for %d reflections" % len(reflections)
+    logger.info("Computing observed covariance for %d reflections" % len(reflections))
     s0_length = s0.length()
     assert len(experiment.detector) == 1
     panel = experiment.detector[0]
@@ -1030,8 +1033,8 @@ class ProfileRefinerData(object):
       Sobs_list[r,3] = Sobs[3]
 
     # Print some information
-    print "I_min = %.2f, I_max = %.2f" % (flex.min(ctot_list),
-                                          flex.max(ctot_list))
+    logger.info("I_min = %.2f, I_max = %.2f" % (
+      flex.min(ctot_list), flex.max(ctot_list)))
 
     # Print the mean covariance
     Smean = matrix.sqr((0,0,0,0))
@@ -1040,20 +1043,20 @@ class ProfileRefinerData(object):
     Smean /= Sobs_list.all()[0]
     Bmean /= len(reflections)
 
-    print ""
-    print "Mean observed covariance:"
+    logger.info("")
+    logger.info( "Mean observed covariance:")
     print_matrix(Smean)
     print_eigen_values_and_vectors_of_observed_covariance(Smean)
-    print ""
-    print "Mean observed bias^2:"
+    logger.info("")
+    logger.info("Mean observed bias^2:")
     print_matrix(Bmean)
 
     # Compute the distance from the Ewald sphere
     epsilon = flex.double(s0.length() - matrix.col(s).length() for s in reflections['s2'])
     mv = flex.mean_and_variance(epsilon)
-    print ""
-    print "Mean distance from Ewald sphere: %.3g" % mv.mean()
-    print "Variance in distance from Ewald sphere: %.3g" % mv.unweighted_sample_variance()
+    logger.info("")
+    logger.info("Mean distance from Ewald sphere: %.3g" % mv.mean())
+    logger.info("Variance in distance from Ewald sphere: %.3g" % mv.unweighted_sample_variance())
 
     # Return the profile refiner data
     return ProfileRefinerData(s0, s2_list, ctot_list, mobs_list, Sobs_list)
@@ -1070,20 +1073,20 @@ def print_eigen_values_and_vectors_of_observed_covariance(A):
   L = matrix.diag(eigen_decomposition.values())
 
   # Print the matrix eigen values
-  print ""
-  print "Eigen Values:"
-  print ""
+  logger.info("")
+  logger.info("Eigen Values:")
+  logger.info("")
   print_matrix(L, indent=2)
-  print ""
+  logger.info("")
 
-  print "Eigen Vectors:"
-  print ""
+  logger.info("Eigen Vectors:")
+  logger.info("")
   print_matrix(Q, indent=2)
-  print ""
+  logger.info("")
 
-  print "Observed covariance in degrees equivalent units"
-  print "C1: %.5f degrees" % (sqrt(L[0])*180.0/pi)
-  print "C2: %.5f degrees" % (sqrt(L[3])*180.0/pi)
+  logger.info("Observed covariance in degrees equivalent units")
+  logger.info("C1: %.5f degrees" % (sqrt(L[0])*180.0/pi))
+  logger.info("C2: %.5f degrees" % (sqrt(L[3])*180.0/pi))
 
 def print_eigen_values_and_vectors(A):
   '''
@@ -1097,21 +1100,21 @@ def print_eigen_values_and_vectors(A):
   L = matrix.diag(eigen_decomposition.values())
 
   # Print the matrix eigen values
-  print ""
-  print "Eigen Values:"
-  print ""
+  logger.info("")
+  logger.info("Eigen Values:")
+  logger.info("")
   print_matrix(L, indent=2)
-  print ""
+  logger.info("")
 
-  print "Eigen Vectors:"
-  print ""
+  logger.info("Eigen Vectors:")
+  logger.info("")
   print_matrix(Q, indent=2)
-  print ""
+  logger.info("")
 
-  print "Mosaicity in degrees equivalent units"
-  print "M1: %.5f degrees" % (sqrt(L[0])*180.0/pi)
-  print "M2: %.5f degrees" % (sqrt(L[4])*180.0/pi)
-  print "M3: %.5f degrees" % (sqrt(L[8])*180.0/pi)
+  logger.info("Mosaicity in degrees equivalent units")
+  logger.info("M1: %.5f degrees" % (sqrt(L[0])*180.0/pi))
+  logger.info("M2: %.5f degrees" % (sqrt(L[4])*180.0/pi))
+  logger.info("M3: %.5f degrees" % (sqrt(L[8])*180.0/pi))
 
 def print_matrix(A, fmt='%.3g', indent=0):
   '''
@@ -1129,4 +1132,4 @@ def print_matrix(A, fmt='%.3g', indent=0):
     for i in range(A.n[1]):
       line += fmt % t[i+j*A.n[1]]
     lines.append("%s|%s|" % (prefix, line))
-  print '\n'.join(lines)
+  logger.info('\n'.join(lines))
