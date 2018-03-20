@@ -339,7 +339,8 @@ class ReflectionData(object):
 
     # Compute the conditional likelihood
     c_d = mobs - mubar
-    c_lnL = ctot*(log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
+    # c_lnL = ctot*(log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
+    c_lnL = ctot*(log(Sbar_det) + (Sbar_inv * Sobs).trace())
 
     # Return the joint likelihood
     return -0.5 * (m_lnL + c_lnL)
@@ -381,11 +382,16 @@ class ReflectionData(object):
         1, 0,
         0, 1))
 
-      U = S22_inv*dS22[i]*(1 - S22_inv*m_d**2)
-      V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
-      W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
+      # U = S22_inv*dS22[i]*(1 - S22_inv*m_d**2)
+      # V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
+      # W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
 
-      dL.append(-0.5*(U+V+W))
+      # dL.append(-0.5*(U+V+W))
+      
+      U = S22_inv*dS22[i]*(1 - S22_inv*m_d**2)
+      V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*Sobs)).trace()
+
+      dL.append(-0.5*(U+V))
 
     # Return the derivative of the log likelihood
     return dL
@@ -474,10 +480,14 @@ class ReflectionData(object):
     for j in range(len(dS22)):
       for i in range(len(dS22)):
 
+        # U = S22_inv*dS22[j]*S22_inv*dS22[i]
+        # V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*ctot).trace()
+        # W = ctot*(dmbar[i].transpose()*Sbar_inv*dmbar[j])[0]
+        # I[j,i] = 0.5*(U+V) + W
+        
         U = S22_inv*dS22[j]*S22_inv*dS22[i]
         V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*ctot).trace()
-        W = ctot*(dmbar[i].transpose()*Sbar_inv*dmbar[j])[0]
-        I[j,i] = 0.5*(U+V) + W
+        I[j,i] = 0.5*(U+V)
 
     return I
 
@@ -822,7 +832,7 @@ class ProfileRefiner(object):
     Perform the profile refinement
 
     '''
-    if True:
+    if False:
       self.refine_simplex()
     else:
       self.refine_fisher_scoring()
