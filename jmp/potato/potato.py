@@ -61,6 +61,9 @@ phil_scope = parse('''
 
       plots = False
         .type = bool
+
+      print_shoeboxes = False
+        .type = bool
     }
   }
 
@@ -85,6 +88,7 @@ class InitialIntegrator(object):
     self.reflections = reflections
 
     # Do the processing
+    self._update_observed_reflection_predictions()
     self._compute_sigma_d()
     self._compute_bbox()
     self._allocate_shoebox()
@@ -92,6 +96,45 @@ class InitialIntegrator(object):
     self._compute_mask()
     self._compute_background()
     self._compute_intensity()
+
+    # Print shoeboxes
+    if params.debug.output.print_shoeboxes:
+      self._print_shoeboxes()
+
+  def _update_observed_reflection_predictions(self):
+    '''
+    Make sure we have the correct reciprocal lattice vector
+
+    '''
+    print "Updating predictions for %d reflections" % len(self.reflections)
+
+    # Get stuff from experiment
+    A = matrix.sqr(self.experiments[0].crystal.get_A())
+    s0 = matrix.col(self.experiments[0].beam.get_s0())
+
+    # Compute the vector to the reciprocal lattice point
+    # since this is not on the ewald sphere, lets call it s2
+    h = self.reflections['miller_index']
+    s1 = flex.vec3_double(len(h))
+    s2 = flex.vec3_double(len(h))
+    for i in range(len(self.reflections)):
+      r = A*matrix.col(h[i])
+      s2[i] = s0 + r
+      s1[i] = matrix.col(s2[i]).normalize()*s0.length()
+    self.reflections['s1'] = s1
+    self.reflections['s2'] = s2
+
+    # Compute the ray intersections
+    xyzpx = flex.vec3_double()
+    xyzmm = flex.vec3_double()
+    for i in range(len(s2)):
+      ss = s1[i]
+      mm = self.experiments[0].detector[0].get_ray_intersection(ss)
+      px = self.experiments[0].detector[0].millimeter_to_pixel(mm)
+      xyzpx.append(px + (0,))
+      xyzmm.append(mm + (0,))
+    self.reflections['xyzcal.mm'] = xyzmm
+    self.reflections['xyzcal.px'] = xyzpx
 
   def _compute_sigma_d(self):
     '''
@@ -193,6 +236,18 @@ class InitialIntegrator(object):
     print "%d reflections integrated" % self.reflections.get_flags(
       self.reflections.flags.integrated_sum).count(True)
 
+  def _print_shoeboxes(self):
+    '''
+    Print the shoeboxes
+
+    '''
+    sbox = self.reflections['shoebox']
+    for r in range(len(sbox)):
+      data = sbox[r].data
+      mask = sbox[r].mask
+      print mask.as_numpy_array()
+      print data.as_numpy_array()
+
 
 class Refiner(object):
   '''
@@ -234,9 +289,6 @@ class Refiner(object):
 
     '''
 
-    # Don't trust the predictions in the reflection file.
-    self._update_observed_reflection_predictions()
-
     # Filter based on centroid distance
     self._filter_reflections_based_on_centroid_distance()
 
@@ -260,38 +312,6 @@ class Refiner(object):
     selection = D < 2
     self.reflections = self.reflections.select(selection)
     print "Selected %d reflections with centroid-prediction distance < 2px" % len(self.reflections)
-
-  def _update_observed_reflection_predictions(self):
-    '''
-    Make sure we have the correct reciprocal lattice vector
-
-    '''
-    print "Updating predictions for %d reflections" % len(self.reflections)
-
-    # Get stuff from experiment
-    A = matrix.sqr(self.experiments[0].crystal.get_A())
-    s0 = matrix.col(self.experiments[0].beam.get_s0())
-
-    # Compute the vector to the reciprocal lattice point
-    # since this is not on the ewald sphere, lets call it s2
-    h = self.reflections['miller_index']
-    s2 = flex.vec3_double(len(h))
-    for i in range(len(self.reflections)):
-      r = A*matrix.col(h[i])
-      s2[i] = s0 + r
-    self.reflections['s2'] = s2
-
-    # Compute the ray intersections
-    xyzpx = flex.vec3_double()
-    xyzmm = flex.vec3_double()
-    for i in range(len(s2)):
-      s1 = s2[i]
-      mm = self.experiments[0].detector[0].get_ray_intersection(s1)
-      px = self.experiments[0].detector[0].millimeter_to_pixel(mm)
-      xyzpx.append(px + (0,))
-      xyzmm.append(mm + (0,))
-    self.reflections['xyzcal.mm'] = xyzmm
-    self.reflections['xyzcal.px'] = xyzpx
 
   def _refine_profile(self):
     '''
