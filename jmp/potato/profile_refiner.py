@@ -4,6 +4,7 @@ from scitbx import linalg
 from dials.array_family import flex
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
+from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from math import log, sqrt, pi
 
 class MarginalDistribution(object):
@@ -821,6 +822,78 @@ class ProfileRefiner(object):
     Perform the profile refinement
 
     '''
+    if True:
+      self.refine_simplex()
+    else:
+      self.refine_fisher_scoring()
+
+  def refine_simplex(self):
+    '''
+    Perform the profile refinement
+
+    '''
+    class Target(object):
+
+      def __init__(self,
+                   model,
+                   s0,
+                   s2_list,
+                   ctot_list,
+                   xbar_list,
+                   sobs_list):
+        self.model = model
+        self.s0 = s0
+        self.s2_list = s2_list
+        self.ctot_list = ctot_list
+        self.xbar_list = xbar_list
+        self.sobs_list = sobs_list
+
+      def target(self, params):
+        self.model.set_parameters(params)
+        ml = MaximumLikelihoodTarget(
+          self.model,
+          self.s0,
+          self.s2_list,
+          self.ctot_list,
+          self.xbar_list,
+          self.sobs_list)
+        lnL = ml.log_likelihood()
+        sigma = self.model.sigma()
+        format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
+        print format_string % (tuple(sigma) + (lnL,))
+        return -lnL
+
+    # Starting values for simplex
+    values = flex.double(self.parameterisation.parameters())
+    offset = flex.double([sqrt(1e-7)  for v in values])
+
+    # Do the simplex optimization
+    optimizer = SimpleSimplex(
+      values,
+      offset,
+      Target(
+        self.parameterisation,
+        self.s0,
+        self.s2_list,
+        self.ctot_list,
+        self.mobs_list,
+        self.sobs_list),
+      2000)
+
+    # Get the parameters
+    self.parameters = optimizer.get_solution()
+
+    # set the parameters
+    self.parameterisation.set_parameters(self.parameters)
+
+    # Print the eigen values and vectors
+    print_eigen_values_and_vectors(self.parameterisation.sigma())
+
+  def refine_fisher_scoring(self):
+    '''
+    Perform the profile refinement
+
+    '''
 
     # Initialise the algorithm
     ml = FisherScoringMaximumLikelihood(
@@ -880,6 +953,7 @@ class ProfileRefinerData(object):
     ctot_list = flex.double(len(s2_list))
     mobs_list = flex.vec2_double(len(s2_list))
     Sobs_list = flex.double(flex.grid(len(s2_list), 4))
+    Bmean = matrix.sqr((0, 0, 0, 0))
 
     print "Computing observed covariance for %d reflections" % len(reflections)
     s0_length = s0.length()
@@ -931,6 +1005,11 @@ class ProfileRefinerData(object):
           Sobs += (x-xbar)*(x-xbar).transpose()*C[j,i]
       Sobs /= ctot
 
+      # Compute the bias
+      zero = matrix.col((0, 0))
+      Bias_sq = (xbar - zero)*(xbar - zero).transpose()
+      Bmean += Bias_sq
+
       # Add to the lists
       ctot_list[r] = ctot
       mobs_list[r] = xbar
@@ -948,13 +1027,45 @@ class ProfileRefinerData(object):
     for r in range(Sobs_list.all()[0]):
       Smean += matrix.sqr(tuple(Sobs_list[r:r+1,:]))
     Smean /= Sobs_list.all()[0]
+    Bmean /= len(reflections)
+
     print ""
     print "Mean observed covariance:"
     print_matrix(Smean)
+    print_eigen_values_and_vectors_of_observed_covariance(Smean)
+    print ""
+    print "Mean observed bias^2:"
+    print_matrix(Bmean)
 
     # Return the profile refiner data
     return ProfileRefinerData(s0, s2_list, ctot_list, mobs_list, Sobs_list)
 
+def print_eigen_values_and_vectors_of_observed_covariance(A):
+  '''
+  Print the eigen values and vectors of a matrix
+
+  '''
+
+  # Compute the eigen decomposition of the covariance matrix
+  eigen_decomposition = linalg.eigensystem.real_symmetric(A.as_flex_double_matrix())
+  Q = matrix.sqr(eigen_decomposition.vectors())
+  L = matrix.diag(eigen_decomposition.values())
+
+  # Print the matrix eigen values
+  print ""
+  print "Eigen Values:"
+  print ""
+  print_matrix(L, indent=2)
+  print ""
+
+  print "Eigen Vectors:"
+  print ""
+  print_matrix(Q, indent=2)
+  print ""
+
+  print "Observed covariance in degrees equivalent units"
+  print "C1: %.5f degrees" % (sqrt(L[0])*180.0/pi)
+  print "C2: %.5f degrees" % (sqrt(L[3])*180.0/pi)
 
 def print_eigen_values_and_vectors(A):
   '''
