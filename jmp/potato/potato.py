@@ -385,7 +385,7 @@ class FinalIntegrator(object):
 
   '''
 
-  def __init__(self, experiments, reflections, profile_model):
+  def __init__(self, params, experiments, reflections, profile_model):
     '''
     Initialise the refiner
 
@@ -406,7 +406,8 @@ class FinalIntegrator(object):
     self._compute_partiality()
 
     # Plot the partialities
-    self._plot_partiality()
+    if params.debug.output.plots:
+      self._plot_partiality()
 
   def _compute_bbox(self):
     '''
@@ -621,6 +622,7 @@ class Integrator(object):
 
     '''
     integrator = FinalIntegrator(
+      self.params,
       self.experiments,
       self.reflections,
       self.profile_model)
