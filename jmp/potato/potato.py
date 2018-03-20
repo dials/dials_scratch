@@ -74,44 +74,83 @@ phil_scope = parse('''
 ''')
 
 
-class InitialIntegrator(object):
+class Indexer(object):
   '''
-  A class to do an initial integration of strong spots
+  A class to reindex the strong spot list
 
   '''
 
   def __init__(self, params, experiments, reflections):
     '''
-    Do the initial integration
+    Do the indexing
 
     '''
 
-    # Save the experiments and reflections
+    # Save some state
+    self.params = params
     self.experiments = experiments
     self.reflections = reflections
 
     # Do the processing
-    self._update_observed_reflection_predictions()
-    self._compute_sigma_d()
-    self._compute_bbox()
-    self._allocate_shoebox()
-    self._extract_shoebox()
-    self._compute_mask()
-    self._compute_background()
-    self._compute_intensity()
+    self._index()
+    self._predict()
+    self._filter_reflections_based_on_centroid_distance()
 
-    # Print shoeboxes
-    if params.debug.output.print_shoeboxes:
-      self._print_shoeboxes()
-
-  def _update_observed_reflection_predictions(self):
+  def _index(self):
     '''
-    Make sure we have the correct reciprocal lattice vector
+    Index the strong spots
 
     '''
-    logger.info("Updating predictions for %d reflections" % len(self.reflections))
 
-    # Get stuff from experiment
+    # Get some stuff from experiment
+    A = matrix.sqr(self.experiments[0].crystal.get_A())
+    s0 = matrix.col(self.experiments[0].beam.get_s0())
+    detector = self.experiments[0].detector
+
+    # Index all the reflections
+    xyz_list = self.reflections['xyzobs.px.value']
+    miller_index = self.reflections['miller_index']
+    selection = flex.size_t()
+    for i in range(len(self.reflections)):
+
+      # Get the observed pixel coordinate
+      x, y, _ = xyz_list[i]
+
+      # Get the lab coord
+      s1 = matrix.col(detector[0].get_pixel_lab_coord((x,y))).normalize()*s0.length()
+
+      # Get the reciprocal lattice vector
+      r = s1 - s0
+
+      # Compute the fractional miller index
+      hf = A.inverse() * r
+
+      # Compute the integer miller index
+      h = matrix.col((
+        int(floor(hf[0] + 0.5)),
+        int(floor(hf[1] + 0.5)),
+        int(floor(hf[2] + 0.5))))
+
+      # If its not indexed as 0, 0, 0 then append
+      if h != matrix.col((0, 0, 0)):
+        miller_index[i] = h
+        selection.append(i)
+
+    # Print some info
+    logger.info("Reindexed %d/%d input reflections" % (
+      len(selection),
+      len(self.reflections)))
+
+    # Select all the indexed reflections
+    self.reflections = self.reflections.select(selection)
+
+  def _predict(self):
+    '''
+    Predict the position of the spots
+
+    '''
+
+    # Get some stuff from experiment
     A = matrix.sqr(self.experiments[0].crystal.get_A())
     s0 = matrix.col(self.experiments[0].beam.get_s0())
 
@@ -138,6 +177,52 @@ class InitialIntegrator(object):
       xyzmm.append(mm + (0,))
     self.reflections['xyzcal.mm'] = xyzmm
     self.reflections['xyzcal.px'] = xyzpx
+    logger.info("Do prediction for %d reflections" % len(self.reflections))
+
+  def _filter_reflections_based_on_centroid_distance(self):
+    '''
+    Filter reflections too far from predicted position
+
+    '''
+    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
+    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
+    D = flex.sqrt((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
+    selection = D < self.params.refinement.max_centroid_distance
+    self.reflections = self.reflections.select(selection)
+    logger.info("Selected %d reflections with centroid-prediction distance < %d pixels" % (
+      len(self.reflections),
+      self.params.refinement.max_centroid_distance))
+
+
+
+class InitialIntegrator(object):
+  '''
+  A class to do an initial integration of strong spots
+
+  '''
+
+  def __init__(self, params, experiments, reflections):
+    '''
+    Do the initial integration
+
+    '''
+
+    # Save the experiments and reflections
+    self.experiments = experiments
+    self.reflections = reflections
+
+    # Do the processing
+    self._compute_sigma_d()
+    self._compute_bbox()
+    self._allocate_shoebox()
+    self._extract_shoebox()
+    self._compute_mask()
+    self._compute_background()
+    self._compute_intensity()
+
+    # Print shoeboxes
+    if params.debug.output.print_shoeboxes:
+      self._print_shoeboxes()
 
   def _compute_sigma_d(self):
     '''
@@ -292,9 +377,6 @@ class Refiner(object):
 
     '''
 
-    # Filter based on centroid distance
-    self._filter_reflections_based_on_centroid_distance()
-
     # Make some plots
     if self.params.debug.output.plots:
       self._plot_distance_from_ewald_sphere()
@@ -303,20 +385,6 @@ class Refiner(object):
     self._refiner_data = ProfileRefinerData.from_reflections(
       self.experiments[0],
       self.reflections)
-
-  def _filter_reflections_based_on_centroid_distance(self):
-    '''
-    Filter reflections too far from predicted position
-
-    '''
-    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
-    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
-    D = flex.sqrt((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
-    selection = D < self.params.refinement.max_centroid_distance
-    self.reflections = self.reflections.select(selection)
-    logger.info("Selected %d reflections with centroid-prediction distance < %d pixels" % (
-      len(self.reflections),
-      self.params.refinement.max_centroid_distance))
 
   def _refine_profile(self):
     '''
@@ -557,7 +625,18 @@ class Integrator(object):
     self.profile_model = None
     self.sigma_d = None
 
-  def initial_integration(self):
+  def reindex_strong_spots(self):
+    '''
+    Reindex the strong spot list
+
+    '''
+    indexer = Indexer(
+      self.params,
+      self.experiments,
+      self.reflections)
+    self.reflections = indexer.reflections
+
+  def integrate_strong_spots(self):
     '''
     Do an initial integration of the strong spots
 

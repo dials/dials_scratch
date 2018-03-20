@@ -91,15 +91,12 @@ class Script(object):
       info="dials.potato.log",
       debug="dials.potato.debug.log")
 
-    # Remove duff spots i.e. those
-    reflections = reflections.select(reflections.get_flags(
-      reflections.flags.indexed))
-
     # Contruct the integrator
     integrator = Integrator(experiments, reflections, params)
 
     # Do the integration
-    integrator.initial_integration()
+    integrator.reindex_strong_spots()
+    integrator.integrate_strong_spots()
     integrator.refine()
     integrator.predict()
     integrator.integrate()

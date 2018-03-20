@@ -1003,6 +1003,9 @@ class ProfileRefinerData(object):
             X[j,i] = cs.from_beam_vector(s)
             C[j,i] = c
 
+      # Check we have a sensible number of counts
+      assert ctot > 0, "BUG: strong spots should have more than 0 counts!"
+
       # Compute the mean vector
       xbar = matrix.col((0,0))
       for j in range(X.all()[0]):
