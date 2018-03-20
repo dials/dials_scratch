@@ -376,7 +376,8 @@ class Refiner(object):
     Dvar = flex.sum(flex.double([(d - Dmean)**2 for d in D])) / len(D)
     print "Mean D: ", Dmean
     print "Variance: ", Dvar
-    pylab.hist(D, bins=20)
+    pylab.hist(D, bins=max(5, min(0.2*len(s2), 20)))
+    pylab.xlabel("Distance from Ewald sphere (epsilon)")
     pylab.show()
 
 
@@ -405,6 +406,9 @@ class FinalIntegrator(object):
     self._compute_background()
     self._compute_intensity()
     self._compute_partiality()
+
+    # Plot the partialities
+    self._plot_partiality()
 
   def _compute_bbox(self):
     '''
@@ -502,6 +506,16 @@ class FinalIntegrator(object):
       partiality[k] = exp(-0.5*(s0.length()-mu2) * (1/S22) * (s0.length()-mu2))
     self.reflections['partiality'] = partiality
 
+  def _plot_partiality(self):
+    '''
+    Plot the partiality
+
+    '''
+    from matplotlib import pylab
+    P = self.reflections['partiality']
+    pylab.hist(P, bins=max(5, min(0.2*len(P), 20)))
+    pylab.xlabel("Scale factor")
+    pylab.show()
 
 
 class Integrator(object):
