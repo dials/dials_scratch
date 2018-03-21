@@ -169,7 +169,7 @@ def run_main(reflections, experiments, params):
 
 def generate_test_input():
   (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
-  
+
   #json.dump(datablock, open(datablock_json, 'w'))
 
 

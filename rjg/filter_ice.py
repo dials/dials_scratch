@@ -121,7 +121,7 @@ def filter_ice(reflections, steps):
 
   from dials.algorithms.spot_finding.per_image_analysis import \
     ice_rings_selection
-    
+
   from dials.algorithms.integration import filtering
 
   ice_uc = uctbx.unit_cell((4.498, 4.498, 7.338,90,90,120))
