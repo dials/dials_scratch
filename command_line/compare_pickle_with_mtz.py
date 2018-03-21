@@ -18,6 +18,9 @@ phil_scope = phil.parse('''
   filter_partiality = 0.0
     .type = float
     .help = "Filter partiality column"
+  out = None
+    .type = path
+    .help = "Text file output (optional)"
 ''')
 
 def compare_pickle_with_mtz(params):
@@ -58,21 +61,33 @@ def compare_pickle_with_mtz(params):
 
   # match data to reference
   from cctbx import miller
-  mi = miller.set(crystal_symmetry=i.crystal_symmetry(),
-                  anomalous_flag=False,
+  mi = miller.set(crystal_symmetry=i.crystal_symmetry(), anomalous_flag=False,
                   indices = d['miller_index']).expand_to_p1()
   match = mi.match_indices(i)
   pairs = match.pairs()
 
   i1 = flex.double()
   i2 = flex.double()
+  scl = flex.double()
 
-  for p in pairs:
-    i1.append(d['intensity.sum.value'][p[0]])
-    i2.append(i.data()[p[1]])
+  # TODO remove outliers here from the paired up list => do not need to
+  # worry about them biasing the correlation
 
+  for p0, p1 in pairs:
+    i1.append(d['intensity.sum.value'][p0])
+    i2.append(i.data()[p1])
+    if 'partiality' in d:
+      scl.append(d['partiality'][p0])
+    else:
+      scl.append(1.0)
   corr = flex.linear_correlation(i1, i2)
-  print(corr.coefficient(), pairs.size(), d.size())
+  corr2 = flex.linear_correlation(i1 / scl, i2)
+  print('Correlation:', corr.coefficient(), corr2.coefficient(), pairs.size(), d.size())
+
+  if params.out:
+    with open(params.out, 'w') as f:
+      for iis in zip(i1, i2, scl):
+        f.write('%f %f %f\n' % iis)
 
 def run(args):
   from dials.util.options import OptionParser
