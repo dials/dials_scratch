@@ -1,0 +1,2632 @@
+
+Generating covariance matrix
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.51e-05, 6.75e-06, -9.81e-07, 6.75e-06, 7.27e-05, -1.33e-05, -9.81e-07, -1.33e-05, 5.73e-05, )
+3 0.0328205785903
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.46e-05, 1.85e-06, 1.46e-05, 8.43e-05, -1.59e-06, 1.85e-06, -1.59e-06, 6.96e-05, )
+4 0.0026504063231
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.36e-05, 1.04e-05, 9.76e-08, 1.04e-05, 8.19e-05, -3.42e-06, 9.76e-08, -3.42e-06, 6.62e-05, )
+5 0.00112417136608
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.27e-05, 9.6e-06, 1.62e-06, 9.6e-06, 8.17e-05, -2.26e-06, 1.62e-06, -2.26e-06, 6.6e-05, )
+6 0.00154754597854
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.45e-05, 3e-06, 1.45e-05, 8.74e-05, -8.29e-07, 3e-06, -8.29e-07, 6.82e-05, )
+7 0.0021090268816
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.2e-05, 1.67e-06, 1.2e-05, 8.16e-05, -2.66e-06, 1.67e-06, -2.66e-06, 6.54e-05, )
+8 0.00018326091107
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.39e-05, 1.01e-05, 4.36e-07, 1.01e-05, 7.9e-05, -5.69e-06, 4.36e-07, -5.69e-06, 6.35e-05, )
+9 0.00257088425569
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.49e-05, 1.01e-05, 6.79e-07, 1.01e-05, 7.91e-05, -6.11e-06, 6.79e-07, -6.11e-06, 6.58e-05, )
+10 0.002052651003
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.13e-05, 1.4e-06, 1.13e-05, 8.25e-05, -5.18e-06, 1.4e-06, -5.18e-06, 6.22e-05, )
+11 0.00148455484681
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.82e-05, 1.4e-05, 3.2e-06, 1.4e-05, 8.57e-05, -1.71e-06, 3.2e-06, -1.71e-06, 6.85e-05, )
+12 0.0018257789735
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.08e-05, 1.85e-06, 1.08e-05, 8.49e-05, -4.38e-06, 1.85e-06, -4.38e-06, 6.62e-05, )
+13 0.000579931975695
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.03e-05, 1.28e-06, 1.03e-05, 8.24e-05, -4e-06, 1.28e-06, -4e-06, 6.45e-05, )
+14 0.00059102447247
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.08e-05, 7.88e-07, 1.08e-05, 8.16e-05, -4.65e-06, 7.88e-07, -4.65e-06, 6.69e-05, )
+15 0.000612925077042
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.27e-05, 2.66e-06, 1.27e-05, 8.38e-05, -5.22e-07, 2.66e-06, -5.22e-07, 6.53e-05, )
+16 0.00068945159102
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.28e-05, 2.9e-06, 1.28e-05, 8.21e-05, -3.88e-06, 2.9e-06, -3.88e-06, 6.52e-05, )
+17 0.000820392851889
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.45e-05, 2.04e-06, 1.45e-05, 8.63e-05, -9.74e-07, 2.04e-06, -9.74e-07, 6.74e-05, )
+18 0.00161631387217
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.48e-05, 1.15e-05, 1.31e-06, 1.15e-05, 8.39e-05, -2.92e-06, 1.31e-06, -2.92e-06, 6.45e-05, )
+19 0.000252236213829
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.08e-05, 5.5e-07, 1.08e-05, 8.09e-05, -4.66e-06, 5.5e-07, -4.66e-06, 6.38e-05, )
+20 0.000981863752155
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.14e-05, 2.1e-06, 1.14e-05, 8.3e-05, -2.36e-06, 2.1e-06, -2.36e-06, 6.49e-05, )
+30 0.000102560566665
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.32e-05, 1.8e-06, 1.32e-05, 8.49e-05, -1.96e-06, 1.8e-06, -1.96e-06, 6.5e-05, )
+40 0.000427366162186
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.17e-05, 1.8e-06, 1.17e-05, 8.27e-05, -2.8e-06, 1.8e-06, -2.8e-06, 6.53e-05, )
+50 2.8238390792e-05
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.16e-05, 2.21e-06, 1.16e-05, 8.31e-05, -3.18e-06, 2.21e-06, -3.18e-06, 6.59e-05, )
+60 9.02337685715e-05
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.17e-05, 1.98e-06, 1.17e-05, 8.28e-05, -2.47e-06, 1.98e-06, -2.47e-06, 6.63e-05, )
+70 7.08220737499e-05
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.8e-06, 1.17e-05, 8.39e-05, -2.77e-06, 1.8e-06, -2.77e-06, 6.66e-05, )
+80 8.42773801206e-05
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.75e-06, 1.17e-05, 8.3e-05, -2.58e-06, 1.75e-06, -2.58e-06, 6.57e-05, )
+90 5.37914072351e-06
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.21e-05, 1.63e-06, 1.21e-05, 8.28e-05, -2.25e-06, 1.63e-06, -2.25e-06, 6.54e-05, )
+100 5.31302341652e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.12e-05, 1.82e-06, 1.12e-05, 8.25e-05, -3.1e-06, 1.82e-06, -3.1e-06, 6.56e-05, )
+110 6.65906064402e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.21e-05, 1.33e-06, 1.21e-05, 8.38e-05, -1.97e-06, 1.33e-06, -1.97e-06, 6.57e-05, )
+120 0.000129589459459
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.17e-05, 1.86e-06, 1.17e-05, 8.28e-05, -3.25e-06, 1.86e-06, -3.25e-06, 6.61e-05, )
+130 5.02926757008e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.13e-05, 1.62e-06, 1.13e-05, 8.21e-05, -3.15e-06, 1.62e-06, -3.15e-06, 6.59e-05, )
+140 5.63493963943e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.15e-05, 1.87e-06, 1.15e-05, 8.3e-05, -2.33e-06, 1.87e-06, -2.33e-06, 6.55e-05, )
+150 3.17116429415e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.19e-05, 1.79e-06, 1.19e-05, 8.29e-05, -2.11e-06, 1.79e-06, -2.11e-06, 6.64e-05, )
+160 9.93393371703e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.17e-05, 1.83e-06, 1.17e-05, 8.29e-05, -2.75e-06, 1.83e-06, -2.75e-06, 6.6e-05, )
+170 1.282774827e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.92e-06, 1.19e-05, 8.4e-05, -2.79e-06, 1.92e-06, -2.79e-06, 6.57e-05, )
+180 4.92520882565e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.21e-05, 1.63e-06, 1.21e-05, 8.28e-05, -2.96e-06, 1.63e-06, -2.96e-06, 6.53e-05, )
+190 3.80361388335e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.19e-05, 1.83e-06, 1.19e-05, 8.37e-05, -2.56e-06, 1.83e-06, -2.56e-06, 6.54e-05, )
+200 3.36195863166e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 1.83e-06, 1.21e-05, 8.37e-05, -2.31e-06, 1.83e-06, -2.31e-06, 6.61e-05, )
+300 6.5724899679e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.74e-06, 1.17e-05, 8.34e-05, -2.73e-06, 1.74e-06, -2.73e-06, 6.58e-05, )
+400 9.36752776572e-06
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.86e-06, 1.19e-05, 8.34e-05, -2.59e-06, 1.86e-06, -2.59e-06, 6.62e-05, )
+500 3.14346810968e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.17e-05, 1.62e-06, 1.17e-05, 8.28e-05, -2.75e-06, 1.62e-06, -2.75e-06, 6.59e-05, )
+600 4.04267342543e-06
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.67e-06, 1.17e-05, 8.31e-05, -2.72e-06, 1.67e-06, -2.72e-06, 6.59e-05, )
+700 3.65933113624e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.81e-06, 1.18e-05, 8.31e-05, -2.53e-06, 1.81e-06, -2.53e-06, 6.6e-05, )
+800 1.59848102752e-05
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.76e-06, 1.17e-05, 8.3e-05, -2.68e-06, 1.76e-06, -2.68e-06, 6.59e-05, )
+900 4.01981744045e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.5e-05, 6.22e-07, -4.87e-06, 6.22e-07, 6.75e-05, -1.47e-05, -4.87e-06, -1.47e-05, 6.2e-05, )
+3 0.0678299958382
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.45e-05, 1.23e-05, 2.05e-06, 1.23e-05, 8.23e-05, -2.57e-06, 2.05e-06, -2.57e-06, 6.45e-05, )
+4 0.000554532075232
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.24e-05, 1.53e-06, 1.24e-05, 7.86e-05, -3.6e-06, 1.53e-06, -3.6e-06, 6.42e-05, )
+5 0.00129906736861
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.36e-05, 7.46e-06, 2.98e-06, 7.46e-06, 7.72e-05, -4.9e-06, 2.98e-06, -4.9e-06, 6.26e-05, )
+6 0.00517445581044
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.82e-05, 1.48e-05, 2.86e-06, 1.48e-05, 8.85e-05, 7.37e-07, 2.86e-06, 7.37e-07, 6.67e-05, )
+7 0.00306929316784
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.4e-05, 1.23e-05, 1.3e-06, 1.23e-05, 8.69e-05, -1.43e-06, 1.3e-06, -1.43e-06, 6.42e-05, )
+8 0.00134122232166
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.77e-05, 1.42e-05, 1.86e-06, 1.42e-05, 8.45e-05, -3.02e-06, 1.86e-06, -3.02e-06, 6.54e-05, )
+9 0.000927928323798
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.38e-05, 1.16e-06, 1.38e-05, 8.62e-05, -4.79e-06, 1.16e-06, -4.79e-06, 6.17e-05, )
+10 0.00228885471445
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.36e-05, 1.08e-05, 1.76e-06, 1.08e-05, 8.34e-05, -3.09e-06, 1.76e-06, -3.09e-06, 6.39e-05, )
+11 0.000885064770991
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.71e-05, 1.18e-05, 2.37e-06, 1.18e-05, 8.4e-05, -2.25e-06, 2.37e-06, -2.25e-06, 6.54e-05, )
+12 0.000351794282643
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.29e-05, 2.46e-06, 1.29e-05, 8.41e-05, -1.49e-06, 2.46e-06, -1.49e-06, 6.59e-05, )
+13 0.000457906583343
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.28e-05, 1.29e-06, 1.28e-05, 8.42e-05, -4.64e-06, 1.29e-06, -4.64e-06, 6.5e-05, )
+14 0.000524022834493
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.76e-05, 1.31e-05, 2.39e-06, 1.31e-05, 8.41e-05, -1.89e-06, 2.39e-06, -1.89e-06, 6.7e-05, )
+15 0.00070116515214
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.14e-05, 1.6e-06, 1.14e-05, 8.05e-05, -5.75e-07, 1.6e-06, -5.75e-07, 6.49e-05, )
+16 0.000771803824554
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.25e-05, 2.07e-06, 1.25e-05, 8.48e-05, -7.33e-07, 2.07e-06, -7.33e-07, 6.62e-05, )
+17 0.000551224547229
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.19e-05, 6.83e-07, 1.19e-05, 8.46e-05, -2.26e-06, 6.83e-07, -2.26e-06, 6.47e-05, )
+18 0.000393117070493
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.23e-05, 2.78e-06, 1.23e-05, 8.35e-05, -1.6e-06, 2.78e-06, -1.6e-06, 6.6e-05, )
+19 0.000435723066002
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.72e-06, 1.16e-05, 8.2e-05, -1.92e-06, 1.72e-06, -1.92e-06, 6.64e-05, )
+20 0.000130380567632
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.11e-05, 8.82e-07, 1.11e-05, 8.35e-05, -2.47e-06, 8.82e-07, -2.47e-06, 6.47e-05, )
+30 0.000255802421704
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.8e-06, 1.18e-05, 8.34e-05, -2.56e-06, 1.8e-06, -2.56e-06, 6.5e-05, )
+40 4.39069368539e-05
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.22e-05, 1.89e-06, 1.22e-05, 8.41e-05, -2.28e-06, 1.89e-06, -2.28e-06, 6.74e-05, )
+50 0.000253753336106
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.07e-05, 1.91e-06, 1.07e-05, 8.21e-05, -2.98e-06, 1.91e-06, -2.98e-06, 6.61e-05, )
+60 0.000157057390594
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.17e-05, 1.5e-06, 1.17e-05, 8.38e-05, -2.42e-06, 1.5e-06, -2.42e-06, 6.61e-05, )
+70 6.54268974329e-05
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.25e-05, 1.9e-06, 1.25e-05, 8.4e-05, -1.33e-06, 1.9e-06, -1.33e-06, 6.62e-05, )
+80 0.000295589472189
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.2e-05, 1.56e-06, 1.2e-05, 8.29e-05, -2.86e-06, 1.56e-06, -2.86e-06, 6.64e-05, )
+90 8.72348971549e-05
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.22e-05, 1.43e-06, 1.22e-05, 8.38e-05, -2.13e-06, 1.43e-06, -2.13e-06, 6.56e-05, )
+100 0.000102331725771
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.19e-05, 1.44e-06, 1.19e-05, 8.28e-05, -2.37e-06, 1.44e-06, -2.37e-06, 6.57e-05, )
+110 3.2673934027e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.2e-05, 1.75e-06, 1.2e-05, 8.39e-05, -2.42e-06, 1.75e-06, -2.42e-06, 6.6e-05, )
+120 5.03216320536e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.19e-05, 1.76e-06, 1.19e-05, 8.37e-05, -1.67e-06, 1.76e-06, -1.67e-06, 6.54e-05, )
+130 0.000140127297148
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.15e-05, 1.53e-06, 1.15e-05, 8.22e-05, -2.51e-06, 1.53e-06, -2.51e-06, 6.5e-05, )
+140 6.99850566581e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.14e-05, 1.49e-06, 1.14e-05, 8.25e-05, -2.35e-06, 1.49e-06, -2.35e-06, 6.55e-05, )
+150 4.66900341852e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.16e-05, 1.38e-06, 1.16e-05, 8.22e-05, -2.63e-06, 1.38e-06, -2.63e-06, 6.55e-05, )
+160 5.9235194149e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.16e-05, 1.84e-06, 1.16e-05, 8.31e-05, -2.27e-06, 1.84e-06, -2.27e-06, 6.62e-05, )
+170 7.55432543073e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.18e-05, 1.15e-06, 1.18e-05, 8.38e-05, -2.79e-06, 1.15e-06, -2.79e-06, 6.6e-05, )
+180 6.79178101355e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.15e-05, 1.51e-06, 1.15e-05, 8.31e-05, -2.45e-06, 1.51e-06, -2.45e-06, 6.64e-05, )
+190 5.03892571239e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.15e-05, 1.64e-06, 1.15e-05, 8.31e-05, -2.58e-06, 1.64e-06, -2.58e-06, 6.55e-05, )
+200 2.47355482874e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.59e-06, 1.16e-05, 8.33e-05, -2.58e-06, 1.59e-06, -2.58e-06, 6.59e-05, )
+300 1.45554848966e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.14e-05, 1.47e-06, 1.14e-05, 8.25e-05, -2.83e-06, 1.47e-06, -2.83e-06, 6.55e-05, )
+400 2.63777027983e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.19e-05, 1.69e-06, 1.19e-05, 8.33e-05, -2.41e-06, 1.69e-06, -2.41e-06, 6.62e-05, )
+500 3.63263917262e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.17e-05, 1.7e-06, 1.17e-05, 8.31e-05, -2.42e-06, 1.7e-06, -2.42e-06, 6.59e-05, )
+600 1.73438337907e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.17e-05, 1.56e-06, 1.17e-05, 8.31e-05, -2.49e-06, 1.56e-06, -2.49e-06, 6.58e-05, )
+700 1.45219337747e-05
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.66e-06, 1.17e-05, 8.3e-05, -2.54e-06, 1.66e-06, -2.54e-06, 6.6e-05, )
+800 9.24288513098e-06
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.61e-06, 1.17e-05, 8.31e-05, -2.45e-06, 1.61e-06, -2.45e-06, 6.59e-05, )
+900 1.40668954465e-05
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.01e-05, -1.75e-06, 1.01e-05, 7.8e-05, -2.21e-06, -1.75e-06, -2.21e-06, 6.29e-05, )
+3 0.00381724613652
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.22e-05, 3e-06, 1.22e-05, 8.15e-05, -3.66e-06, 3e-06, -3.66e-06, 6.54e-05, )
+4 0.000721234844839
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 8.92e-06, 4.62e-07, 8.92e-06, 8.07e-05, -1.04e-06, 4.62e-07, -1.04e-06, 6.9e-05, )
+5 0.00235506476139
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.38e-05, 1.07e-05, 2.81e-06, 1.07e-05, 8.13e-05, -3.93e-06, 2.81e-06, -3.93e-06, 6.41e-05, )
+6 0.00134151020637
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.68e-05, 1.33e-05, 2.67e-06, 1.33e-05, 8.62e-05, -3.93e-06, 2.67e-06, -3.93e-06, 6.66e-05, )
+7 0.000960844361218
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.04e-05, 8.04e-07, 1.04e-05, 8.03e-05, -3.99e-06, 8.04e-07, -3.99e-06, 6.38e-05, )
+8 0.00103607250467
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.31e-05, 3.36e-06, 1.31e-05, 8.44e-05, -9.64e-07, 3.36e-06, -9.64e-07, 6.86e-05, )
+9 0.0013241118368
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.14e-05, 3.04e-06, 1.14e-05, 8.44e-05, 5.71e-08, 3.04e-06, 5.71e-08, 6.55e-05, )
+10 0.00103012436015
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.66e-05, 1.23e-05, 1.32e-06, 1.23e-05, 8.39e-05, -4.83e-06, 1.32e-06, -4.83e-06, 6.69e-05, )
+11 0.000551657985584
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.18e-05, 1.07e-06, 1.18e-05, 8.42e-05, -2.72e-06, 1.07e-06, -2.72e-06, 6.46e-05, )
+12 0.000235812974203
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.49e-05, 1.21e-05, 5.02e-07, 1.21e-05, 8.19e-05, -3.11e-06, 5.02e-07, -3.11e-06, 6.37e-05, )
+13 0.000694522829818
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.44e-05, 1.01e-05, 2.05e-06, 1.01e-05, 7.85e-05, -3.75e-06, 2.05e-06, -3.75e-06, 6.66e-05, )
+14 0.0012625144162
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.11e-05, 1.18e-06, 1.11e-05, 8.08e-05, -3.33e-06, 1.18e-06, -3.33e-06, 6.42e-05, )
+15 0.000538501653668
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.14e-05, 1.78e-07, 1.14e-05, 8.1e-05, -3.56e-06, 1.78e-07, -3.56e-06, 6.48e-05, )
+16 0.000594602225418
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 1.1e-05, 1.36e-06, 1.1e-05, 8.15e-05, -3.01e-06, 1.36e-06, -3.01e-06, 6.6e-05, )
+17 0.000267336705843
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.06e-05, 8.88e-07, 1.06e-05, 8.26e-05, -3.44e-06, 8.88e-07, -3.44e-06, 6.59e-05, )
+18 0.000377816376519
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 1.17e-05, 1.02e-06, 1.17e-05, 8.43e-05, -4.12e-06, 1.02e-06, -4.12e-06, 6.57e-05, )
+19 0.000396218416032
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.16e-05, 1.77e-06, 1.16e-05, 8.61e-05, -2.92e-06, 1.77e-06, -2.92e-06, 6.62e-05, )
+20 0.000393491559806
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.48e-05, 1.01e-05, 2.34e-06, 1.01e-05, 8.07e-05, -3.29e-06, 2.34e-06, -3.29e-06, 6.54e-05, )
+30 0.000621864272792
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.24e-05, 1.95e-06, 1.24e-05, 8.27e-05, -2.31e-06, 1.95e-06, -2.31e-06, 6.53e-05, )
+40 0.000118434267071
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.48e-05, 1.06e-05, 3.97e-07, 1.06e-05, 8.12e-05, -3.47e-06, 3.97e-07, -3.47e-06, 6.62e-05, )
+50 0.00059570975937
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.13e-05, 1.62e-06, 1.13e-05, 8.32e-05, -2.98e-06, 1.62e-06, -2.98e-06, 6.66e-05, )
+60 0.00013447882372
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.5e-05, 1.13e-05, 1.34e-06, 1.13e-05, 8.14e-05, -2.9e-06, 1.34e-06, -2.9e-06, 6.52e-05, )
+70 0.000189459466784
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.19e-05, 1.29e-06, 1.19e-05, 8.32e-05, -2.78e-06, 1.29e-06, -2.78e-06, 6.62e-05, )
+80 5.86783256293e-05
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.2e-05, 1.82e-06, 1.2e-05, 8.36e-05, -2.12e-06, 1.82e-06, -2.12e-06, 6.57e-05, )
+90 0.000111586400229
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.14e-05, 1.68e-06, 1.14e-05, 8.28e-05, -2.52e-06, 1.68e-06, -2.52e-06, 6.56e-05, )
+100 2.21084227185e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.14e-05, 1.92e-06, 1.14e-05, 8.28e-05, -2.74e-06, 1.92e-06, -2.74e-06, 6.52e-05, )
+110 4.33869060424e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.15e-05, 1.45e-06, 1.15e-05, 8.25e-05, -3.35e-06, 1.45e-06, -3.35e-06, 6.57e-05, )
+120 4.62866472461e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.15e-05, 1.72e-06, 1.15e-05, 8.23e-05, -2.64e-06, 1.72e-06, -2.64e-06, 6.6e-05, )
+130 3.04940638597e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.22e-05, 1.74e-06, 1.22e-05, 8.4e-05, -2.47e-06, 1.74e-06, -2.47e-06, 6.65e-05, )
+140 0.000124406713213
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.54e-06, 1.17e-05, 8.31e-05, -3.19e-06, 1.54e-06, -3.19e-06, 6.56e-05, )
+150 1.7875203311e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.19e-05, 1.48e-06, 1.19e-05, 8.33e-05, -3.17e-06, 1.48e-06, -3.17e-06, 6.57e-05, )
+160 6.80368206738e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.16e-05, 1.5e-06, 1.16e-05, 8.29e-05, -3.35e-06, 1.5e-06, -3.35e-06, 6.57e-05, )
+170 3.72026868541e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.15e-05, 1.72e-06, 1.15e-05, 8.29e-05, -2.75e-06, 1.72e-06, -2.75e-06, 6.58e-05, )
+180 8.8553052798e-06
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.11e-05, 1.5e-06, 1.11e-05, 8.22e-05, -2.92e-06, 1.5e-06, -2.92e-06, 6.56e-05, )
+190 5.82185031174e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.16e-05, 1.85e-06, 1.16e-05, 8.33e-05, -2.73e-06, 1.85e-06, -2.73e-06, 6.57e-05, )
+200 1.65092936151e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.14e-05, 1.41e-06, 1.14e-05, 8.25e-05, -3.3e-06, 1.41e-06, -3.3e-06, 6.59e-05, )
+300 4.78724776052e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.17e-05, 1.59e-06, 1.17e-05, 8.29e-05, -2.92e-06, 1.59e-06, -2.92e-06, 6.59e-05, )
+400 7.34957589017e-06
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.68e-06, 1.17e-05, 8.33e-05, -2.62e-06, 1.68e-06, -2.62e-06, 6.59e-05, )
+500 6.80007876348e-06
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.15e-05, 1.43e-06, 1.15e-05, 8.28e-05, -2.94e-06, 1.43e-06, -2.94e-06, 6.55e-05, )
+600 1.78503363956e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.55e-06, 1.17e-05, 8.28e-05, -2.95e-06, 1.55e-06, -2.95e-06, 6.56e-05, )
+700 6.78641315387e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.55e-06, 1.16e-05, 8.29e-05, -2.92e-06, 1.55e-06, -2.92e-06, 6.56e-05, )
+800 5.03980783563e-06
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.58e-06, 1.16e-05, 8.29e-05, -2.98e-06, 1.58e-06, -2.98e-06, 6.56e-05, )
+900 7.01628566927e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.51e-05, 4e-06, 1.51e-05, 9.86e-05, 4.05e-06, 4e-06, 4.05e-06, 7.15e-05, )
+3 0.012190955246
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 7.88e-06, 4e-08, 7.88e-06, 7.44e-05, -8.58e-06, 4e-08, -8.58e-06, 6.16e-05, )
+4 0.0107583385016
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.66e-05, 1.33e-05, 1.2e-07, 1.33e-05, 8.52e-05, -3.94e-06, 1.2e-07, -3.94e-06, 6.5e-05, )
+5 0.000838894750264
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.7e-05, 1.51e-05, 3.82e-06, 1.51e-05, 8.78e-05, 6.78e-07, 3.82e-06, 6.78e-07, 6.79e-05, )
+6 0.00326568323998
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.78e-05, 1.48e-05, 1.91e-06, 1.48e-05, 8.43e-05, -9.98e-07, 1.91e-06, -9.98e-07, 7.02e-05, )
+7 0.00263654988336
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.72e-05, 1.13e-05, 2.03e-06, 1.13e-05, 8.36e-05, -4.96e-06, 2.03e-06, -4.96e-06, 6.79e-05, )
+8 0.00096600485138
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.41e-05, 1.14e-05, 2.29e-08, 1.14e-05, 8.18e-05, -6.27e-06, 2.29e-08, -6.27e-06, 6.27e-05, )
+9 0.00259940192014
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.19e-05, 2.14e-06, 1.19e-05, 8.41e-05, -2.31e-06, 2.14e-06, -2.31e-06, 6.55e-05, )
+10 0.000103963860001
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.1e-05, 1.09e-06, 1.1e-05, 8.19e-05, -2.57e-06, 1.09e-06, -2.57e-06, 6.51e-05, )
+11 0.000182183593489
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.05e-05, 5.96e-07, 1.05e-05, 8.12e-05, -2.36e-06, 5.96e-07, -2.36e-06, 6.34e-05, )
+12 0.000858755209931
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.43e-05, 1.2e-05, 2.48e-06, 1.2e-05, 8.31e-05, -2.25e-06, 2.48e-06, -2.25e-06, 6.59e-05, )
+13 0.000503342313366
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.29e-05, 1.67e-06, 1.29e-05, 8.68e-05, -3.43e-06, 1.67e-06, -3.43e-06, 6.5e-05, )
+14 0.00068554706774
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.78e-05, 1.33e-05, 2.87e-06, 1.33e-05, 8.23e-05, -2.24e-06, 2.87e-06, -2.24e-06, 6.61e-05, )
+15 0.000902241838248
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.21e-05, 2.06e-06, 1.21e-05, 8.52e-05, -2.65e-06, 2.06e-06, -2.65e-06, 6.64e-05, )
+16 0.000222051503052
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.76e-05, 1.31e-05, 1.83e-06, 1.31e-05, 8.39e-05, -2.59e-06, 1.83e-06, -2.59e-06, 6.52e-05, )
+17 0.000517391207235
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 1.2e-05, 5.87e-07, 1.2e-05, 8.38e-05, -4.03e-06, 5.87e-07, -4.03e-06, 6.5e-05, )
+18 0.000513517704325
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 2.34e-06, 1.18e-05, 8.46e-05, -2.37e-06, 2.34e-06, -2.37e-06, 6.59e-05, )
+19 0.000183450969971
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.51e-05, 1.1e-05, 1.95e-06, 1.1e-05, 8.13e-05, -2.38e-06, 1.95e-06, -2.38e-06, 6.52e-05, )
+20 0.000205197273978
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.42e-05, 9.98e-06, 1.31e-06, 9.98e-06, 8.05e-05, -3.29e-06, 1.31e-06, -3.29e-06, 6.46e-05, )
+30 0.000814943926432
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.09e-05, 1.64e-06, 1.09e-05, 8.22e-05, -2.16e-06, 1.64e-06, -2.16e-06, 6.69e-05, )
+40 0.000210147675282
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.2e-05, 2.23e-06, 1.2e-05, 8.3e-05, -2.95e-06, 2.23e-06, -2.95e-06, 6.57e-05, )
+50 0.000111796148708
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.46e-06, 1.16e-05, 8.22e-05, -3.31e-06, 1.46e-06, -3.31e-06, 6.44e-05, )
+60 0.00016625634757
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.05e-05, 1.74e-06, 1.05e-05, 8.2e-05, -2.99e-06, 1.74e-06, -2.99e-06, 6.49e-05, )
+70 0.00026944565861
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.14e-05, 2.09e-06, 1.14e-05, 8.35e-05, -2.54e-06, 2.09e-06, -2.54e-06, 6.55e-05, )
+80 7.75711919285e-05
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.1e-05, 2.02e-06, 1.1e-05, 8.3e-05, -2.24e-06, 2.02e-06, -2.24e-06, 6.56e-05, )
+90 0.000143191425178
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.88e-06, 1.16e-05, 8.36e-05, -2.4e-06, 1.88e-06, -2.4e-06, 6.56e-05, )
+100 3.86844680656e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.1e-05, 1.18e-06, 1.1e-05, 8.32e-05, -3.26e-06, 1.18e-06, -3.26e-06, 6.52e-05, )
+110 0.000126719359391
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.18e-05, 1.94e-06, 1.18e-05, 8.31e-05, -2.44e-06, 1.94e-06, -2.44e-06, 6.58e-05, )
+120 2.42398956651e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.1e-05, 1.47e-06, 1.1e-05, 8.19e-05, -2.7e-06, 1.47e-06, -2.7e-06, 6.54e-05, )
+130 0.000128749946151
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.12e-05, 1.9e-06, 1.12e-05, 8.34e-05, -2.85e-06, 1.9e-06, -2.85e-06, 6.62e-05, )
+140 6.62455284703e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.45e-06, 1.16e-05, 8.28e-05, -2.85e-06, 1.45e-06, -2.85e-06, 6.49e-05, )
+150 4.57450740829e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.16e-05, 1.53e-06, 1.16e-05, 8.28e-05, -3.32e-06, 1.53e-06, -3.32e-06, 6.5e-05, )
+160 9.0874521514e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.15e-05, 1.46e-06, 1.15e-05, 8.27e-05, -2.6e-06, 1.46e-06, -2.6e-06, 6.51e-05, )
+170 3.89474690898e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.64e-06, 1.18e-05, 8.35e-05, -2.52e-06, 1.64e-06, -2.52e-06, 6.52e-05, )
+180 2.82924348984e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.15e-05, 1.85e-06, 1.15e-05, 8.29e-05, -2.95e-06, 1.85e-06, -2.95e-06, 6.56e-05, )
+190 1.8525263641e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.15e-05, 1.47e-06, 1.15e-05, 8.25e-05, -2.72e-06, 1.47e-06, -2.72e-06, 6.55e-05, )
+200 2.67001561394e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.78e-06, 1.18e-05, 8.3e-05, -2.7e-06, 1.78e-06, -2.7e-06, 6.55e-05, )
+300 8.25546232773e-06
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.17e-05, 1.8e-06, 1.17e-05, 8.29e-05, -2.78e-06, 1.8e-06, -2.78e-06, 6.58e-05, )
+400 1.61348675313e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.58e-06, 1.16e-05, 8.32e-05, -2.81e-06, 1.58e-06, -2.81e-06, 6.56e-05, )
+500 8.83035045709e-06
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.15e-05, 1.62e-06, 1.15e-05, 8.28e-05, -2.69e-06, 1.62e-06, -2.69e-06, 6.55e-05, )
+600 6.92659432415e-06
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.16e-05, 1.63e-06, 1.16e-05, 8.29e-05, -2.79e-06, 1.63e-06, -2.79e-06, 6.57e-05, )
+700 3.04635150247e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.15e-05, 1.66e-06, 1.15e-05, 8.29e-05, -2.71e-06, 1.66e-06, -2.71e-06, 6.55e-05, )
+800 1.18640618884e-05
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.16e-05, 1.71e-06, 1.16e-05, 8.3e-05, -2.73e-06, 1.71e-06, -2.73e-06, 6.56e-05, )
+900 7.25457209944e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.95e-05, 1.48e-05, 2.27e-06, 1.48e-05, 9.38e-05, -8.26e-07, 2.27e-06, -8.26e-07, 6.8e-05, )
+3 0.00559086860806
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.35e-05, 1.14e-05, 2.65e-06, 1.14e-05, 8.01e-05, -1.34e-06, 2.65e-06, -1.34e-06, 7e-05, )
+4 0.00230011091938
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.16e-05, 1.99e-06, 1.16e-05, 8.27e-05, -4.35e-06, 1.99e-06, -4.35e-06, 6.57e-05, )
+5 0.000325320906441
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.17e-05, 3.14e-06, 1.17e-05, 8.63e-05, -2.43e-06, 3.14e-06, -2.43e-06, 7.35e-05, )
+6 0.00368941762035
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.39e-05, 1.06e-05, 9.95e-07, 1.06e-05, 8.48e-05, -4.56e-06, 9.95e-07, -4.56e-06, 6.43e-05, )
+7 0.0011108790477
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.32e-05, 3.15e-06, 1.32e-05, 8.48e-05, -1.41e-06, 3.15e-06, -1.41e-06, 7.04e-05, )
+8 0.00196051907482
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.28e-05, 1.54e-06, 1.28e-05, 8.27e-05, -4.49e-06, 1.54e-06, -4.49e-06, 6.38e-05, )
+9 0.000904201850706
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.24e-05, 9.67e-07, 1.24e-05, 8.15e-05, -3.78e-06, 9.67e-07, -3.78e-06, 6.68e-05, )
+10 0.000450174094818
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.18e-05, 3.09e-06, 1.18e-05, 8.03e-05, -3.31e-06, 3.09e-06, -3.31e-06, 6.59e-05, )
+11 0.000819697830304
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.2e-05, 1.6e-06, 1.2e-05, 8.52e-05, -2.92e-06, 1.6e-06, -2.92e-06, 6.52e-05, )
+12 0.000204265766292
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.34e-05, 3.21e-06, 1.34e-05, 8.45e-05, -6.45e-07, 3.21e-06, -6.45e-07, 6.83e-05, )
+13 0.00139782540162
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.82e-05, 1.44e-05, 3.49e-06, 1.44e-05, 8.52e-05, -1.66e-06, 3.49e-06, -1.66e-06, 6.84e-05, )
+14 0.0020839191628
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.05e-05, 2.47e-06, 1.05e-05, 8.34e-05, -3.85e-06, 2.47e-06, -3.85e-06, 6.56e-05, )
+15 0.000481445642168
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.18e-05, 2.36e-06, 1.18e-05, 8.23e-05, -3.87e-06, 2.36e-06, -3.87e-06, 6.52e-05, )
+16 0.000397717944532
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.12e-05, 1.41e-06, 1.12e-05, 8.42e-05, -5.59e-06, 1.41e-06, -5.59e-06, 6.61e-05, )
+17 0.000929948241723
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.29e-05, 3.09e-06, 1.29e-05, 8.34e-05, -6.64e-07, 3.09e-06, -6.64e-07, 6.61e-05, )
+18 0.000814567690433
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.18e-05, 1.96e-06, 1.18e-05, 8.18e-05, -2.54e-06, 1.96e-06, -2.54e-06, 6.57e-05, )
+19 0.000116420469365
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.13e-05, 1.33e-06, 1.13e-05, 8.27e-05, -2.13e-06, 1.33e-06, -2.13e-06, 6.65e-05, )
+20 0.000131256140278
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.21e-05, 1.25e-06, 1.21e-05, 8.41e-05, -3.96e-06, 1.25e-06, -3.96e-06, 6.62e-05, )
+30 0.000284693746111
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.15e-05, 1.92e-06, 1.15e-05, 8.16e-05, -2.64e-06, 1.92e-06, -2.64e-06, 6.55e-05, )
+40 9.703447189e-05
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.2e-05, 1.92e-06, 1.2e-05, 8.24e-05, -2.1e-06, 1.92e-06, -2.1e-06, 6.55e-05, )
+50 7.55386603326e-05
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.18e-05, 2.09e-06, 1.18e-05, 8.15e-05, -2.78e-06, 2.09e-06, -2.78e-06, 6.55e-05, )
+60 0.000147705824475
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.16e-05, 1.52e-06, 1.16e-05, 8.27e-05, -2.87e-06, 1.52e-06, -2.87e-06, 6.62e-05, )
+70 3.74253066165e-05
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.14e-05, 1.85e-06, 1.14e-05, 8.16e-05, -2.6e-06, 1.85e-06, -2.6e-06, 6.59e-05, )
+80 8.06400160705e-05
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.91e-06, 1.19e-05, 8.18e-05, -2.77e-06, 1.91e-06, -2.77e-06, 6.65e-05, )
+90 0.000107580477771
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.21e-05, 1.33e-06, 1.21e-05, 8.27e-05, -3.11e-06, 1.33e-06, -3.11e-06, 6.45e-05, )
+100 0.000150259107941
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.18e-05, 2.06e-06, 1.18e-05, 8.22e-05, -2.85e-06, 2.06e-06, -2.85e-06, 6.59e-05, )
+110 7.21348830441e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.19e-05, 1.86e-06, 1.19e-05, 8.38e-05, -2.43e-06, 1.86e-06, -2.43e-06, 6.68e-05, )
+120 0.000158860163239
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.13e-05, 1.57e-06, 1.13e-05, 8.26e-05, -3.29e-06, 1.57e-06, -3.29e-06, 6.58e-05, )
+130 4.93968106326e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.19e-05, 1.7e-06, 1.19e-05, 8.29e-05, -2.44e-06, 1.7e-06, -2.44e-06, 6.58e-05, )
+140 3.68447613118e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.14e-05, 1.49e-06, 1.14e-05, 8.28e-05, -2.95e-06, 1.49e-06, -2.95e-06, 6.58e-05, )
+150 2.17747150987e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.14e-05, 1.77e-06, 1.14e-05, 8.23e-05, -3.17e-06, 1.77e-06, -3.17e-06, 6.56e-05, )
+160 4.5933622242e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.19e-05, 1.96e-06, 1.19e-05, 8.29e-05, -2.62e-06, 1.96e-06, -2.62e-06, 6.61e-05, )
+170 4.00383165344e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.21e-05, 1.83e-06, 1.21e-05, 8.38e-05, -2.11e-06, 1.83e-06, -2.11e-06, 6.63e-05, )
+180 0.000115824616297
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.18e-05, 1.91e-06, 1.18e-05, 8.29e-05, -2.36e-06, 1.91e-06, -2.36e-06, 6.65e-05, )
+190 7.29881530801e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.2e-05, 1.92e-06, 1.2e-05, 8.31e-05, -2.24e-06, 1.92e-06, -2.24e-06, 6.62e-05, )
+200 6.36930847313e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.73e-06, 1.18e-05, 8.24e-05, -2.55e-06, 1.73e-06, -2.55e-06, 6.61e-05, )
+300 2.69607749822e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.18e-05, 1.72e-06, 1.18e-05, 8.24e-05, -2.7e-06, 1.72e-06, -2.7e-06, 6.57e-05, )
+400 2.24066932411e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.71e-06, 1.18e-05, 8.24e-05, -3.09e-06, 1.71e-06, -3.09e-06, 6.57e-05, )
+500 3.00224244483e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.17e-05, 1.6e-06, 1.17e-05, 8.29e-05, -2.96e-06, 1.6e-06, -2.96e-06, 6.59e-05, )
+600 1.18079304588e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.82e-06, 1.19e-05, 8.27e-05, -2.6e-06, 1.82e-06, -2.6e-06, 6.6e-05, )
+700 2.54323088702e-05
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.68e-06, 1.18e-05, 8.28e-05, -2.71e-06, 1.68e-06, -2.71e-06, 6.58e-05, )
+800 6.41291300105e-06
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.18e-05, 1.75e-06, 1.18e-05, 8.27e-05, -2.7e-06, 1.75e-06, -2.7e-06, 6.59e-05, )
+900 1.10279405745e-05
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 5.37e-05, 2.48e-05, 6.1e-06, 2.48e-05, 0.0001, 1.65e-06, 6.1e-06, 1.65e-06, 6.45e-05, )
+3 0.0227293159775
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.04e-05, -2.14e-06, 1.04e-05, 8.35e-05, -5.88e-06, -2.14e-06, -5.88e-06, 5.99e-05, )
+4 0.0059659123934
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.13e-05, 4.2e-08, 1.13e-05, 7.71e-05, -3.38e-06, 4.2e-08, -3.38e-06, 6.08e-05, )
+5 0.00345590974807
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.25e-05, 1.61e-06, 1.25e-05, 8.31e-05, -5.63e-06, 1.61e-06, -5.63e-06, 6.59e-05, )
+6 0.00101086027536
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.49e-05, 1.05e-05, 1.74e-07, 1.05e-05, 8.33e-05, -2.13e-06, 1.74e-07, -2.13e-06, 6.57e-05, )
+7 0.000714063557171
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.05e-05, 1.88e-06, 1.05e-05, 8.09e-05, -1.5e-06, 1.88e-06, -1.5e-06, 6.53e-05, )
+8 0.000521443047931
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.85e-05, 1.3e-05, 3.08e-06, 1.3e-05, 8.68e-05, -3.75e-06, 3.08e-06, -3.75e-06, 6.65e-05, )
+9 0.00168399030138
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.22e-05, 5.78e-06, 1.22e-05, 8.52e-05, -4.28e-07, 5.78e-06, -4.28e-07, 7.26e-05, )
+10 0.00493951667195
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.12e-05, 2.31e-06, 1.12e-05, 8.36e-05, -4.3e-06, 2.31e-06, -4.3e-06, 6.66e-05, )
+11 0.000449878389194
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.42e-05, 1.1e-05, 1.57e-06, 1.1e-05, 8.52e-05, -3.4e-06, 1.57e-06, -3.4e-06, 6.45e-05, )
+12 0.000692505831003
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.68e-05, 1.25e-05, 1.85e-06, 1.25e-05, 8.61e-05, -1.95e-06, 1.85e-06, -1.95e-06, 6.59e-05, )
+13 0.000521110852153
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.18e-05, 2.82e-06, 1.18e-05, 8.42e-05, -1.4e-06, 2.82e-06, -1.4e-06, 6.51e-05, )
+14 0.000473160892961
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.27e-05, 2.11e-06, 1.27e-05, 8.27e-05, -9.76e-07, 2.11e-06, -9.76e-07, 6.55e-05, )
+15 0.000605420775006
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.29e-05, 1.99e-06, 1.29e-05, 8.71e-05, -1.85e-06, 1.99e-06, -1.85e-06, 6.75e-05, )
+16 0.00108052756352
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.2e-05, 2.56e-06, 1.2e-05, 8.33e-05, -3.28e-06, 2.56e-06, -3.28e-06, 6.26e-05, )
+17 0.000930460050976
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.54e-06, 1.16e-05, 8.4e-05, -3.2e-06, 1.54e-06, -3.2e-06, 6.47e-05, )
+18 0.00012332972827
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.18e-05, 2.01e-06, 1.18e-05, 8.09e-05, -2.33e-06, 2.01e-06, -2.33e-06, 6.6e-05, )
+19 0.000222317994826
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.22e-05, 1.49e-06, 1.22e-05, 8.23e-05, -3.54e-06, 1.49e-06, -3.54e-06, 6.7e-05, )
+20 0.000246137554449
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.1e-05, 1.6e-06, 1.1e-05, 8.41e-05, -3.77e-06, 1.6e-06, -3.77e-06, 6.49e-05, )
+30 0.000268810412098
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.19e-05, 1.45e-06, 1.19e-05, 8.25e-05, -1.92e-06, 1.45e-06, -1.92e-06, 6.49e-05, )
+40 0.000136059569873
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.14e-05, 1.23e-06, 1.14e-05, 8.27e-05, -2.69e-06, 1.23e-06, -2.69e-06, 6.56e-05, )
+50 5.66471171815e-05
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.14e-05, 1.49e-06, 1.14e-05, 8.31e-05, -3.12e-06, 1.49e-06, -3.12e-06, 6.6e-05, )
+60 4.9008405639e-05
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 1.04e-05, 9.59e-07, 1.04e-05, 8.11e-05, -4.13e-06, 9.59e-07, -4.13e-06, 6.44e-05, )
+70 0.000724683805554
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.07e-05, 1.33e-06, 1.07e-05, 8.24e-05, -3.37e-06, 1.33e-06, -3.37e-06, 6.52e-05, )
+80 0.000192524360823
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.23e-05, 1.2e-06, 1.23e-05, 8.44e-05, -3.16e-06, 1.2e-06, -3.16e-06, 6.65e-05, )
+90 0.000172785752539
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.96e-06, 1.18e-05, 8.27e-05, -2.48e-06, 1.96e-06, -2.48e-06, 6.55e-05, )
+100 3.16078859746e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.2e-05, 1.63e-06, 1.2e-05, 8.33e-05, -3.16e-06, 1.63e-06, -3.16e-06, 6.53e-05, )
+110 4.6697751585e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.22e-05, 2.1e-06, 1.22e-05, 8.31e-05, -2.75e-06, 2.1e-06, -2.75e-06, 6.62e-05, )
+120 8.57230833564e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.26e-05, 1.78e-06, 1.26e-05, 8.47e-05, -2.99e-06, 1.78e-06, -2.99e-06, 6.59e-05, )
+130 0.00016375284135
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.23e-05, 1.89e-06, 1.23e-05, 8.37e-05, -2.01e-06, 1.89e-06, -2.01e-06, 6.53e-05, )
+140 0.000236840776108
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.13e-05, 1.42e-06, 1.13e-05, 8.24e-05, -3.07e-06, 1.42e-06, -3.07e-06, 6.54e-05, )
+150 4.68039140135e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.2e-05, 1.89e-06, 1.2e-05, 8.43e-05, -2.61e-06, 1.89e-06, -2.61e-06, 6.59e-05, )
+160 0.000116688727412
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.81e-06, 1.17e-05, 8.36e-05, -2.55e-06, 1.81e-06, -2.55e-06, 6.56e-05, )
+170 2.35391266838e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.2e-05, 1.68e-06, 1.2e-05, 8.26e-05, -3.1e-06, 1.68e-06, -3.1e-06, 6.6e-05, )
+180 4.06559735455e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.22e-05, 1.8e-06, 1.22e-05, 8.38e-05, -2.45e-06, 1.8e-06, -2.45e-06, 6.58e-05, )
+190 6.78988279184e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.2e-05, 1.94e-06, 1.2e-05, 8.39e-05, -2.77e-06, 1.94e-06, -2.77e-06, 6.61e-05, )
+200 6.25425689344e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.2e-05, 1.78e-06, 1.2e-05, 8.33e-05, -2.79e-06, 1.78e-06, -2.79e-06, 6.54e-05, )
+300 3.0300219737e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.57e-06, 1.16e-05, 8.28e-05, -2.83e-06, 1.57e-06, -2.83e-06, 6.54e-05, )
+400 1.01537521869e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.69e-06, 1.19e-05, 8.32e-05, -3.06e-06, 1.69e-06, -3.06e-06, 6.57e-05, )
+500 1.84621309591e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.17e-05, 1.71e-06, 1.17e-05, 8.35e-05, -2.92e-06, 1.71e-06, -2.92e-06, 6.56e-05, )
+600 1.65079988916e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.65e-06, 1.18e-05, 8.32e-05, -2.86e-06, 1.65e-06, -2.86e-06, 6.57e-05, )
+700 5.05387137585e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.75e-06, 1.19e-05, 8.34e-05, -2.75e-06, 1.75e-06, -2.75e-06, 6.56e-05, )
+800 1.60498669018e-05
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.74e-06, 1.19e-05, 8.34e-05, -2.79e-06, 1.74e-06, -2.79e-06, 6.57e-05, )
+900 1.61066148019e-05
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.68e-05, 6.99e-06, 2.44e-06, 6.99e-06, 7.87e-05, -5.84e-06, 2.44e-06, -5.84e-06, 6.99e-05, )
+3 0.0053695439558
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.14e-05, 9.01e-06, -2.56e-06, 9.01e-06, 8.72e-05, -2e-07, -2.56e-06, -2e-07, 6.97e-05, )
+4 0.00903727502929
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.23e-05, 1.94e-06, 1.23e-05, 8.7e-05, -2.16e-06, 1.94e-06, -2.16e-06, 6.62e-05, )
+5 0.000699954105097
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.82e-05, 1.47e-05, 2.47e-06, 1.47e-05, 8.28e-05, -1.26e-06, 2.47e-06, -1.26e-06, 6.91e-05, )
+6 0.0023466938909
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.66e-05, 1.4e-05, 1.7e-06, 1.4e-05, 8.41e-05, -2.43e-06, 1.7e-06, -2.43e-06, 6.86e-05, )
+7 0.00110465462327
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 1.93e-06, 1.21e-05, 8.16e-05, -2.87e-06, 1.93e-06, -2.87e-06, 6.59e-05, )
+8 0.000142164733056
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.92e-05, 1.23e-05, 4.75e-07, 1.23e-05, 8.41e-05, -5.03e-06, 4.75e-07, -5.03e-06, 6.52e-05, )
+9 0.00189222171588
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.38e-05, 1.07e-05, 7.5e-07, 1.07e-05, 8.34e-05, -5.05e-06, 7.5e-07, -5.05e-06, 6.33e-05, )
+10 0.00147540999936
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.13e-05, 8.08e-07, 1.13e-05, 8.16e-05, -1.19e-06, 8.08e-07, -1.19e-06, 6.46e-05, )
+11 0.000587529629747
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.38e-05, 1.15e-05, 2.17e-06, 1.15e-05, 8.36e-05, -3.82e-06, 2.17e-06, -3.82e-06, 6.64e-05, )
+12 0.000742707769247
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.45e-05, 1.25e-05, 1.06e-06, 1.25e-05, 8.48e-05, -3.92e-06, 1.06e-06, -3.92e-06, 6.51e-05, )
+13 0.000605667282754
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 2.39e-06, 1.18e-05, 8.37e-05, -2.7e-06, 2.39e-06, -2.7e-06, 6.5e-05, )
+14 0.000153772647648
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.69e-05, 1.28e-05, 1.06e-06, 1.28e-05, 8.38e-05, -2.86e-06, 1.06e-06, -2.86e-06, 6.56e-05, )
+15 0.000280297061143
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.42e-05, 1.17e-05, 2.18e-06, 1.17e-05, 8.3e-05, -1.54e-06, 2.18e-06, -1.54e-06, 6.77e-05, )
+16 0.000725339695346
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.19e-05, 1.82e-06, 1.19e-05, 8.21e-05, -2.54e-06, 1.82e-06, -2.54e-06, 6.71e-05, )
+17 0.000164270403956
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.11e-05, 2.55e-06, 1.11e-05, 8.17e-05, -2.56e-06, 2.55e-06, -2.56e-06, 6.52e-05, )
+18 0.000252714385503
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.3e-05, 2.14e-06, 1.3e-05, 8.55e-05, -2.8e-06, 2.14e-06, -2.8e-06, 6.46e-05, )
+19 0.000494804142918
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 2.38e-06, 1.21e-05, 8.11e-05, -2.53e-06, 2.38e-06, -2.53e-06, 6.8e-05, )
+20 0.000549389851407
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.45e-05, 1.07e-05, 1.03e-06, 1.07e-05, 8.2e-05, -3.53e-06, 1.03e-06, -3.53e-06, 6.33e-05, )
+30 0.0007690968488
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.23e-05, 1.71e-06, 1.23e-05, 8.26e-05, -3.1e-06, 1.71e-06, -3.1e-06, 6.62e-05, )
+40 9.71892513697e-05
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.22e-05, 1.4e-06, 1.22e-05, 8.28e-05, -2.81e-06, 1.4e-06, -2.81e-06, 6.56e-05, )
+50 9.25679141671e-05
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.17e-05, 1.87e-06, 1.17e-05, 8.38e-05, -2.62e-06, 1.87e-06, -2.62e-06, 6.64e-05, )
+60 6.92848431439e-05
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.2e-05, 1.78e-06, 1.2e-05, 8.24e-05, -2.3e-06, 1.78e-06, -2.3e-06, 6.56e-05, )
+70 6.02941656607e-05
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.28e-05, 2.36e-06, 1.28e-05, 8.5e-05, -1.65e-06, 2.36e-06, -1.65e-06, 6.59e-05, )
+80 0.000410135464704
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.22e-05, 1.56e-06, 1.22e-05, 8.33e-05, -2.31e-06, 1.56e-06, -2.31e-06, 6.54e-05, )
+90 7.38019962091e-05
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.19e-05, 1.64e-06, 1.19e-05, 8.3e-05, -2.61e-06, 1.64e-06, -2.61e-06, 6.64e-05, )
+100 8.54160300852e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.24e-05, 1.78e-06, 1.24e-05, 8.36e-05, -2.25e-06, 1.78e-06, -2.25e-06, 6.64e-05, )
+110 0.000131733344104
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.19e-05, 1.85e-06, 1.19e-05, 8.35e-05, -2.95e-06, 1.85e-06, -2.95e-06, 6.57e-05, )
+120 2.65386732343e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.21e-05, 1.83e-06, 1.21e-05, 8.39e-05, -2.42e-06, 1.83e-06, -2.42e-06, 6.61e-05, )
+130 9.45793740444e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.18e-05, 1.61e-06, 1.18e-05, 8.32e-05, -2.91e-06, 1.61e-06, -2.91e-06, 6.58e-05, )
+140 2.99694248475e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.22e-05, 2.13e-06, 1.22e-05, 8.45e-05, -2.19e-06, 2.13e-06, -2.19e-06, 6.58e-05, )
+150 0.000167746009207
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.14e-05, 1.5e-06, 1.14e-05, 8.29e-05, -2.94e-06, 1.5e-06, -2.94e-06, 6.57e-05, )
+160 2.03026415349e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.15e-05, 1.52e-06, 1.15e-05, 8.31e-05, -2.79e-06, 1.52e-06, -2.79e-06, 6.58e-05, )
+170 8.51789167162e-06
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.14e-05, 1.75e-06, 1.14e-05, 8.27e-05, -2.95e-06, 1.75e-06, -2.95e-06, 6.56e-05, )
+180 2.03399555125e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.16e-05, 2.01e-06, 1.16e-05, 8.29e-05, -2.31e-06, 2.01e-06, -2.31e-06, 6.62e-05, )
+190 5.19940920928e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.66e-06, 1.17e-05, 8.29e-05, -2.9e-06, 1.66e-06, -2.9e-06, 6.56e-05, )
+200 5.73752496097e-06
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.71e-06, 1.18e-05, 8.32e-05, -2.89e-06, 1.71e-06, -2.89e-06, 6.55e-05, )
+300 8.39451012018e-06
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.19e-05, 1.51e-06, 1.19e-05, 8.27e-05, -2.88e-06, 1.51e-06, -2.88e-06, 6.54e-05, )
+400 2.30447655421e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.19e-05, 1.62e-06, 1.19e-05, 8.31e-05, -2.45e-06, 1.62e-06, -2.45e-06, 6.56e-05, )
+500 1.41057012761e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.2e-05, 1.69e-06, 1.2e-05, 8.33e-05, -2.61e-06, 1.69e-06, -2.61e-06, 6.58e-05, )
+600 1.76289824835e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.56e-06, 1.18e-05, 8.3e-05, -2.82e-06, 1.56e-06, -2.82e-06, 6.54e-05, )
+700 8.5974130666e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.66e-06, 1.18e-05, 8.31e-05, -2.67e-06, 1.66e-06, -2.67e-06, 6.56e-05, )
+800 3.86649996423e-06
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.67e-06, 1.18e-05, 8.29e-05, -2.66e-06, 1.67e-06, -2.66e-06, 6.56e-05, )
+900 4.16047955282e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.46e-05, 4.14e-06, 1.46e-05, 8.29e-05, -1.47e-06, 4.14e-06, -1.47e-06, 6.85e-05, )
+3 0.00259740168467
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.38e-05, 1.02e-05, 3.4e-06, 1.02e-05, 8.73e-05, -1.59e-06, 3.4e-06, -1.59e-06, 6.79e-05, )
+4 0.00241721870379
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.41e-05, 8.42e-06, -3.16e-07, 8.42e-06, 7.84e-05, -6.28e-06, -3.16e-07, -6.28e-06, 6.38e-05, )
+5 0.00421531752247
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.3e-05, 1.71e-06, 1.3e-05, 8.26e-05, -5.74e-06, 1.71e-06, -5.74e-06, 6.49e-05, )
+6 0.00166027712089
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.35e-05, 1.66e-06, 1.35e-05, 8.78e-05, -2.86e-06, 1.66e-06, -2.86e-06, 6.58e-05, )
+7 0.000940090480348
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 8.99e-06, 4.29e-07, 8.99e-06, 7.84e-05, -3.64e-06, 4.29e-07, -3.64e-06, 6.61e-05, )
+8 0.00197207006887
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.4e-05, 1.16e-05, 1.38e-06, 1.16e-05, 7.99e-05, -4.9e-06, 1.38e-06, -4.9e-06, 6.58e-05, )
+9 0.00132402229348
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.85e-05, 1.42e-05, 3.22e-06, 1.42e-05, 8.71e-05, -1.76e-06, 3.22e-06, -1.76e-06, 6.54e-05, )
+10 0.00191771711737
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.19e-05, 1.09e-06, 1.19e-05, 8.42e-05, -3.68e-06, 1.09e-06, -3.68e-06, 6.54e-05, )
+11 0.000214859730476
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.51e-05, 1.2e-05, 2.93e-06, 1.2e-05, 8.48e-05, -2.29e-06, 2.93e-06, -2.29e-06, 6.62e-05, )
+12 0.000498653377561
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.18e-05, 2.45e-06, 1.18e-05, 8.29e-05, -2.32e-06, 2.45e-06, -2.32e-06, 6.55e-05, )
+13 0.00017096561341
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.2e-05, 1.8e-06, 1.2e-05, 8.27e-05, -1.68e-06, 1.8e-06, -1.68e-06, 6.48e-05, )
+14 0.000246568118909
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.17e-05, 2.92e-06, 1.17e-05, 8.08e-05, -3.05e-06, 2.92e-06, -3.05e-06, 6.49e-05, )
+15 0.000605439303956
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.74e-05, 1.21e-05, 1.91e-06, 1.21e-05, 8.5e-05, -2.02e-06, 1.91e-06, -2.02e-06, 6.54e-05, )
+16 0.000503000153963
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.14e-05, 1.77e-06, 1.14e-05, 8.3e-05, -3.06e-06, 1.77e-06, -3.06e-06, 6.66e-05, )
+17 6.99496152888e-05
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.43e-05, 1.09e-05, 1.47e-06, 1.09e-05, 8.21e-05, -3.06e-06, 1.47e-06, -3.06e-06, 6.61e-05, )
+18 0.000341807626045
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.18e-05, 3.85e-07, 1.18e-05, 7.96e-05, -3.79e-06, 3.85e-07, -3.79e-06, 6.34e-05, )
+19 0.00116536615745
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.19e-05, 1.17e-06, 1.19e-05, 8.26e-05, -3.33e-06, 1.17e-06, -3.33e-06, 6.62e-05, )
+20 9.98362923454e-05
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.5e-06, 1.17e-05, 8.4e-05, -2.9e-06, 1.5e-06, -2.9e-06, 6.57e-05, )
+30 4.08556737122e-05
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.49e-05, 1.05e-05, 1.61e-06, 1.05e-05, 7.94e-05, -3.35e-06, 1.61e-06, -3.35e-06, 6.64e-05, )
+40 0.000679898070942
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.48e-05, 1.14e-05, 1.96e-06, 1.14e-05, 8.29e-05, -2.52e-06, 1.96e-06, -2.52e-06, 6.53e-05, )
+50 0.000155896536348
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.64e-05, 1.18e-05, 1.69e-06, 1.18e-05, 8.27e-05, -2.99e-06, 1.69e-06, -2.99e-06, 6.61e-05, )
+60 6.31248654537e-05
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.12e-05, 1.05e-06, 1.12e-05, 8.15e-05, -3.04e-06, 1.05e-06, -3.04e-06, 6.49e-05, )
+70 0.000200931432074
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.13e-05, 1.99e-06, 1.13e-05, 8.34e-05, -2.1e-06, 1.99e-06, -2.1e-06, 6.66e-05, )
+80 0.00014642946451
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.5e-05, 1.15e-05, 1.73e-06, 1.15e-05, 8.26e-05, -2.82e-06, 1.73e-06, -2.82e-06, 6.54e-05, )
+90 9.02364123131e-05
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.12e-05, 1.47e-06, 1.12e-05, 8.27e-05, -3.03e-06, 1.47e-06, -3.03e-06, 6.54e-05, )
+100 4.51440137298e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.15e-05, 1.3e-06, 1.15e-05, 8.24e-05, -3.35e-06, 1.3e-06, -3.35e-06, 6.55e-05, )
+110 7.5600038838e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.18e-05, 1.62e-06, 1.18e-05, 8.37e-05, -3.12e-06, 1.62e-06, -3.12e-06, 6.6e-05, )
+120 3.52016844373e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.17e-05, 1.61e-06, 1.17e-05, 8.27e-05, -3.05e-06, 1.61e-06, -3.05e-06, 6.6e-05, )
+130 1.60150973796e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.18e-05, 1.23e-06, 1.18e-05, 8.33e-05, -3.16e-06, 1.23e-06, -3.16e-06, 6.58e-05, )
+140 4.66412477669e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.16e-05, 1.54e-06, 1.16e-05, 8.3e-05, -2.67e-06, 1.54e-06, -2.67e-06, 6.58e-05, )
+150 8.4615532033e-06
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.41e-06, 1.16e-05, 8.34e-05, -3.28e-06, 1.41e-06, -3.28e-06, 6.57e-05, )
+160 3.50735030999e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.14e-05, 1.25e-06, 1.14e-05, 8.21e-05, -3.31e-06, 1.25e-06, -3.31e-06, 6.52e-05, )
+170 0.000100584172196
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.09e-05, 1.49e-06, 1.09e-05, 8.24e-05, -2.82e-06, 1.49e-06, -2.82e-06, 6.58e-05, )
+180 0.000101108066561
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.2e-05, 1.73e-06, 1.2e-05, 8.31e-05, -2.58e-06, 1.73e-06, -2.58e-06, 6.61e-05, )
+190 2.5840026545e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.15e-05, 1.56e-06, 1.15e-05, 8.33e-05, -2.9e-06, 1.56e-06, -2.9e-06, 6.6e-05, )
+200 2.65656076647e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.19e-05, 1.7e-06, 1.19e-05, 8.32e-05, -2.7e-06, 1.7e-06, -2.7e-06, 6.56e-05, )
+300 9.03536539085e-06
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.16e-05, 1.53e-06, 1.16e-05, 8.25e-05, -2.86e-06, 1.53e-06, -2.86e-06, 6.55e-05, )
+400 1.65772222921e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.56e-06, 1.16e-05, 8.29e-05, -2.97e-06, 1.56e-06, -2.97e-06, 6.54e-05, )
+500 1.17532730899e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.53e-06, 1.16e-05, 8.27e-05, -3.04e-06, 1.53e-06, -3.04e-06, 6.57e-05, )
+600 1.37132533242e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.53e-06, 1.16e-05, 8.27e-05, -3e-06, 1.53e-06, -3e-06, 6.57e-05, )
+700 1.0560944884e-05
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.52e-06, 1.16e-05, 8.25e-05, -3.02e-06, 1.52e-06, -3.02e-06, 6.56e-05, )
+800 1.93348219327e-05
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.16e-05, 1.57e-06, 1.16e-05, 8.28e-05, -2.99e-06, 1.57e-06, -2.99e-06, 6.56e-05, )
+900 8.11930648352e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 3.52e-05, 6.68e-06, -7.16e-06, 6.68e-06, 8.22e-05, -3.8e-06, -7.16e-06, -3.8e-06, 5.97e-05, )
+3 0.046962759717
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.27e-05, 2.59e-06, 1.27e-05, 8.2e-05, -2.5e-06, 2.59e-06, -2.5e-06, 6.19e-05, )
+4 0.0013651152218
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.29e-05, 2.88e-06, 1.29e-05, 7.98e-05, -9.27e-07, 2.88e-06, -9.27e-07, 6.39e-05, )
+5 0.00150078300104
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.72e-05, 1.23e-05, 2.28e-06, 1.23e-05, 8.16e-05, -3.84e-06, 2.28e-06, -3.84e-06, 6.48e-05, )
+6 0.000659358727676
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.43e-05, 2.95e-06, 1.43e-05, 8.81e-05, -2.27e-07, 2.95e-06, -2.27e-07, 6.94e-05, )
+7 0.00276271049188
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 2.19e-06, 1.21e-05, 8.32e-05, -3.79e-06, 2.19e-06, -3.79e-06, 6.42e-05, )
+8 0.000385739247887
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.47e-05, 1.07e-05, 9.33e-07, 1.07e-05, 8.92e-05, -3.72e-06, 9.33e-07, -3.72e-06, 6.65e-05, )
+9 0.00190986640658
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.44e-05, 1.08e-05, 1.46e-06, 1.08e-05, 8.21e-05, -4.33e-06, 1.46e-06, -4.33e-06, 6.59e-05, )
+10 0.00053160245016
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.07e-05, 1.44e-06, 1.07e-05, 8.19e-05, -2.41e-06, 1.44e-06, -2.41e-06, 6.48e-05, )
+11 0.00023961326697
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.18e-05, 1.27e-06, 1.18e-05, 8.67e-05, -3.14e-06, 1.27e-06, -3.14e-06, 6.57e-05, )
+12 0.000522140844315
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.7e-05, 1.44e-05, 2.05e-06, 1.44e-05, 8.61e-05, -2.3e-06, 2.05e-06, -2.3e-06, 6.6e-05, )
+13 0.00108076323486
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.21e-05, 2.61e-06, 1.21e-05, 8.39e-05, -1.19e-06, 2.61e-06, -1.19e-06, 6.71e-05, )
+14 0.000477466334811
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.31e-05, 2.75e-06, 1.31e-05, 8.16e-05, -9.7e-07, 2.75e-06, -9.7e-07, 6.94e-05, )
+15 0.00157742877933
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.46e-05, 1.21e-05, 2.04e-06, 1.21e-05, 8.48e-05, -3.04e-06, 2.04e-06, -3.04e-06, 6.71e-05, )
+16 0.00048547251538
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.16e-05, 2.04e-06, 1.16e-05, 8.28e-05, -2.59e-06, 2.04e-06, -2.59e-06, 6.65e-05, )
+17 6.44857526407e-05
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.24e-05, 1.41e-06, 1.24e-05, 8.42e-05, -4.92e-07, 1.41e-06, -4.92e-07, 6.6e-05, )
+18 0.000616742988001
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.52e-05, 1.22e-05, 2.08e-06, 1.22e-05, 8.19e-05, -5.63e-07, 2.08e-06, -5.63e-07, 6.54e-05, )
+19 0.000624726255097
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.14e-05, 2.71e-06, 1.14e-05, 8.46e-05, -1.58e-06, 2.71e-06, -1.58e-06, 6.65e-05, )
+20 0.000440388139277
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.22e-05, 1.28e-06, 1.22e-05, 8.11e-05, -2.79e-06, 1.28e-06, -2.79e-06, 6.57e-05, )
+30 0.000237587201988
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.26e-05, 1.85e-06, 1.26e-05, 8.45e-05, -3.81e-06, 1.85e-06, -3.81e-06, 6.54e-05, )
+40 0.000320988544974
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.2e-05, 1.78e-06, 1.2e-05, 8.46e-05, -2.73e-06, 1.78e-06, -2.73e-06, 6.53e-05, )
+50 0.000117470423783
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.26e-05, 2.4e-06, 1.26e-05, 8.54e-05, -2.41e-06, 2.4e-06, -2.41e-06, 6.58e-05, )
+60 0.000373987481767
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.09e-05, 1.27e-06, 1.09e-05, 8.32e-05, -2.65e-06, 1.27e-06, -2.65e-06, 6.6e-05, )
+70 0.00013372344517
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.22e-05, 1.29e-06, 1.22e-05, 8.27e-05, -2.59e-06, 1.29e-06, -2.59e-06, 6.59e-05, )
+80 7.37573435273e-05
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.23e-05, 1.58e-06, 1.23e-05, 8.35e-05, -2.55e-06, 1.58e-06, -2.55e-06, 6.59e-05, )
+90 5.8183309264e-05
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.22e-05, 1.82e-06, 1.22e-05, 8.32e-05, -2.7e-06, 1.82e-06, -2.7e-06, 6.55e-05, )
+100 4.15490025303e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.19e-05, 1.94e-06, 1.19e-05, 8.37e-05, -2.48e-06, 1.94e-06, -2.48e-06, 6.58e-05, )
+110 4.65106647816e-05
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 1.68e-06, 1.21e-05, 8.44e-05, -2.5e-06, 1.68e-06, -2.5e-06, 6.63e-05, )
+120 0.000109723046708
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.19e-05, 1.77e-06, 1.19e-05, 8.3e-05, -2.29e-06, 1.77e-06, -2.29e-06, 6.66e-05, )
+130 7.56820227169e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.22e-05, 1.72e-06, 1.22e-05, 8.35e-05, -2.55e-06, 1.72e-06, -2.55e-06, 6.61e-05, )
+140 4.7096608329e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.17e-05, 1.53e-06, 1.17e-05, 8.33e-05, -2.66e-06, 1.53e-06, -2.66e-06, 6.55e-05, )
+150 1.29917568488e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.21e-05, 1.93e-06, 1.21e-05, 8.39e-05, -2.55e-06, 1.93e-06, -2.55e-06, 6.57e-05, )
+160 5.76524475133e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.15e-05, 1.81e-06, 1.15e-05, 8.33e-05, -2.14e-06, 1.81e-06, -2.14e-06, 6.57e-05, )
+170 4.70580327223e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.19e-05, 1.61e-06, 1.19e-05, 8.3e-05, -2.68e-06, 1.61e-06, -2.68e-06, 6.52e-05, )
+180 3.46437221494e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.18e-05, 1.68e-06, 1.18e-05, 8.35e-05, -2.48e-06, 1.68e-06, -2.48e-06, 6.6e-05, )
+190 3.51489047366e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.15e-05, 1.63e-06, 1.15e-05, 8.33e-05, -2.49e-06, 1.63e-06, -2.49e-06, 6.55e-05, )
+200 2.96501503615e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.21e-05, 1.78e-06, 1.21e-05, 8.39e-05, -1.93e-06, 1.78e-06, -1.93e-06, 6.6e-05, )
+300 0.000112983941482
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.2e-05, 1.71e-06, 1.2e-05, 8.34e-05, -2.39e-06, 1.71e-06, -2.39e-06, 6.57e-05, )
+400 2.7778834116e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.19e-05, 1.66e-06, 1.19e-05, 8.35e-05, -2.43e-06, 1.66e-06, -2.43e-06, 6.59e-05, )
+500 2.50389161657e-05
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.19e-05, 1.67e-06, 1.19e-05, 8.35e-05, -2.3e-06, 1.67e-06, -2.3e-06, 6.59e-05, )
+600 3.85217214319e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.18e-05, 1.6e-06, 1.18e-05, 8.34e-05, -2.49e-06, 1.6e-06, -2.49e-06, 6.57e-05, )
+700 1.60917770829e-05
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.19e-05, 1.68e-06, 1.19e-05, 8.33e-05, -2.56e-06, 1.68e-06, -2.56e-06, 6.59e-05, )
+800 1.42468321408e-05
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.18e-05, 1.63e-06, 1.18e-05, 8.34e-05, -2.56e-06, 1.63e-06, -2.56e-06, 6.57e-05, )
+900 1.37555476389e-05
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
+Generating samples
+Selecting 3 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.04e-05, 3.1e-06, 1.04e-05, 7.75e-05, -4.74e-06, 3.1e-06, -4.74e-06, 6.17e-05, )
+3 0.00356093609422
+
+Selecting 4 samples
+Estimating parameters
+Calculated Sigma
+( 5.05e-05, 1.53e-05, 4.75e-06, 1.53e-05, 9.18e-05, 3.27e-07, 4.75e-06, 3.27e-07, 6.64e-05, )
+4 0.00636885141291
+
+Selecting 5 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 9.88e-06, 2.43e-06, 9.88e-06, 8.02e-05, -4.56e-06, 2.43e-06, -4.56e-06, 6.6e-05, )
+5 0.00108135012816
+
+Selecting 6 samples
+Estimating parameters
+Calculated Sigma
+( 4.93e-05, 1.29e-05, 2.98e-06, 1.29e-05, 8.48e-05, -4.63e-06, 2.98e-06, -4.63e-06, 7e-05, )
+6 0.00282314843253
+
+Selecting 7 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.21e-05, 2.8e-06, 1.21e-05, 8.29e-05, -1.71e-06, 2.8e-06, -1.71e-06, 6.2e-05, )
+7 0.00121456681799
+
+Selecting 8 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.31e-05, 9.56e-07, 1.31e-05, 8.14e-05, -4.79e-06, 9.56e-07, -4.79e-06, 6.06e-05, )
+8 0.0028196539327
+
+Selecting 9 samples
+Estimating parameters
+Calculated Sigma
+( 4.53e-05, 1.33e-05, 2.88e-06, 1.33e-05, 8.59e-05, -6.42e-07, 2.88e-06, -6.42e-07, 6.9e-05, )
+9 0.0016961792408
+
+Selecting 10 samples
+Estimating parameters
+Calculated Sigma
+( 4.49e-05, 9.67e-06, 1.35e-06, 9.67e-06, 8.07e-05, -2.08e-06, 1.35e-06, -2.08e-06, 6.77e-05, )
+10 0.000958333704831
+
+Selecting 11 samples
+Estimating parameters
+Calculated Sigma
+( 4.65e-05, 1.1e-05, 2.38e-06, 1.1e-05, 8.11e-05, -2.45e-06, 2.38e-06, -2.45e-06, 6.5e-05, )
+11 0.000367867801806
+
+Selecting 12 samples
+Estimating parameters
+Calculated Sigma
+( 4.73e-05, 1.17e-05, 1.54e-06, 1.17e-05, 8.21e-05, -1.65e-06, 1.54e-06, -1.65e-06, 6.44e-05, )
+12 0.000512467658798
+
+Selecting 13 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 9.52e-06, 3.56e-07, 9.52e-06, 7.96e-05, -3.63e-06, 3.56e-07, -3.63e-06, 6.46e-05, )
+13 0.00130125259168
+
+Selecting 14 samples
+Estimating parameters
+Calculated Sigma
+( 4.4e-05, 1.02e-05, 1.66e-06, 1.02e-05, 8.38e-05, -1.51e-06, 1.66e-06, -1.51e-06, 6.5e-05, )
+14 0.000815506565634
+
+Selecting 15 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.2e-05, 8.3e-07, 1.2e-05, 8.49e-05, -3.39e-06, 8.3e-07, -3.39e-06, 6.48e-05, )
+15 0.000304548376648
+
+Selecting 16 samples
+Estimating parameters
+Calculated Sigma
+( 4.68e-05, 1.16e-05, 1.99e-06, 1.16e-05, 8.56e-05, -2.42e-06, 1.99e-06, -2.42e-06, 6.55e-05, )
+16 0.00042866995933
+
+Selecting 17 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.17e-05, 1.41e-06, 1.17e-05, 8.55e-05, -2.49e-06, 1.41e-06, -2.49e-06, 6.86e-05, )
+17 0.000712924658106
+
+Selecting 18 samples
+Estimating parameters
+Calculated Sigma
+( 4.37e-05, 8.59e-06, 3.65e-07, 8.59e-06, 7.84e-05, -5.54e-06, 3.65e-07, -5.54e-06, 6.44e-05, )
+18 0.00320530575402
+
+Selecting 19 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 2.69e-06, 1.18e-05, 8.23e-05, -2.04e-06, 2.69e-06, -2.04e-06, 6.45e-05, )
+19 0.0003357140798
+
+Selecting 20 samples
+Estimating parameters
+Calculated Sigma
+( 4.66e-05, 1.25e-05, 1.28e-06, 1.25e-05, 8.37e-05, -3.78e-06, 1.28e-06, -3.78e-06, 6.66e-05, )
+20 0.000263789905423
+
+Selecting 30 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.07e-05, 1.83e-06, 1.07e-05, 8.16e-05, -3.69e-06, 1.83e-06, -3.69e-06, 6.66e-05, )
+30 0.000287060760007
+
+Selecting 40 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.29e-05, 2.74e-06, 1.29e-05, 8.4e-05, -2.19e-06, 2.74e-06, -2.19e-06, 6.7e-05, )
+40 0.000500678553161
+
+Selecting 50 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.2e-05, 2.24e-06, 1.2e-05, 8.42e-05, -2.38e-06, 2.24e-06, -2.38e-06, 6.5e-05, )
+50 0.000176479700881
+
+Selecting 60 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.16e-05, 1.54e-06, 1.16e-05, 8.37e-05, -2.33e-06, 1.54e-06, -2.33e-06, 6.45e-05, )
+60 0.000134551752732
+
+Selecting 70 samples
+Estimating parameters
+Calculated Sigma
+( 4.67e-05, 1.2e-05, 2.04e-06, 1.2e-05, 8.4e-05, -2.19e-06, 2.04e-06, -2.19e-06, 6.6e-05, )
+70 0.000180256501602
+
+Selecting 80 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.22e-05, 1.47e-06, 1.22e-05, 8.46e-05, -2.44e-06, 1.47e-06, -2.44e-06, 6.48e-05, )
+80 0.000161616665865
+
+Selecting 90 samples
+Estimating parameters
+Calculated Sigma
+( 4.6e-05, 1.17e-05, 1.75e-06, 1.17e-05, 8.25e-05, -2.45e-06, 1.75e-06, -2.45e-06, 6.59e-05, )
+90 2.20528115377e-05
+
+Selecting 100 samples
+Estimating parameters
+Calculated Sigma
+( 4.63e-05, 1.2e-05, 1.25e-06, 1.2e-05, 8.31e-05, -3e-06, 1.25e-06, -3e-06, 6.6e-05, )
+100 7.20931787494e-05
+
+Selecting 110 samples
+Estimating parameters
+Calculated Sigma
+( 4.56e-05, 1.16e-05, 1.54e-06, 1.16e-05, 8.31e-05, -2.81e-06, 1.54e-06, -2.81e-06, 6.59e-05, )
+110 9.85753041871e-06
+
+Selecting 120 samples
+Estimating parameters
+Calculated Sigma
+( 4.61e-05, 1.18e-05, 1.65e-06, 1.18e-05, 8.43e-05, -2.96e-06, 1.65e-06, -2.96e-06, 6.58e-05, )
+120 7.65932217048e-05
+
+Selecting 130 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.18e-05, 1.56e-06, 1.18e-05, 8.33e-05, -2.77e-06, 1.56e-06, -2.77e-06, 6.62e-05, )
+130 1.68891231435e-05
+
+Selecting 140 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.19e-05, 1.83e-06, 1.19e-05, 8.35e-05, -2.33e-06, 1.83e-06, -2.33e-06, 6.58e-05, )
+140 4.9059112368e-05
+
+Selecting 150 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.13e-05, 1.68e-06, 1.13e-05, 8.29e-05, -2.56e-06, 1.68e-06, -2.56e-06, 6.6e-05, )
+150 4.29665445965e-05
+
+Selecting 160 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.18e-05, 1.93e-06, 1.18e-05, 8.37e-05, -2.74e-06, 1.93e-06, -2.74e-06, 6.6e-05, )
+160 5.6159790875e-05
+
+Selecting 170 samples
+Estimating parameters
+Calculated Sigma
+( 4.57e-05, 1.17e-05, 1.66e-06, 1.17e-05, 8.24e-05, -3.37e-06, 1.66e-06, -3.37e-06, 6.58e-05, )
+170 5.50595647612e-05
+
+Selecting 180 samples
+Estimating parameters
+Calculated Sigma
+( 4.62e-05, 1.19e-05, 1.88e-06, 1.19e-05, 8.42e-05, -2.83e-06, 1.88e-06, -2.83e-06, 6.57e-05, )
+180 8.32264419207e-05
+
+Selecting 190 samples
+Estimating parameters
+Calculated Sigma
+( 4.55e-05, 1.17e-05, 1.85e-06, 1.17e-05, 8.33e-05, -2.85e-06, 1.85e-06, -2.85e-06, 6.59e-05, )
+190 2.35285371675e-05
+
+Selecting 200 samples
+Estimating parameters
+Calculated Sigma
+( 4.54e-05, 1.13e-05, 1.43e-06, 1.13e-05, 8.3e-05, -3.35e-06, 1.43e-06, -3.35e-06, 6.51e-05, )
+200 8.72757025594e-05
+
+Selecting 300 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.16e-05, 1.4e-06, 1.16e-05, 8.3e-05, -2.69e-06, 1.4e-06, -2.69e-06, 6.54e-05, )
+300 1.81226909195e-05
+
+Selecting 400 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.2e-05, 1.62e-06, 1.2e-05, 8.3e-05, -2.67e-06, 1.62e-06, -2.67e-06, 6.57e-05, )
+400 1.53076248641e-05
+
+Selecting 500 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.18e-05, 1.8e-06, 1.18e-05, 8.31e-05, -2.73e-06, 1.8e-06, -2.73e-06, 6.56e-05, )
+500 6.63720982333e-06
+
+Selecting 600 samples
+Estimating parameters
+Calculated Sigma
+( 4.59e-05, 1.18e-05, 1.85e-06, 1.18e-05, 8.33e-05, -2.54e-06, 1.85e-06, -2.54e-06, 6.59e-05, )
+600 1.57676269829e-05
+
+Selecting 700 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.71e-06, 1.17e-05, 8.32e-05, -2.66e-06, 1.71e-06, -2.66e-06, 6.58e-05, )
+700 4.79161564467e-06
+
+Selecting 800 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.65e-06, 1.17e-05, 8.32e-05, -2.78e-06, 1.65e-06, -2.78e-06, 6.57e-05, )
+800 1.49867108235e-06
+
+Selecting 900 samples
+Estimating parameters
+Calculated Sigma
+( 4.58e-05, 1.17e-05, 1.67e-06, 1.17e-05, 8.31e-05, -2.87e-06, 1.67e-06, -2.87e-06, 6.57e-05, )
+900 2.01355977962e-06
+
+Known Sigma
+( 4.58e-05, 1.17e-05, 1.63e-06, 1.17e-05, 8.3e-05, -2.77e-06, 1.63e-06, -2.77e-06, 6.57e-05, )
