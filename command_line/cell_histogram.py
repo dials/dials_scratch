@@ -3,12 +3,12 @@ from __future__ import division, print_function
 def load_experiment(experiment_file):
   from dxtbx.model.experiment_list import ExperimentListFactory
   return ExperimentListFactory.from_json_file(experiment_file,
-                                              check_format=False) 
+                                              check_format=False)
 
 def cell_hist():
   from dials.array_family import flex
   import sys
-  
+
   a = flex.double()
   b = flex.double()
   c = flex.double()
