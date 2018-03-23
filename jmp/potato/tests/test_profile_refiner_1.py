@@ -270,6 +270,8 @@ def tst_ml_target_class():
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_simple(s0, sigma, N = N)
 
+  Sobs_list = flex.double(Sobs_list)
+
   # Starting values for simplex
   values = flex.double((
     sqrt(1e-6),
@@ -326,6 +328,8 @@ def tst_ml_target_class_2():
 
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_simple(s0, sigma, N = N)
+
+  Sobs_list = flex.double(Sobs_list)
 
   parameterisation = SimpleMosaicityParameterisation((1,0,1,0,0,1))
 

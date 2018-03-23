@@ -103,11 +103,15 @@ def test_simplex():
   reflections['s1'] = s2_obs
 
   xyzobs = flex.vec3_double()
+  xyzobspx = flex.vec3_double()
   for j in range(len(s1_obs)):
-    px = experiments[0].detector[0].get_ray_intersection(s1_obs[j])
-    xyzobs.append((px[0], px[1], 0))
+    mm = experiments[0].detector[0].get_ray_intersection(s1_obs[j])
+    px = experiments[0].detector[0].millimeter_to_pixel(mm)
+    xyzobs.append((mm[0], mm[1], 0))
+    xyzobspx.append((px[0], px[1], 0))
 
   reflections['xyzobs.mm.value'] = xyzobs
+  reflections['xyzobs.px.value'] = xyzobspx
 
   # Offset the crystal orientation matrix
   U = matrix.sqr(experiments[0].crystal.get_U())
@@ -123,8 +127,16 @@ def test_simplex():
   # Do the refinement
   refiner = CrystalRefiner(experiments[0], reflections, model)
 
-  print 'Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+  crystal = refiner.experiment.crystal
 
+  U_old = U
+  U = crystal.get_U()
+
+  print 'Refined orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+
+  assert(all(abs(u1-u2) < 1e-7 for u1, u2 in zip(U_old, U)))
+
+  print "OK"
 
 if __name__ == '__main__':
   test_simplex()

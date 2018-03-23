@@ -6,8 +6,14 @@ from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from dials_scratch.jmp.potato.util.generate_simple import generate_from_reflections
 from dials_scratch.jmp.potato.util.generate_simple import generate_from_reflections_binned
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
+from dials_scratch.jmp.potato.profile_refiner import ProfileRefiner
+from dials_scratch.jmp.potato.profile_refiner import ProfileRefinerData
+from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameterisation
 from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.array_family import flex
+from numpy.random import choice as sample
+
+
 
 
 def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list, test=0):
@@ -135,6 +141,16 @@ def tst_ideal():
 
   s2_list, ctot_list, xbar_list, Sobs_list = generate_from_reflections(s0, sigma, reflections)
 
+  index = sample(range(len(s2_list)), 200)
+
+  def select_sample(d, index):
+    return [d[i] for i in index]
+
+  s2_list = select_sample(s2_list, index)
+  ctot_list = select_sample(ctot_list, index)
+  xbar_list = select_sample(xbar_list, index)
+  Sobs_list = select_sample(Sobs_list, index)
+
   print "Using %d reflections: " % len(s2_list)
 
   values = flex.double((
@@ -145,17 +161,28 @@ def tst_ideal():
     [sqrt(1e-7)  for v in values])
 
 
-  optimizer = SimpleSimplex(
-    values,
-    offset,
-    Target(
-      s0,
-      s2_list,
-      xbar_list,
-      ctot_list,
-      Sobs_list,
-      test=0), 2000)
-  params = optimizer.get_solution()
+  parameterisation = SimpleMosaicityParameterisation((1,0,1,0,0,1))
+  Sobs_list = flex.double(Sobs_list)
+  data = ProfileRefinerData(
+    s0,
+    s2_list,
+    ctot_list,
+    xbar_list,
+    Sobs_list)
+  refiner = ProfileRefiner(parameterisation, data)
+  ml = refiner.refine()
+  params = refiner.parameters
+  # optimizer = SimpleSimplex(
+  #   values,
+  #   offset,
+  #   Target(
+  #     s0,
+  #     s2_list,
+  #     xbar_list,
+  #     ctot_list,
+  #     Sobs_list,
+  #     test=0), 2000)
+  # params = optimizer.get_solution()
 
   M = matrix.sqr((
     params[0], 0, 0,
@@ -166,9 +193,9 @@ def tst_ideal():
   print sigma
 
   expected = matrix.sqr((
-    1.00037823148e-06, -5.33165381576e-10, -1.13490868834e-09,
-    -5.33165381576e-10, 1.999416147e-06, 2.13056916858e-09,
-    -1.13490868834e-09, 2.13056916858e-09, 3.00917159468e-06))
+    1.0030467686e-06, -1.98473936999e-09, -8.60673302905e-10,
+   -1.98473936999e-09, 2.00630994244e-06, -1.64963854836e-08,
+  -8.60673302905e-10, -1.64963854836e-08, 2.97450815302e-06))
 
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
@@ -199,6 +226,16 @@ def tst_binned():
 
   s2_list, ctot_list, xbar_list, Sobs_list = generate_from_reflections_binned(s0, sigma, reflections)
 
+  index = sample(range(len(s2_list)), 200)
+
+  def select_sample(d, index):
+    return [d[i] for i in index]
+
+  s2_list = select_sample(s2_list, index)
+  ctot_list = select_sample(ctot_list, index)
+  xbar_list = select_sample(xbar_list, index)
+  Sobs_list = select_sample(Sobs_list, index)
+
   print "Using %d reflections: " % len(s2_list)
 
   values = flex.double((
@@ -209,17 +246,28 @@ def tst_binned():
     [sqrt(1e-7)  for v in values])
 
 
-  optimizer = SimpleSimplex(
-    values,
-    offset,
-    Target(
-      s0,
-      s2_list,
-      xbar_list,
-      ctot_list,
-      Sobs_list,
-      test=0), 2000)
-  params = optimizer.get_solution()
+  parameterisation = SimpleMosaicityParameterisation((1,0,1,0,0,1))
+  Sobs_list = flex.double(Sobs_list)
+  data = ProfileRefinerData(
+    s0,
+    s2_list,
+    ctot_list,
+    xbar_list,
+    Sobs_list)
+  refiner = ProfileRefiner(parameterisation, data)
+  ml = refiner.refine()
+  params = refiner.parameters
+  # optimizer = SimpleSimplex(
+  #   values,
+  #   offset,
+  #   Target(
+  #     s0,
+  #     s2_list,
+  #     xbar_list,
+  #     ctot_list,
+  #     Sobs_list,
+  #     test=0), 2000)
+  # params = optimizer.get_solution()
 
   M = matrix.sqr((
     params[0], 0, 0,
@@ -230,10 +278,9 @@ def tst_binned():
   print sigma
 
   expected = matrix.sqr((
-    1.06700290634e-06, -1.338495946e-10, -1.78808654488e-09,
-    -1.338495946e-10, 2.09354554783e-06, 1.72284152176e-09,
-    -1.78808654488e-09, 1.72284152176e-09, 3.17207510387e-06))
-
+   1.07025484551e-06, 1.30518861783e-09, -1.72635922351e-09,
+   1.30518861783e-09, 2.10252906788e-06, -1.64646310672e-08,
+   -1.72635922351e-09, -1.64646310672e-08, 3.12149393966e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
   print 'OK'
