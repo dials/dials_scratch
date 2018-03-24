@@ -98,36 +98,49 @@ def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
     U = matrix.sqr(experiment.crystal.get_U())
     B = matrix.sqr(experiment.crystal.get_B())
 
-    q = U*B*h
-    s2 = s0 + q
+    from dials_scratch.jmp.potato.refiner import ReflectionData as ReflectionDataNew
 
-    R = compute_change_of_basis_operation(s0, mobs)
+    rd = ReflectionDataNew(
+      experiment.crystal,
+      S_model,
+      s0,
+      mobs,
+      h,
+      ctot,
+      matrix.col((0,0)),
+      Sobs)
+    return rd.log_likelihood()
 
-    sigma = S_model.sigma()
-    sigmap= R*sigma*R.transpose()
-    sigma11 = matrix.sqr((
-      sigmap[0], sigmap[1],
-      sigmap[3], sigmap[4]))
-    sigma12 = matrix.col((sigmap[2], sigmap[5]))
-    sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
-    sigma22 = sigmap[8]
+    # q = U*B*h
+    # s2 = s0 + q
 
-    mu = R*s2
-    mu1 = matrix.col((mu[0], mu[1]))
-    mu2 = mu[2]
+    # R = compute_change_of_basis_operation(s0, mobs)
 
-    z = s0.length()
-    mubar = mu1 + sigma12*(1/sigma22)*(z - mu2)
-    sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
+    # sigma = S_model.sigma()
+    # sigmap= R*sigma*R.transpose()
+    # sigma11 = matrix.sqr((
+    #   sigmap[0], sigmap[1],
+    #   sigmap[3], sigmap[4]))
+    # sigma12 = matrix.col((sigmap[2], sigmap[5]))
+    # sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
+    # sigma22 = sigmap[8]
 
-    d = z-mu2
-    c_d = mubar - matrix.col((0,0))
-    A = log(sigma22)
-    B = (1/sigma22)*d**2
-    C = log(sigma_bar.determinant())*ctot
-    D = (sigma_bar.inverse() * ctot*Sobs).trace()
-    E = (sigma_bar.inverse() * ctot*c_d*c_d.transpose()).trace()
-    return -0.5 * (A + B + C + D + E)
+    # mu = R*s2
+    # mu1 = matrix.col((mu[0], mu[1]))
+    # mu2 = mu[2]
+
+    # z = s0.length()
+    # mubar = mu1 + sigma12*(1/sigma22)*(z - mu2)
+    # sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
+
+    # d = z-mu2
+    # c_d = mubar - matrix.col((0,0))
+    # A = log(sigma22)
+    # B = (1/sigma22)*d**2
+    # C = log(sigma_bar.determinant())*ctot
+    # D = (sigma_bar.inverse() * ctot*Sobs).trace()
+    # E = (sigma_bar.inverse() * ctot*c_d*c_d.transpose()).trace()
+    # return -0.5 * (A + B + C + D + E)
 
 
   step = 1e-8
