@@ -9,6 +9,8 @@ from dials.algorithms.refinement.parameterisation.crystal_parameters import Crys
 from dials.algorithms.refinement.parameterisation.crystal_parameters import CrystalOrientationParameterisation
 from dials_scratch.jmp.potato.profile_refiner import ReflectionData
 from dials.array_family import flex
+from dials_scratch.jmp.potato.parameterisation import ModelState
+from dials_scratch.jmp.potato.parameterisation import ReflectionModelState
 
 def first_derivative(func, x, h):
   return (-func(x+2*h)+8*func(x+h)-8*func(x-h)+func(x-2*h)) / (12*h)
@@ -68,7 +70,8 @@ def generate_data(experiments, reflections):
   params = (b1, b2, b3, b4, b5, b6)
 
   S_param = SimpleMosaicityParameterisation(params)
-
+  L_param = (uniform(1e-3, 2e-3),)
+  W_param = (uniform(1e-3, 2e-3), uniform(0,1e-3), uniform(1e-3,2e-3))
   ctot = randint(100,1000)
 
   T = matrix.sqr((
@@ -76,7 +79,7 @@ def generate_data(experiments, reflections):
     uniform(1e-6,2e-6), uniform(1e-3,2e-3)))
   Sobs = T*T.transpose()
 
-  params = [S_param, U_param, B_param]
+  params = [S_param, U_param, B_param, L_param, W_param]
 
 
   return params, s0, h, ctot, mobs, Sobs
@@ -256,6 +259,68 @@ def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
   print dL_num
   print dL_cal
 
+
+def test_reflection_model(experiment, models, s0, h):
+
+  U_params = models[1].get_param_vals()
+  B_params = models[2].get_param_vals()
+  M_params = flex.double(models[0].parameters())
+  L_params = flex.double(models[3])
+  W_params = flex.double(models[4])
+
+  state = ModelState(experiment.crystal)
+  state.set_U_params(U_params)
+  state.set_B_params(B_params)
+  state.set_M_params(M_params)
+  state.set_L_params(L_params)
+  state.set_W_params(W_params)
+
+  model = ReflectionModelState(state, s0, h)
+
+  r = model.get_r()
+  sigma = model.get_sigma()
+  dr_dp = model.get_dr_dp()
+  dS_dp = model.get_dS_dp()
+
+
+  def compute_sigma(parameters):
+    state.set_active_parameters(parameters)
+    model = ReflectionModelState(state, s0, h)
+    return model.get_sigma()
+
+  def compute_r(parameters):
+    state.set_active_parameters(parameters)
+    model = ReflectionModelState(state, s0, h)
+    return model.get_r()
+
+  step = 1e-6
+
+  parameters = state.get_active_parameters()
+
+  dr_num = []
+  for i in range(len(parameters)):
+    def f(x):
+      p = [pp for pp in parameters]
+      p[i] = x
+      return compute_r(p)
+    dr_num.append(first_derivative(f, parameters[i], step))
+
+  for n, c in zip(dr_num, dr_dp):
+    assert all(abs(nn-cc) < 1e-7 for nn, cc in zip(n,c))
+
+  ds_num = []
+  for i in range(len(parameters)):
+    def f(x):
+      p = [pp for pp in parameters]
+      p[i] = x
+      return compute_sigma(p)
+    ds_num.append(first_derivative(f, parameters[i], step))
+
+  for n, c in zip(ds_num, dS_dp):
+    assert all(abs(nn-cc) < 1e-7 for nn, cc in zip(n,c))
+
+  print "OK"
+
 def read_experiments():
   experiments = ExperimentListFactory.from_json_file("experiments.json")
   return experiments
@@ -270,8 +335,8 @@ def test():
   for i in range(1):
 
     models, s0, h, ctot, mobs, Sobs = generate_data(experiments, reflections)
-
-    test_first_derivatives(experiments[0], models, s0, h, ctot, mobs, Sobs)
+    test_reflection_model(experiments[0], models, s0, h)
+    #test_first_derivatives(experiments[0], models, s0, h, ctot, mobs, Sobs)
 
 if __name__ == '__main__':
   test()

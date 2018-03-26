@@ -492,21 +492,21 @@ class ModelState(object):
     Get the crystal U matrix
 
     '''
-    return self.crystal.get_U()
+    return matrix.sqr(self.crystal.get_U())
 
   def get_B(self):
     '''
     Get the crystal B matrix
 
     '''
-    return self.crystal.get_B()
+    return matrix.sqr(self.crystal.get_B())
 
   def get_A(self):
     '''
     Get the crystal A matrix
 
     '''
-    return self.crystal.get_A()
+    return matrix.sqr(self.crystal.get_A())
 
   def get_M(self):
     '''
@@ -669,7 +669,7 @@ class ModelState(object):
     '''
     return self.W_parameterisation.first_derivatives()
 
-  def active_parameters(self):
+  def get_active_parameters(self):
     '''
     Get the active parameters in order: U, B, M, L, W
 
@@ -714,9 +714,17 @@ class ModelState(object):
 
 
 
-class ReflectionModel(object):
+class ReflectionModelState(object):
+  '''
+  Class to compute basic derivatives of Sigma and r w.r.t parameters
+
+  '''
 
   def __init__(self, state, s0, h):
+    '''
+    Initialise with the state and compute derivatives
+
+    '''
 
     # Get a load of matrices
     A = state.get_A()
@@ -727,21 +735,25 @@ class ReflectionModel(object):
     W = state.get_W()
 
     # Compute the reciprocal lattice vector
-    self._h = h
-    self._r = A*h
-    t = self.r.length()
+    h = matrix.col(h)
+    r = A*h
+    t = r.length()
 
     # Define rotation for L and W sigma components
-    q1 = self._r.cross(s0).normalize()
-    q2 = self._r.cross(q1).normalize()
-    q3 = self._r.normalize()
+    q1 = r.cross(s0).normalize()
+    q2 = r.cross(q1).normalize()
+    q3 = r.normalize()
     Q = matrix.sqr(
       q1.elems +
       q2.elems +
       q3.elems)
 
+    rs0 = r.cross(s0)
+    rq1 = r.cross(q1)
+
     # Compute the covariance matrix
-    self._sigma = M + self.r.length()*Q*(L + W)*Q.transpose()
+    self._sigma = M + t*Q*(L + W)*Q.transpose()
+    self._r = r
 
     # Get the derivatives of the model state
     dU_dp = state.get_dU_dp()
@@ -750,77 +762,115 @@ class ReflectionModel(object):
     dL_dp = state.get_dL_dp()
     dW_dp = state.get_dW_dp()
 
-    # Compute the derivatives of r w.r.t the parameters
-    dr_dp_m = flex.vec3_double((0,0,0)) * len(state.num_M_params())
-    dr_dp_l = flex.vec3_double((0,0,0)) * len(state.num_L_params())
-    dr_dp_w = flex.vec3_double((0,0,0)) * len(state.num_W_params())
-    dr_dp_u = dU_dp*B*h
-    dr_dp_b = U*dB_dp*h
-
-    # Derivative of |r| w.r.t U and B parameters
-    dt_dp_u = r.dot(dr_dp_u) / t
-    dt_dp_b = r.dot(dr_dp_b) / t
-
-    # Derivatives of q1, q2 and q3 w.r.t U and B parameters
-    r = self.r
-    rs0 = r.cross(s0)
-    rq1 = r.cross(q1)
-    drs0_dp_u = dr_dp_u.cross(s0)
-    drs0_dp_b = dr_dp_b.cross(s0)
-    dq1_dp_u = drs0_dp_u/rs0.length() - rs0*rs0.dot(drs0_dp_u)/rs0.length()**3
-    dq1_dp_b = drs0_dp_b/rs0.length() - rs0*rs0.dot(drs0_dp_b)/rs0.length()**3
-    drq1_dp_u = dr_dp_u.cross(q1) + r.cross(dq1_dp_u)
-    drq1_dp_b = dr_dp_b.cross(q1) + r.cross(dq1_dp_b)
-    dq2_dp_u = drq1_dp_u/rq1.length() - rq1*rq1.dot(drq1_dp_u)/rq1.length()**3
-    dq2_dp_b = drq1_dp_b/rq1.length() - rq1*rq1.dot(drq1_dp_b)/rq1.length()**3
-    dq3_dp_u = dr_dp_u/r.length() - r*r.dot(dr_dp_u)/r.length()**3
-    dq3_dp_b = dr_dp_b/r.length() - r*r.dot(dr_dp_b)/r.length()**3
-
-    # Derivatives of Q w.r.t U and B parameters
-    dQ_dp_u = matrix.sqr(
-      dq1_dp_u.elems +
-      dq2_dp_u.elems +
-      dq3_dp_u.elems)
-    dQ_dp_b = matrix.sqr(
-      dq1_dp_b.elems +
-      dq2_dp_b.elems +
-      dq3_dp_b.elems)
-
-    # Compute derivatives of Sigma w.r.t the parameters
-    ds_dp_m = dM_dp
-    ds_dp_l = self.r.length()*Q*dL_dp*Q.transpose()
-    ds_dp_w = self.r.length()*Q*dW_dp*Q.transpose()
-    ds_dp_u = dt_dp_u*Q*(L+W)*Q.transpose() \
-            + t*dQ_dp_u*(L+W)*Q.transpose() \
-            + t*Q*(L+W)*dQ_dp_u.transpose()
-    ds_dp_b = dt_dp_b*Q*(L+W)*Q.transpose() \
-            + t*dQ_dp_b*(L+W)*Q.transpose() \
-            + t*Q*(L+W)*dQ_dp_b.transpose()
-
-    # Create array with derivatives of r
+    # The array of derivatives
     self._dr_dp = flex.vec3_double()
-    self._dr_dp.extend(dr_dp_m)
-    self._dr_dp.extend(dr_dp_l)
-    self._dr_dp.extend(dr_dp_w)
-    self._dr_dp.extend(dr_dp_u)
-    self._dr_dp.extend(dr_dp_b)
-
-    # Create array with derivatives of S
     self._ds_dp = flex.mat3_double()
-    self._ds_dp.extend(ds_dp_m)
-    self._ds_dp.extend(ds_dp_l)
-    self._ds_dp.extend(ds_dp_w)
-    self._ds_dp.extend(ds_dp_u)
-    self._ds_dp.extend(ds_dp_b)
 
-  def sigma(self):
+    # Compute derivatives w.r.t U parameters
+    if not state.is_orientation_fixed():
+
+      dr_dp_u = flex.vec3_double(state.num_U_params())
+      ds_dp_u = flex.mat3_double(state.num_U_params())
+      for i in range(state.num_U_params()):
+        dr_dp_u[i] = matrix.sqr(dU_dp[i])*B*h
+        dr = matrix.col(dr_dp_u[i])
+        dt = r.dot(matrix.col(dr)) / t
+        drs0 = dr.cross(s0)
+        dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
+        drq1 = dr.cross(q1) + r.cross(dq1)
+        dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
+        dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
+        dQ = matrix.sqr(
+          dq1.elems +
+          dq2.elems +
+          dq3.elems)
+        ds_dp_u[i] = dt*Q*(L+W)*Q.transpose() \
+                   + t*dQ*(L+W)*Q.transpose() \
+                   + t*Q*(L+W)*dQ.transpose()
+      self._dr_dp.extend(dr_dp_u)
+      self._ds_dp.extend(ds_dp_u)
+
+    # Compute derivatives w.r.t B parameters
+    if not state.is_unit_cell_fixed():
+
+      dr_dp_b = flex.vec3_double(state.num_B_params())
+      ds_dp_b = flex.mat3_double(state.num_B_params())
+      for i in range(state.num_B_params()):
+        dr_dp_b[i] = U*matrix.sqr(dB_dp[i])*h
+        dr = matrix.col(dr_dp_b[i])
+        dt = r.dot(matrix.col(dr)) / t
+        drs0 = dr.cross(s0)
+        dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
+        drq1 = dr.cross(q1) + r.cross(dq1)
+        dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
+        dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
+        dQ = matrix.sqr(
+          dq1.elems +
+          dq2.elems +
+          dq3.elems)
+        ds_dp_b[i] = dt*Q*(L+W)*Q.transpose() \
+                   + t*dQ*(L+W)*Q.transpose() \
+                   + t*Q*(L+W)*dQ.transpose()
+      self._dr_dp.extend(dr_dp_b)
+      self._ds_dp.extend(ds_dp_b)
+
+    # Compute derivatives w.r.t M parameters
+    if not state.is_rlp_mosaicity_fixed():
+
+      dr_dp_m = flex.vec3_double(state.num_M_params())
+      ds_dp_m = flex.mat3_double(state.num_M_params())
+      for i in range(state.num_M_params()):
+        dr_dp_m[i] = (0, 0, 0)
+        ds_dp_m[i] = dM_dp[i]
+      self._dr_dp.extend(dr_dp_m)
+      self._ds_dp.extend(ds_dp_m)
+
+    # Compute derivatives w.r.t L parameters
+    if not state.is_wavelength_spread_fixed():
+
+      dr_dp_l = flex.vec3_double(state.num_L_params())
+      ds_dp_l = flex.mat3_double(state.num_L_params())
+      for i in range(state.num_L_params()):
+        dr_dp_l[i] = (0, 0, 0)
+        ds_dp_l[i] = t*Q*matrix.sqr(dL_dp[i])*Q.transpose()
+      self._dr_dp.extend(dr_dp_l)
+      self._ds_dp.extend(ds_dp_l)
+
+    # Compute derivatives w.r.t W parameters
+    if not state.is_angular_mosaicity_fixed():
+
+      dr_dp_w = flex.vec3_double(state.num_W_params())
+      ds_dp_w = flex.mat3_double(state.num_W_params())
+      for i in range(state.num_W_params()):
+        dr_dp_w[i] = (0, 0, 0)
+        ds_dp_w[i] = t*Q*matrix.sqr(dW_dp[i])*Q.transpose()
+      self._dr_dp.extend(dr_dp_w)
+      self._ds_dp.extend(ds_dp_w)
+
+  def get_sigma(self):
+    '''
+    Return the covariance matrix
+
+    '''
     return self._sigma
 
-  def r(self):
+  def get_r(self):
+    '''
+    Return the reciprocal lattice vector
+
+    '''
     return self._r
 
   def get_dS_dp(self):
-    pass
+    '''
+    Return the derivatives of the covariance matrix
+
+    '''
+    return self._ds_dp
 
   def get_dr_dp(self):
+    '''
+    Return the derivatives of the reciprocal lattice vector
+
+    '''
     return self._dr_dp

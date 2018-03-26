@@ -63,7 +63,7 @@ def test_model_state_with_fixed(
   assert len(dL) == 1
   assert len(dW) == 3
 
-  params = state.active_parameters()
+  params = state.get_active_parameters()
 
 
   expected_len = 0
