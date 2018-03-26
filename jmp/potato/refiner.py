@@ -235,7 +235,6 @@ class ReflectionLikelihood(object):
     # Return the joint likelihood
     return -0.5 * (m_lnL + c_lnL)
 
-
   def first_derivatives(self):
     '''
     Compute the first derivatives
@@ -300,8 +299,8 @@ class ReflectionLikelihood(object):
     Sobs = self.sobs
 
     # Get info about marginal distribution
-    S22 = self.marginal.sigma()
-    dS22 = self.marginal.first_derivatives()
+    S22 = self.S[8]
+    dS22 = flex.double(self.dS[i][8] for i in range(len(self.dS)))
     S22_inv = 1 / S22
 
     # Get info about conditional distribution
@@ -310,16 +309,17 @@ class ReflectionLikelihood(object):
     dSbar = self.conditional.first_derivatives_of_sigma()
     dmbar = self.conditional.first_derivatives_of_mean()
     Sbar_inv = Sbar.inverse()
+    dmu = self.dmu
 
     # Compute the fisher information wrt parameter i j
     I = flex.double(flex.grid(len(dS22), len(dS22)))
     for j in range(len(dS22)):
       for i in range(len(dS22)):
-
         U = S22_inv*dS22[j]*S22_inv*dS22[i]
         V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*ctot).trace()
         W = ctot*(dmbar[i].transpose()*Sbar_inv*dmbar[j])[0]
-        I[j,i] = 0.5*(U+V) + W
+        X = dmu[i][2]*S22_inv*dmu[j][2]
+        I[j,i] = 0.5*(U+V) + W + X
 
     return I
 
@@ -329,23 +329,26 @@ class MaximumLikelihoodTarget(object):
   def __init__(self,
                model,
                s0,
-               s2_list,
+               sp_list,
+               h_list,
                ctot_list,
                mobs_list,
                sobs_list):
 
     # Check input
-    assert len(s2_list) == len(ctot_list)
-    assert len(s2_list) == len(mobs_list)
-    assert len(s2_list) == sobs_list.all()[0]
+    assert len(h_list) == len(sp_list)
+    assert len(h_list) == len(ctot_list)
+    assert len(h_list) == len(mobs_list)
+    assert len(h_list) == sobs_list.all()[0]
 
     # Compute the change of basis for each reflection
     self.data = []
-    for i in range(len(s2_list)):
-      self.data.append(ReflectionData(
+    for i in range(len(h_list)):
+      self.data.append(ReflectionLikelihood(
         model,
         s0,
-        matrix.col(s2_list[i]),
+        matrix.col(sp_list[i]),
+        matrix.col(h_list[i]),
         ctot_list[i],
         matrix.col(mobs_list[i]),
         matrix.sqr(sobs_list[i:i+1,:])))
@@ -369,16 +372,6 @@ class MaximumLikelihoodTarget(object):
     for i in range(len(self.data)):
       dL += self.data[i].first_derivatives()
     return dL
-
-  def second_derivatives(self):
-    '''
-    The joint second derivatives
-
-    '''
-    d2L = 0
-    for i in range(len(self.data)):
-      d2L += self.data[i].second_derivatives()
-    return d2L
 
   def fisher_information(self):
     '''
