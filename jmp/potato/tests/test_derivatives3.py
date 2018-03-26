@@ -87,25 +87,27 @@ def generate_data(experiments, reflections):
 
 def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
 
+
+  from dials_scratch.jmp.potato.refiner import ReflectionLikelihood
+  U_params = models[1].get_param_vals()
+  B_params = models[2].get_param_vals()
+  M_params = flex.double(models[0].parameters())
+  L_params = flex.double(models[3])
+  W_params = flex.double(models[4])
+
+  state = ModelState(experiment.crystal)
+  state.set_U_params(U_params)
+  state.set_B_params(B_params)
+  state.set_M_params(M_params)
+  state.set_L_params(L_params)
+  state.set_W_params(W_params)
+
   def compute_L(parameters):
-    S_model = models[0]
-    U_model = models[1]
-    B_model = models[2]
+    state.set_active_parameters(parameters)
+    model = ReflectionModelState(state, s0, h)
 
-    NU = U_model.num_total()
-    NB = B_model.num_total()
-    S_model.set_parameters(parameters[0:6])
-    U_model.set_param_vals(parameters[6:6+NU])
-    B_model.set_param_vals(parameters[6+NU:])
-
-    U = matrix.sqr(experiment.crystal.get_U())
-    B = matrix.sqr(experiment.crystal.get_B())
-
-    from dials_scratch.jmp.potato.refiner import ReflectionData as ReflectionDataNew
-
-    rd = ReflectionDataNew(
-      experiment.crystal,
-      S_model,
+    rd = ReflectionLikelihood(
+      model,
       s0,
       mobs,
       h,
@@ -114,44 +116,9 @@ def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
       Sobs)
     return rd.log_likelihood()
 
-    # q = U*B*h
-    # s2 = s0 + q
+  step = 1e-5
 
-    # R = compute_change_of_basis_operation(s0, mobs)
-
-    # sigma = S_model.sigma()
-    # sigmap= R*sigma*R.transpose()
-    # sigma11 = matrix.sqr((
-    #   sigmap[0], sigmap[1],
-    #   sigmap[3], sigmap[4]))
-    # sigma12 = matrix.col((sigmap[2], sigmap[5]))
-    # sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
-    # sigma22 = sigmap[8]
-
-    # mu = R*s2
-    # mu1 = matrix.col((mu[0], mu[1]))
-    # mu2 = mu[2]
-
-    # z = s0.length()
-    # mubar = mu1 + sigma12*(1/sigma22)*(z - mu2)
-    # sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
-
-    # d = z-mu2
-    # c_d = mubar - matrix.col((0,0))
-    # A = log(sigma22)
-    # B = (1/sigma22)*d**2
-    # C = log(sigma_bar.determinant())*ctot
-    # D = (sigma_bar.inverse() * ctot*Sobs).trace()
-    # E = (sigma_bar.inverse() * ctot*c_d*c_d.transpose()).trace()
-    # return -0.5 * (A + B + C + D + E)
-
-
-  step = 1e-8
-
-  parameters = []
-  parameters.extend(models[0].parameters())
-  parameters.extend(models[1].get_param_vals())
-  parameters.extend(models[2].get_param_vals())
+  parameters = state.get_active_parameters()
 
   dL_num = []
   for i in range(len(parameters)):
@@ -161,103 +128,23 @@ def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
       return compute_L(p)
     dL_num.append(first_derivative(f, parameters[i], step))
 
-  def compute_dL_dS(i):
+  state.set_active_parameters(parameters)
+  model = ReflectionModelState(state, s0, h)
 
-    S_model = models[0]
-    U_model = models[1]
-    B_model = models[2]
-    NU = U_model.num_total()
-    NB = B_model.num_total()
+  rd = ReflectionLikelihood(
+    model,
+    s0,
+    mobs,
+    h,
+    ctot,
+    matrix.col((0,0)),
+    Sobs)
 
-    U = matrix.sqr(experiment.crystal.get_U())
-    B = matrix.sqr(experiment.crystal.get_B())
+  dL_cal = list(rd.first_derivatives())
 
-    q = U*B*h
-    s2 = s0 + q
+  assert all(abs(n-c) < 1e-3 for n, c in zip(dL_num,dL_cal))
 
-    reflection_model = ReflectionData(
-      S_model,
-      s0,
-      s2,
-      ctot,
-      mobs,
-      Sobs)
-    return reflection_model.first_derivatives()[i]
-
-  def compute_dL_dU(i, U_or_B):
-
-    S_model = models[0]
-    U_model = models[1]
-    B_model = models[2]
-    NU = U_model.num_total()
-    NB = B_model.num_total()
-
-    U = matrix.sqr(experiment.crystal.get_U())
-    B = matrix.sqr(experiment.crystal.get_B())
-
-    q = U*B*h
-    s2 = s0 + q
-
-    R = compute_change_of_basis_operation(s0, mobs)
-    sigma = S_model.sigma()
-    sigmap= R*sigma*R.transpose()
-    S11 = matrix.sqr((
-      sigmap[0], sigmap[1],
-      sigmap[3], sigmap[4]))
-    S12 = matrix.col((sigmap[2], sigmap[5]))
-    S21 = matrix.col((sigmap[6], sigmap[7])).transpose()
-    S22 = sigmap[8]
-
-    mu = R*s2
-    mu1 = matrix.col((mu[0], mu[1]))
-    mu2 = mu[2]
-
-    S22_inv = 1/S22
-
-    epsilon = s0.length() - mu2
-    mubar = mu1 + S12*(1/S22)*epsilon
-    Sbar = S11 - S12*(1/S22)*S21
-
-    Sbar_inv = Sbar.inverse()
-
-    if U_or_B == "U":
-      dU = U_model.get_ds_dp()[i]
-      ds2 = dU*B*h
-    else:
-      dB = B_model.get_ds_dp()[i]
-      ds2 = U*dB*h
-    dmu = R*ds2
-    dmu1 = matrix.col((dmu[0], dmu[1]))
-    dmu2 = dmu[2]
-    dep = -dmu2
-
-    dmbar = dmu1 + S12*(1/S22)*dep
-    dSbar = matrix.sqr((0, 0, 0, 0))
-    dS22 = 0
-
-
-    c_d = matrix.col((0,0)) - mubar
-    I = matrix.sqr((
-      1, 0,
-      0, 1))
-
-    U = S22_inv*dS22*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep
-    V = (Sbar_inv*dSbar*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
-    W = (-2*ctot*Sbar_inv*c_d*dmbar.transpose()).trace()
-
-    return -0.5*(U+V+W)
-
-
-  dL_cal = []
-  # for i in range(6):
-  #   dL_cal.append(compute_dL_dS(i))
-  for i in range(models[1].num_total()):
-    dL_cal.append(compute_dL_dU(i, U_or_B="U"))
-  for i in range(models[2].num_total()):
-    dL_cal.append(compute_dL_dU(i, U_or_B="B"))
-
-  print dL_num
-  print dL_cal
+  print 'OK'
 
 
 def test_reflection_model(experiment, models, s0, h):
@@ -336,7 +223,7 @@ def test():
 
     models, s0, h, ctot, mobs, Sobs = generate_data(experiments, reflections)
     test_reflection_model(experiments[0], models, s0, h)
-    #test_first_derivatives(experiments[0], models, s0, h, ctot, mobs, Sobs)
+    test_first_derivatives(experiments[0], models, s0, h, ctot, mobs, Sobs)
 
 if __name__ == '__main__':
   test()
