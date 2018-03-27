@@ -632,17 +632,27 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     '''
     self.model.set_active_parameters(x)
     lnL = self.log_likelihood(x)
+    U = self.model.get_U()
     M = self.model.get_M()
     L = self.model.get_L_W()
-    format_string = "  | % .2e % .2e % .2e |    | % .2e % .2e % .2e |"
+    format_string1 = "  Unit cell: (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
+    format_string2 = "  | % .2e % .2e % .2e |"
+    format_string3 = "  | % .2e % .2e % .2e |    | % .2e % .2e % .2e |"
     lines = [
       "",
       "Iteration: %d" % len(self.history),
       "",
+      format_string1 % self.model.get_unit_cell().parameters(),
+      "",
+      "  U matrix (orientation)",
+      format_string2 % tuple(U[0:3]),
+      format_string2 % tuple(U[3:6]),
+      format_string2 % tuple(U[6:9]),
+      "",
       "  %s%s%s" % ("Sigma M", " "*30, "Sigma L + Sigma W"),
-      format_string % (tuple(M[0:3]) + tuple(L[0:3])),
-      format_string % (tuple(M[3:6]) + tuple(L[3:6])),
-      format_string % (tuple(M[6:9]) + tuple(L[6:9])),
+      format_string3 % (tuple(M[0:3]) + tuple(L[0:3])),
+      format_string3 % (tuple(M[3:6]) + tuple(L[3:6])),
+      format_string3 % (tuple(M[6:9]) + tuple(L[6:9])),
       "",
       "  ln(L) = %f" % lnL,
       "",

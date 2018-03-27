@@ -487,6 +487,13 @@ class ModelState(object):
     '''
     return self._is_angular_mosaicity_fixed
 
+  def get_unit_cell(self):
+    '''
+    Get the crystal unit cell
+
+    '''
+    return self.crystal.get_unit_cell()
+
   def get_U(self):
     '''
     Get the crystal U matrix
