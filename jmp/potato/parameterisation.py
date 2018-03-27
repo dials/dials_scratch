@@ -529,6 +529,15 @@ class ModelState(object):
     '''
     return self.W_parameterisation.sigma()
 
+  def get_L_W(self):
+    '''
+    Get the combined L+W matrix
+
+    '''
+    L = self.get_L()
+    W = self.get_W()
+    return L + W
+
   def get_U_params(self):
     '''
     Get the U parameters

@@ -5,6 +5,7 @@ from dials.array_family import flex
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
+from dials_scratch.jmp.potato.parameterisation import ReflectionModelState
 from math import log, sqrt, pi
 import logging
 
@@ -170,7 +171,7 @@ class ReflectionLikelihood(object):
                sobs):
 
     # Save stuff
-    self.model = model
+    self.model = ReflectionModelState(model, s0, h)
     self.s0 = s0
     self.sp = sp
     self.h = h
@@ -182,20 +183,20 @@ class ReflectionLikelihood(object):
     self.R = compute_change_of_basis_operation(s0, sp)
 
     # The s2 vector
-    self.r = model.get_r()
+    self.r = self.model.get_r()
     self.s2 = s0 + self.r
 
     # Rotate the mean vector
     self.mu = self.R*self.s2
 
     # Rotate the covariance matrix
-    self.S = self.R*model.get_sigma()*self.R.transpose()
+    self.S = self.R*self.model.get_sigma()*self.R.transpose()
 
     # Rotate the first derivative matrices
-    self.dS = rotate_mat3_double(self.R, model.get_dS_dp())
+    self.dS = rotate_mat3_double(self.R, self.model.get_dS_dp())
 
     # Rotate the first derivative of s2
-    self.dmu = rotate_vec3_double(self.R, model.get_dr_dp())
+    self.dmu = rotate_vec3_double(self.R, self.model.get_dr_dp())
 
     # Construct the conditional distribution
     self.conditional = ConditionalDistribution(s0, self.mu, self.dmu, self.S, self.dS)
@@ -543,9 +544,10 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
   '''
   def __init__(self,
-               parameterisation,
+               model,
                s0,
-               s2_list,
+               sp_list,
+               h_list,
                ctot_list,
                mobs_list,
                sobs_list,
@@ -558,16 +560,17 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
     # Initialise the super class
     super(FisherScoringMaximumLikelihood, self).__init__(
-      parameterisation.parameters(),
+      model.get_active_parameters(),
       max_iter=max_iter,
       tolerance=tolerance)
 
     # Save the parameterisation
-    self.parameterisation = parameterisation
+    self.model = model
 
     # Save some stuff
     self.s0 = s0
-    self.s2_list = s2_list
+    self.sp_list = sp_list
+    self.h_list = h_list
     self.ctot_list = ctot_list
     self.mobs_list = mobs_list
     self.sobs_list = sobs_list
@@ -576,7 +579,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     self.history = []
 
     # Print initial
-    self.callback(self.parameterisation.parameters())
+    self.callback(self.model.get_active_parameters())
 
   def log_likelihood(self, x):
     '''
@@ -584,7 +587,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The log likelihood at x
 
     '''
-    return self.model(x).log_likelihood()
+    return self.target(x).log_likelihood()
 
   def score(self, x):
     '''
@@ -592,7 +595,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The score at x
 
     '''
-    return self.model(x).first_derivatives()
+    return self.target(x).first_derivatives()
 
   def score_and_fisher_information(self, x):
     '''
@@ -600,37 +603,52 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     :return: The score and fisher information at x
 
     '''
-    model = self.model(x)
+    model = self.target(x)
     S = model.first_derivatives()
     I = model.fisher_information()
     return S, I
 
-  def model(self, x):
+  def target(self, x):
     '''
     :param x: The parameter estimate
     :return: The model
 
     '''
-    self.parameterisation.set_parameters(x)
-    model = MaximumLikelihoodTarget(
-      self.parameterisation,
+    self.model.set_active_parameters(x)
+    target = MaximumLikelihoodTarget(
+      self.model,
       self.s0,
-      self.s2_list,
+      self.sp_list,
+      self.h_list,
       self.ctot_list,
       self.mobs_list,
       self.sobs_list)
-    return model
+    return target
 
   def callback(self, x):
     '''
     Handle and update in parameter values
 
     '''
-    self.parameterisation.set_parameters(x)
-    sigma = self.parameterisation.sigma()
+    self.model.set_active_parameters(x)
     lnL = self.log_likelihood(x)
-    format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
-    logger.info(format_string % (tuple(sigma) + (lnL,)))
+    M = self.model.get_M()
+    L = self.model.get_L_W()
+    format_string = "  | % .2e % .2e % .2e |    | % .2e % .2e % .2e |"
+    lines = [
+      "",
+      "Iteration: %d" % len(self.history),
+      "",
+      "  %s%s%s" % ("Sigma M", " "*30, "Sigma L + Sigma W"),
+      format_string % (tuple(M[0:3]) + tuple(L[0:3])),
+      format_string % (tuple(M[3:6]) + tuple(L[3:6])),
+      format_string % (tuple(M[6:9]) + tuple(L[6:9])),
+      "",
+      "  ln(L) = %f" % lnL,
+      "",
+      "-" * 80
+    ]
+    logger.info('\n'.join(lines))
     self.history.append(x)
 
 
@@ -640,7 +658,7 @@ class Refiner(object):
 
   '''
 
-  def __init__(self, crystal, parameterisation, data):
+  def __init__(self, state, data):
     '''
     Set the data and initial parameters
 
@@ -651,7 +669,7 @@ class Refiner(object):
     self.ctot_list = data.ctot_list
     self.mobs_list = data.mobs_list
     self.sobs_list = data.sobs_list
-    self.parameterisation = parameterisation
+    self.state = state
 
   def refine(self):
     '''
@@ -671,31 +689,33 @@ class Refiner(object):
     class Target(object):
 
       def __init__(self,
-                   model,
+                   state,
                    s0,
-                   h_list,
                    sp_list,
+                   h_list,
                    ctot_list,
                    xbar_list,
                    sobs_list):
-        self.model = model
+        self.state = state
         self.s0 = s0
-        self.s2_list = s2_list
+        self.sp_list = sp_list
+        self.h_list = h_list
         self.ctot_list = ctot_list
         self.xbar_list = xbar_list
         self.sobs_list = sobs_list
 
       def target(self, params):
-        self.model.set_parameters(params)
+        self.state.set_active_parameters(params)
         ml = MaximumLikelihoodTarget(
-          self.model,
+          self.state,
           self.s0,
-          self.s2_list,
+          self.sp_list,
+          self.h_list,
           self.ctot_list,
           self.xbar_list,
           self.sobs_list)
         lnL = ml.log_likelihood()
-        sigma = self.model.sigma()
+        sigma = self.state.get_M()
         format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
         logger.info(format_string % (tuple(sigma) + (lnL,)))
         return -lnL
@@ -709,9 +729,10 @@ class Refiner(object):
       values,
       offset,
       Target(
-        self.parameterisation,
+        self.state,
         self.s0,
-        self.s2_list,
+        self.sp_list,
+        self.h_list,
         self.ctot_list,
         self.mobs_list,
         self.sobs_list),
@@ -721,10 +742,10 @@ class Refiner(object):
     self.parameters = optimizer.get_solution()
 
     # set the parameters
-    self.parameterisation.set_parameters(self.parameters)
+    self.state.set_active_parameters(self.parameters)
 
     # Print the eigen values and vectors
-    print_eigen_values_and_vectors(self.parameterisation.sigma())
+    print_eigen_values_and_vectors(self.state.get_M())
 
   def refine_fisher_scoring(self):
     '''
@@ -732,11 +753,28 @@ class Refiner(object):
 
     '''
 
+    # Print information
+    logger.info("")
+    logger.info("#" * 80)
+    logger.info("#")
+    logger.info("# Running refinement")
+    logger.info("#")
+    logger.info("#" * 80)
+    logger.info("")
+    logger.info("Components to refine:")
+    logger.info("Orientation:       %s" % (not self.state.is_orientation_fixed()))
+    logger.info("Unit cell:         %s" % (not self.state.is_unit_cell_fixed()))
+    logger.info("RLP mosaicity:     %s" % (not self.state.is_rlp_mosaicity_fixed()))
+    logger.info("Wavelength spread: %s" % (not self.state.is_wavelength_spread_fixed()))
+    logger.info("Angular mosaicity: %s" % (not self.state.is_angular_mosaicity_fixed()))
+    logger.info("")
+
     # Initialise the algorithm
     ml = FisherScoringMaximumLikelihood(
-      self.parameterisation,
+      self.state,
       self.s0,
-      self.s2_list,
+      self.sp_list,
+      self.h_list,
       self.ctot_list,
       self.mobs_list,
       self.sobs_list)
@@ -748,10 +786,25 @@ class Refiner(object):
     self.parameters = ml.parameters
 
     # set the parameters
-    self.parameterisation.set_parameters(self.parameters)
+    self.state.set_active_parameters(self.parameters)
 
-    # Print the eigen values and vectors
-    print_eigen_values_and_vectors(self.parameterisation.sigma())
+    # Print the eigen values and vectors of sigma_m
+    logger.info("")
+    logger.info("#" * 80)
+    logger.info("#")
+    logger.info("# Decomposition of Sigma_M:")
+    logger.info("#")
+    logger.info("#" * 80)
+    print_eigen_values_and_vectors(self.state.get_M())
+
+    # Print the eigen values and vectors of sigma_lw
+    logger.info("")
+    logger.info("#" * 80)
+    logger.info("#")
+    logger.info("# Decomposition of Sigma_L + Sigma_W:")
+    logger.info("#")
+    logger.info("#" * 80)
+    print_eigen_values_and_vectors(self.state.get_L_W())
 
     # Return the optimizer
     return ml
@@ -762,13 +815,14 @@ class RefinerData(object):
   A class for holding the data needed for the profile refinement
 
   '''
-  def __init__(self, s0, s2_list, ctot_list, mobs_list, sobs_list):
+  def __init__(self, s0, sp_list, h_list, ctot_list, mobs_list, sobs_list):
     '''
     Init the data
 
     '''
     self.s0 = s0
-    self.s2_list = s2_list
+    self.sp_list = sp_list
+    self.h_list = h_list
     self.ctot_list = ctot_list
     self.mobs_list = mobs_list
     self.sobs_list = sobs_list
@@ -784,12 +838,13 @@ class RefinerData(object):
     s0 = matrix.col(experiment.beam.get_s0())
 
     # Get the reciprocal lattice vector
-    s2_list = reflections['s2']
+    h_list = reflections['miller_index']
 
     # Initialise the list of observed intensities and covariances
-    ctot_list = flex.double(len(s2_list))
-    mobs_list = flex.vec2_double(len(s2_list))
-    Sobs_list = flex.double(flex.grid(len(s2_list), 4))
+    sp_list = flex.vec3_double(len(h_list))
+    ctot_list = flex.double(len(h_list))
+    mobs_list = flex.vec2_double(len(h_list))
+    Sobs_list = flex.double(flex.grid(len(h_list), 4))
     Bmean = matrix.sqr((0, 0, 0, 0))
 
     logger.info("Computing observed covariance for %d reflections" % len(reflections))
@@ -799,8 +854,11 @@ class RefinerData(object):
     sbox = reflections['shoebox']
     for r in range(len(reflections)):
 
+      # The vector to the pixel centroid
+      sp = matrix.col(panel.get_lab_coord(reflections['xyzobs.px'])).normalize()*s0.length()
+
       # Create the coordinate system
-      cs = CoordinateSystem2d(s0, s2_list[r])
+      cs = CoordinateSystem2d(s0, sp)
 
       # Get data and compute total counts
       data = sbox[r].data
@@ -852,6 +910,7 @@ class RefinerData(object):
       Bmean += Bias_sq
 
       # Add to the lists
+      sp_list[r] = sp
       ctot_list[r] = ctot
       mobs_list[r] = xbar
       Sobs_list[r,0] = Sobs[0]
@@ -886,7 +945,7 @@ class RefinerData(object):
     logger.info("Variance in distance from Ewald sphere: %.3g" % mv.unweighted_sample_variance())
 
     # Return the profile refiner data
-    return RefinerData(s0, s2_list, ctot_list, mobs_list, Sobs_list)
+    return RefinerData(s0, sp_list, h_list, ctot_list, mobs_list, Sobs_list)
 
 
 def print_eigen_values_and_vectors_of_observed_covariance(A):
