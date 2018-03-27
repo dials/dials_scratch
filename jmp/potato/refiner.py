@@ -354,6 +354,36 @@ class MaximumLikelihoodTarget(object):
         matrix.col(mobs_list[i]),
         matrix.sqr(sobs_list[i:i+1,:])))
 
+  def mse(self):
+    '''
+    The MSE in local reflection coordinates
+
+    '''
+    mse = 0
+    for i in range(len(self.data)):
+      mbar = self.data[i].conditional.mean()
+      xobs = self.data[i].mobs
+      mse += (xobs - mbar).dot(xobs - mbar)
+    mse /= len(self.data)
+    return mse
+
+  def rmsd(self):
+    '''
+    The RMSD in pixels
+
+    '''
+    mse = 0
+    for i in range(len(self.data)):
+      mbar = self.data[i].conditional.mean()
+      xobs = self.data[i].mobs
+      s0 = self.data[i].s0
+      s1 = matrix.col((mbar[0], mbar[1], s0.length()))
+      s3 = matrix.col((xobs[0], xobs[1], s0.length()))
+      xyzcal = pane1.get_ray_intersection_px(s1)
+      xyzobs = panel.get_ray_intersection_px(s3)
+    mse /= len(self.data)
+    return mse
+
   def log_likelihood(self):
     '''
     The joint log likelihood
@@ -468,7 +498,8 @@ class FisherScoringMaximumLikelihoodBase(object):
       # Perform a line search to ensure that each step results in an increase the
       # in log likelihood. In the rare case where the update does not result in an
       # increase in the likelihood (only observed for absurdly small samples
-      # (e.g. 2 reflections) do an iteration of gradient descent
+      # e.g. 2 reflections or when 1 parameter approaches zero) do an iteration
+      # of gradient descent
       delta = self.line_search(x0, p)
       if delta > 0:
         x = x0 + delta*p
@@ -608,6 +639,14 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     I = model.fisher_information()
     return S, I
 
+  def mse(self, x):
+    '''
+    :param x: The parameter estimate
+    :return: The MSE at x
+
+    '''
+    return self.target(x).mse()
+
   def target(self, x):
     '''
     :param x: The parameter estimate
@@ -632,11 +671,16 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     '''
     self.model.set_active_parameters(x)
     lnL = self.log_likelihood(x)
+    mse = self.mse(x)
+
+    # Get some matrices
     U = self.model.get_U()
     M = self.model.get_M()
     L = self.model.get_L_W()
+
+    # Print some information
     format_string1 = "  Unit cell: (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
-    format_string2 = "  | % .2e % .2e % .2e |"
+    format_string2 = "  | % .6f % .6f % .6f |"
     format_string3 = "  | % .2e % .2e % .2e |    | % .2e % .2e % .2e |"
     lines = [
       "",
@@ -656,9 +700,13 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       "",
       "  ln(L) = %f" % lnL,
       "",
+      "  R.M.S.D (local) = %g" % sqrt(mse),
+      "",
       "-" * 80
     ]
     logger.info('\n'.join(lines))
+
+    # Append the parameters to the history
     self.history.append(x)
 
 
@@ -772,11 +820,11 @@ class Refiner(object):
     logger.info("#" * 80)
     logger.info("")
     logger.info("Components to refine:")
-    logger.info("Orientation:       %s" % (not self.state.is_orientation_fixed()))
-    logger.info("Unit cell:         %s" % (not self.state.is_unit_cell_fixed()))
-    logger.info("RLP mosaicity:     %s" % (not self.state.is_rlp_mosaicity_fixed()))
-    logger.info("Wavelength spread: %s" % (not self.state.is_wavelength_spread_fixed()))
-    logger.info("Angular mosaicity: %s" % (not self.state.is_angular_mosaicity_fixed()))
+    logger.info(" Orientation:       %s" % (not self.state.is_orientation_fixed()))
+    logger.info(" Unit cell:         %s" % (not self.state.is_unit_cell_fixed()))
+    logger.info(" RLP mosaicity:     %s" % (not self.state.is_rlp_mosaicity_fixed()))
+    logger.info(" Wavelength spread: %s" % (not self.state.is_wavelength_spread_fixed()))
+    logger.info(" Angular mosaicity: %s" % (not self.state.is_angular_mosaicity_fixed()))
     logger.info("")
 
     # Initialise the algorithm
