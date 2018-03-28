@@ -394,6 +394,16 @@ class MaximumLikelihoodTarget(object):
       lnL += self.data[i].log_likelihood()
     return lnL
 
+  def jacobian(self):
+    '''
+    Return the Jacobean
+
+    '''
+    J = []
+    for i in range(len(self.data)):
+      J.append(list(self.data[i].first_derivatives()))
+    return flex.double(J)
+
   def first_derivatives(self):
     '''
     The joint first derivatives
@@ -647,6 +657,14 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     '''
     return self.target(x).mse()
 
+  def jacobian(self, x):
+    '''
+    :param x: The parameter estimate
+    :return: The Jacobian at x
+
+    '''
+    return self.target(x).jacobian()
+
   def target(self, x):
     '''
     :param x: The parameter estimate
@@ -664,6 +682,15 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       self.sobs_list)
     return target
 
+  def condition_number(self, x):
+    '''
+    The condition number of the Jacobian
+
+    '''
+    from scitbx.linalg.svd import real as svd_real
+    svd = svd_real(self.jacobian(x), False, False)
+    return max(svd.sigma) / min(svd.sigma)
+
   def callback(self, x):
     '''
     Handle and update in parameter values
@@ -672,6 +699,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     self.model.set_active_parameters(x)
     lnL = self.log_likelihood(x)
     mse = self.mse(x)
+    kappa = self.condition_number(x)
 
     # Get some matrices
     U = self.model.get_U()
@@ -700,7 +728,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       "",
       "  ln(L) = %f" % lnL,
       "",
-      "  R.M.S.D (local) = %g" % sqrt(mse),
+      "  R.M.S.D (local) = %.2g" % sqrt(mse),
+      "",
+      "  Condition number = %.2g" % kappa,
       "",
       "-" * 80
     ]
