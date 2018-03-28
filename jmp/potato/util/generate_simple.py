@@ -257,6 +257,90 @@ def generate_from_reflections(s0, sigma, reflections):
 
   return s2_list, ctot_list, xbar_list, Sobs_list
 
+def generate_from_reflections2(A, s0, sigma, reflections):
+  '''
+  Generate a list of normally distributed observations
+
+  '''
+  sp_list = []
+  h_list = []
+  ctot_list = []
+  xbar_list = []
+  Sobs_list = []
+
+  # Loop through the list
+  for k in range(len(reflections)):
+
+    # Compute position in reciprocal space of the centre of the rlp
+    h = matrix.col(reflections['miller_index'][k])
+    r = matrix.sqr(A)*h
+    s2 = s0 + r
+    sp = s2
+
+    # Rotate the covariance matrix
+    R = compute_change_of_basis_operation(s0, sp)
+    sigmap = R*sigma*R.transpose()
+
+    # Rotate to get mu
+    mu = R*s2
+    assert abs(mu.normalize().dot(matrix.col((0, 0, 1))) - 1) < 1e-7
+
+    # Partition the matrix
+    sigma11 = matrix.sqr((
+      sigmap[0], sigmap[1],
+      sigmap[3], sigmap[4]))
+    sigma12 = matrix.col((sigmap[2], sigmap[5]))
+    sigma21 = matrix.col((sigmap[6], sigmap[7])).transpose()
+    sigma22 = sigmap[8]
+
+    # Compute the conditional distribution
+    mu1 = matrix.col((mu[0], mu[1]))
+    mu2 = mu[2]
+    z = s0.length()
+    sigma_bar = sigma11 - sigma12*(1/sigma22)*sigma21
+    mu_bar = mu1 + sigma12*(z-mu2)/sigma22
+
+    # Perform rejection sampling to get a normally distributed set of
+    # reflections
+    P = exp(-0.5*(z-mu2)**2 / sigma22)
+    R = uniform(0, 1.0)
+    if P < R:
+      continue
+
+    # Compute the scale factor and intensity
+    scale = exp(-0.5 * (z-mu2)**2 / sigma22)
+    I = uniform(50, 1000)
+    if I <= 1:
+      continue
+
+    # Simulate some observations
+    points = multivariate_normal(mu_bar, sigma_bar.as_list_of_lists(), int(I))
+
+    # Compute the observed mean for each observation
+    ctot = 0
+    xbar = matrix.col((0, 0))
+    for x in points:
+      xbar += matrix.col(x)
+
+    ctot = len(points)
+
+    xbar /= ctot
+
+    # Compute the observed covariance for each observation
+    Sobs = matrix.sqr((0, 0, 0, 0))
+    for x in points:
+      x = matrix.col(x)
+      Sobs += (x-xbar)*(x-xbar).transpose()
+    Sobs /= ctot
+
+    sp_list.append(sp)
+    h_list.append(h)
+    ctot_list.append(ctot)
+    xbar_list.append(xbar)
+    Sobs_list.append(list(Sobs))
+
+  return sp_list, h_list, ctot_list, xbar_list, Sobs_list
+
 
 def generate_from_reflections_binned(s0, sigma, reflections):
   '''
