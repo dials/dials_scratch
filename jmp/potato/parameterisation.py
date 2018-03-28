@@ -422,7 +422,7 @@ class ModelState(object):
   '''
 
   def __init__(self,
-               crystal,
+               experiment,
                fix_rlp_mosaicity=False,
                fix_wavelength_spread=False,
                fix_angular_mosaicity=False,
@@ -434,7 +434,8 @@ class ModelState(object):
     '''
 
     # Save the crystal model
-    self.crystal = crystal
+    self.experiment = experiment
+    self.crystal = experiment.crystal
 
     # The U and P parameterisation
     self.U_parameterisation = CrystalOrientationParameterisation(self.crystal)

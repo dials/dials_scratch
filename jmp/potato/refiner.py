@@ -342,6 +342,9 @@ class MaximumLikelihoodTarget(object):
     assert len(h_list) == len(mobs_list)
     assert len(h_list) == sobs_list.all()[0]
 
+    # Save the model
+    self.model = model
+
     # Compute the change of basis for each reflection
     self.data = []
     for i in range(len(h_list)):
@@ -372,17 +375,21 @@ class MaximumLikelihoodTarget(object):
     The RMSD in pixels
 
     '''
-    mse = 0
+    mse = matrix.col((0, 0))
     for i in range(len(self.data)):
+      R = self.data[i].R
       mbar = self.data[i].conditional.mean()
       xobs = self.data[i].mobs
       s0 = self.data[i].s0
-      s1 = matrix.col((mbar[0], mbar[1], s0.length()))
-      s3 = matrix.col((xobs[0], xobs[1], s0.length()))
-      xyzcal = pane1.get_ray_intersection_px(s1)
-      xyzobs = panel.get_ray_intersection_px(s3)
+      s1 = R.transpose()*matrix.col((mbar[0], mbar[1], s0.length()))
+      s3 = R.transpose()*matrix.col((xobs[0], xobs[1], s0.length()))
+      xyzcal = self.model.experiment.detector[0].get_ray_intersection_px(s1)
+      xyzobs = self.model.experiment.detector[0].get_ray_intersection_px(s3)
+      r_x = xyzcal[0] - xyzobs[0]
+      r_y = xyzcal[1] - xyzobs[1]
+      mse += matrix.col((r_x**2, r_y**2))
     mse /= len(self.data)
-    return mse
+    return matrix.col((sqrt(mse[0]), sqrt(mse[1])))
 
   def log_likelihood(self):
     '''
@@ -657,6 +664,14 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     '''
     return self.target(x).mse()
 
+  def rmsd(self, x):
+    '''
+    :param x: The parameter estimate
+    :return: The RMSD at x
+
+    '''
+    return self.target(x).rmsd()
+
   def jacobian(self, x):
     '''
     :param x: The parameter estimate
@@ -699,6 +714,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     self.model.set_active_parameters(x)
     lnL = self.log_likelihood(x)
     mse = self.mse(x)
+    rmsd = self.rmsd(x)
     kappa = self.condition_number(x)
 
     # Get some matrices
@@ -728,7 +744,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       "",
       "  ln(L) = %f" % lnL,
       "",
-      "  R.M.S.D (local) = %.2g" % sqrt(mse),
+      "  R.M.S.D (local) = %.5g" % sqrt(mse),
+      "",
+      "  R.M.S.D (pixel): X = %.3f, Y = %.3f" % tuple(rmsd),
       "",
       "  Condition number = %.2g" % kappa,
       "",

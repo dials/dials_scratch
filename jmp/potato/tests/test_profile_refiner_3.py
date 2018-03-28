@@ -86,7 +86,7 @@ def tst_ideal():
 
   # parameterisation = SimpleMosaicityParameterisation((1,0,1,0,0,1))
   state = ModelState(
-    experiments[0].crystal,
+    experiments[0],
     fix_orientation=False,
     fix_unit_cell=False,
     fix_rlp_mosaicity=False,
