@@ -166,7 +166,7 @@ class ScalingRefinery(object):
 
   def return_scaler(self):
     '''return scaler method'''
-    from dials_scratch.jbe.scaling_code.scaler import MultiScalerBase, SingleScalerBase
+    from dials_scratch.jbe.scaling_code.scaler import MultiScalerBase
     print_step_table(self)
 
     if self._scaler.id_ == 'single':
