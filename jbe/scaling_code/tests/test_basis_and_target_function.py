@@ -12,8 +12,7 @@ from libtbx import phil
 from libtbx.test_utils import approx_equal
 from dxtbx.model.experiment_list import ExperimentList
 from dxtbx.model import Crystal, Scan, Beam, Goniometer, Detector, Experiment
-from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
-  create_scaling_model
+from dials_scratch.jbe.scaling_code.scaling_library import create_scaling_model
 from dials_scratch.jbe.scaling_code.scaler_factory import create_scaler
 from dials_scratch.jbe.scaling_code.target_function import ScalingTarget
 from dials_scratch.jbe.scaling_code.basis_functions import basis_function
