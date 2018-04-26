@@ -1,7 +1,6 @@
 """
 Module of uoutlier rejection algorithms.
 """
-from __future__ import print_function
 from dials.array_family import flex
 from dials_scratch.jbe.scaling_code.Ih_table import SingleIhTable
 
