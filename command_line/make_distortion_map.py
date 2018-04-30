@@ -54,8 +54,8 @@ def offset_dx_dy_p6m(detector0, detector1):
     for j in range(195):
       for i in range(487):
         d = (o1 + f1 * i + s1 * j) - (o0 + f0 * i + s0 * j)
-        dx[(ny0 + j, nx0 + i)] = d.dot(f0n) / 0.172
-        dy[(ny0 + j, nx0 + i)] = d.dot(s0n) / 0.172
+        dx[(ny0 + j, nx0 + i)] = - d.dot(f0n) / 0.172
+        dy[(ny0 + j, nx0 + i)] = - d.dot(s0n) / 0.172
 
   import cPickle as pickle
 
