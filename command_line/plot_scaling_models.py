@@ -6,8 +6,7 @@ from dials.array_family import flex
 from dials.util import halraiser
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 from dials_scratch.jbe.scaling_code.model import model as Model
-from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
-  create_scaling_model
+from dials_scratch.jbe.scaling_code.scaling_library import create_scaling_model
 from dials_scratch.jbe.scaling_code.scaling_utilities import parse_multiple_datasets
 from libtbx import phil
 matplotlib.use('Agg')
