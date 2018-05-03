@@ -12,8 +12,7 @@ from cctbx.sgtbx import space_group
 from dxtbx.model.experiment_list import ExperimentList
 from dxtbx.model import Crystal, Scan, Beam, Goniometer, Detector, Experiment
 from dials_scratch.jbe.scaling_code.scaling_library import scale_single_dataset,\
-  create_scaling_model, create_datastructures_for_structural_model,\
-  intensity_array_from_cif_file
+  create_scaling_model, create_datastructures_for_structural_model
 from dials_scratch.jbe.scaling_code.model.model import KBScalingModel
 from dials_scratch.jbe.scaling_code.model.scaling_model_factory import \
   PhysicalSMFactory
