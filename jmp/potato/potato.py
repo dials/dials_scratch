@@ -15,6 +15,7 @@ from dials.algorithms.profile_model.gaussian_rs.calculator import ComputeEsdBeam
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
+from dials.algorithms.refinement.refinement_helpers import corrgram
 from dials_scratch.jmp.potato.refiner import RefinerData
 from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
 from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
@@ -454,6 +455,12 @@ class Refiner(object):
     # Set the mosaicity
     self.experiments[0].crystal.mosaicity = state.get_M()
 
+    # Plot the corrgram
+    if self.params.debug.output.plots:
+      self._plot_corrgram(
+        refiner.correlation(),
+        refiner.labels())
+
   def _plot_distance_from_ewald_sphere(self):
     '''
     Plot distance from Ewald sphere
@@ -474,6 +481,15 @@ class Refiner(object):
       Dvar))
     fig.savefig("epsilon_distribution.png", dpi=300)
     fig.clf()
+
+  def _plot_corrgram(self, corrmat, labels):
+    '''
+    Plot a corrgram of correlations between parameters
+
+    '''
+    plt = corrgram(corrmat, labels)
+    plt.savefig("corrgram.png", dpi=300)
+    plt.clf()
 
 
 class FinalIntegrator(object):

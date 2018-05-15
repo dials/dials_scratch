@@ -899,7 +899,7 @@ class Refiner(object):
     ml.solve()
 
     # Get the parameters
-    self.parameters = ml.parameters
+    self.parameters = flex.double(ml.parameters)
 
     # set the parameters
     self.state.set_active_parameters(self.parameters)
@@ -915,6 +915,30 @@ class Refiner(object):
 
     # Return the optimizer
     return ml
+
+  def correlation(self):
+    '''
+    Return the correlation matrix between parameters
+
+    '''
+    # Initialise the algorithm
+    ml = FisherScoringMaximumLikelihood(
+      self.state,
+      self.s0,
+      self.sp_list,
+      self.h_list,
+      self.ctot_list,
+      self.mobs_list,
+      self.sobs_list)
+    return ml.correlation(self.state.get_active_parameters())
+
+  def labels(self):
+    '''
+    Return parameter labels
+
+    '''
+    return self.state.get_labels()
+
 
 
 class RefinerData(object):

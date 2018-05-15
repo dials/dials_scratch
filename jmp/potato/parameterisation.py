@@ -532,6 +532,24 @@ class ModelState(object):
       params = params[self.num_L_params():]
       self.set_L_params(temp)
 
+  def get_labels(self):
+    '''
+    Get the parameter labels
+
+    '''
+    labels = []
+    if not self._is_orientation_fixed:
+      for i in range(len(self.get_U_params())):
+        labels.append("Crystal_U_%d" % i)
+    if not self._is_unit_cell_fixed:
+      for i in range(len(self.get_B_params())):
+        labels.append("Crystal_B_%d" % i)
+    for i in range(len(self.get_M_params())):
+      labels.append("Mosaicity_%d" % i)
+    if not self._is_wavelength_spread_fixed:
+      labels.append("Wavelength_Spread")
+    return labels
+
 
 
 class ReflectionModelState(object):
