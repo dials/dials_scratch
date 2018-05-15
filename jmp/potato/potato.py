@@ -33,6 +33,10 @@ from scitbx import matrix
 from math import pi, sqrt, floor, ceil, exp
 from dials.algorithms.shoebox import MaskCode
 import logging
+import matplotlib
+
+# Set matplotlib backend
+matplotlib.use("agg", warn=False)
 
 logger = logging.getLogger("dials." + __name__)
 
