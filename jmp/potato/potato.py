@@ -629,7 +629,7 @@ class FinalIntegrator(object):
     from matplotlib import pylab
     P = self.reflections['partiality']
     fig, ax1 = pylab.subplots(figsize=(10,8))
-    ax1.hist(P, bins=max(5, int(min(0.2*len(P)), 20)))
+    ax1.hist(P, bins=max(5, min(int(0.2*len(P)), 20)))
     ax1.set_xlabel("Scale factor")
     fig.savefig("partiality.png", dpi=300)
     fig.clf()
