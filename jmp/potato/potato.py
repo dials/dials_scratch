@@ -15,11 +15,10 @@ from dials.algorithms.profile_model.gaussian_rs.calculator import ComputeEsdBeam
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
-from dials_scratch.jmp.potato.profile_refiner import ProfileRefinerData
-from dials_scratch.jmp.potato.profile_refiner import ProfileRefiner
-from dials_scratch.jmp.potato.profile_refiner import print_eigen_values_and_vectors
-from dials_scratch.jmp.potato.crystal_refiner import CrystalRefiner
-from dials_scratch.jmp.potato.parameterisation import SimpleMosaicityParameterisation
+from dials_scratch.jmp.potato.refiner import RefinerData
+from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
+from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
+from dials_scratch.jmp.potato.parameterisation import ModelState
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
 from dials_scratch.jmp.potato import chisq_quantile
@@ -39,12 +38,58 @@ logger = logging.getLogger("dials." + __name__)
 # Parameters
 phil_scope = parse('''
 
+  profile
+  {
+
+    rlp_mosaicity {
+      
+      ignore = False
+        .type = bool
+
+      anisotropic = True
+        .type = bool
+      
+    }
+
+    angular_mosaicity {
+      
+      ignore = False
+        .type = bool
+
+      anisotropic = True
+        .type = bool
+      
+    }
+
+    wavelength_spread {
+   
+      ignore = False
+        .type = bool
+
+    }
+
+    unit_cell {
+      
+      fixed = False
+        .type = bool
+
+    }
+
+    orientation {
+      
+      fixed = False
+        .type = bool
+
+    }
+
+  }
+
   refinement {
 
     max_centroid_distance = 2
       .type = float
 
-    n_macro_cycles = 3
+    n_macro_cycles = 1
       .type = int
 
   }
@@ -354,7 +399,24 @@ class Refiner(object):
     self.experiments = experiments
     self.reflections = reflections
     self.sigma_d = sigma_d
-    self._profile_parameters = None
+   
+    # Set the M params
+    if self.params.rlp_mosaicity.ignore is False:
+      self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
+    else:
+      self.M_params = flex.double(0, 6)
+
+    # Set the W params
+    if self.params.angular_mosaicity.ignore is False:
+      self.W_params = flex.double((sigma_d, 0, sigma_d))
+    else:
+      self.W_params = flex.double(0, 3)
+
+    # Set the L params
+    if self.params.wavelength_spread.ignore is False:
+      self.L_params = flex.double((sigma_d,))
+    else:
+      self.L_params = flex.double(0, 1)
 
     # Preprocess the reflections
     self._preprocess()
@@ -365,11 +427,6 @@ class Refiner(object):
       logger.info("")
       logger.info("Macro cycle %d" % (cycle+1))
       self._refine_profile()
-      self._refine_crystal()
-
-    # Create the profile model
-    self.profile_model = SimpleMosaicityParameterisation(self._profile_parameters)
-
 
   def _preprocess(self):
     '''
@@ -382,7 +439,7 @@ class Refiner(object):
       self._plot_distance_from_ewald_sphere()
 
     # Construct the profile refiner data
-    self._refiner_data = ProfileRefinerData.from_reflections(
+    self._refiner_data = RefinerData.from_reflections(
       self.experiments[0],
       self.reflections)
 
@@ -394,47 +451,28 @@ class Refiner(object):
     logger.info("")
     logger.info("Refining profile parmameters")
 
-    # If we have no profile parameters to from sigma d
-    if self._profile_parameters is None:
-      self._profile_parameters = matrix.col((
-        self.sigma_d,
-        0,
-        self.sigma_d,
-        0,
-        0,
-        self.sigma_d))
-
     # Create the parameterisation
-    parameterisation = SimpleMosaicityParameterisation(self._profile_parameters)
+    state = ModelState(
+      self.experiments[0],
+      fix_orientation       = self.params.profile.orientation.fixed,
+      fix_unit_cell         = self.params.profile.unit_cell.fixed,
+      fix_rlp_mosaicity     = self.params.profile.rlp_mosaicity.ignore,
+      fix_wavelength_spread = self.params.profile.wavelength_spread.ignore,
+      fix_angular_mosaicity = self.params.profile.angular_mosaicity.ignore)
+    
+    # Set the parameters
+    state.set_M_params(self.M_params)
+    state.set_L_params(self.L_params)
+    state.set_W_params(self.W_params)
 
     # Create the refiner and refine
-    refiner = ProfileRefiner(
-      parameterisation,
-      self._refiner_data)
+    refiner = ProfileRefiner(state, self._refiner_data)
     refiner.refine()
 
     # Set the profile parameters
-    self._profile_parameters = refiner.parameters
-
-  def _refine_crystal(self):
-    '''
-    Do the crystal parameter refinement
-
-    '''
-    logger.info("")
-    logger.info("Refining crystal unit cell and orientation parameters")
-
-    # Create the parameterisation
-    model = SimpleMosaicityParameterisation(self._profile_parameters)
-
-    # Create the refiner and refine
-    refiner = CrystalRefiner(
-      self.experiments[0],
-      self.reflections,
-      model)
-
-    # Set the experiments
-    self.experiments[0] = refiner.experiment
+    self.M_params = state.get_M_params()
+    self.L_params = state.get_L_params()
+    self.W_params = state.get_W_params()
 
   def _plot_distance_from_ewald_sphere(self):
     '''

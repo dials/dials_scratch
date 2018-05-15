@@ -706,6 +706,20 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     svd = svd_real(self.jacobian(x), False, False)
     return max(svd.sigma) / min(svd.sigma)
 
+  def correlation(self, x):
+    '''
+    The correlation of the Jacobian
+
+    '''
+    J = self.jacobian(x)
+    C = flex.double(flex.grid(J.all()[1], J.all()[1]))
+    for j in range(C.all()[0]):
+      for i in range(C.all()[1]):
+        a = J[:,i:i+1].as_1d()
+        b = J[:,j:j+1].as_1d()
+        C[j,i] = flex.linear_correlation(a, b).coefficient()
+    return C
+
   def callback(self, x):
     '''
     Handle and update in parameter values
@@ -958,10 +972,11 @@ class RefinerData(object):
     assert len(experiment.detector) == 1
     panel = experiment.detector[0]
     sbox = reflections['shoebox']
+    xyzobs = reflections['xyzobs.px.value']
     for r in range(len(reflections)):
 
       # The vector to the pixel centroid
-      sp = matrix.col(panel.get_lab_coord(reflections['xyzobs.px'])).normalize()*s0.length()
+      sp = matrix.col(panel.get_pixel_lab_coord(xyzobs[r][0:2])).normalize()*s0.length()
 
       # Create the coordinate system
       cs = CoordinateSystem2d(s0, sp)
