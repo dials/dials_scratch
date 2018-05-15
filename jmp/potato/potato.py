@@ -42,41 +42,28 @@ phil_scope = parse('''
   {
 
     rlp_mosaicity {
-      
-      ignore = False
-        .type = bool
 
       anisotropic = True
         .type = bool
-      
-    }
 
-    angular_mosaicity {
-      
-      ignore = False
-        .type = bool
-
-      anisotropic = True
-        .type = bool
-      
     }
 
     wavelength_spread {
-   
-      ignore = False
-        .type = bool
+
+      model = *delta gaussian
+        .type = choice
 
     }
 
     unit_cell {
-      
+
       fixed = False
         .type = bool
 
     }
 
     orientation {
-      
+
       fixed = False
         .type = bool
 
@@ -399,24 +386,18 @@ class Refiner(object):
     self.experiments = experiments
     self.reflections = reflections
     self.sigma_d = sigma_d
-   
-    # Set the M params
-    if self.params.rlp_mosaicity.ignore is False:
-      self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
-    else:
-      self.M_params = flex.double(0, 6)
 
-    # Set the W params
-    if self.params.angular_mosaicity.ignore is False:
-      self.W_params = flex.double((sigma_d, 0, sigma_d))
-    else:
-      self.W_params = flex.double(0, 3)
+    # Set the M params
+    self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
 
     # Set the L params
-    if self.params.wavelength_spread.ignore is False:
+    if self.params.profile.wavelength_spread.model == "gaussian":
       self.L_params = flex.double((sigma_d,))
+    elif self.params.profile.wavelength_spread.model == "delta":
+      self.L_params = flex.double([0])
     else:
-      self.L_params = flex.double(0, 1)
+      raise RuntimeError("Unknown wavelength spread model %s" %
+                         self.params.profile.wavelength_spread.model)
 
     # Preprocess the reflections
     self._preprocess()
@@ -456,14 +437,11 @@ class Refiner(object):
       self.experiments[0],
       fix_orientation       = self.params.profile.orientation.fixed,
       fix_unit_cell         = self.params.profile.unit_cell.fixed,
-      fix_rlp_mosaicity     = self.params.profile.rlp_mosaicity.ignore,
-      fix_wavelength_spread = self.params.profile.wavelength_spread.ignore,
-      fix_angular_mosaicity = self.params.profile.angular_mosaicity.ignore)
-    
+      fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
+
     # Set the parameters
     state.set_M_params(self.M_params)
     state.set_L_params(self.L_params)
-    state.set_W_params(self.W_params)
 
     # Create the refiner and refine
     refiner = ProfileRefiner(state, self._refiner_data)
@@ -472,7 +450,9 @@ class Refiner(object):
     # Set the profile parameters
     self.M_params = state.get_M_params()
     self.L_params = state.get_L_params()
-    self.W_params = state.get_W_params()
+
+    # Set the mosaicity
+    self.experiments[0].crystal.mosaicity = state.get_M()
 
   def _plot_distance_from_ewald_sphere(self):
     '''
@@ -496,7 +476,7 @@ class FinalIntegrator(object):
 
   '''
 
-  def __init__(self, params, experiments, reflections, profile_model):
+  def __init__(self, params, experiments, reflections):
     '''
     Initialise the refiner
 
@@ -505,7 +485,6 @@ class FinalIntegrator(object):
     # Save some stuff
     self.experiments = experiments
     self.reflections = reflections
-    self.profile_model = profile_model
 
     # Do the processing
     self._compute_bbox()
@@ -527,7 +506,7 @@ class FinalIntegrator(object):
     '''
 
     # Get the sigma
-    sigma = self.profile_model.sigma()
+    sigma = self.experiments[0].crystal.mosaicity
 
     # Compute the bounding boxes
     calculator = BBoxCalculatorNew(self.experiments[0], sigma)
@@ -538,7 +517,7 @@ class FinalIntegrator(object):
     xsize, ysize = self.experiments[0].detector[0].get_image_size()
     selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
     self.reflections = self.reflections.select(selection)
-    logger.info("Filtered reflecions with bbox outside image range")
+    logger.info("Filtered reflections with bbox outside image range")
     logger.info("Kept %d reflections" % len(self.reflections))
 
   def _allocate_shoebox(self):
@@ -556,7 +535,7 @@ class FinalIntegrator(object):
     Compute the reflection mask
 
     '''
-    sigma = self.profile_model.sigma()
+    sigma = self.experiments[0].crystal.mosaicity
     calculator = MaskCalculatorNew(self.experiments[0], sigma)
     calculator.compute(self.reflections)
 
@@ -598,7 +577,7 @@ class FinalIntegrator(object):
       s2 = matrix.col(self.reflections[k]['s2'])
       sbox = self.reflections[k]['shoebox']
 
-      sigma = self.profile_model.sigma()
+      sigma = self.experiments[0].crystal.mosaicity
       R = compute_change_of_basis_operation(s0, s2)
       S = R*sigma*R.transpose()
       mu = R*s2
@@ -660,7 +639,6 @@ class Integrator(object):
     # Save some stuff
     self.experiments = experiments
     self.reflections = reflections
-    self.profile_model = None
     self.sigma_d = None
 
   def reindex_strong_spots(self):
@@ -698,7 +676,6 @@ class Integrator(object):
       self.params)
     self.experiments = refiner.experiments
     self.reflections = refiner.reflections
-    self.profile_model = refiner.profile_model
 
   def predict(self):
     '''
@@ -726,7 +703,7 @@ class Integrator(object):
     logger.info("Generated %d miller indices" % len(miller_indices_to_test))
 
     # Get the covariance matrix
-    sigma = self.profile_model.sigma()
+    sigma = self.experiments[0].crystal.mosaicity
 
     # Create the predictor
     predictor = Predictor(
@@ -746,8 +723,7 @@ class Integrator(object):
     integrator = FinalIntegrator(
       self.params,
       self.experiments,
-      self.reflections,
-      self.profile_model)
+      self.reflections)
     self.reflections = integrator.reflections
 
     # Delete shoeboxes if necessary

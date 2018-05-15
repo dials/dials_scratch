@@ -100,7 +100,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
 
     # Compute rotated sigma
     S = R*spot_covariance*R.transpose()
-    
+
     # Partition matrix
     S11 = matrix.sqr((
       S[0], S[1],
@@ -133,19 +133,19 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     x0 = matrix.col((mu1[0], mu1[1])) + S12*(1/S22)*(z0 - mu1[2])
     mu3 = matrix.col((x0[0], x0[1], z0))
 
-    # Rotate the sigma and mean vector back 
+    # Rotate the sigma and mean vector back
     Sigma3 = R.transpose()*Sigma3*R
     s3 = (R.transpose()*mu3)
     q3 = s3 - s0
-    
+
     # Compute the mean wavelength and diffracted beam vector
     wavelength3 = -2*s0.normalize().dot(q3)/(q3.dot(q3))
     mu_s1 = s0.normalize()/wavelength3 + q3
 
     # Compute vector to approximate spread in diffracted vectors
     v = -mu_s1/(s0.dot(q3))
-    
-    # Compute the vector to approximate the spread in diffracted vectors 
+
+    # Compute the vector to approximate the spread in diffracted vectors
     #v = -0.5*(2*q3/(s0.dot(q3)) - q3.dot(q3)/s0.dot(q3)**2*s0)
 
     # Compute the mean diffracted vector
@@ -180,10 +180,10 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     # y_axis = z_axis.cross(x_axis).normalize()
     # R2 = matrix.sqr(
     #   x_axis.elems +
-    #   y_axis.elems + 
+    #   y_axis.elems +
     #   z_axis.elems)
 
-      
+
     # Rotate the sigma and marginalize along that direction
     Sigma4 = R*sigma_s1*R.transpose()
     Sigma5 = matrix.sqr((
@@ -217,7 +217,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     # mubar = matrix.col((0,0)) + S12*(1/S22)*(s0.length()-s2.length())
     # Sbar = S11 - S12*(1/S22)*S21
     # S2 = S22
-    
+
     Sbar = Sigma6
     mubar = mu6
     S2 = S22 + wavelength_variance_local
@@ -234,7 +234,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     except Exception:
       raise
       lnL += -1e15
- 
+
   if wavelength_variance > 0.10**2:
     lnL += -1e15
   # if max(spot_covariance[0], spot_covariance[4], spot_covariance[8]) > 1e-5:
@@ -287,24 +287,24 @@ class Target(object):
       self.ctot_list,
       self.Sobs_list)
     score = -lnL
-    return score 
+    return score
 
 
 def plot_function(func):
 
   X = []
   Y = []
-  params = (-0.0018922555580294159, 
-            -0.003960342417917075, 0.000802512703902016, 
-            -0.011212605823672782, 0.0015804959560581232, 0.0011843711796837466, 
+  params = (-0.0018922555580294159,
+            -0.003960342417917075, 0.000802512703902016,
+            -0.011212605823672782, 0.0015804959560581232, 0.0011843711796837466,
             8.205550283434665e-08)
-  # params = (0.9912606131407175, 
-  #           0.8721521410328605, -0.0005427636101740637, 
-  #           -0.4755941521897193, 6.978595033167225e-05, -0.0005654927049233458, 
+  # params = (0.9912606131407175,
+  #           0.8721521410328605, -0.0005427636101740637,
+  #           -0.4755941521897193, 6.978595033167225e-05, -0.0005654927049233458,
   #           0.3446544460324457)
   # params = (0.0004,
-  #           1e-7, -0.0005427636101740637, 
-  #           1e-5, 6.978595033167225e-05, -0.0005654927049233458, 
+  #           1e-7, -0.0005427636101740637,
+  #           1e-5, 6.978595033167225e-05, -0.0005654927049233458,
   #           0.3446544460324457)
   #wavelength_param = tan(sqrt(0.000111616168007) *pi / (2*0.05))
 
@@ -341,8 +341,8 @@ def tst_ideal():
   s0 = matrix.col((0, 0, 1.03))
 
   A = matrix.sqr((
-    0.009186272656211013, -0.0009923913997518274, 0.009833912026596807, 
-    0.004663921486320244, -0.0005161976250487236, -0.019341482302357254, 
+    0.009186272656211013, -0.0009923913997518274, 0.009833912026596807,
+    0.004663921486320244, -0.0005161976250487236, -0.019341482302357254,
     0.007239709464264245, 0.012542003882687962, -1.793473438470342e-05))
 
   q0 = A*matrix.col((0,0,0))
@@ -359,8 +359,8 @@ def tst_ideal():
   slow_axis = matrix.col((0, -1, 0))
 
   D = matrix.sqr(
-    fast_axis.elems + 
-    slow_axis.elems + 
+    fast_axis.elems +
+    slow_axis.elems +
     origin.elems).transpose().inverse()
 
   # The covariance matrix
@@ -368,7 +368,7 @@ def tst_ideal():
     1e-7, 0, 0,
     0, 2e-7, 0,
     0, 0, 3e-7))
-  
+
   wavelength_variance = 0.05**2#1e-4 # variance
 
   # The number of reflections
@@ -377,9 +377,9 @@ def tst_ideal():
   # Generate a load of reflections
   s2_list, ctot_list, xbar_list, Sobs_list = generate_with_wavelength_spread2(
     D,
-    s0, 
-    spot_covariance, 
-    wavelength_variance, 
+    s0,
+    spot_covariance,
+    wavelength_variance,
     N = N)
 
   wavelength_param = sqrt(0.05**2)#tan(sqrt(1e-12) *pi / (2*0.05))
@@ -402,7 +402,7 @@ def tst_ideal():
     # sqrt(0.01**2)))
   # offset = flex.double(
   #   [sqrt(1e-7)  for v in values])
-    
+
   target = Target(
     s0,
     s2_list,
@@ -413,7 +413,7 @@ def tst_ideal():
   def callback(x):
     spot_covariance = matrix_from_params(x)
     wavelength_variance = x[6]**2#(0.05*atan(x[6]) / (pi / 2))**2
-    lnL = -target(x) 
+    lnL = -target(x)
     print wavelength_variance, ("%.2e " * 9) % tuple(spot_covariance), lnL
 
   # Do the simplex optimization
@@ -438,9 +438,9 @@ def tst_ideal():
 
   # Create the covariance matrix
   spot_covariance = matrix_from_params(params)
- 
+
   print spot_covariance
-  
+
   wavelength_variance = params[6]**2#(0.05*atan(params[6]) / (pi / 2))**2
   print wavelength_variance
 

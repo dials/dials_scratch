@@ -459,7 +459,7 @@ def generate_with_wavelength_spread(s0, sigma_spot, sigma_wavelength, N = 100):
       uniform(0, 1),
       uniform(0, 1),
       uniform(0, 1))).normalize()
-    
+
     # Compute the local spread in energy
     q0 = s2_direction.normalize()*s0.length()-s0
     sigma_wavelength_local = sqrt(sigma_wavelength) * q0.dot(q0) / 2
@@ -474,7 +474,7 @@ def generate_with_wavelength_spread(s0, sigma_spot, sigma_wavelength, N = 100):
     # Rotate to get mu
     mu = R*s2
     assert abs(mu.normalize().dot(matrix.col((0, 0, 1))) - 1) < 1e-7
- 
+
 
     # Apply the wavelength spread to the sigma
     Sigma1_inv = sigmap.inverse()
@@ -552,7 +552,7 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
       uniform(0, 1),
       uniform(0, 1),
       uniform(1, 1))).normalize()
-    
+
     # Compute the local spread in energy
     q0 = s2_direction.normalize()*s0.length()-s0
     wavelength_variance_local = wavelength_variance * (q0.dot(q0) / 2)**2
@@ -564,7 +564,7 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
     s2_magnitude = normal(s0.length(), sqrt(sigma_spread))
     #s2_magnitude = normal(s0.length(), sqrt(sigmap[8]))
     s2 = s2_direction * s2_magnitude
-  
+
     resolution = 1.0 / (2.0 * s0.length() * sin(0.5*s0.angle(s2)))
 
     #print resolution
@@ -572,7 +572,7 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
     # Rotate to get mu
     mu = R*s2
     assert abs(mu.normalize().dot(matrix.col((0, 0, 1))) - 1) < 1e-7
-    
+
     # Partition matrix
     S11 = matrix.sqr((
       sigmap[0], sigmap[1],
@@ -580,7 +580,7 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
     S12 = matrix.col((sigmap[2], sigmap[5]))
     S21 = matrix.col((sigmap[6], sigmap[7])).transpose()
     S22 = sigmap[8]
-    
+
     # Apply the wavelength spread to the sigma
     Sp_22 = S22*wavelength_variance_local / (S22 + wavelength_variance_local)
     Sp_12 = S12*Sp_22/S22
@@ -590,14 +590,14 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
       Sp_11[0], Sp_11[1], Sp_12[0],
       Sp_11[2], Sp_11[3], Sp_12[1],
       Sp_12[0], Sp_12[1], Sp_22))
-    
+
     # Apply the wavelength spread to the mean
     mu1 = mu
     mu2 = matrix.col((0, 0, s0.length()))
     z0 = (mu1[2]*wavelength_variance_local + mu2[2]*S22) / (S22 + wavelength_variance_local)
     x0 = matrix.col((mu1[0], mu1[1])) + S12*(1/S22)*(z0 - mu1[2])
     mu3 = matrix.col((x0[0], x0[1], z0))
- 
+
     # Apply the wavelength spread to the sigma
     # Sigma1_inv = sigmap.inverse()
     # Sigma2_inv = matrix.sqr((
@@ -612,12 +612,12 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
     # mu2 = matrix.col((0, 0, s0.length()))
     # mu3 = Sigma3*(Sigma1_inv*mu1 + Sigma2_inv*mu2)
 
-    # Rotate the sigma and mean vector back 
+    # Rotate the sigma and mean vector back
     Sigma3 = R.transpose()*Sigma3*R
     s3 = R.transpose()*mu3
     q3 = s3 - s0
 
-    
+
     # Compute the scale factor and intensity
     I = uniform(50, 1000)
     if I <= 1:
@@ -631,12 +631,12 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
 
     # Generate points
     for p in points:
-     
+
       p = matrix.col(p)
 
       # Compute wavelength and diffracting vector for point
       wavelength = -2.0 * s0.normalize().dot(p) / (p.dot(p))
-      s0w = s0.normalize() / wavelength      
+      s0w = s0.normalize() / wavelength
       s1w = s0w + p
       assert abs(s1w.length() - s0w.length()) < 1e-10
 
@@ -676,7 +676,7 @@ def generate_with_wavelength_spread2(D, s0, spot_covariance, wavelength_variance
     Sobs /= ctot
 
     # print tuple(xbar), tuple(Sobs)
-      
+
     s2_list.append(s2)
     ctot_list.append(ctot)
     xbar_list.append(xbar)

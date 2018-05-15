@@ -729,17 +729,16 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     lnL = self.log_likelihood(x)
     mse = self.mse(x)
     rmsd = self.rmsd(x)
-    kappa = self.condition_number(x)
 
     # Get some matrices
     U = self.model.get_U()
     M = self.model.get_M()
-    L = self.model.get_L_W()
+    # L = self.model.get_L_W()
 
     # Print some information
     format_string1 = "  Unit cell: (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
     format_string2 = "  | % .6f % .6f % .6f |"
-    format_string3 = "  | % .2e % .2e % .2e |    | % .2e % .2e % .2e |"
+    format_string3 = "  | % .2e % .2e % .2e |"
     lines = [
       "",
       "Iteration: %d" % len(self.history),
@@ -751,18 +750,16 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       format_string2 % tuple(U[3:6]),
       format_string2 % tuple(U[6:9]),
       "",
-      "  %s%s%s" % ("Sigma M", " "*30, "Sigma L + Sigma W"),
-      format_string3 % (tuple(M[0:3]) + tuple(L[0:3])),
-      format_string3 % (tuple(M[3:6]) + tuple(L[3:6])),
-      format_string3 % (tuple(M[6:9]) + tuple(L[6:9])),
+      "  Sigma M",
+      format_string3 % tuple(M[0:3]),
+      format_string3 % tuple(M[3:6]),
+      format_string3 % tuple(M[6:9]),
       "",
       "  ln(L) = %f" % lnL,
       "",
       "  R.M.S.D (local) = %.5g" % sqrt(mse),
       "",
       "  R.M.S.D (pixel): X = %.3f, Y = %.3f" % tuple(rmsd),
-      "",
-      "  Condition number = %.2g" % kappa,
       "",
       "-" * 80
     ]
@@ -884,9 +881,8 @@ class Refiner(object):
     logger.info("Components to refine:")
     logger.info(" Orientation:       %s" % (not self.state.is_orientation_fixed()))
     logger.info(" Unit cell:         %s" % (not self.state.is_unit_cell_fixed()))
-    logger.info(" RLP mosaicity:     %s" % (not self.state.is_rlp_mosaicity_fixed()))
+    logger.info(" RLP mosaicity:     %s" % (True))
     logger.info(" Wavelength spread: %s" % (not self.state.is_wavelength_spread_fixed()))
-    logger.info(" Angular mosaicity: %s" % (not self.state.is_angular_mosaicity_fixed()))
     logger.info("")
 
     # Initialise the algorithm
@@ -916,15 +912,6 @@ class Refiner(object):
     logger.info("#")
     logger.info("#" * 80)
     print_eigen_values_and_vectors(self.state.get_M())
-
-    # Print the eigen values and vectors of sigma_lw
-    logger.info("")
-    logger.info("#" * 80)
-    logger.info("#")
-    logger.info("# Decomposition of Sigma_L + Sigma_W:")
-    logger.info("#")
-    logger.info("#" * 80)
-    print_eigen_values_and_vectors(self.state.get_L_W())
 
     # Return the optimizer
     return ml

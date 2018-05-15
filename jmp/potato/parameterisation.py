@@ -288,133 +288,6 @@ class WavelengthSpreadParameterisation(object):
     return d2
 
 
-class AngularMosaicityParameterisation(object):
-  '''
-  A simple mosaicity parameterisation that uses 3 parameters to describe a
-  multivariate normal angular mosaic spread. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
-
-  W = | w1 0  0  |
-      | w2 w3 0  |
-      | 0  0  0 |
-
-  S = W*W^T
-
-  '''
-
-  def __init__(self, params=None):
-    '''
-    Initialise with the parameters
-
-    '''
-    if params is not None:
-      assert len(params) == self.num_parameters()
-      self.params = params
-    else:
-      self.params = flex.double(self.num_parameters(), 0)
-
-  def num_parameters(self):
-    '''
-    Get the number of parameters
-
-    '''
-    return 3
-
-  def set_parameters(self, params):
-    '''
-    Set the parameters
-
-    '''
-    assert len(params) == self.num_parameters()
-    self.params = params
-
-  def parameters(self):
-    '''
-    Return the parameters
-
-    '''
-    return self.params
-
-  def sigma(self):
-    '''
-    Compute the covariance matrix of the MVN from the parameters
-
-    '''
-    M = matrix.sqr((
-      self.params[0], 0, 0,
-      self.params[1], self.params[2], 0,
-      0, 0, 0))
-    return M*M.transpose()
-
-  def first_derivatives(self):
-    '''
-    Compute the first derivatives of Sigma w.r.t the parameters
-
-    '''
-    b1, b2, b3 = self.params
-
-    d1 = (
-      2*b1,b2,0,
-      b2,0,0,
-      0,0,0)
-
-    d2 = (
-      0,b1,0,
-      b1,2*b2,0,
-      0,0,0)
-
-    d3 = (
-      0,0,0,
-      0,2*b3,0,
-      0,0,0)
-
-    return flex.mat3_double([d1, d2, d3])
-
-  def second_derivatives(self):
-    '''
-    Compute the second derivatives of Sigma w.r.t the parameters
-
-    '''
-    b1, b2, b3 = self.params
-
-    zero = (
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0)
-
-    d11 = (
-      2, 0, 0,
-      0, 0, 0,
-      0, 0, 0)
-    d12 = (
-      0, 1, 0,
-      1, 0, 0,
-      0, 0, 0)
-    d13 = zero
-
-    d21 = d12
-    d22 = (
-      0, 0, 0,
-      0, 2, 0,
-      0, 0, 0)
-    d23 = zero
-
-    d31 = zero
-    d32 = zero
-    d33 = (
-      0, 0, 0,
-      0, 2, 0,
-      0, 0, 0)
-
-    d2 = flex.mat3_double([
-      d11, d12, d13,
-      d21, d22, d23,
-      d31, d32, d33])
-    d2.reshape(flex.grid(3,3))
-
-    return d2
-
-
 class ModelState(object):
   '''
   A class to keep track of the model state
@@ -423,9 +296,7 @@ class ModelState(object):
 
   def __init__(self,
                experiment,
-               fix_rlp_mosaicity=False,
                fix_wavelength_spread=False,
-               fix_angular_mosaicity=False,
                fix_unit_cell=False,
                fix_orientation=False):
     '''
@@ -444,12 +315,9 @@ class ModelState(object):
     # The M, L and W parameterisations
     self.M_parameterisation = SimpleMosaicityParameterisation()
     self.L_parameterisation = WavelengthSpreadParameterisation()
-    self.W_parameterisation = AngularMosaicityParameterisation()
 
     # Set the flags to fix parameters
-    self._is_rlp_mosaicity_fixed = fix_rlp_mosaicity
     self._is_wavelength_spread_fixed = fix_wavelength_spread
-    self._is_angular_mosaicity_fixed = fix_angular_mosaicity
     self._is_unit_cell_fixed = fix_unit_cell
     self._is_orientation_fixed = fix_orientation
 
@@ -462,17 +330,10 @@ class ModelState(object):
 
   def is_unit_cell_fixed(self):
     '''
-    Return whether the unit celll is fixed
+    Return whether the unit cell is fixed
 
     '''
     return self._is_unit_cell_fixed
-
-  def is_rlp_mosaicity_fixed(self):
-    '''
-    Return whether the rlp mosaicity is fixed
-
-    '''
-    return self._is_rlp_mosaicity_fixed
 
   def is_wavelength_spread_fixed(self):
     '''
@@ -480,13 +341,6 @@ class ModelState(object):
 
     '''
     return self._is_wavelength_spread_fixed
-
-  def is_angular_mosaicity_fixed(self):
-    '''
-    Return whether the angular mosaicity is fixed
-
-    '''
-    return self._is_angular_mosaicity_fixed
 
   def get_unit_cell(self):
     '''
@@ -530,22 +384,6 @@ class ModelState(object):
     '''
     return self.L_parameterisation.sigma()
 
-  def get_W(self):
-    '''
-    Get the Sigma W matrix
-
-    '''
-    return self.W_parameterisation.sigma()
-
-  def get_L_W(self):
-    '''
-    Get the combined L+W matrix
-
-    '''
-    L = self.get_L()
-    W = self.get_W()
-    return L + W
-
   def get_U_params(self):
     '''
     Get the U parameters
@@ -573,13 +411,6 @@ class ModelState(object):
 
     '''
     return self.L_parameterisation.parameters()
-
-  def get_W_params(self):
-    '''
-    Get the W parameters
-
-    '''
-    return self.W_parameterisation.parameters()
 
   def set_U_params(self, params):
     '''
@@ -609,13 +440,6 @@ class ModelState(object):
     '''
     return self.L_parameterisation.set_parameters(params)
 
-  def set_W_params(self, params):
-    '''
-    Set the W parameters
-
-    '''
-    return self.W_parameterisation.set_parameters(params)
-
   def num_U_params(self):
     '''
     Get the number of U parameters
@@ -643,13 +467,6 @@ class ModelState(object):
 
     '''
     return len(self.get_L_params())
-
-  def num_W_params(self):
-    '''
-    Get the number of W parameters
-
-    '''
-    return len(self.get_W_params())
 
   def get_dU_dp(self):
     '''
@@ -679,13 +496,6 @@ class ModelState(object):
     '''
     return self.L_parameterisation.first_derivatives()
 
-  def get_dW_dp(self):
-    '''
-    Get the first derivatives of W w.r.t its parameters
-
-    '''
-    return self.W_parameterisation.first_derivatives()
-
   def get_active_parameters(self):
     '''
     Get the active parameters in order: U, B, M, L, W
@@ -696,12 +506,9 @@ class ModelState(object):
       active_params.extend(self.get_U_params())
     if not self._is_unit_cell_fixed:
       active_params.extend(self.get_B_params())
-    if not self._is_rlp_mosaicity_fixed:
-      active_params.extend(self.get_M_params())
+    active_params.extend(self.get_M_params())
     if not self._is_wavelength_spread_fixed:
       active_params.extend(self.get_L_params())
-    if not self._is_angular_mosaicity_fixed:
-      active_params.extend(self.get_W_params())
     return active_params
 
   def set_active_parameters(self, params):
@@ -717,17 +524,13 @@ class ModelState(object):
       temp   = params[:self.num_B_params()]
       params = params[self.num_B_params():]
       self.set_B_params(temp)
-    if not self._is_rlp_mosaicity_fixed:
-      temp   = params[:self.num_M_params()]
-      params = params[self.num_M_params():]
-      self.set_M_params(temp)
+    temp   = params[:self.num_M_params()]
+    params = params[self.num_M_params():]
+    self.set_M_params(temp)
     if not self._is_wavelength_spread_fixed:
       temp   = params[:self.num_L_params()]
       params = params[self.num_L_params():]
       self.set_L_params(temp)
-    if not self._is_angular_mosaicity_fixed:
-      temp   = params[:self.num_W_params()]
-      self.set_W_params(temp)
 
 
 
@@ -749,7 +552,6 @@ class ReflectionModelState(object):
     B = state.get_B()
     M = state.get_M()
     L = state.get_L()
-    W = state.get_W()
 
     # Compute the reciprocal lattice vector
     h = matrix.col(h)
@@ -769,7 +571,7 @@ class ReflectionModelState(object):
     rq1 = r.cross(q1)
 
     # Compute the covariance matrix
-    self._sigma = M + t*Q*(L + W)*Q.transpose()
+    self._sigma = M #+ t*Q*(L + W)*Q.transpose()
     self._r = r
 
     # Get the derivatives of the model state
@@ -777,7 +579,6 @@ class ReflectionModelState(object):
     dB_dp = state.get_dB_dp()
     dM_dp = state.get_dM_dp()
     dL_dp = state.get_dL_dp()
-    dW_dp = state.get_dW_dp()
 
     # The array of derivatives
     self._dr_dp = flex.vec3_double()
@@ -801,9 +602,9 @@ class ReflectionModelState(object):
           dq1.elems +
           dq2.elems +
           dq3.elems)
-        ds_dp_u[i] = dt*Q*(L+W)*Q.transpose() \
-                   + t*dQ*(L+W)*Q.transpose() \
-                   + t*Q*(L+W)*dQ.transpose()
+        # ds_dp_u[i] = dt*Q*(L+W)*Q.transpose() \
+        #            + t*dQ*(L+W)*Q.transpose() \
+        #            + t*Q*(L+W)*dQ.transpose()
       self._dr_dp.extend(dr_dp_u)
       self._ds_dp.extend(ds_dp_u)
 
@@ -825,44 +626,42 @@ class ReflectionModelState(object):
           dq1.elems +
           dq2.elems +
           dq3.elems)
-        ds_dp_b[i] = dt*Q*(L+W)*Q.transpose() \
-                   + t*dQ*(L+W)*Q.transpose() \
-                   + t*Q*(L+W)*dQ.transpose()
+        # ds_dp_b[i] = dt*Q*(L+W)*Q.transpose() \
+        #            + t*dQ*(L+W)*Q.transpose() \
+        #            + t*Q*(L+W)*dQ.transpose()
       self._dr_dp.extend(dr_dp_b)
       self._ds_dp.extend(ds_dp_b)
 
     # Compute derivatives w.r.t M parameters
-    if not state.is_rlp_mosaicity_fixed():
-
-      dr_dp_m = flex.vec3_double(state.num_M_params())
-      ds_dp_m = flex.mat3_double(state.num_M_params())
-      for i in range(state.num_M_params()):
-        dr_dp_m[i] = (0, 0, 0)
-        ds_dp_m[i] = dM_dp[i]
-      self._dr_dp.extend(dr_dp_m)
-      self._ds_dp.extend(ds_dp_m)
+    dr_dp_m = flex.vec3_double(state.num_M_params())
+    ds_dp_m = flex.mat3_double(state.num_M_params())
+    for i in range(state.num_M_params()):
+      dr_dp_m[i] = (0, 0, 0)
+      ds_dp_m[i] = dM_dp[i]
+    self._dr_dp.extend(dr_dp_m)
+    self._ds_dp.extend(ds_dp_m)
 
     # Compute derivatives w.r.t L parameters
-    if not state.is_wavelength_spread_fixed():
+    # if not state.is_wavelength_spread_fixed():
 
-      dr_dp_l = flex.vec3_double(state.num_L_params())
-      ds_dp_l = flex.mat3_double(state.num_L_params())
-      for i in range(state.num_L_params()):
-        dr_dp_l[i] = (0, 0, 0)
-        ds_dp_l[i] = t*Q*matrix.sqr(dL_dp[i])*Q.transpose()
-      self._dr_dp.extend(dr_dp_l)
-      self._ds_dp.extend(ds_dp_l)
+    #   dr_dp_l = flex.vec3_double(state.num_L_params())
+    #   ds_dp_l = flex.mat3_double(state.num_L_params())
+    #   for i in range(state.num_L_params()):
+    #     dr_dp_l[i] = (0, 0, 0)
+    #     ds_dp_l[i] = t*Q*matrix.sqr(dL_dp[i])*Q.transpose()
+    #   self._dr_dp.extend(dr_dp_l)
+    #   self._ds_dp.extend(ds_dp_l)
 
-    # Compute derivatives w.r.t W parameters
-    if not state.is_angular_mosaicity_fixed():
+    # # Compute derivatives w.r.t W parameters
+    # if not state.is_angular_mosaicity_fixed():
 
-      dr_dp_w = flex.vec3_double(state.num_W_params())
-      ds_dp_w = flex.mat3_double(state.num_W_params())
-      for i in range(state.num_W_params()):
-        dr_dp_w[i] = (0, 0, 0)
-        ds_dp_w[i] = t*Q*matrix.sqr(dW_dp[i])*Q.transpose()
-      self._dr_dp.extend(dr_dp_w)
-      self._ds_dp.extend(ds_dp_w)
+    #   dr_dp_w = flex.vec3_double(state.num_W_params())
+    #   ds_dp_w = flex.mat3_double(state.num_W_params())
+    #   for i in range(state.num_W_params()):
+    #     dr_dp_w[i] = (0, 0, 0)
+    #     ds_dp_w[i] = t*Q*matrix.sqr(dW_dp[i])*Q.transpose()
+    #   self._dr_dp.extend(dr_dp_w)
+    #   self._ds_dp.extend(ds_dp_w)
 
   def get_sigma(self):
     '''
