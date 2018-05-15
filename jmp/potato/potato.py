@@ -477,7 +477,7 @@ class Refiner(object):
     Dmean = flex.sum(D) / len(D)
     Dvar = flex.sum(flex.double([(d - Dmean)**2 for d in D])) / len(D)
     fig, ax1 = pylab.subplots(figsize=(10,8))
-    ax1.hist(D, bins=max(5, min(0.2*len(s2), 20)))
+    ax1.hist(D, bins=max(5, min(int(0.2*len(s2)), 20)))
     ax1.set_xlabel("Distance from Ewald sphere (epsilon)")
     ax1.axvline(x=0, color='black')
     ax1.set_title("Mean(epsilon) = %.2e, Variance(epsilon) = %.2e" % (
@@ -629,7 +629,7 @@ class FinalIntegrator(object):
     from matplotlib import pylab
     P = self.reflections['partiality']
     fig, ax1 = pylab.subplots(figsize=(10,8))
-    ax1.hist(P, bins=max(5, min(0.2*len(P), 20)))
+    ax1.hist(P, bins=max(5, int(min(0.2*len(P)), 20)))
     ax1.set_xlabel("Scale factor")
     fig.savefig("partiality.png", dpi=300)
     fig.clf()
