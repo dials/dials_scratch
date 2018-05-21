@@ -2,7 +2,6 @@ from __future__ import division
 from scitbx import matrix
 from scitbx import linalg
 from dials.array_family import flex
-from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.util.simplex import SimpleSimplex
 from dials_scratch.jmp.potato.parameterisation import ReflectionModelState
@@ -988,9 +987,9 @@ class RefinerData(object):
 
       # The vector to the pixel centroid
       sp = matrix.col(panel.get_pixel_lab_coord(xyzobs[r][0:2])).normalize()*s0.length()
-
-      # Create the coordinate system
-      cs = CoordinateSystem2d(s0, sp)
+    
+      # Compute change of basis
+      R = compute_change_of_basis_operation(s0, sp)
 
       # Get data and compute total counts
       data = sbox[r].data
@@ -1014,7 +1013,8 @@ class RefinerData(object):
             jj = j + j0
             s = panel.get_pixel_lab_coord((ii+0.5,jj+0.5))
             s = matrix.col(s).normalize() * s0_length
-            X[j,i] = cs.from_beam_vector(s)
+            e = R*(s - sp)
+            X[j,i] = (e[0], e[1])
             C[j,i] = c
 
       # Check we have a sensible number of counts
@@ -1064,7 +1064,7 @@ class RefinerData(object):
     logger.info("")
     logger.info( "Mean observed covariance:")
     print_matrix(Smean)
-    print_eigen_values_and_vectors_of_observed_covariance(Smean)
+    print_eigen_values_and_vectors_of_observed_covariance(Smean, s0)
     logger.info("")
     logger.info("Mean observed bias^2:")
     print_matrix(Bmean)
@@ -1080,7 +1080,7 @@ class RefinerData(object):
     return RefinerData(s0, sp_list, h_list, ctot_list, mobs_list, Sobs_list)
 
 
-def print_eigen_values_and_vectors_of_observed_covariance(A):
+def print_eigen_values_and_vectors_of_observed_covariance(A, s0):
   '''
   Print the eigen values and vectors of a matrix
 
@@ -1104,8 +1104,8 @@ def print_eigen_values_and_vectors_of_observed_covariance(A):
   logger.info("")
 
   logger.info("Observed covariance in degrees equivalent units")
-  logger.info("C1: %.5f degrees" % (sqrt(L[0])*180.0/pi))
-  logger.info("C2: %.5f degrees" % (sqrt(L[3])*180.0/pi))
+  logger.info("C1: %.5f degrees" % (sqrt(L[0])*(180.0/pi)/s0.length()))
+  logger.info("C2: %.5f degrees" % (sqrt(L[3])*(180.0/pi)/s0.length()))
 
 def print_eigen_values_and_vectors(A):
   '''
