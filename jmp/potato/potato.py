@@ -495,7 +495,7 @@ class Refiner(object):
 
     # Compute the eigen decomposition of the covariance matrix and check
     # largest eigen value
-    eigen_decomposition = linalg.eigensystem.real_symmetric(state.get_A().as_flex_double_matrix())
+    eigen_decomposition = eigensystem.real_symmetric(state.get_M().as_flex_double_matrix())
     L = eigen_decomposition.values()
     if L[0] > 1e-5:
       raise RuntimeError("Mosaicity matrix is unphysically large")

@@ -226,7 +226,7 @@ class ReflectionLikelihood(object):
 
     # Compute the marginal likelihood
     m_d = s0.length() - mu2
-    m_lnL = log(S22) + S22_inv*m_d**2
+    m_lnL = ctot*(log(S22) + S22_inv*m_d**2)
 
     # Compute the conditional likelihood
     c_d = mobs - mubar
@@ -259,6 +259,7 @@ class ReflectionLikelihood(object):
     dSbar = self.conditional.first_derivatives_of_sigma()
     dmbar = self.conditional.first_derivatives_of_mean()
     Sbar_inv = Sbar.inverse()
+    ctot = 1
 
     # The distance from the ewald sphere
     epsilon = s0.length() - mu2
@@ -277,7 +278,7 @@ class ReflectionLikelihood(object):
         1, 0,
         0, 1))
 
-      U = S22_inv*dS22[i]*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep
+      U = ctot*(S22_inv*dS22[i]*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep)
       V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
       W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
 
@@ -310,15 +311,16 @@ class ReflectionLikelihood(object):
     dmbar = self.conditional.first_derivatives_of_mean()
     Sbar_inv = Sbar.inverse()
     dmu = self.dmu
+    ctot = 1
 
     # Compute the fisher information wrt parameter i j
     I = flex.double(flex.grid(len(dS22), len(dS22)))
     for j in range(len(dS22)):
       for i in range(len(dS22)):
-        U = S22_inv*dS22[j]*S22_inv*dS22[i]
+        U = ctot*S22_inv*dS22[j]*S22_inv*dS22[i]
         V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*ctot).trace()
         W = ctot*(dmbar[i].transpose()*Sbar_inv*dmbar[j])[0]
-        X = dmu[i][2]*S22_inv*dmu[j][2]
+        X = ctot*dmu[i][2]*S22_inv*dmu[j][2]
         I[j,i] = 0.5*(U+V) + W + X
 
     return I
@@ -977,6 +979,7 @@ class RefinerData(object):
     Sobs_list = flex.double(flex.grid(len(h_list), 4))
     Bmean = matrix.sqr((0, 0, 0, 0))
 
+    # SSS = 0
     logger.info("Computing observed covariance for %d reflections" % len(reflections))
     s0_length = s0.length()
     assert len(experiment.detector) == 1
@@ -1007,13 +1010,13 @@ class RefinerData(object):
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
           c = data[0,j,i] - bgrd[0,j,i]
-          if mask[0,j,i] == 5 and c > 0:
+          if mask[0,j,i] == 5:# and c > 0:
             ctot += c
             ii = i + i0
             jj = j + j0
             s = panel.get_pixel_lab_coord((ii+0.5,jj+0.5))
             s = matrix.col(s).normalize() * s0_length
-            e = R*(s - sp)
+            e = R*s
             X[j,i] = (e[0], e[1])
             C[j,i] = c
 
@@ -1035,6 +1038,15 @@ class RefinerData(object):
           x = matrix.col(X[j,i])
           Sobs += (x-xbar)*(x-xbar).transpose()*C[j,i]
       Sobs /= ctot
+      assert Sobs > 0, "BUG: variance must be > 0"
+
+      # SS = 0
+      # for j in range(X.all()[0]):
+      #   for i in range(X.all()[1]):
+      #     x = matrix.col(X[j,i])
+      #     SS += ((x-xbar).transpose()*(x-xbar))[0]*C[j,i]
+      # SS /= len(X)
+      # SSS += SS
 
       # Compute the bias
       zero = matrix.col((0, 0))
@@ -1049,6 +1061,10 @@ class RefinerData(object):
       Sobs_list[r,1] = Sobs[1]
       Sobs_list[r,2] = Sobs[2]
       Sobs_list[r,3] = Sobs[3]
+
+    # SSS /= len(ctot_list)
+    # print SSS
+    # print sqrt(SSS)*(180.0/pi)/s0.length()
 
     # Print some information
     logger.info("I_min = %.2f, I_max = %.2f" % (
