@@ -268,6 +268,9 @@ class InitialIntegrator(object):
     self.experiments = experiments
     self.reflections = reflections
 
+    # Save the old shoeboxes
+    self.shoeboxes = self.reflections['shoebox']
+
     # Do the processing
     self._compute_sigma_d()
     self._compute_beam_vector()
@@ -368,6 +371,23 @@ class InitialIntegrator(object):
       self.reflections['s1_obs'],
       self.reflections['xyzcal.px'].parts()[2],
       self.reflections['panel'])
+
+    # Apply strong spot mask
+    assert len(self.reflections) == len(self.shoeboxes)
+    new_shoeboxes = self.reflections['shoebox']
+    old_shoeboxes = self.shoeboxes
+    for s in range(len(new_shoeboxes)):
+      bbox_old = old_shoeboxes[s].bbox
+      mask_old = old_shoeboxes[s].mask
+      bbox_new = new_shoeboxes[s].bbox
+      mask_new = new_shoeboxes[s].mask
+      for j in range(mask_old.all()[1]):
+        for i in range(mask_old.all()[2]):
+          ii = bbox_old[0] + i - bbox_new[0]
+          jj = bbox_old[2] + j - bbox_new[2]
+          if mask_old[0, j,i] == 5:
+            assert mask_new[0, jj,ii] == 5
+            mask_new[0, jj,ii] |= (1 << 3)
 
   def _extract_shoebox(self):
     '''
