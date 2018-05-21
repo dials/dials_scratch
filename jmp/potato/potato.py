@@ -75,6 +75,16 @@ phil_scope = parse('''
 
   }
 
+  indexing {
+
+    reindex_input_reflections = False
+      .type = bool
+
+    fail_on_bad_index = True
+      .type = bool
+
+  }
+
   refinement {
 
     max_centroid_distance = 2
@@ -139,50 +149,57 @@ class Indexer(object):
     '''
 
     # Get some stuff from experiment
-    if False:
-      selection = self.reflections.get_flags(self.reflections.flags.indexed)
-    else:
-      A = matrix.sqr(self.experiments[0].crystal.get_A())
-      s0 = matrix.col(self.experiments[0].beam.get_s0())
-      detector = self.experiments[0].detector
+    A = matrix.sqr(self.experiments[0].crystal.get_A())
+    s0 = matrix.col(self.experiments[0].beam.get_s0())
+    detector = self.experiments[0].detector
 
-      # Index all the reflections
-      xyz_list = self.reflections['xyzobs.px.value']
-      miller_index = self.reflections['miller_index']
-      selection = flex.size_t()
-      for i in range(len(self.reflections)):
+    # Index all the reflections
+    xyz_list = self.reflections['xyzobs.px.value']
+    miller_index = self.reflections['miller_index']
+    selection = flex.size_t()
+    for i in range(len(self.reflections)):
 
-        # Get the observed pixel coordinate
-        x, y, _ = xyz_list[i]
+      # Get the observed pixel coordinate
+      x, y, _ = xyz_list[i]
 
-        # Get the lab coord
-        s1 = matrix.col(detector[0].get_pixel_lab_coord((x,y))).normalize()*s0.length()
+      # Get the lab coord
+      s1 = matrix.col(detector[0].get_pixel_lab_coord((x,y))).normalize()*s0.length()
 
-        # Get the reciprocal lattice vector
-        r = s1 - s0
+      # Get the reciprocal lattice vector
+      r = s1 - s0
 
-        # Compute the fractional miller index
-        hf = A.inverse() * r
+      # Compute the fractional miller index
+      hf = A.inverse() * r
 
-        # Compute the integer miller index
-        h = matrix.col((
-          int(floor(hf[0] + 0.5)),
-          int(floor(hf[1] + 0.5)),
-          int(floor(hf[2] + 0.5))))
+      # Compute the integer miller index
+      h = matrix.col((
+        int(floor(hf[0] + 0.5)),
+        int(floor(hf[1] + 0.5)),
+        int(floor(hf[2] + 0.5))))
 
-        # If its not indexed as 0, 0, 0 then append
-        if h != matrix.col((0, 0, 0)) and (h - hf).length() < 0.3:
-          miller_index[i] = h
-          selection.append(i)
+      # Print warning if reindexing
+      if tuple(h) != miller_index[i]:
+        logger.warn("Reindexing (% 3d, % 3d, % 3d) -> (% 3d, % 3d, % 3d)" % (
+          miller_index[i] + tuple(h)))
+        if self.params.indexing.fail_on_bad_index:
+          raise RuntimeError("Bad index")
 
-    # Print some info
-    logger.info("Reindexed %d/%d input reflections" % (
-      len(selection),
-      len(self.reflections)))
+      # If its not indexed as 0, 0, 0 then append
+      if h != matrix.col((0, 0, 0)) and (h - hf).length() < 0.3:
+        miller_index[i] = h
+        selection.append(i)
 
-    # Select all the indexed reflections
-    self.reflections.set_flags(selection, self.reflections.flags.indexed)
-    self.reflections = self.reflections.select(selection)
+    # Try to reindex input reflections
+    if self.params.indexing.reindex_input_reflections:
+
+      # Print some info
+      logger.info("Reindexed %d/%d input reflections" % (
+        len(selection),
+        len(self.reflections)))
+
+      # Select all the indexed reflections
+      self.reflections.set_flags(selection, self.reflections.flags.indexed)
+      self.reflections = self.reflections.select(selection)
 
   def _predict(self):
     '''
