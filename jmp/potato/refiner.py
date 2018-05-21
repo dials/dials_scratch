@@ -987,7 +987,7 @@ class RefinerData(object):
 
       # The vector to the pixel centroid
       sp = matrix.col(panel.get_pixel_lab_coord(xyzobs[r][0:2])).normalize()*s0.length()
-    
+
       # Compute change of basis
       R = compute_change_of_basis_operation(s0, sp)
 

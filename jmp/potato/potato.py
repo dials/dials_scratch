@@ -22,7 +22,6 @@ from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
 from dials_scratch.jmp.potato.parameterisation import ModelState
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
-from dials_scratch.jmp.potato import chisq_quantile
 from dials_scratch.jmp.potato import Predictor
 from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
@@ -140,38 +139,41 @@ class Indexer(object):
     '''
 
     # Get some stuff from experiment
-    A = matrix.sqr(self.experiments[0].crystal.get_A())
-    s0 = matrix.col(self.experiments[0].beam.get_s0())
-    detector = self.experiments[0].detector
+    if False:
+      selection = self.reflections.get_flags(self.reflections.flags.indexed)
+    else:
+      A = matrix.sqr(self.experiments[0].crystal.get_A())
+      s0 = matrix.col(self.experiments[0].beam.get_s0())
+      detector = self.experiments[0].detector
 
-    # Index all the reflections
-    xyz_list = self.reflections['xyzobs.px.value']
-    miller_index = self.reflections['miller_index']
-    selection = flex.size_t()
-    for i in range(len(self.reflections)):
+      # Index all the reflections
+      xyz_list = self.reflections['xyzobs.px.value']
+      miller_index = self.reflections['miller_index']
+      selection = flex.size_t()
+      for i in range(len(self.reflections)):
 
-      # Get the observed pixel coordinate
-      x, y, _ = xyz_list[i]
+        # Get the observed pixel coordinate
+        x, y, _ = xyz_list[i]
 
-      # Get the lab coord
-      s1 = matrix.col(detector[0].get_pixel_lab_coord((x,y))).normalize()*s0.length()
+        # Get the lab coord
+        s1 = matrix.col(detector[0].get_pixel_lab_coord((x,y))).normalize()*s0.length()
 
-      # Get the reciprocal lattice vector
-      r = s1 - s0
+        # Get the reciprocal lattice vector
+        r = s1 - s0
 
-      # Compute the fractional miller index
-      hf = A.inverse() * r
+        # Compute the fractional miller index
+        hf = A.inverse() * r
 
-      # Compute the integer miller index
-      h = matrix.col((
-        int(floor(hf[0] + 0.5)),
-        int(floor(hf[1] + 0.5)),
-        int(floor(hf[2] + 0.5))))
+        # Compute the integer miller index
+        h = matrix.col((
+          int(floor(hf[0] + 0.5)),
+          int(floor(hf[1] + 0.5)),
+          int(floor(hf[2] + 0.5))))
 
-      # If its not indexed as 0, 0, 0 then append
-      if h != matrix.col((0, 0, 0)):
-        miller_index[i] = h
-        selection.append(i)
+        # If its not indexed as 0, 0, 0 then append
+        if h != matrix.col((0, 0, 0)) and (h - hf).length() < 0.3:
+          miller_index[i] = h
+          selection.append(i)
 
     # Print some info
     logger.info("Reindexed %d/%d input reflections" % (
@@ -179,6 +181,7 @@ class Indexer(object):
       len(self.reflections)))
 
     # Select all the indexed reflections
+    self.reflections.set_flags(selection, self.reflections.flags.indexed)
     self.reflections = self.reflections.select(selection)
 
   def _predict(self):
@@ -250,6 +253,7 @@ class InitialIntegrator(object):
 
     # Do the processing
     self._compute_sigma_d()
+    self._compute_beam_vector()
     self._compute_bbox()
     self._allocate_shoebox()
     self._extract_shoebox()
@@ -274,6 +278,19 @@ class InitialIntegrator(object):
     logger.info("Sigma D: %.5f degrees" % (self.sigma_d * 180 / pi))
     logger.info("")
 
+  def _compute_beam_vector(self):
+    '''
+    Compute the obseved beam vector
+
+    '''
+    panel = self.experiments[0].detector[0]
+    xyz = self.reflections['xyzobs.px.value']
+    s1_obs = flex.vec3_double(len(self.reflections))
+    for i in range(len(s1_obs)):
+      x, y, z = xyz[i]
+      s1_obs[i] = panel.get_pixel_lab_coord((x,y))
+    self.reflections['s1_obs'] = s1_obs
+
   def _compute_bbox(self):
     '''
     Compute the bounding box
@@ -294,7 +311,7 @@ class InitialIntegrator(object):
 
     # Compute the bounding box
     bbox = compute_bbox(
-      self.reflections['s1'],
+      self.reflections['s1_obs'],
       self.reflections['xyzcal.px'].parts()[2],
       self.reflections['panel'])
 
@@ -331,7 +348,7 @@ class InitialIntegrator(object):
     # Compute the reflection mask
     mask_foreground(
       self.reflections['shoebox'],
-      self.reflections['s1'],
+      self.reflections['s1_obs'],
       self.reflections['xyzcal.px'].parts()[2],
       self.reflections['panel'])
 
@@ -740,8 +757,21 @@ class Integrator(object):
       self.params.prediction.probability)
 
     # Do the prediction
+    self.reference = self.reflections
     self.reflections = predictor.predict(miller_indices_to_test)
     logger.info("Predicted %d reflections" % len(self.reflections))
+
+    # Match with the reference reflections
+    _, _, unmatched = self.reflections.match_with_reference(self.reference)
+
+    # Add unmatched
+    # columns = flex.std_string()
+    # for col in unmatched.keys():
+    #   if col in self.reflections:
+    #     columns.append(col)
+    # unmatched = unmatched.select(columns)
+    # unmatched['id'] = flex.size_t(list(unmatched['id']))
+    # self.reflections.extend(unmatched)
 
   def integrate(self):
     '''
