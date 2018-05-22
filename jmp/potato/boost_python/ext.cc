@@ -181,9 +181,6 @@ namespace dials { namespace algorithms { namespace boost_python {
         // If it is close enough then predict stuff
         if (d < quantile) {
 
-          // The entering flag
-          bool e = s2.length() < s0.length();
-
           // Compute the rotation of the reflection
           mat3<double> R = compute_change_of_basis_operation(s0, s2);
 
@@ -224,7 +221,7 @@ namespace dials { namespace algorithms { namespace boost_python {
             // Append the stuff to arrays
             experiment_id.push_back(0);
             miller_indices.push_back(h[i]);
-            entering.push_back(e);
+            entering.push_back(false);
             panel_list.push_back(0);
             s1_list.push_back(s1);
             s2_list.push_back(s2);

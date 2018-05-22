@@ -227,6 +227,7 @@ class Indexer(object):
       s1[i] = matrix.col(s2[i]).normalize()*s0.length()
     self.reflections['s1'] = s1
     self.reflections['s2'] = s2
+    self.reflections['entering'] = flex.bool(len(h), False)
 
     # Compute the ray intersections
     xyzpx = flex.vec3_double()
@@ -391,8 +392,9 @@ class InitialIntegrator(object):
           ii = bbox_old[0] + i - bbox_new[0]
           jj = bbox_old[2] + j - bbox_new[2]
           if mask_old[0, j,i] == 5:
-            assert mask_new[0,jj,ii] & (1 << 0)
-            mask_new[0, jj,ii] |= (1 << 2) | (1 << 3)
+            if ii >= 0 and jj >= 0 and jj < mask_new.all()[1] and ii < mask_new.all()[2]:
+              assert mask_new[0,jj,ii] & (1 << 0)
+              mask_new[0, jj,ii] |= (1 << 2) | (1 << 3)
 
   def _extract_shoebox(self):
     '''
@@ -575,6 +577,7 @@ class Refiner(object):
       s1[i] = matrix.col(s2[i]).normalize()*s0.length()
     self.reflections['s1'] = s1
     self.reflections['s2'] = s2
+    self.reflections['entering'] = flex.bool(len(h), False)
 
     # Compute the ray intersections
     xyzpx = flex.vec3_double()
