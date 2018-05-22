@@ -257,7 +257,6 @@ class Indexer(object):
       self.params.refinement.max_centroid_distance))
 
 
-
 class InitialIntegrator(object):
   '''
   A class to do an initial integration of strong spots
