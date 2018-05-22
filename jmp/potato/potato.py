@@ -113,6 +113,9 @@ phil_scope = parse('''
       profile_model = True
         .type = bool
 
+      history = True
+        .type = bool
+
       plots = False
         .type = bool
 
@@ -157,6 +160,10 @@ class Indexer(object):
     A = matrix.sqr(self.experiments[0].crystal.get_A())
     s0 = matrix.col(self.experiments[0].beam.get_s0())
     detector = self.experiments[0].detector
+
+    # Create array if necessary
+    if "miller_index" not in self.reflections:
+      self.reflections['miller_index'] = flex.miller_index(len(self.reflections))
 
     # Index all the reflections
     xyz_list = self.reflections['xyzobs.px.value']
@@ -508,6 +515,10 @@ class Refiner(object):
     if self.params.debug.output.profile_model:
       self._save_profile_model()
 
+    # Save the history
+    if self.params.debug.output.history:
+      self._save_history()
+
     # Make some plots
     if self.params.debug.output.plots:
       self._plot_distance_from_ewald_sphere("final")
@@ -534,6 +545,9 @@ class Refiner(object):
     # Create the refiner and refine
     refiner = ProfileRefiner(state, self._refiner_data)
     refiner.refine()
+
+    # Save the history
+    self.history = refiner.history
 
     # Set the profile parameters
     self.M_params = state.get_M_params()
@@ -657,7 +671,15 @@ class Refiner(object):
       data = {
         'rlp_mosaicity' : tuple(self.experiments[0].crystal.mosaicity),
       }
-      json.dump(data, outfile)
+      json.dump(data, outfile, indent=2)
+
+  def _save_history(self):
+    '''
+    Save the history
+
+    '''
+    with open("history.json", "w") as outfile:
+      json.dump(self.history, outfile, indent=2)
 
 
 class FinalIntegrator(object):

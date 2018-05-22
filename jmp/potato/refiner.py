@@ -734,6 +734,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     mse = self.mse(x)
     rmsd = self.rmsd(x)
 
+    # Get the unit cell
+    unit_cell = self.model.get_unit_cell().parameters()
+
     # Get some matrices
     U = self.model.get_U()
     M = self.model.get_M()
@@ -747,7 +750,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
       "",
       "Iteration: %d" % len(self.history),
       "",
-      format_string1 % self.model.get_unit_cell().parameters(),
+      format_string1 % unit_cell,
       "",
       "  U matrix (orientation)",
       format_string2 % tuple(U[0:3]),
@@ -770,7 +773,14 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     logger.info('\n'.join(lines))
 
     # Append the parameters to the history
-    self.history.append(x)
+    self.history.append({
+      "parameters"    : list(x),
+      "likelihood"    : lnL,
+      "unit_cell"     : unit_cell,
+      "orientation"   : list(U),
+      "rlp_mosaicity" : list(M),
+      "rmsd"          : tuple(rmsd)
+    })
 
 
 class Refiner(object):
@@ -791,6 +801,7 @@ class Refiner(object):
     self.mobs_list = data.mobs_list
     self.sobs_list = data.sobs_list
     self.state = state
+    self.history = []
 
   def refine(self):
     '''
@@ -916,6 +927,9 @@ class Refiner(object):
     logger.info("#")
     logger.info("#" * 80)
     print_eigen_values_and_vectors(self.state.get_M())
+
+    # Save the history
+    self.history = ml.history
 
     # Return the optimizer
     return ml
