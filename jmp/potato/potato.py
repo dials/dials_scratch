@@ -33,6 +33,7 @@ from math import pi, sqrt, floor, ceil, exp
 from dials.algorithms.shoebox import MaskCode
 import logging
 import matplotlib
+import json
 
 # Set matplotlib backend
 matplotlib.use("agg", warn=False)
@@ -106,6 +107,9 @@ phil_scope = parse('''
   debug {
     output {
       shoeboxes = True
+        .type = bool
+
+      profile_model = True
         .type = bool
 
       plots = False
@@ -386,8 +390,8 @@ class InitialIntegrator(object):
           ii = bbox_old[0] + i - bbox_new[0]
           jj = bbox_old[2] + j - bbox_new[2]
           if mask_old[0, j,i] == 5:
-            assert mask_new[0, jj,ii] == 5
-            mask_new[0, jj,ii] |= (1 << 3)
+            assert mask_new[0,jj,ii] & (1 << 0)
+            mask_new[0, jj,ii] |= (1 << 2) | (1 << 3)
 
   def _extract_shoebox(self):
     '''
@@ -467,6 +471,10 @@ class Refiner(object):
       logger.info("")
       logger.info("Macro cycle %d" % (cycle+1))
       self._refine_profile()
+
+    # Save the profile model
+    if self.params.debug.output.profile_model:
+      self._save_profile_model()
 
   def _preprocess(self):
     '''
@@ -555,6 +563,17 @@ class Refiner(object):
     plt = corrgram(corrmat, labels)
     plt.savefig("corrgram.png", dpi=300)
     plt.clf()
+
+  def _save_profile_model(self):
+    '''
+    Save the profile model to file
+
+    '''
+    with open("profile_model.json", "w") as outfile:
+      data = {
+        'rlp_mosaicity' : tuple(self.experiments[0].crystal.mosaicity),
+      }
+      json.dump(data, outfile)
 
 
 class FinalIntegrator(object):
