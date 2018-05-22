@@ -22,6 +22,7 @@ from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
 from dials_scratch.jmp.potato.parameterisation import ModelState
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
+from dials_scratch.jmp.potato import chisq_pdf
 from dials_scratch.jmp.potato import Predictor
 from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
@@ -472,9 +473,8 @@ class Refiner(object):
       logger.info("Macro cycle %d" % (cycle+1))
       self._refine_profile()
 
-    # Save the profile model
-    if self.params.debug.output.profile_model:
-      self._save_profile_model()
+    # Post process the reflections
+    self._postprocess()
 
   def _preprocess(self):
     '''
@@ -484,12 +484,32 @@ class Refiner(object):
 
     # Make some plots
     if self.params.debug.output.plots:
-      self._plot_distance_from_ewald_sphere()
+      self._plot_distance_from_ewald_sphere("initial")
 
     # Construct the profile refiner data
     self._refiner_data = RefinerData.from_reflections(
       self.experiments[0],
       self.reflections)
+
+  def _postprocess(self):
+    '''
+    Postprocess the reflections
+
+    '''
+
+    # Update predictions
+    self._predict()
+
+    # Compute prob
+    self._compute_prediction_probability()
+
+    # Save the profile model
+    if self.params.debug.output.profile_model:
+      self._save_profile_model()
+
+    # Make some plots
+    if self.params.debug.output.plots:
+      self._plot_distance_from_ewald_sphere("final")
 
   def _refine_profile(self):
     '''
@@ -534,7 +554,69 @@ class Refiner(object):
         refiner.correlation(),
         refiner.labels())
 
-  def _plot_distance_from_ewald_sphere(self):
+  def _predict(self):
+    '''
+    Predict the position of the spots
+
+    '''
+
+    # Get some stuff from experiment
+    A = matrix.sqr(self.experiments[0].crystal.get_A())
+    s0 = matrix.col(self.experiments[0].beam.get_s0())
+
+    # Compute the vector to the reciprocal lattice point
+    # since this is not on the ewald sphere, lets call it s2
+    h = self.reflections['miller_index']
+    s1 = flex.vec3_double(len(h))
+    s2 = flex.vec3_double(len(h))
+    for i in range(len(self.reflections)):
+      r = A*matrix.col(h[i])
+      s2[i] = s0 + r
+      s1[i] = matrix.col(s2[i]).normalize()*s0.length()
+    self.reflections['s1'] = s1
+    self.reflections['s2'] = s2
+
+    # Compute the ray intersections
+    xyzpx = flex.vec3_double()
+    xyzmm = flex.vec3_double()
+    for i in range(len(s2)):
+      ss = s1[i]
+      mm = self.experiments[0].detector[0].get_ray_intersection(ss)
+      px = self.experiments[0].detector[0].millimeter_to_pixel(mm)
+      xyzpx.append(px + (0,))
+      xyzmm.append(mm + (0,))
+    self.reflections['xyzcal.mm'] = xyzmm
+    self.reflections['xyzcal.px'] = xyzpx
+    logger.info("Do prediction for %d reflections" % len(self.reflections))
+
+  def _compute_prediction_probability(self):
+
+      # Get stuff from experiment
+      s0 = matrix.col(self.experiments[0].beam.get_s0())
+      sigma = self.experiments[0].crystal.mosaicity
+
+      # Invert the matrix
+      sigma_inv = sigma.inverse()
+
+      # Loop through reflections
+      min_p = None
+      for i in range(len(self.reflections)):
+        s2 = matrix.col(self.reflections[i]['s2'])
+        s3 = s2.normalize()*s0.length()
+        epsilon = s3 - s2
+        d = (epsilon.transpose()*sigma_inv*epsilon)[0]
+        p = chisq_pdf(3, d)
+        if min_p is None or p < min_p:
+          min_p = p
+
+      # Print some stuff
+      logger.info("")
+      logger.info("-"*80)
+      logger.info("Quantile required to predicted all observed reflections = %.5f" % (1-min_p))
+      logger.info("-"*80)
+      logger.info("")
+
+  def _plot_distance_from_ewald_sphere(self, prefix):
     '''
     Plot distance from Ewald sphere
 
@@ -552,7 +634,7 @@ class Refiner(object):
     ax1.set_title("Mean(epsilon) = %.2e, Variance(epsilon) = %.2e" % (
       Dmean,
       Dvar))
-    fig.savefig("epsilon_distribution.png", dpi=300)
+    fig.savefig("%s_epsilon_distribution.png" % prefix, dpi=300)
     fig.clf()
 
   def _plot_corrgram(self, corrmat, labels):

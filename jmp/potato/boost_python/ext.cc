@@ -70,6 +70,17 @@ namespace dials { namespace algorithms { namespace boost_python {
 
   }
 
+  /**
+   * Function to given chisq quantile value
+   * @param k The degrees of freedom
+   * @param p The probability
+   */
+  double chisq_pdf(int k, double x) {
+    DIALS_ASSERT(k > 0);
+    DIALS_ASSERT(x >= 0);
+    boost::math::chi_squared_distribution<> dist(k);
+    return boost::math::pdf(dist, x);
+  }
 
   /**
    * Function to given chisq quantile value
@@ -562,6 +573,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   BOOST_PYTHON_MODULE(dials_scratch_jmp_potato_ext)
   {
     def("chisq_quantile", &chisq_quantile);
+    def("chisq_pdf", &chisq_pdf);
 
     class_<Predictor>("Predictor", no_init)
       .def(init<Experiment, mat3<double>, double >())
