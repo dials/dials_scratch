@@ -928,6 +928,14 @@ class Refiner(object):
     logger.info("#" * 80)
     print_eigen_values_and_vectors(self.state.get_M())
 
+    # Print the condition number
+    self.condition_number = ml.condition_number(self.parameters)
+    logger.info("")
+    logger.info("-"*80)
+    logger.info("Condition number = %f" % self.condition_number)
+    logger.info("-"*80)
+    logger.info("")
+
     # Save the history
     self.history = ml.history
 
