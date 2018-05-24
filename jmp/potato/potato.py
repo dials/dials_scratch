@@ -107,7 +107,7 @@ phil_scope = parse('''
 
   integration {
 
-    use_crude_shoebox_mask = True
+    use_crude_shoebox_mask = False
       .type = bool
 
   }

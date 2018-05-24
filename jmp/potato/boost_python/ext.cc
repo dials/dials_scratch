@@ -281,7 +281,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       af::ref< int6 > bbox = reflections["bbox"];
 
       // Compute quantile
-      double D = std::sqrt(chisq_quantile(2, 0.997)) * 2;
+      double D = chisq_quantile(2, 0.997);
 
       // Compute mask for all reflections
       for (std::size_t i = 0; i < reflections.size(); ++i) {
@@ -350,23 +350,23 @@ namespace dials { namespace algorithms { namespace boost_python {
       mat2<double> S12_S21;
       multiply_transpose(&S12[0], &S21[0], 2, 1, 2, &S12_S21[0]);
       mat2<double> Sbar = S11 - S12_S21 * S22_inv;
+      mat2<double> Sbar_inv = Sbar.inverse();
 
       // Get the panel model
       Panel panel = detector[panel_id];
 
-      // Do the eigen decomposition of Sbar
-      sym_mat2<double> Sbar_lower_triangular(Sbar[0], Sbar[2], Sbar[3]);
-      scitbx::matrix::eigensystem::real_symmetric<> decomposition(Sbar_lower_triangular);
-      af::shared<double> L = decomposition.values();
-
-      // The distance from the origin
-      double delta = std::sqrt(af::max(L.const_ref())) * D;
+      // Compute the the min/max bounding box on the ellipse
+      double A1 = Sbar_inv[3] - Sbar_inv[1]*Sbar_inv[1] / Sbar_inv[0];
+      double A2 = Sbar_inv[0] - Sbar_inv[1]*Sbar_inv[1] / Sbar_inv[3];
+      DIALS_ASSERT(A1 >= 0 && A2 >= 0);
+      double delta1 = std::sqrt(D/A1);
+      double delta2 = std::sqrt(D/A2);
 
       // The corner points in conditional space
-      vec2<double> p1 = mubar + vec2<double>(-delta, -delta);
-      vec2<double> p2 = mubar + vec2<double>(-delta, +delta);
-      vec2<double> p3 = mubar + vec2<double>(+delta, -delta);
-      vec2<double> p4 = mubar + vec2<double>(+delta, +delta);
+      vec2<double> p1 = mubar + vec2<double>(-delta1, -delta2);
+      vec2<double> p2 = mubar + vec2<double>(-delta1, +delta2);
+      vec2<double> p3 = mubar + vec2<double>(+delta1, -delta2);
+      vec2<double> p4 = mubar + vec2<double>(+delta1, +delta2);
 
       // The corner points in lab space
       vec3<double> sp1 = R.transpose()*vec3<double>(p1[0], p1[1], s0.length());
@@ -387,10 +387,11 @@ namespace dials { namespace algorithms { namespace boost_python {
       double ymax = std::max(std::max(xy1[1], xy2[1]), std::max(xy3[1], xy4[1]));
 
       // Create bounding box
-      int x0 = ((int)std::floor(xmin))-1;
-      int y0 = ((int)std::floor(ymin))-1;
-      int x1 = ((int)std::ceil(xmax))+1;
-      int y1 = ((int)std::ceil(ymax))+1;
+      int border = 4;
+      int x0 = ((int)std::floor(xmin))-border;
+      int y0 = ((int)std::floor(ymin))-border;
+      int x1 = ((int)std::ceil(xmax))+border;
+      int y1 = ((int)std::ceil(ymax))+border;
       DIALS_ASSERT(x1 > x0);
       DIALS_ASSERT(y1 > y0);
       return int6(x0, x1, y0, y1, 0, 1);
