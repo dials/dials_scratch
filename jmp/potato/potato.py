@@ -105,6 +105,13 @@ phil_scope = parse('''
       .type = float
   }
 
+  integration {
+
+    use_crude_shoebox_mask = True
+      .type = bool
+
+  }
+
   debug {
     output {
       shoeboxes = True
@@ -688,15 +695,17 @@ class FinalIntegrator(object):
 
   '''
 
-  def __init__(self, params, experiments, reflections):
+  def __init__(self, params, experiments, reflections, sigma_d):
     '''
     Initialise the refiner
 
     '''
 
     # Save some stuff
+    self.params = params
     self.experiments = experiments
     self.reflections = reflections
+    self.sigma_d = sigma_d
 
     # Do the processing
     self._compute_bbox()
@@ -712,6 +721,51 @@ class FinalIntegrator(object):
       self._plot_partiality()
 
   def _compute_bbox(self):
+    '''
+    Do crude bbox calculation from sigma_b or from model
+
+    '''
+    if self.params.integration.use_crude_shoebox_mask:
+      self._compute_bbox_from_sigma_d()
+    else:
+      self._compute_bbox_from_model()
+
+  def _compute_bbox_from_sigma_d(self):
+    '''
+    Compute the bounding box
+
+    '''
+
+    logger.info("Computing the bounding box for %d reflections" % len(self.reflections))
+
+    # Initialise the bounding box calculator
+    compute_bbox = BBoxCalculator(
+      self.experiments[0].crystal,
+      self.experiments[0].beam,
+      self.experiments[0].detector,
+      self.experiments[0].goniometer,
+      self.experiments[0].scan,
+      self.sigma_d * 6,
+      0)
+
+    # Compute the bounding box
+    bbox = compute_bbox(
+      self.reflections['s1'],
+      self.reflections['xyzcal.px'].parts()[2],
+      self.reflections['panel'])
+
+    # Set in the reflection table
+    self.reflections['bbox'] = bbox
+
+    # Select reflections within detector
+    x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
+    xsize, ysize = self.experiments[0].detector[0].get_image_size()
+    selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
+    self.reflections = self.reflections.select(selection)
+    logger.info("Filtered reflections with bbox outside image range")
+    logger.info("Kept %d reflections" % len(self.reflections))
+
+  def _compute_bbox_from_model(self):
     '''
     Compute the bounding box
 
@@ -743,6 +797,40 @@ class FinalIntegrator(object):
       allocate=True)
 
   def _compute_mask(self):
+    '''
+    Compute the reflection mask
+
+    '''
+    if self.params.integration.use_crude_shoebox_mask:
+      self._compute_mask_from_sigma_d()
+    else:
+      self._compute_mask_from_model()
+
+  def _compute_mask_from_sigma_d(self):
+    '''
+    Compute the spot mask
+
+    '''
+    logger.info("Creating the foreground mask for %d reflections" % len(self.reflections))
+
+    # Initialise the mask calculator
+    mask_foreground = MaskCalculator(
+      self.experiments[0].crystal,
+      self.experiments[0].beam,
+      self.experiments[0].detector,
+      self.experiments[0].goniometer,
+      self.experiments[0].scan,
+      self.sigma_d * 3,
+      0)
+
+    # Compute the reflection mask
+    mask_foreground(
+      self.reflections['shoebox'],
+      self.reflections['s1'],
+      self.reflections['xyzcal.px'].parts()[2],
+      self.reflections['panel'])
+
+  def _compute_mask_from_model(self):
     '''
     Compute the reflection mask
 
@@ -950,7 +1038,8 @@ class Integrator(object):
     integrator = FinalIntegrator(
       self.params,
       self.experiments,
-      self.reflections)
+      self.reflections,
+      self.sigma_d)
     self.reflections = integrator.reflections
 
     # Delete shoeboxes if necessary
