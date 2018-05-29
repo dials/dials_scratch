@@ -1065,14 +1065,6 @@ class RefinerData(object):
       Sobs /= ctot
       assert Sobs > 0, "BUG: variance must be > 0"
 
-      # SS = 0
-      # for j in range(X.all()[0]):
-      #   for i in range(X.all()[1]):
-      #     x = matrix.col(X[j,i])
-      #     SS += ((x-xbar).transpose()*(x-xbar))[0]*C[j,i]
-      # SS /= len(X)
-      # SSS += SS
-
       # Compute the bias
       zero = matrix.col((0, 0))
       Bias_sq = (xbar - zero)*(xbar - zero).transpose()
