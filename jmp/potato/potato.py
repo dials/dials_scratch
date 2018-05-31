@@ -16,6 +16,7 @@ from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 from dials.algorithms.refinement.refinement_helpers import corrgram
+from dials.algorithms.statistics.fast_mcd import FastMCD, maha_dist_sq
 from dials_scratch.jmp.potato.refiner import RefinerData
 from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
 from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
@@ -23,6 +24,7 @@ from dials_scratch.jmp.potato.parameterisation import ModelState
 from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
 from dials_scratch.jmp.potato.model import SimpleMosaicityModel
 from dials_scratch.jmp.potato import chisq_pdf
+from dials_scratch.jmp.potato import chisq_quantile
 from dials_scratch.jmp.potato import Predictor
 from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
@@ -37,7 +39,7 @@ import matplotlib
 import json
 
 # Set matplotlib backend
-matplotlib.use("agg", warn=False)
+#matplotlib.use("agg", warn=False)
 
 logger = logging.getLogger("dials." + __name__)
 
@@ -47,12 +49,12 @@ phil_scope = parse('''
   profile
   {
 
-    rlp_mosaicity {
+    # rlp_mosaicity {
 
-      anisotropic = True
-        .type = bool
+    #   model = *simple *angular
+    #     .type = choice
 
-    }
+    # }
 
     wavelength_spread {
 
@@ -89,7 +91,7 @@ phil_scope = parse('''
 
   refinement {
 
-    max_centroid_distance = 2
+    outlier_probability = 0.999936
       .type = float
 
     n_macro_cycles = 1
@@ -261,15 +263,43 @@ class Indexer(object):
     Filter reflections too far from predicted position
 
     '''
+
+    # Compute the x and y residuals
     Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
-    D = flex.sqrt((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
-    selection = D < self.params.refinement.max_centroid_distance
-    self.reflections = self.reflections.select(selection)
-    logger.info("Selected %d reflections with centroid-prediction distance < %d pixels" % (
-      len(self.reflections),
-      self.params.refinement.max_centroid_distance))
+    Xres = (Xobs - Xcal)
+    Yres = (Yobs - Ycal)
 
+    # Initialise the fast_mcd outlier algorithm
+    fast_mcd = FastMCD((Xres, Yres))
+
+    # get location and MCD scatter estimate
+    T, S = fast_mcd.get_corrected_T_and_S()
+
+    # get squared Mahalanobis distances
+    d2s = maha_dist_sq((Xres, Yres), T, S)
+
+    # Compute the cutoff
+    mahasq_cutoff = chisq_quantile(2, self.params.refinement.outlier_probability)
+
+    # compare to the threshold
+    selection = d2s < mahasq_cutoff
+
+    # Select the reflections
+    self.reflections = self.reflections.select(selection)
+    logger.info("-" * 80)
+    logger.info("Centroid outlier rejection")
+    logger.info(" Using MCD algorithm with probability = %f" %
+      self.params.refinement.outlier_probability)
+    logger.info(" Max X residual: %f" % flex.max(Xres))
+    logger.info(" Max Y residual: %f" % flex.max(Yres))
+    logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres**2)/len(Xres))))
+    logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2)/len(Yres))))
+    logger.info(" MCD location estimate: %.2f, %.2f" % tuple(T))
+    logger.info(" MCD scatter estimate:  %.2f, %.2f, %.2f, %.2f" % tuple(list(S)))
+    logger.info(" Number of outliers: %d" % selection.count(False))
+    logger.info(" Number of reflections selection for refinement: %d" % len(self.reflections))
+    logger.info("-" * 80)
 
 class InitialIntegrator(object):
   '''
