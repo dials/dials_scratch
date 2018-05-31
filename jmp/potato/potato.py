@@ -29,7 +29,7 @@ from dials_scratch.jmp.potato import Predictor
 from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
 from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
 from dials.algorithms.spot_prediction import IndexGenerator
-from scitbx.linalg import eigensystem
+from scitbx.linalg import eigensystem, l_l_transpose_cholesky_decomposition_in_place
 from dials.array_family import flex
 from scitbx import matrix
 from math import pi, sqrt, floor, ceil, exp
@@ -81,10 +81,7 @@ phil_scope = parse('''
 
   indexing {
 
-    reindex_input_reflections = False
-      .type = bool
-
-    fail_on_bad_index = True
+    fail_on_bad_index = False
       .type = bool
 
   }
@@ -94,7 +91,7 @@ phil_scope = parse('''
     outlier_probability = 0.999936
       .type = float
 
-    n_macro_cycles = 1
+    n_macro_cycles = 3
       .type = int
 
   }
@@ -178,6 +175,7 @@ class Indexer(object):
     xyz_list = self.reflections['xyzobs.px.value']
     miller_index = self.reflections['miller_index']
     selection = flex.size_t()
+    num_reindexed = 0
     for i in range(len(self.reflections)):
 
       # Get the observed pixel coordinate
@@ -202,25 +200,26 @@ class Indexer(object):
       if tuple(h) != miller_index[i]:
         logger.warn("Reindexing (% 3d, % 3d, % 3d) -> (% 3d, % 3d, % 3d)" % (
           miller_index[i] + tuple(h)))
+        num_reindexed += 1
+        miller_index[i] = h
         if self.params.indexing.fail_on_bad_index:
           raise RuntimeError("Bad index")
 
       # If its not indexed as 0, 0, 0 then append
       if h != matrix.col((0, 0, 0)) and (h - hf).length() < 0.3:
-        miller_index[i] = h
         selection.append(i)
 
-    # Try to reindex input reflections
-    if self.params.indexing.reindex_input_reflections:
+    # Print some info
+    logger.info("Reindexed %d/%d input reflections" % (
+      num_reindexed,
+      len(self.reflections)))
+    logger.info("Selected %d/%d input reflections" % (
+      len(selection),
+      len(self.reflections)))
 
-      # Print some info
-      logger.info("Reindexed %d/%d input reflections" % (
-        len(selection),
-        len(self.reflections)))
-
-      # Select all the indexed reflections
-      self.reflections.set_flags(selection, self.reflections.flags.indexed)
-      self.reflections = self.reflections.select(selection)
+    # Select all the indexed reflections
+    self.reflections.set_flags(selection, self.reflections.flags.indexed)
+    self.reflections = self.reflections.select(selection)
 
   def _predict(self):
     '''
@@ -497,7 +496,24 @@ class Refiner(object):
     self.sigma_d = sigma_d
 
     # Set the M params
-    self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
+    if not hasattr(self.experiments[0].crystal, "mosaicity"):
+      self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
+    else:
+
+      # Construct triangular matrix
+      LL = flex.double()
+      for j in range(3):
+        for i in range(j+1):
+          LL.append(self.experiments[0].crystal.mosaicity[j*3+i])
+
+      # Do the cholesky decomposition
+      ll = l_l_transpose_cholesky_decomposition_in_place(LL)
+
+      # Setup the parameters
+      self.M_params = flex.double((
+        LL[0],
+        LL[1], LL[2],
+        LL[3], LL[4], LL[5]))
 
     # Set the L params
     if self.params.profile.wavelength_spread.model == "gaussian":
@@ -511,12 +527,8 @@ class Refiner(object):
     # Preprocess the reflections
     self._preprocess()
 
-    # Do the macro cycles of refinement between refining the profile parameters
-    # and refining the crystal orientation and unit cell
-    for cycle in range(self.params.refinement.n_macro_cycles):
-      logger.info("")
-      logger.info("Macro cycle %d" % (cycle+1))
-      self._refine_profile()
+    # Do the refinement
+    self._refine_profile()
 
     # Post process the reflections
     self._postprocess()
@@ -970,7 +982,9 @@ class Integrator(object):
 
     # Save some stuff
     self.experiments = experiments
-    self.reflections = reflections
+    self.strong = reflections
+    self.reference = None
+    self.reflections = None
     self.sigma_d = None
 
   def reindex_strong_spots(self):
@@ -981,8 +995,8 @@ class Integrator(object):
     indexer = Indexer(
       self.params,
       self.experiments,
-      self.reflections)
-    self.reflections = indexer.reflections
+      self.strong)
+    self.reference = indexer.reflections
 
   def integrate_strong_spots(self):
     '''
@@ -992,8 +1006,8 @@ class Integrator(object):
     integrator = InitialIntegrator(
       self.params,
       self.experiments,
-      self.reflections)
-    self.reflections = integrator.reflections
+      self.reference)
+    self.reference = integrator.reflections
     self.sigma_d = integrator.sigma_d
 
   def refine(self):
@@ -1003,11 +1017,11 @@ class Integrator(object):
     '''
     refiner = Refiner(
       self.experiments,
-      self.reflections,
+      self.reference,
       self.sigma_d,
       self.params)
     self.experiments = refiner.experiments
-    self.reflections = refiner.reflections
+    self.reference = refiner.reflections
 
   def predict(self):
     '''
@@ -1044,7 +1058,7 @@ class Integrator(object):
       self.params.prediction.probability)
 
     # Do the prediction
-    self.reference = self.reflections
+    self.reference = self.reference
     self.reflections = predictor.predict(miller_indices_to_test)
     logger.info("Predicted %d reflections" % len(self.reflections))
 
@@ -1062,7 +1076,7 @@ class Integrator(object):
 
   def integrate(self):
     '''
-    Do an final integration of the predicted
+    Do an final integration of the reflections
 
     '''
     integrator = FinalIntegrator(

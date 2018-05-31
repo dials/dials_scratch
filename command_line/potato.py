@@ -96,14 +96,17 @@ class Script(object):
     if diff_phil is not '':
       logger.info('The following parameters have been modified:\n')
       logger.info(diff_phil)
-
+      
     # Contruct the integrator
     integrator = Integrator(experiments, reflections, params)
 
+    # Do cycles of indexing and refinement
+    for i in range(params.refinement.n_macro_cycles):
+      integrator.reindex_strong_spots()
+      integrator.integrate_strong_spots()
+      integrator.refine()
+    
     # Do the integration
-    integrator.reindex_strong_spots()
-    integrator.integrate_strong_spots()
-    integrator.refine()
     integrator.predict()
     integrator.integrate()
 
