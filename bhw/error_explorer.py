@@ -10,7 +10,6 @@ from scipy import stats as ss
 from iotbx import mtz
 from cctbx.array_family import flex
 from matplotlib import colors, pyplot as plt
-#from matplotlib import colors
 
 
 def data_from_unmerged_mtz(filename):
