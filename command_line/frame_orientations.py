@@ -8,7 +8,7 @@ orientation is expressed as a zone axis (a direction referenced to the direct
 lattice) [uvw] giving the beam direction with respect to the crystal lattice.
 Take into account any scan-varying models.
 
-Usage: dev.dials.frame_orientations.py refined_experiments.json refined.pickle
+Usage: dev.dials.frame_orientations.py refined_experiments.json
 """
 
 from __future__ import division, print_function, absolute_import
