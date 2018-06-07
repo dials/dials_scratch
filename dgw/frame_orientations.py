@@ -29,7 +29,7 @@ class Script(object):
 
     # The phil scope
     phil_scope = parse('''
-      scale = unit *ewald_sphere_radius
+      scale = unit *max_cell ewald_sphere_radius
         .type = choice
         .help = "Choose the scale for the direction vector in orthogonal"
                 "coordinates prior to transformation into fractional"
@@ -68,38 +68,46 @@ class Script(object):
       self.parser.print_help()
       return
 
-    header = ["Exp\nid", "Image", "Beam direction (xyz)", "Zone axis [uvw]"]
-    rows = []
-
+    header = ["Image", "Beam direction (xyz)", "Zone axis [uvw]"]
     for iexp, exp in enumerate(experiments):
-      dat = extract_experiment_data(exp, self.params.scale)
+      print("For Experiment id = {0}".format(iexp))
+      print(exp.beam)
+      print(exp.crystal)
+
+      if self.params.scale == 'ewald_sphere_radius':
+        scale = 1.0 / exp.beam.get_wavelength()
+      elif self.params.scale == 'max_cell':
+        uc = exp.crystal.get_unit_cell()
+        scale = max(uc.parameters()[0:3])
+      else:
+        scale = 1.0
+      print("Beam direction scaled by {0} = {1:.3f} to "
+            "calculate zone axis\n".format(self.params.scale, scale))
+
+      rows = []
+      dat = extract_experiment_data(exp, scale)
       images = dat['images']
       directions = dat['directions']
       zone_axes = dat['zone_axes']
       for i, d, z in zip(images, directions, zone_axes):
-        row = [str(iexp),
-               str(i),
-               "{:.3f} {:.3f} {:.3f}".format(*d.elems),
-               "{:.3f} {:.3f} {:.3f}".format(*z.elems)]
+        row = [str(i),
+               "{:.5f} {:.5f} {:.5f}".format(*d.elems),
+               "{:.5f} {:.5f} {:.5f}".format(*z.elems)]
         rows.append(row)
 
     st = simple_table(rows, header)
     print(st.format())
+    print()
 
     return
 
-def extract_experiment_data(exp, scale=''):
+def extract_experiment_data(exp, scale=1):
   """Extract lists of the image number, beam direction and zone axis from an
   experiment"""
   crystal = exp.crystal
   beam = exp.beam
   scan = exp.scan
   gonio = exp.goniometer
-
-  if scale == 'ewald_sphere_radius':
-    scale = 1.0 / beam.get_wavelength()
-  else:
-    scale = 1.0
 
   image_range = scan.get_image_range()
   images = range(image_range[0], image_range[1] + 1)
@@ -111,9 +119,9 @@ def extract_experiment_data(exp, scale=''):
     directions = []
     for i in range(beam.num_scan_points - 1):
       s0 = matrix.col(beam.get_s0_at_scan_point(i))
-      directions.append(s0.normalize() * scale)
+      directions.append(s0.normalize())
   else:
-    directions = [matrix.col(beam.get_unit_s0()) * scale for i in images]
+    directions = [matrix.col(beam.get_unit_s0()) for i in images]
 
   if gonio.num_scan_points > 0:
     S_mats = []
@@ -155,7 +163,7 @@ def extract_experiment_data(exp, scale=''):
   # transpose (https://dials.github.io/documentation/conventions.html)
   frac_mats = [m.transpose() for m in SRFUB]
 
-  zone_axes = [F * d for F, d in zip(frac_mats, directions)]
+  zone_axes = [F * (d * scale) for F, d in zip(frac_mats, directions)]
 
   return {'images':images,
           'directions':directions,
