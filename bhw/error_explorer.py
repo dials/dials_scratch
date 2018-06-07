@@ -171,6 +171,4 @@ if __name__ == "__main__":
         (I, Imeans, stddevs, multis, x, y)
     )
     
-    plt.show()
-    
-    #sel = flex.bool(((osr - osm) > -.115) & ((osr - osm) < .105)).iselection()
+    plt.show()    
