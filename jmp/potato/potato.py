@@ -290,8 +290,8 @@ class Indexer(object):
     logger.info("Centroid outlier rejection")
     logger.info(" Using MCD algorithm with probability = %f" %
       self.params.refinement.outlier_probability)
-    logger.info(" Max X residual: %f" % flex.max(Xres))
-    logger.info(" Max Y residual: %f" % flex.max(Yres))
+    logger.info(" Max X residual: %f" % flex.max(flex.abs(Xres)))
+    logger.info(" Max Y residual: %f" % flex.max(flex.abs(Yres)))
     logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres**2)/len(Xres))))
     logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2)/len(Yres))))
     logger.info(" MCD location estimate: %.2f, %.2f" % tuple(T))
