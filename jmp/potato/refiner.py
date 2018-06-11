@@ -281,7 +281,6 @@ class ReflectionLikelihood(object):
       U = ctot*(S22_inv*dS22[i]*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep)
       V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
       W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
-
       dL.append(-0.5*(U+V+W))
 
     # Return the derivative of the log likelihood
@@ -317,11 +316,11 @@ class ReflectionLikelihood(object):
     I = flex.double(flex.grid(len(dS22), len(dS22)))
     for j in range(len(dS22)):
       for i in range(len(dS22)):
-        U = ctot*S22_inv*dS22[j]*S22_inv*dS22[i]
-        V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]*ctot).trace()
-        W = ctot*(dmbar[i].transpose()*Sbar_inv*dmbar[j])[0]
-        X = ctot*dmu[i][2]*S22_inv*dmu[j][2]
-        I[j,i] = 0.5*(U+V) + W + X
+        U = S22_inv*dS22[j]*S22_inv*dS22[i]
+        V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]).trace()
+        W = 2*(Sbar_inv*dmbar[i]*dmbar[j].transpose()).trace()
+        X = 2*dmu[i][2]*S22_inv*dmu[j][2]
+        I[j,i] = 0.5*ctot*(U+V+W+X)
 
     return I
 
