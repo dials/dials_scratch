@@ -31,7 +31,8 @@ from libtbx.table_utils import simple_table
 from dials.util import halraiser, log
 from dials.util.options import OptionParser, flatten_reflections,\
   flatten_experiments
-from dials.command_line.scale import Script, phil_scope
+from dials.util.version import dials_version
+from dials.command_line.scale import Script
 
 phil_scope = phil.parse('''
   log = dials.cross_validate.log
@@ -80,15 +81,19 @@ def cross_validate():
       check_format=False)
   params, _ = optionparser.parse_args(show_diff_phil=False)
 
+  log.config(verbosity=1, info=params.log,
+      debug=params.debug_log)
+  logger.info(dials_version())
   diff_phil = optionparser.diff_phil
+  if diff_phil.as_str() is not '':
+    logger.info('The following parameters have been modified:\n')
+    logger.info(diff_phil.as_str())
+
   diff_phil.objects = [obj for obj in diff_phil.objects if not (
     obj.name == 'input' or obj.name == 'cross_validation')]
 
   reflections = flatten_reflections(params.input.reflections)
   experiments = flatten_experiments(params.input.experiments)
-
-  log.config(verbosity=1, info=params.log,
-      debug=params.debug_log)
 
   options_dict = {}
 
