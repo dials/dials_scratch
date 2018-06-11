@@ -225,8 +225,8 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     # Compute the log likelihood
     try:
       Sobs = matrix.sqr(Sobs)
-      B1 = log(S2)
-      B2 = (1/S2)*(s0.length()-s2.length())**2
+      B1 = ctot*log(S2)
+      B2 = ctot*(1/S2)*(s0.length()-s2.length())**2
       A1 = log(Sbar.determinant())*ctot
       A2 = ctot * (Sbar.inverse()*Sobs).trace()
       A3 = ctot * (Sbar.inverse()*((xbar-mubar)*(xbar-mubar).transpose())).trace()
@@ -382,7 +382,7 @@ def tst_ideal():
     wavelength_variance,
     N = N)
 
-  wavelength_param = sqrt(0.05**2)#tan(sqrt(1e-12) *pi / (2*0.05))
+  wavelength_param = sqrt(1e-3)#0#sqrt(0.05**2)#tan(sqrt(1e-12) *pi / (2*0.05))
 
   #plot_function(Target(s0, s2_list, xbar_list, ctot_list, Sobs_list))
 
