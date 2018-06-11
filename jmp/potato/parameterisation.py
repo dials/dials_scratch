@@ -288,6 +288,78 @@ class WavelengthSpreadParameterisation(object):
     return d2
 
 
+class AngularMosaicityParameterisation(object):
+  '''
+  A simple mosaicity parameterisation that uses 4 parameters to describe a
+  multivariate normal angular mosaic spread. Sigma is enforced as positive
+  definite by parameterising using the cholesky decomposition.
+  W = | w1 0  0  |
+      | w2 w3 0  |
+      | 0  0  w4 |
+  S = W*W^T
+  '''
+
+  def __init__(self, params=None):
+    '''
+    Initialise with the parameters
+    '''
+    if params is not None:
+      assert len(params) == self.num_parameters()
+      self.params = params
+    else:
+      self.params = flex.double(self.num_parameters(), 0)
+
+  def num_parameters(self):
+    '''
+    Get the number of parameters
+    '''
+    return 3
+
+  def set_parameters(self, params):
+    '''
+    Set the parameters
+    '''
+    assert len(params) == self.num_parameters()
+    self.params = params
+
+  def parameters(self):
+    '''
+    Return the parameters
+    '''
+    return self.params
+
+  def sigma(self):
+    '''
+    Compute the covariance matrix of the MVN from the parameters
+    '''
+    M = matrix.sqr((
+      self.params[0], 0, 0,
+      self.params[1], self.params[2], 0,
+      0, 0, 0))
+    return M*M.transpose()
+
+  def first_derivatives(self):
+    '''
+    Compute the first derivatives of Sigma w.r.t the parameters
+    '''
+    b1, b2, b3 = self.params
+
+    d1 = (
+      2*b1,b2,0,
+      b2,0,0,
+      0,0,0)
+
+    d2 = (
+      0,b1,0,
+      b1,2*b2,0,
+      0,0,0)
+
+    d3 = (
+      0,0,0,
+      0,2*b3,0,
+      0,0,0)
+
+
 class ModelState(object):
   '''
   A class to keep track of the model state
