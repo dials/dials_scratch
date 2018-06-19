@@ -904,6 +904,7 @@ class FinalIntegrator(object):
     '''
     logger.info("Computing intensity for %d reflections" % len(self.reflections))
     self.reflections.compute_summed_intensity()
+    self.reflections.compute_corrections(self.experiments)
     logger.info("%d reflections integrated" % self.reflections.get_flags(
       self.reflections.flags.integrated_sum).count(True))
 
