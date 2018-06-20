@@ -749,6 +749,9 @@ class FinalIntegrator(object):
     self.reflections = reflections
     self.sigma_d = sigma_d
 
+    # FIXME Need to set id to integer
+    self.reflections['id'] = self.reflections['id'].as_int()
+
     # Do the processing
     self._compute_bbox()
     self._allocate_shoebox()
