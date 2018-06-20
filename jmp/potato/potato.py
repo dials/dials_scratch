@@ -1064,6 +1064,7 @@ class Integrator(object):
     # Do the prediction
     self.reference = self.reference
     self.reflections = predictor.predict(miller_indices_to_test)
+    self.reflections.compute_d(self.experiments)
     logger.info("Predicted %d reflections" % len(self.reflections))
 
     # Match with the reference reflections
