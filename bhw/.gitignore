@@ -1,0 +1,4 @@
+# Ignored test data files
+AUTOMATIC_DEFAULT_scaled_unmerged_deviation_detector_map.png
+AUTOMATIC_DEFAULT_scaled_unmerged_deviation_vs_multiplicity.png
+AUTOMATIC_DEFAULT_scaled_unmerged_probplot.png

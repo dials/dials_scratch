@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-"""Learning a little about the distribution of spot intensities and their
-errors."""
+"""Learning a little about the distribution of diffraction spot intensities
+and their errors, reading from an unmerged MTZ file."""
 
 import sys
 import numpy as np
@@ -12,163 +12,200 @@ from cctbx.array_family import flex
 from matplotlib import colors, pyplot as plt
 
 
-def data_from_unmerged_mtz(filename):
-  m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
-  ind = m.extract_miller_indices()  #A flex array of Miller indices.
-  cols = m.columns()  #Generates columns (augmented flex arrays).
-  col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
-  
-  I, sigI, x, y = (
-    col_dict[label].extract_values().as_double()
-    for label in ('I', 'SIGI', 'XDET', 'YDET')
-  )
-  
-  return ind, I, sigI, x, y
+class DataDist:
+  def __init__(self, filename, keep_singles=False, propagate_errors=False):
+    self.filename = filename
+    self.data_from_unmerged_mtz(filename)
+    self.select_by_multiplicity(keep_singles)
+    self.kept_singles = keep_singles
+    self.mean_error_stddev(propagate_errors)
+    self.make_z()
+    
 
-def mean_error_stddev(ind, I, sigI):
-  #Record the multiplicities.
-  multis = flex.int([])
-  
-  #For weighted averaging.
-  weights = 1 / flex.pow2(sigI)
-  
-  #Find unique Miller indices.
-  ind_unique = flex.miller_index(np.unique(ind, axis=0))
-  
-  #Calculate the weighted mean intensities and the standard errors on them.
-  sImeans = flex.double([])
-  Imeans = flex.double([])
-  
-  #Calculate the standard deviations from unbiased weighted variances.
-  stddevs = flex.double([])
-  
-  for hkl in ind_unique:
-    sel = (ind == hkl).iselection()
-    multi = sel.size()
-    multis.extend( multi * flex.int(np.ones(multi).astype(np.uint32)) )
+  def data_from_unmerged_mtz(self, filename):
+    m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
     
-    selI = I.select(sel)
+    self.ind = m.extract_miller_indices()  #A flex array of Miller indices.
     
-    #Deal with multiplicity == 1 cases, for which variance is undefined.
-    if multi == 1:
-      Imeans.extend(selI)
-      stddevs.extend(sigI.select(sel))
+    cols = m.columns()  #Generates columns (augmented flex arrays).
+    col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
+    self.I, self.sigI, self.x, self.y = (
+      col_dict[label].extract_values().as_double()
+      for label in ('I', 'SIGI', 'XDET', 'YDET')
+    )
+  
+  def select_by_multiplicity(self, keep_singles=False):    
+    # Find unique Miller indices.
+    ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
+
+    # Record the multiplicities.
+    multis = flex.int([])
     
+    for hkl in ind_unique:
+      sel = (self.ind == hkl).iselection()
+      multi = sel.size()
+      multis.extend(multi * flex.int(np.ones(multi).astype(np.uint32)))
+    
+    if keep_singles:
+      self.multis = multis
+      self.ind_unique = ind_unique
     else:
+      sel = (multis != 1).iselection()
+      self.multis = multis.select(sel)
+      self.ind, self.I, self.sigI, self.x, self.y = map(
+        lambda x: x.select(sel),
+        (self.ind, self.I, self.sigI, self.x, self.y)
+      )
+      self.ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
+  
+  def mean_error_stddev(self, propagate_errors=False):
+    # Calculate the weighted mean intensities.
+    self.Imeans = flex.double([])
+    
+    if propagate_errors:
+      # Calculate the standard errors on the means.
+      self.sigImeans = flex.double([])
+      
+      # Calculate the standard deviations from unbiased weighted variances.
+      self.stddevs = flex.double([])
+    
+    # For weighted averaging.
+    weights = 1 / flex.pow2(self.sigI)
+    
+    for hkl in self.ind_unique:
+      sel = (self.ind == hkl).iselection()
+      multi = sel.size()
       ones = flex.double(np.ones(multi).astype(np.float64))
       weight = weights.select(sel)
       sum_weight = flex.sum(weight)
+      selI = self.I.select(sel)
       
       Imean = flex.sum( weight * selI ) / sum_weight
-      Imeans.extend( Imean * ones )
+      self.Imeans.extend( Imean * ones )
       
-      variance = (
-        flex.sum( weight * flex.pow2( selI - Imean ) ) /
-        ( sum_weight - flex.sum(flex.pow2(weight)) / sum_weight )
-      )
-      stddev = flex.sqrt(variance * ones)
-      stddevs.extend(stddev)
+      if propagate_errors:
+        sigImean = flex.sqrt(1 / sum_weight)
+        self.sigImeans.extend(sigImean)
+        
+        if multi == 1:
+          self.stddevs.extend(self.sigI.select(sel))
+        else:
+          variance = (
+            flex.sum(weight * flex.pow2(selI - Imean)) /
+            (sum_weight - flex.sum(flex.pow2(weight)) / sum_weight)
+          )
+          stddev = flex.sqrt(variance * ones)
+          self.stddevs.extend(stddev)
   
-  return ind_unique, multis, Imeans, sImeans, stddevs
-
-def plot_time_series(ind, ind_unique, I, sigI, overlay=False):
-  for hkl in ind_unique:
-    sel = (ind == hkl).iselection()
-    plt.errorbar(
-      sel,
-      I.select(sel),
-      yerr=sigI.select(sel),
-      ls="--"
-    )
-    if overlay:
+  def make_z(self, error='sigma'):
+    if error in ('stddev', 'sigImean'):
+      error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
+    else:
+      error = self.sigI
+    
+    self.z = (self.I - self.Imeans) / error
+    self.order = flex.sort_permutation(self.z)
+  
+  def plot_time_series(self, overlay_mean=False, overlay_error=False):
+    for hkl in self.ind_unique:
+      sel = (self.ind == hkl).iselection()
+      
+      if overlay_error == 'sigImean':
+        yerr = self.sigImeans.select(sel)
+      elif overlay_error:
+        yerr = self.stddevs.select(sel)
+      else:
+        yerr = None
+      
       plt.errorbar(
         sel,
-        overlay[0].select(sel),
-        yerr = overlay[1].select(sel),
-        ls = "-",
-        color = "k",
-        lw = .5
+        self.I.select(sel),
+        yerr=self.sigI.select(sel),
+        ls="--"
       )
+      if overlay_mean:
+        plt.errorbar(
+          sel,
+          self.Imeans.select(sel),
+          yerr = yerr,
+          ls = "-",
+          color = "k",
+          lw = .5
+        )
 
-def probplots(I, Imeans, stddevs, multis, x, y):
-  scaled = ( (I - Imeans) / stddevs )
-  order = flex.sort_permutation(scaled)
-  osm, osr = ss.probplot(scaled, fit=False)
+  def probplot(self):
+    self.osm, self.osr = ss.probplot(self.z, fit=False)
+    
+    fig, ax = plt.subplots()
+    
+    ax.set_title('Normal probability plot')
+    ax.set_xlabel('Order statistic medians, $m$')
+    ax.set_ylabel(
+      r'Ordered responses, $z$'
+    )
+    ax.plot(self.osm, self.osr, '.b')
+    ax.plot([-5,5], [-5,5], '-g')
+    
+    fig.savefig(self.filename.split('.')[0] + '_probplot')
+    plt.close()
   
-  fig = plt.figure()
+  def deviation_vs_multiplicity(self):
+    if not (self.osm.any() and self.osr.any()):
+      self.probplot()
+    
+    fig, ax = plt.subplots()
+    
+    ax.set_title(
+      r'Difference between ordered responses, $z$, '
+      + r'and order statistic medians, $m$'
+    )
+    ax.set_xlabel('Multiplicity')
+    ax.set_ylabel(r'$z - m$')
+    ax.plot(self.multis.select(self.order), self.osr - self.osm, '.')
+    
+    fig.savefig(self.filename.split('.')[0] + '_deviation_vs_multiplicity')
+    plt.close()
   
-  extreme = np.ceil(np.abs(osr - osm).max())
-  norm = colors.SymLogNorm(
-    vmin = -extreme, vmax = extreme,
-    linthresh = .02, linscale=1,
-  )
-  cmap_kws = {'cmap' : 'coolwarm_r', 'norm' : norm}
-  
-  ax = fig.add_subplot(221)
-  ax.set_title('Normal probability plot')
-  ax.set_xlabel('Order statistic medians, $m$')
-  ax.set_ylabel(
-    'Ordered responses, ' +
-    r'$\frac{I_{\mathbf{h}, i} - \bar{I}_\mathbf{h}}{s_\mathbf{h}}$'
-  )
-  ax.plot(osm, osr, '.b')
-  ax.plot([-5,5], [-5,5], '-g')
-  
-  ax = fig.add_subplot(223)
-  ax.set_title(
-    'Difference between ordered responses and order statistic medians'
-  )
-  ax.set_xlabel('Multiplicity')
-  ax.set_ylabel(
-    r'$\frac{I_{\mathbf{h}, i} - \bar{I}_\mathbf{h}}{s_\mathbf{h}} - m$'
-  )
-  ax.plot(multis.select(order), osr - osm, '.')
+  def deviation_map(self):
+    if not (self.osm.any() and self.osr.any()):
+      self.probplot()
+    
+    extreme = np.ceil(np.abs(self.osr - self.osm).max())
+    norm = colors.SymLogNorm(
+      vmin = -extreme, vmax = extreme,
+      linthresh = .02, linscale=1,
+    )
+    cmap_kws = {'cmap' : 'coolwarm_r', 'norm' : norm}
+    
+    fig, ax = plt.subplots()
+    
+    ax.set_title(
+      r'Difference between ordered responses, $z$, '
+      + r'and order statistic medians, $m$'
+    )
+    ax.set_xlabel('Detector x position (pixels)')
+    ax.set_ylabel('Detector y position (pixels)')
+    ax.set_aspect('equal', 'box')
+    det_map = ax.scatter(
+      self.x.select(self.order),
+      self.y.select(self.order),
+      c = self.osr - self.osm,
+      marker = ',',
+      s = 0.5,
+      **cmap_kws
+    )
+    cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
+    cbar.set_label(r'$z - m$')
+    
+    fig.savefig(self.filename.split('.')[0] + '_deviation_detector_map')
+    plt.close()
 
-  ax = fig.add_subplot(122)
-  ax.set_title(
-    'Difference between ordered responses and order statistic medians'
-  )
-  ax.set_xlabel('Detector x position (pixels)')
-  ax.set_ylabel('Detector y position (pixels)')
-  ax.set_aspect('equal', 'box')
-  det_map = ax.scatter(
-    x.select(order),
-    y.select(order),
-    c = osr - osm,
-    marker = ',',
-    s = 0.5,
-    **cmap_kws
-  )
-  cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
+  # TODO Add time series plot (v easy)
   
-  return osm, osr, order
-
-
 if __name__ == "__main__":
-  ind, I, sigI, x, y = data_from_unmerged_mtz(
-    sys.argv[1] #Give an unmerged MTZ file as an argument.
-  )
+  # TODO handle multiple input MTZ files.
+  data = DataDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
   
-  #plot_time_series(ind, ind_unique, I, sigI)
-  #plt.show()
-  
-  ind_unique, multis, Imeans, sImeans, stddevs = mean_error_stddev(
-    ind, I, sigI
-  )
-  
-  #plot_time_series(ind, ind_unique, I, sigI, overlay=(Imeans, stddevs))
-  #plt.show()
-  
-  sel = (multis > 1).iselection()
-  I, Imeans, stddevs, multis, x, y = map(
-    lambda x: x.select(sel),
-    (I, Imeans, stddevs, multis, x, y)
-  )
-  
-  osm, osr, order = probplots(I, Imeans, stddevs, multis, x, y)
-  I, Imeans, stddevs, multis, x, y = map(
-    lambda x: x.select(order),
-    (I, Imeans, stddevs, multis, x, y)
-  )
-  
-  plt.show()
+  data.probplot()
+  data.deviation_vs_multiplicity()
+  data.deviation_map()
