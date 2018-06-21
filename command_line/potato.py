@@ -90,13 +90,13 @@ class Script(object):
     log.config(
       info="dials.potato.log",
       debug="dials.potato.debug.log")
-    
+
     # Log the diff phil
     diff_phil = self.parser.diff_phil.as_str()
     if diff_phil is not '':
       logger.info('The following parameters have been modified:\n')
       logger.info(diff_phil)
-      
+
     # Contruct the integrator
     integrator = Integrator(experiments, reflections, params)
 
@@ -105,7 +105,7 @@ class Script(object):
       integrator.reindex_strong_spots()
       integrator.integrate_strong_spots()
       integrator.refine()
-    
+
     # Do the integration
     integrator.predict()
     integrator.integrate()
