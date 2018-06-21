@@ -31,32 +31,32 @@ class DataDist:
     self.kept_singles = keep_singles
     self.mean_error_stddev(propagate_errors)
     self.make_z()
-    
+
 
   def data_from_unmerged_mtz(self, filename):
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
-    
+
     self.ind = m.extract_miller_indices()  #A flex array of Miller indices.
-    
+
     cols = m.columns()  #Generates columns (augmented flex arrays).
     col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
     self.I, self.sigI, self.x, self.y, self.image = (
       col_dict[label].extract_values().as_double()
       for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
     )
-  
-  def select_by_multiplicity(self, keep_singles=False):    
+
+  def select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
     ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
 
     # Record the multiplicities.
     multis = flex.int([])
-    
+
     for hkl in ind_unique:
       sel = (self.ind == hkl).iselection()
       multi = sel.size()
       multis.extend(multi * flex.int(np.ones(multi).astype(np.uint32)))
-    
+
     if keep_singles:
       self.multis = multis
       self.ind_unique = ind_unique
@@ -68,21 +68,21 @@ class DataDist:
         (self.ind, self.I, self.sigI, self.x, self.y, self.image)
       )
       self.ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
-  
+
   def mean_error_stddev(self, propagate_errors=False):
     # Calculate the weighted mean intensities.
     self.Imeans = flex.double([])
-    
+
     if propagate_errors:
       # Calculate the standard errors on the means.
       self.sigImeans = flex.double([])
-      
+
       # Calculate the standard deviations from unbiased weighted variances.
       self.stddevs = flex.double([])
-    
+
     # For weighted averaging.
     weights = 1 / flex.pow2(self.sigI)
-    
+
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
       multi = sel.size()
@@ -90,14 +90,14 @@ class DataDist:
       weight = weights.select(sel)
       sum_weight = flex.sum(weight)
       selI = self.I.select(sel)
-      
+
       Imean = flex.sum( weight * selI ) / sum_weight
       self.Imeans.extend( Imean * ones )
-      
+
       if propagate_errors:
         sigImean = flex.sqrt(1 / sum_weight)
         self.sigImeans.extend(sigImean)
-        
+
         if multi == 1:
           self.stddevs.extend(self.sigI.select(sel))
         else:
@@ -107,27 +107,51 @@ class DataDist:
           )
           stddev = flex.sqrt(variance * ones)
           self.stddevs.extend(stddev)
-  
+    self.Imeans = self.gw_imeans()
+
   def make_z(self, error='sigma'):
     if error in ('stddev', 'sigImean'):
       error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
     else:
       error = self.sigI
-    
+
     self.z = (self.I - self.Imeans) / error
+
     self.order = flex.sort_permutation(self.z)
-  
+
+  def gw_imeans(self):
+    gw_imean = flex.double(self.I.size(), 0.0)
+    for hkl in self.ind_unique:
+      sel = (self.ind == hkl)
+      _I = self.I.select(sel)
+      _sigI = self.sigI.select(sel)
+      _weights = 1.0 / (_sigI * _sigI)
+      _Imean = flex.sum(_weights * _I) / flex.sum(_weights)
+      gw_imean.set_selected(sel, _Imean)
+    return gw_imean
+
+  def plot_z_histogram(self):
+    fig, ax = plt.subplots()
+
+
+    ax.set_title('Z Histogram')
+    ax.set_xlabel('Z')
+    ax.set_ylabel('N')
+    ax.hist(self.z, label='Z', bins=100, range=(-10, 10))
+    fig.savefig(os.path.splitext(self.outfile)[0] + '_zhistogram')
+    plt.close()
+
   def plot_time_series(self, overlay_mean=False, overlay_error=False):
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
-      
+
       if overlay_error == 'sigImean':
         yerr = self.sigImeans.select(sel)
       elif overlay_error:
         yerr = self.stddevs.select(sel)
       else:
         yerr = None
-      
+
       plt.errorbar(
         sel,
         self.I.select(sel),
@@ -146,9 +170,9 @@ class DataDist:
 
   def probplot(self):
     self.osm, self.osr = ss.probplot(self.z, fit=False)
-    
+
     fig, ax = plt.subplots()
-    
+
     ax.set_title('Normal probability plot')
     ax.set_xlabel('Order statistic medians, $m$')
     ax.set_ylabel(
@@ -156,16 +180,16 @@ class DataDist:
     )
     ax.plot(self.osm, self.osr, '.b')
     ax.plot([-5,5], [-5,5], '-g')
-    
+
     fig.savefig(os.path.splitext(self.outfile)[0] + '_probplot')
     plt.close()
-  
+
   def deviation_vs_multiplicity(self):
     if not (self.osm.any() and self.osr.any()):
       self.probplot()
-    
+
     fig, ax = plt.subplots()
-    
+
     ax.set_title(
       r'Difference between ordered responses, $z$, '
       + r'and order statistic medians, $m$'
@@ -173,25 +197,25 @@ class DataDist:
     ax.set_xlabel('Multiplicity')
     ax.set_ylabel(r'$z - m$')
     ax.plot(self.multis.select(self.order), self.osr - self.osm, '.')
-    
+
     fig.savefig(
       os.path.splitext(self.outfile)[0] + '_deviation_vs_multiplicity'
     )
     plt.close()
-  
+
   def deviation_map(self):
     if not (self.osm.any() and self.osr.any()):
       self.probplot()
-    
+
     extreme = np.ceil(np.abs(self.osr - self.osm).max())
     norm = colors.SymLogNorm(
       vmin = -extreme, vmax = extreme,
       linthresh = .02, linscale=1,
     )
     cmap_kws = {'cmap' : 'coolwarm_r', 'norm' : norm}
-    
+
     fig, ax = plt.subplots()
-    
+
     ax.set_title(
       r'Difference between ordered responses, $z$, '
       + r'and order statistic medians, $m$'
@@ -209,22 +233,22 @@ class DataDist:
     )
     cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
     cbar.set_label(r'$z - m$')
-    
+
     fig.savefig(os.path.splitext(self.outfile)[0] + '_deviation_detector_map')
     plt.close()
-  
+
   def time_series(self):
     fig, ax = plt.subplots()
-    
+
     ax.set_title(
       r'Difference between ordered responses, $z$, '
       + r'and order statistic medians, $m$'
     )
     ax.set_xlabel('Approximate chronology (image number)')
     ax.set_ylabel(r'$z - m$')
-    
+
     ax.plot(self.image, self.z, '.')
-    
+
     fig.savefig(os.path.splitext(self.outfile)[0] + '_deviation_time_series')
     plt.close()
 
@@ -235,8 +259,9 @@ if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.
   # TODO Allow determination of output filename root.
   data = DataDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
-  
+
   data.probplot()
   data.deviation_vs_multiplicity()
   data.deviation_map()
   data.time_series()
+  data.plot_z_histogram()
