@@ -39,9 +39,9 @@ class DataDist:
     
     cols = m.columns()  #Generates columns (augmented flex arrays).
     col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
-    self.I, self.sigI, self.x, self.y = (
+    self.I, self.sigI, self.x, self.y, self.image = (
       col_dict[label].extract_values().as_double()
-      for label in ('I', 'SIGI', 'XDET', 'YDET')
+      for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
     )
   
   def select_by_multiplicity(self, keep_singles=False):    
@@ -62,9 +62,9 @@ class DataDist:
     else:
       sel = (multis != 1).iselection()
       self.multis = multis.select(sel)
-      self.ind, self.I, self.sigI, self.x, self.y = map(
+      self.ind, self.I, self.sigI, self.x, self.y, self.image = map(
         lambda x: x.select(sel),
-        (self.ind, self.I, self.sigI, self.x, self.y)
+        (self.ind, self.I, self.sigI, self.x, self.y, self.image)
       )
       self.ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
   
@@ -220,7 +220,7 @@ class DataDist:
     ax.set_xlabel('Approximate chronology')
     ax.set_ylabel(r'$z - m$')
     
-    ax.plot(self.z, '.')
+    ax.plot(self.image, self.z, '.')
     
     fig.savefig(self.outfile.split('.')[0] + '_deviation_time_series')
     plt.close()
