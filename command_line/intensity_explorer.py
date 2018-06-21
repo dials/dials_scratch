@@ -156,7 +156,7 @@ class DataDist:
     ax.plot(self.osm, self.osr, '.b')
     ax.plot([-5,5], [-5,5], '-g')
     
-    fig.savefig(self.filename.split('.')[0] + '_probplot')
+    fig.savefig(self.outfile.split('.')[0] + '_probplot')
     plt.close()
   
   def deviation_vs_multiplicity(self):
@@ -173,7 +173,7 @@ class DataDist:
     ax.set_ylabel(r'$z - m$')
     ax.plot(self.multis.select(self.order), self.osr - self.osm, '.')
     
-    fig.savefig(self.filename.split('.')[0] + '_deviation_vs_multiplicity')
+    fig.savefig(self.outfile.split('.')[0] + '_deviation_vs_multiplicity')
     plt.close()
   
   def deviation_map(self):
@@ -207,14 +207,28 @@ class DataDist:
     cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
     cbar.set_label(r'$z - m$')
     
-    fig.savefig(self.filename.split('.')[0] + '_deviation_detector_map')
+    fig.savefig(self.outfile.split('.')[0] + '_deviation_detector_map')
     plt.close()
   
   def time_series(self):
+    fig, ax = plt.subplots()
     
-  # TODO Add time series plot (v easy)
-  # TODO Add histogram (v easy)
-  
+    ax.set_title(
+      r'Difference between ordered responses, $z$, '
+      + r'and order statistic medians, $m$'
+    )
+    ax.set_xlabel('Approximate chronology')
+    ax.set_ylabel(r'$z - m$')
+    
+    ax.plot(self.z, '.')
+    
+    fig.savefig(self.outfile.split('.')[0] + '_deviation_time_series')
+    plt.close()
+    # FIXME Is MTZ data actually chronological?
+
+
+# TODO Add histogram (v easy)
+
 if __name__ == "__main__":
   # TODO handle multiple input MTZ files.
   data = DataDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
@@ -222,3 +236,4 @@ if __name__ == "__main__":
   data.probplot()
   data.deviation_vs_multiplicity()
   data.deviation_map()
+  data.time_series()
