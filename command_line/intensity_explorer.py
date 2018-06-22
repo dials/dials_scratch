@@ -9,7 +9,6 @@ and their errors, reading from an unmerged MTZ file."""
 import os
 import sys
 import math
-import numpy as np
 from scipy import stats as ss
 from iotbx import mtz
 from cctbx.array_family import flex
@@ -17,12 +16,7 @@ from matplotlib import colors, pyplot as plt
 
 
 class DataDist:
-  def __init__(self,
-      filename,
-      outfile=False,
-      keep_singles=False,
-      propagate_errors=True
-  ):
+  def __init__(self, filename, outfile=False, keep_singles=False):
     if outfile:
       self.outfile = outfile
     else:
@@ -31,8 +25,7 @@ class DataDist:
     (self.multis, self.ind, self.I, self.sigI,
       self.x, self.y, self.image, self.ind_unique,
       self.kept_singles) = self.select_by_multiplicity(keep_singles)
-    self.kept_singles = keep_singles
-    self.mean_error_stddev(propagate_errors)
+    self.Imeans, self.sigImeans, self.stddevs = self.mean_error_stddev()
     self.make_z()
 
   def data_from_unmerged_mtz(self, filename):
@@ -50,66 +43,60 @@ class DataDist:
   def select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
     ind_unique = set(self.ind)
-
     # Record the multiplicities.
     multis = flex.int(self.ind.size(), 0)
 
     for hkl in ind_unique:
       sel = (self.ind == hkl).iselection()
-      multis.set_selection(sel, sel.size())
+      multis.set_selected(sel, sel.size())
 
     # Drop multiplicity-1 data unless instructed otherwise.
     if not keep_singles:
       sel = (multis != 1).iselection()
-      multis, ind, I, sigI, x, y, image = map(
-        lambda col: col.select(sel),
-        (multis, self.ind, self.I, self.sigI, self.x, self.y, self.image)
-      )
-      ind_unique = set(self.ind)
+      multis = multis.select(sel)
+      _ind = self.ind.select(sel)
+      _I = self.I.select(sel)
+      _sigI = self.sigI.select(sel)
+      _x = self.x.select(sel)
+      _y = self.y.select(sel)
+      _image = self.image.select(sel)
+      ind_unique = set(_ind)
 
-    return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
+    return multis, _ind, _I, _sigI, _x, _y, _image, ind_unique, keep_singles
 
-# FIXME Dodgy order of data in Imeans, sigImeans, stddevs.
-  def mean_error_stddev(self, propagate_errors=False):
+  def mean_error_stddev(self):
     # Calculate the weighted mean intensities.
-    self.Imeans = flex.double([])
-
-    if propagate_errors:
-      # Calculate the standard errors on the means.
-      self.sigImeans = flex.double([])
-
-      # Calculate the standard deviations from unbiased weighted variances.
-      self.stddevs = flex.double([])
-
+    Imeans = flex.double(self.ind.size(), 0)
+    # Calculate the standard errors on the means.
+    sigImeans = flex.double(self.ind.size(), 0)
+    # Calculate the standard deviations from unbiased weighted variances.
+    stddevs = flex.double(self.ind.size(), 0)
     # For weighted averaging.
     weights = 1 / flex.pow2(self.sigI)
 
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
-      multi = sel.size()
-      ones = flex.double(np.ones(multi).astype(np.float64))
+      multi = self.multis.select(sel)[0]
       weight = weights.select(sel)
-      sum_weight = flex.sum(weight)
-      selI = self.I.select(sel)
+      sum_weights = flex.sum(weight)
+      I = self.I.select(sel)
+      Imean = flex.sum( weight * I ) / sum_weights
+      Imeans.set_selected(sel, Imean)
+      sigImean = math.sqrt(1 / sum_weights)
+      sigImeans.set_selected(sel, sigImean)
+      if multi == 1:
+        stddevs.set_selected(sel, self.sigI.select(sel))
+      else:
+        variance = (
+          flex.sum(weight * flex.pow2(I - Imean)) /
+          (sum_weights - flex.sum(flex.pow2(weight)) / sum_weights)
+        )
+        stddev = math.sqrt(variance)
+        stddevs.set_selected(sel, stddev)
 
-      Imean = flex.sum( weight * selI ) / sum_weight
-      self.Imeans.extend( Imean * ones )
+    return Imeans, sigImeans, stddevs
 
-      if propagate_errors:
-        sigImean = math.sqrt(1 / sum_weight)
-        self.sigImeans.extend(sigImean * ones)
-
-        if multi == 1:
-          self.stddevs.extend(self.sigI.select(sel))
-        else:
-          variance = (
-            flex.sum(weight * flex.pow2(selI - Imean)) /
-            (sum_weight - flex.sum(flex.pow2(weight)) / sum_weight)
-          )
-          stddev = flex.sqrt(variance * ones)
-          self.stddevs.extend(stddev)
-    #self.Imeans = self.gw_imeans()
-
+  # TODO
   def make_z(self, error='sigma'):
     if error in ('stddev', 'sigImean'):
       error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
@@ -120,20 +107,8 @@ class DataDist:
 
     self.order = flex.sort_permutation(self.z)
 
-  def gw_imeans(self):
-    gw_imean = flex.double(self.I.size(), 0.0)
-    for hkl in self.ind_unique:
-      sel = (self.ind == hkl)
-      _I = self.I.select(sel)
-      _sigI = self.sigI.select(sel)
-      _weights = 1.0 / (_sigI * _sigI)
-      _Imean = flex.sum(_weights * _I) / flex.sum(_weights)
-      gw_imean.set_selected(sel, _Imean)
-    return gw_imean
-
   def plot_z_histogram(self):
     fig, ax = plt.subplots()
-
 
     ax.set_title('Z Histogram')
     ax.set_xlabel('Z')
@@ -174,7 +149,9 @@ class DataDist:
         )
 
   def probplot(self):
-    self.osm, self.osr = ss.probplot(self.z, fit=False)
+    osm, osr = ss.probplot(self.z, fit=False)
+    self.osr = flex.double(osr)
+    self.osm = flex.double(osm)
 
     fig, ax = plt.subplots()
 
@@ -193,7 +170,7 @@ class DataDist:
     plt.close()
 
   def deviation_vs_multiplicity(self):
-    if not (self.osm.any() and self.osr.any()):
+    if not (any(self.osm) and any(self.osr)):
       self.probplot()
 
     fig, ax = plt.subplots()
@@ -213,10 +190,10 @@ class DataDist:
     plt.close()
 
   def deviation_map(self):
-    if not (self.osm.any() and self.osr.any()):
+    if not (any(self.osm) and any(self.osr)):
       self.probplot()
 
-    extreme = np.ceil(np.abs(self.osr - self.osm).max())
+    extreme = math.ceil(flex.max(flex.abs(self.osr - self.osm)))
     norm = colors.SymLogNorm(
       vmin = -extreme, vmax = extreme,
       linthresh = .02, linscale=1,
@@ -268,7 +245,7 @@ class DataDist:
     plt.close()
 
   def deviation_vs_IsigI(self):
-    if not (self.osm.any() and self.osr.any()):
+    if not (any(self.osm) and any(self.osr)):
       self.probplot()
 
     fig, ax = plt.subplots()
@@ -277,7 +254,7 @@ class DataDist:
       r'Difference between ordered responses, $z$, '
       + r'and order statistic medians, $m$'
     )
-    ax.set_xlabel(r'\bar{I}_\mathbf{h} / \sigma_\mathbf{h}')
+    ax.set_xlabel(r'$\bar{I}_\mathbf{h} / \sigma_\mathbf{h}$')
     ax.set_ylabel(r'$z$')
     ax.plot(
       self.Imeans/self.sigImeans,
