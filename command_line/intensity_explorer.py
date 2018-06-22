@@ -16,7 +16,7 @@ from matplotlib import colors, pyplot as plt
 
 
 class DataDist:
-  def __init__(self, filename, outfile=False, keep_singles=False):
+  def __init__(self, filename, outfile=False, keep_singles=False, error=None):
     if outfile:
       self.outfile = outfile
     else:
@@ -26,7 +26,8 @@ class DataDist:
       self.x, self.y, self.image, self.ind_unique,
       self.kept_singles) = self.select_by_multiplicity(keep_singles)
     self.Imeans, self.sigImeans, self.stddevs = self.mean_error_stddev()
-    self.make_z()
+    z, order = self.make_z(error)
+
 
   def data_from_unmerged_mtz(self, filename):
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
@@ -39,6 +40,7 @@ class DataDist:
       col_dict[label].extract_values().as_double()
       for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
     )
+
 
   def select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
@@ -63,6 +65,7 @@ class DataDist:
       ind_unique = set(_ind)
 
     return multis, _ind, _I, _sigI, _x, _y, _image, ind_unique, keep_singles
+
 
   def mean_error_stddev(self):
     # Calculate the weighted mean intensities.
@@ -96,16 +99,18 @@ class DataDist:
 
     return Imeans, sigImeans, stddevs
 
-  # TODO
+
   def make_z(self, error='sigma'):
     if error in ('stddev', 'sigImean'):
       error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
     else:
       error = self.sigI
 
-    self.z = (self.I - self.Imeans) / error
+    z = (self.I - self.Imeans) / error
+    order = flex.sort_permutation(z)
 
-    self.order = flex.sort_permutation(self.z)
+    return z, order
+
 
   def plot_z_histogram(self):
     fig, ax = plt.subplots()
@@ -118,6 +123,7 @@ class DataDist:
       os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram'
     )
     plt.close()
+
 
   def plot_symmetry_equivalents(self,
     overlay_mean=False, overlay_error=False
@@ -148,6 +154,7 @@ class DataDist:
           lw = .5
         )
 
+
   def probplot(self):
     osm, osr = ss.probplot(self.z, fit=False)
     self.osr = flex.double(osr)
@@ -169,6 +176,7 @@ class DataDist:
     )
     plt.close()
 
+
   def deviation_vs_multiplicity(self):
     if not (any(self.osm) and any(self.osr)):
       self.probplot()
@@ -188,6 +196,7 @@ class DataDist:
       + '_deviation_vs_multiplicity'
     )
     plt.close()
+
 
   def deviation_map(self):
     if not (any(self.osm) and any(self.osr)):
@@ -226,6 +235,7 @@ class DataDist:
     )
     plt.close()
 
+
   def time_series(self):
     fig, ax = plt.subplots()
 
@@ -243,6 +253,7 @@ class DataDist:
       + '_deviation_time_series'
     )
     plt.close()
+
 
   def deviation_vs_IsigI(self):
     if not (any(self.osm) and any(self.osr)):
@@ -268,6 +279,7 @@ class DataDist:
       + '_deviation_vs_IsigI'
     )
     plt.close()
+
 
 if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.
