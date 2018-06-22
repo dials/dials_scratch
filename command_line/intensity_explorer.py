@@ -8,6 +8,7 @@ and their errors, reading from an unmerged MTZ file."""
 
 import os
 import sys
+import math
 import numpy as np
 from scipy import stats as ss
 from iotbx import mtz
@@ -20,18 +21,19 @@ class DataDist:
       filename,
       outfile=False,
       keep_singles=False,
-      propagate_errors=False
+      propagate_errors=True
   ):
     if outfile:
       self.outfile = outfile
     else:
       self.outfile = filename
     self.data_from_unmerged_mtz(filename)
-    self.select_by_multiplicity(keep_singles)
+    (self.multis, self.ind, self.I, self.sigI,
+      self.x, self.y, self.image, self.ind_unique,
+      self.kept_singles) = self.select_by_multiplicity(keep_singles)
     self.kept_singles = keep_singles
     self.mean_error_stddev(propagate_errors)
     self.make_z()
-
 
   def data_from_unmerged_mtz(self, filename):
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
@@ -47,28 +49,27 @@ class DataDist:
 
   def select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
-    ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
+    ind_unique = set(self.ind)
 
     # Record the multiplicities.
-    multis = flex.int([])
+    multis = flex.int(self.ind.size(), 0)
 
     for hkl in ind_unique:
       sel = (self.ind == hkl).iselection()
-      multi = sel.size()
-      multis.extend(multi * flex.int(np.ones(multi).astype(np.uint32)))
+      multis.set_selection(sel, sel.size())
 
-    if keep_singles:
-      self.multis = multis
-      self.ind_unique = ind_unique
-    else:
+    # Drop multiplicity-1 data unless instructed otherwise.
+    if not keep_singles:
       sel = (multis != 1).iselection()
-      self.multis = multis.select(sel)
-      self.ind, self.I, self.sigI, self.x, self.y, self.image = map(
-        lambda x: x.select(sel),
-        (self.ind, self.I, self.sigI, self.x, self.y, self.image)
+      multis, ind, I, sigI, x, y, image = map(
+        lambda col: col.select(sel),
+        (multis, self.ind, self.I, self.sigI, self.x, self.y, self.image)
       )
-      self.ind_unique = flex.miller_index(np.unique(self.ind, axis=0))
+      ind_unique = set(self.ind)
 
+    return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
+
+# FIXME Dodgy order of data in Imeans, sigImeans, stddevs.
   def mean_error_stddev(self, propagate_errors=False):
     # Calculate the weighted mean intensities.
     self.Imeans = flex.double([])
@@ -95,8 +96,8 @@ class DataDist:
       self.Imeans.extend( Imean * ones )
 
       if propagate_errors:
-        sigImean = flex.sqrt(1 / sum_weight)
-        self.sigImeans.extend(sigImean)
+        sigImean = math.sqrt(1 / sum_weight)
+        self.sigImeans.extend(sigImean * ones)
 
         if multi == 1:
           self.stddevs.extend(self.sigI.select(sel))
@@ -107,7 +108,7 @@ class DataDist:
           )
           stddev = flex.sqrt(variance * ones)
           self.stddevs.extend(stddev)
-    self.Imeans = self.gw_imeans()
+    #self.Imeans = self.gw_imeans()
 
   def make_z(self, error='sigma'):
     if error in ('stddev', 'sigImean'):
@@ -266,6 +267,30 @@ class DataDist:
     )
     plt.close()
 
+  def deviation_vs_IsigI(self):
+    if not (self.osm.any() and self.osr.any()):
+      self.probplot()
+
+    fig, ax = plt.subplots()
+
+    ax.set_title(
+      r'Difference between ordered responses, $z$, '
+      + r'and order statistic medians, $m$'
+    )
+    ax.set_xlabel(r'\bar{I}_\mathbf{h} / \sigma_\mathbf{h}')
+    ax.set_ylabel(r'$z$')
+    ax.plot(
+      self.Imeans/self.sigImeans,
+      #self.I/self.sigI, 
+      self.z,
+      #self.osr - self.osm,
+      '.')
+
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_deviation_vs_IsigI'
+    )
+    plt.close()
 
 if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.
@@ -277,3 +302,4 @@ if __name__ == "__main__":
   data.deviation_map()
   data.time_series()
   data.plot_z_histogram()
+  data.deviation_vs_IsigI()
