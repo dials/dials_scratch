@@ -276,7 +276,7 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_IsigI'
+      + '_deviation_vs_I_over_sigma'
     )
     plt.close()
 
