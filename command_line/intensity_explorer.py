@@ -56,15 +56,15 @@ class DataDist:
     if not keep_singles:
       sel = (multis != 1).iselection()
       multis = multis.select(sel)
-      _ind = self.ind.select(sel)
-      _I = self.I.select(sel)
-      _sigI = self.sigI.select(sel)
-      _x = self.x.select(sel)
-      _y = self.y.select(sel)
-      _image = self.image.select(sel)
+      ind = self.ind.select(sel)
+      I = self.I.select(sel)
+      sigI = self.sigI.select(sel)
+      x = self.x.select(sel)
+      y = self.y.select(sel)
+      image = self.image.select(sel)
       ind_unique = set(_ind)
 
-    return multis, _ind, _I, _sigI, _x, _y, _image, ind_unique, keep_singles
+    return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
 
 
   def mean_error_stddev(self):
