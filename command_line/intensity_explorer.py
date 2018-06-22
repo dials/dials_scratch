@@ -63,7 +63,7 @@ class DataDist:
       x = self.x.select(sel)
       y = self.y.select(sel)
       image = self.image.select(sel)
-      ind_unique = set(_ind)
+      ind_unique = set(ind)
 
     return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
 
