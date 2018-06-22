@@ -5,6 +5,7 @@
 and their errors, reading from an unmerged MTZ file."""
 
 # TODO Proper documentation.
+# TODO Sprinkle some sensible tests around the place.
 
 import os
 import sys
