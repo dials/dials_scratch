@@ -27,7 +27,7 @@ class DataDist:
       self.x, self.y, self.image, self.ind_unique,
       self.kept_singles) = self.select_by_multiplicity(keep_singles)
     self.Imeans, self.sigImeans, self.stddevs = self.mean_error_stddev()
-    z, order = self.make_z(error)
+    self.z, self.order = self.make_z(error)
 
 
   def data_from_unmerged_mtz(self, filename):
