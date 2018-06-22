@@ -138,10 +138,14 @@ class DataDist:
     ax.set_xlabel('Z')
     ax.set_ylabel('N')
     ax.hist(self.z, label='Z', bins=100, range=(-10, 10))
-    fig.savefig(os.path.splitext(self.outfile)[0] + '_zhistogram')
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram'
+    )
     plt.close()
 
-  def plot_time_series(self, overlay_mean=False, overlay_error=False):
+  def plot_symmetry_equivalents(self,
+    overlay_mean=False, overlay_error=False
+  ):
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
 
@@ -181,7 +185,10 @@ class DataDist:
     ax.plot(self.osm, self.osr, '.b')
     ax.plot([-5,5], [-5,5], '-g')
 
-    fig.savefig(os.path.splitext(self.outfile)[0] + '_probplot')
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_probplot'
+    )
     plt.close()
 
   def deviation_vs_multiplicity(self):
@@ -199,7 +206,8 @@ class DataDist:
     ax.plot(self.multis.select(self.order), self.osr - self.osm, '.')
 
     fig.savefig(
-      os.path.splitext(self.outfile)[0] + '_deviation_vs_multiplicity'
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_deviation_vs_multiplicity'
     )
     plt.close()
 
@@ -234,7 +242,10 @@ class DataDist:
     cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
     cbar.set_label(r'$z - m$')
 
-    fig.savefig(os.path.splitext(self.outfile)[0] + '_deviation_detector_map')
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_deviation_detector_map'
+    )
     plt.close()
 
   def time_series(self):
@@ -249,11 +260,12 @@ class DataDist:
 
     ax.plot(self.image, self.z, '.')
 
-    fig.savefig(os.path.splitext(self.outfile)[0] + '_deviation_time_series')
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_deviation_time_series'
+    )
     plt.close()
 
-
-# TODO Add histogram (v easy)
 
 if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.

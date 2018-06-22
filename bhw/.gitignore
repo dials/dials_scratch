@@ -1,8 +1,9 @@
 # Ignored test data files
-AUTOMATIC_DEFAULT_scaled_unmerged_deviation_detector_map.png
-AUTOMATIC_DEFAULT_scaled_unmerged_deviation_vs_multiplicity.png
-AUTOMATIC_DEFAULT_scaled_unmerged_probplot.png
-AUTOMATIC_DEFAULT_scaled_unmerged_deviation_time_series.png
+AUTOMATIC_DEFAULT_scaled_unmerged*_deviation_detector_map.png
+AUTOMATIC_DEFAULT_scaled_unmerged*_deviation_vs_multiplicity.png
+AUTOMATIC_DEFAULT_scaled_unmerged*_probplot.png
+AUTOMATIC_DEFAULT_scaled_unmerged*_deviation_time_series.png
+AUTOMATIC_DEFAULT_scaled_unmerged*_zhistogram.png
 
 # Ignored Jupyter notebook stuff
 .ipynb_checkpoints/
