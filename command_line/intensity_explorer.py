@@ -116,10 +116,10 @@ class DataDist:
   def plot_z_histogram(self):
     fig, ax = plt.subplots()
 
-    ax.set_title('Z Histogram')
-    ax.set_xlabel('Z')
-    ax.set_ylabel('N')
-    ax.hist(self.z, label='Z', bins=100, range=(-10, 10))
+    ax.set_title(r'$z$ histogram')
+    ax.set_xlabel(r'$z$')
+    ax.set_ylabel(r'$N$')
+    ax.hist(self.z, label='$z$', bins=100, range=(-10, 10))
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram'
     )
