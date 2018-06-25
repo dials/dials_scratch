@@ -1,5 +1,7 @@
 # Ignored test data files
 AUTOMATIC_DEFAULT_scaled_unmerged*.png
+AUTOMATIC_DEFAULT_scaled_unmerged_3.mtz
+tmp/
 
 # Ignored Jupyter notebook stuff
 .ipynb_checkpoints/

@@ -22,28 +22,32 @@ class DataDist:
       self.outfile = outfile
     else:
       self.outfile = filename
-    self.data_from_unmerged_mtz(filename)
+    (self.I, self.sigI,
+      self.x, self.y, self.image) = self._data_from_unmerged_mtz(filename)
     (self.multis, self.ind, self.I, self.sigI,
       self.x, self.y, self.image, self.ind_unique,
-      self.kept_singles) = self.select_by_multiplicity(keep_singles)
-    self.Imeans, self.sigImeans, self.stddevs = self.mean_error_stddev()
-    self.z, self.order = self.make_z(error)
+      self.kept_singles) = self._select_by_multiplicity(keep_singles)
+    self.Imeans, self.sigImeans, self.stddevs = self._mean_error_stddev()
+    self.z, self.order = self._make_z(error)
+    self.osm = self._probplot_data()
 
 
-  def data_from_unmerged_mtz(self, filename):
+  def _data_from_unmerged_mtz(self, filename):
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
 
     self.ind = m.extract_miller_indices()  #A flex array of Miller indices.
 
     cols = m.columns()  #Generates columns (augmented flex arrays).
     col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
-    self.I, self.sigI, self.x, self.y, self.image = (
+    I, sigI, x, y, image = (
       col_dict[label].extract_values().as_double()
       for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
     )
 
+    return I, sigI, x, y, image
 
-  def select_by_multiplicity(self, keep_singles=False):
+
+  def _select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
     ind_unique = set(self.ind)
     # Record the multiplicities.
@@ -68,7 +72,7 @@ class DataDist:
     return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
 
 
-  def mean_error_stddev(self):
+  def _mean_error_stddev(self):
     # Calculate the weighted mean intensities.
     Imeans = flex.double(self.ind.size(), 0)
     # Calculate the standard errors on the means.
@@ -101,7 +105,7 @@ class DataDist:
     return Imeans, sigImeans, stddevs
 
 
-  def make_z(self, error='sigma'):
+  def _make_z(self, error='sigma'):
     if error in ('stddev', 'sigImean'):
       error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
     else:
@@ -111,6 +115,14 @@ class DataDist:
     order = flex.sort_permutation(z)
 
     return z, order
+
+
+  def _probplot_data(self):
+    osm = flex.double(self.z.size(), 0)
+    osm.set_selected(
+      self.order, flex.double(ss.probplot(self.z, fit=False)[0]) )
+
+    return osm
 
 
   def plot_z_histogram(self):
@@ -126,9 +138,12 @@ class DataDist:
     plt.close()
 
 
-  def plot_symmetry_equivalents(self,
+  def _plot_symmetry_equivalents(self,
     overlay_mean=False, overlay_error=False
   ):
+    '''Really just a test function.  Slow.  You probably don't want to use.'''
+    fig, ax = plt.subplots()
+    
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
 
@@ -140,35 +155,34 @@ class DataDist:
         yerr = None
 
       plt.errorbar(
-        sel,
+        sel,#self.image.select(sel),
         self.I.select(sel),
         yerr=self.sigI.select(sel),
         ls="--"
       )
       if overlay_mean:
         plt.errorbar(
-          sel,
+          sel,#self.image.select(sel),
           self.Imeans.select(sel),
           yerr = yerr,
           ls = "-",
           color = "k",
           lw = .5
         )
+      
+    #fig.savefig(
+    #  os.path.splitext(os.path.basename(self.outfile))[0] + 'testfig'
+    #)
+    plt.show()
 
 
   def probplot(self):
-    osm, osr = ss.probplot(self.z, fit=False)
-    self.osr = flex.double(osr)
-    self.osm = flex.double(osm)
-
     fig, ax = plt.subplots()
 
     ax.set_title('Normal probability plot')
     ax.set_xlabel('Order statistic medians, $m$')
-    ax.set_ylabel(
-      r'Ordered responses, $z$'
-    )
-    ax.plot(self.osm, self.osr, '.b')
+    ax.set_ylabel(r'Ordered responses, $z$')
+    ax.plot(self.osm, self.z, '.b')
     ax.plot([-5,5], [-5,5], '-g')
 
     fig.savefig(
@@ -179,9 +193,6 @@ class DataDist:
 
 
   def deviation_vs_multiplicity(self):
-    if not (any(self.osm) and any(self.osr)):
-      self.probplot()
-
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -190,7 +201,7 @@ class DataDist:
     )
     ax.set_xlabel('Multiplicity')
     ax.set_ylabel(r'$z - m$')
-    ax.plot(self.multis.select(self.order), self.osr - self.osm, '.')
+    ax.plot(self.multis, self.z - self.osm, '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
@@ -199,11 +210,10 @@ class DataDist:
     plt.close()
 
 
-  def deviation_map(self):
-    if not (any(self.osm) and any(self.osr)):
-      self.probplot()
+  def deviation_map(self, minimum=0):
+    sel = (abs(self.z - self.osm) >= minimum).iselection()
 
-    extreme = math.ceil(flex.max(flex.abs(self.osr - self.osm)))
+    extreme = math.ceil(flex.max(flex.abs(self.z - self.osm)))
     norm = colors.SymLogNorm(
       vmin = -extreme, vmax = extreme,
       linthresh = .02, linscale=1,
@@ -219,10 +229,12 @@ class DataDist:
     ax.set_xlabel('Detector x position (pixels)')
     ax.set_ylabel('Detector y position (pixels)')
     ax.set_aspect('equal', 'box')
+    ax.set_xlim(min(self.x)-5, max(self.x)+5)
+    ax.set_ylim(min(self.y)-5, max(self.y)+5)
     det_map = ax.scatter(
-      self.x.select(self.order),
-      self.y.select(self.order),
-      c = self.osr - self.osm,
+      self.x.select(sel),
+      self.y.select(sel),
+      c = (self.z - self.osm).select(sel),
       marker = ',',
       s = 0.5,
       **cmap_kws
@@ -247,7 +259,7 @@ class DataDist:
     ax.set_xlabel('Approximate chronology (image number)')
     ax.set_ylabel(r'$z - m$')
 
-    ax.plot(self.image, self.z, '.')
+    ax.plot(self.image, self.z - self.osm, '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
@@ -257,9 +269,6 @@ class DataDist:
 
 
   def deviation_vs_IsigI(self):
-    if not (any(self.osm) and any(self.osr)):
-      self.probplot()
-
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -267,17 +276,36 @@ class DataDist:
       + r'and order statistic medians, $m$'
     )
     ax.set_xlabel(r'$\bar{I}_\mathbf{h} / \sigma_\mathbf{h}$')
-    ax.set_ylabel(r'$z$')
+    ax.set_ylabel(r'$z - m$')
     ax.plot(
       self.Imeans/self.sigImeans,
-      #self.I/self.sigI, 
-      self.z,
-      #self.osr - self.osm,
+      self.z - self.osm,
       '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
       + '_deviation_vs_I_over_sigma'
+    )
+    plt.close()
+
+
+  def deviation_vs_I(self):
+    fig, ax = plt.subplots()
+
+    ax.set_title(
+      r'Difference between ordered responses, $z$, '
+      + r'and order statistic medians, $m$'
+    )
+    ax.set_xlabel(r'$\bar{I}_\mathbf{h}$')
+    ax.set_ylabel(r'$z - m$')
+    ax.plot(
+      self.Imeans,
+      self.z - self.osm,
+      '.')
+
+    fig.savefig(
+      os.path.splitext(os.path.basename(self.outfile))[0]
+      + '_deviation_vs_I'
     )
     plt.close()
 
@@ -293,3 +321,4 @@ if __name__ == "__main__":
   data.time_series()
   data.plot_z_histogram()
   data.deviation_vs_IsigI()
+  data.deviation_vs_I()
