@@ -112,7 +112,7 @@ def cross_validate():
     results_dict = {}
     for i, v in enumerate(itertools.product(*values)):
       e = dict(zip(keys, v))
-      results_dict[i] = {"configuration": [], "work_rmsd": [], "free_rmsd": []}
+      results_dict[i] = {"configuration": [], "Rwork": [], "Rfree": []}
       for k, v in e.iteritems():
         params = set_parameter(params, k, v)
         results_dict[i]["configuration"].append(str(k)+'='+str(v))
@@ -130,7 +130,7 @@ def cross_validate():
       k = params.cross_validation.optimise_choice
       params = set_parameter(params, k, value)
       results_dict[i] = {"configuration": [str(k)+'='+str(value)],
-        "work_rmsd": [], "free_rmsd": []}
+        "Rwork": [], "Rfree": []}
       for n in range(params.cross_validation.nfolds):
         if n < 100.0/params.scaling_options.free_set_percentage:
           params.scaling_options.free_set_offset = n
@@ -145,7 +145,7 @@ def cross_validate():
       k = params.cross_validation.optimise_parameter
       params = set_parameter(params, k, value)
       results_dict[i] = {"configuration": [str(k)+'='+str(value)],
-        "work_rmsd": [], "free_rmsd": []}
+        "Rwork": [], "Rfree": []}
       for n in range(params.cross_validation.nfolds):
         if n < 100.0/params.scaling_options.free_set_percentage:
           params.scaling_options.free_set_offset = n
@@ -188,8 +188,8 @@ def run_script(params, experiments, reflections, results_dict):
   script = Script(params, experiments=deepcopy(experiments),
     reflections=deepcopy(reflections))
   script.run(save_data=False)
-  results_dict["work_rmsd"].append(script.minimised.final_rmsds[1])
-  results_dict["free_rmsd"].append(script.minimised.final_rmsds[2])
+  results_dict["Rwork"].append(script.minimised.final_rmsds[3])
+  results_dict["Rfree"].append(script.minimised.final_rmsds[4])
   return results_dict
 
 def interpret_results(results_dict):
@@ -197,12 +197,12 @@ def interpret_results(results_dict):
   Expect a configuration and final_rmsds columns. Score the data and make a
   nice table."""
   rows = []
-  headers = ['option', 'work_rmsd', 'free_rmsd']
+  headers = ['option', 'Rwork', 'Rfree']
   free_rmsds = []
   for v in results_dict.itervalues():
     config_str = ' '.join(v['configuration'])
-    avg_work = round(sum(v['work_rmsd'])/len(v['work_rmsd']), 5)
-    avg_free = round(sum(v['free_rmsd'])/len(v['free_rmsd']), 5)
+    avg_work = round(sum(v['Rwork'])/len(v['Rwork']), 5)
+    avg_free = round(sum(v['Rfree'])/len(v['Rfree']), 5)
     rows.append([config_str, str(avg_work), str(avg_free)])
     free_rmsds.append(avg_free)
   #find lowest free rmsd
