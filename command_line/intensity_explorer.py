@@ -22,10 +22,20 @@ class DataDist:
       self.outfile = outfile
     else:
       self.outfile = filename
-    (self.I, self.sigI,
-      self.x, self.y, self.image) = self._data_from_unmerged_mtz(filename)
-    (self.multis, self.ind, self.I, self.sigI,
-      self.x, self.y, self.image, self.ind_unique,
+    (self.ind,
+      self.I,
+      self.sigI,
+      self.x,
+      self.y,
+      self.image) = self._data_from_unmerged_mtz(filename)
+    (self.ind,
+      self.I,
+      self.sigI,
+      self.x,
+      self.y,
+      self.image,
+      self.multis,
+      self.ind_unique,
       self.kept_singles) = self._select_by_multiplicity(keep_singles)
     self.Imeans, self.sigImeans, self.stddevs = self._mean_error_stddev()
     self.z, self.order = self._make_z(error)
@@ -35,7 +45,7 @@ class DataDist:
   def _data_from_unmerged_mtz(self, filename):
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
 
-    self.ind = m.extract_miller_indices()  #A flex array of Miller indices.
+    ind = m.extract_miller_indices()  #A flex array of Miller indices.
 
     cols = m.columns()  #Generates columns (augmented flex arrays).
     col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
@@ -44,7 +54,7 @@ class DataDist:
       for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
     )
 
-    return I, sigI, x, y, image
+    return ind, I, sigI, x, y, image
 
 
   def _select_by_multiplicity(self, keep_singles=False):
@@ -69,7 +79,7 @@ class DataDist:
       image = self.image.select(sel)
       ind_unique = set(ind)
 
-    return multis, ind, I, sigI, x, y, image, ind_unique, keep_singles
+    return ind, I, sigI, x, y, image, multis, ind_unique, keep_singles
 
 
   def _mean_error_stddev(self):
@@ -131,9 +141,10 @@ class DataDist:
     ax.set_title(r'$z$ histogram')
     ax.set_xlabel(r'$z$')
     ax.set_ylabel(r'$N$')
-    ax.hist(self.z, label='$z$', bins=100, range=(-10, 10))
+    ax.hist(self.z, label='$z$', bins=100, range=(-5, 5))
     fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram'
+      os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram',
+      transparent = True
     )
     plt.close()
 
@@ -187,7 +198,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_probplot'
+      + '_probplot',
+      transparent = True
     )
     plt.close()
 
@@ -205,7 +217,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_multiplicity'
+      + '_deviation_vs_multiplicity',
+      transparent = True
     )
     plt.close()
 
@@ -244,7 +257,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_detector_map'
+      + '_deviation_detector_map',
+      transparent = True
     )
     plt.close()
 
@@ -263,7 +277,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_time_series'
+      + '_deviation_time_series',
+      transparent = True
     )
     plt.close()
 
@@ -284,7 +299,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_I_over_sigma'
+      + '_deviation_vs_I_over_sigma',
+      transparent = True
     )
     plt.close()
 
@@ -305,7 +321,8 @@ class DataDist:
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_I'
+      + '_deviation_vs_I',
+      transparent = True
     )
     plt.close()
 
