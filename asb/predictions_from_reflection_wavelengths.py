@@ -31,8 +31,8 @@ def refine_wavelengths(experiments, reflections, initial_mosaic_parameters, tag,
   """
 
   if initial_mosaic_parameters is None:
-    domain_size_ang = flex.mean(flex.double([expt.crystal._ML_domain_size_ang for expt in experiments]))
-    half_mosaicity_deg = flex.mean(flex.double([expt.crystal._ML_half_mosaicity_deg for expt in experiments]))
+    domain_size_ang = flex.mean(flex.double([expt.crystal.get_domain_size_ang() for expt in experiments]))
+    half_mosaicity_deg = flex.mean(flex.double([expt.crystal.get_half_mosaicity_deg() for expt in experiments]))
     initial_mosaic_parameters = domain_size_ang, half_mosaicity_deg
 
   from scitbx.simplex import simplex_opt
@@ -295,8 +295,8 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
     table.extend(refls)
 
     if mosaic_parameters is None:
-      domain_size_ang = expt.crystal._ML_domain_size_ang
-      half_mosaicity_deg = expt.crystal._ML_half_mosaicity_deg
+      domain_size_ang = expt.crystal.get_domain_size_ang()
+      half_mosaicity_deg = expt.crystal.get_half_mosaicity_deg()
       print "Computing per-reflection wavelengths from domain size", domain_size_ang, \
         "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image"
 
