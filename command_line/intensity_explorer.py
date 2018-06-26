@@ -193,6 +193,7 @@ class DataDist:
     ax.set_title('Normal probability plot')
     ax.set_xlabel('Order statistic medians, $m$')
     ax.set_ylabel(r'Ordered responses, $z$')
+    ax.set_ylim(-10,10)
     ax.plot(self.osm, self.z, '.b')
     ax.plot([-5,5], [-5,5], '-g')
 
@@ -204,29 +205,28 @@ class DataDist:
     plt.close()
 
 
-  def deviation_vs_multiplicity(self):
+  def z_vs_multiplicity(self):
     fig, ax = plt.subplots()
 
     ax.set_title(
-      r'Difference between ordered responses, $z$, '
-      + r'and order statistic medians, $m$'
+      r'$z$-scores versus multiplicity'
     )
     ax.set_xlabel('Multiplicity')
-    ax.set_ylabel(r'$z - m$')
-    ax.plot(self.multis, self.z - self.osm, '.')
+    ax.set_ylabel(r'$z$')
+    ax.plot(self.multis, self.z, '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_multiplicity',
+      + '_z_vs_multiplicity',
       transparent = True
     )
     plt.close()
 
 
-  def deviation_map(self, minimum=0):
-    sel = (abs(self.z - self.osm) >= minimum).iselection()
+  def z_map(self, minimum=0):
+    sel = (abs(self.z) >= minimum).iselection()
 
-    extreme = math.ceil(flex.max(flex.abs(self.z - self.osm)))
+    extreme = math.ceil(flex.max(flex.abs(self.z)))
     norm = colors.SymLogNorm(
       vmin = -extreme, vmax = extreme,
       linthresh = .02, linscale=1,
@@ -236,8 +236,7 @@ class DataDist:
     fig, ax = plt.subplots()
 
     ax.set_title(
-      r'Difference between ordered responses, $z$, '
-      + r'and order statistic medians, $m$'
+      r'$z$-scores versus detector position'
     )
     ax.set_xlabel('Detector x position (pixels)')
     ax.set_ylabel('Detector y position (pixels)')
@@ -247,17 +246,17 @@ class DataDist:
     det_map = ax.scatter(
       self.x.select(sel),
       self.y.select(sel),
-      c = (self.z - self.osm).select(sel),
+      c = self.z.select(sel),
       marker = ',',
       s = 0.5,
       **cmap_kws
     )
     cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
-    cbar.set_label(r'$z - m$')
+    cbar.set_label(r'$z$')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_detector_map',
+      + '_z_detector_map',
       transparent = True
     )
     plt.close()
@@ -267,61 +266,62 @@ class DataDist:
     fig, ax = plt.subplots()
 
     ax.set_title(
-      r'Difference between ordered responses, $z$, '
-      + r'and order statistic medians, $m$'
+      r'Time series of $z$-scores'
     )
     ax.set_xlabel('Approximate chronology (image number)')
-    ax.set_ylabel(r'$z - m$')
+    ax.set_ylabel(r'$z$')
 
-    ax.plot(self.image, self.z - self.osm, '.')
+    ax.plot(self.image, self.z, '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_time_series',
+      + '_z_time_series',
       transparent = True
     )
     plt.close()
 
 
-  def deviation_vs_IsigI(self):
+  def z_vs_IsigI(self):
     fig, ax = plt.subplots()
 
     ax.set_title(
-      r'Difference between ordered responses, $z$, '
-      + r'and order statistic medians, $m$'
+      r'$z$-scores versus spot intensity'
     )
     ax.set_xlabel(r'$\bar{I}_\mathbf{h} / \sigma_\mathbf{h}$')
-    ax.set_ylabel(r'$z - m$')
+    ax.set_ylabel(r'$z$')
+    ax.set_ylim(-10,10)
+    ax.set_xscale('log')
     ax.plot(
-      self.Imeans/self.sigImeans,
-      self.z - self.osm,
+      abs(self.Imeans/self.sigImeans),
+      self.z,
       '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_I_over_sigma',
+      + '_z_vs_I_over_sigma',
       transparent = True
     )
     plt.close()
 
 
-  def deviation_vs_I(self):
+  def z_vs_I(self):
     fig, ax = plt.subplots()
 
     ax.set_title(
-      r'Difference between ordered responses, $z$, '
-      + r'and order statistic medians, $m$'
+      r'$z$-scores versus spot intensity'
     )
     ax.set_xlabel(r'$\bar{I}_\mathbf{h}$')
-    ax.set_ylabel(r'$z - m$')
+    ax.set_ylabel(r'$z$')
+    ax.set_ylim(-10,10)
+    ax.set_xscale('log')
     ax.plot(
-      self.Imeans,
-      self.z - self.osm,
+      abs(self.Imeans),
+      self.z,
       '.')
 
     fig.savefig(
       os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_deviation_vs_I',
+      + '_z_vs_I',
       transparent = True
     )
     plt.close()
@@ -333,9 +333,9 @@ if __name__ == "__main__":
   data = DataDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
 
   data.probplot()
-  data.deviation_vs_multiplicity()
-  data.deviation_map()
+  data.z_vs_multiplicity()
+  data.z_map()
   data.time_series()
   data.plot_z_histogram()
-  data.deviation_vs_IsigI()
-  data.deviation_vs_I()
+  data.z_vs_IsigI()
+  data.z_vs_I()
