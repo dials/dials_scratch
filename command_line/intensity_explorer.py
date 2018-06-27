@@ -224,7 +224,7 @@ class DataDist:
 
 
   def z_map(self, minimum=0):
-    sel = (abs(self.z) >= minimum).iselection()
+    sel = (flex.abs(self.z) >= minimum).iselection()
 
     extreme = math.ceil(flex.max(flex.abs(self.z)))
     norm = colors.SymLogNorm(
@@ -241,8 +241,8 @@ class DataDist:
     ax.set_xlabel('Detector x position (pixels)')
     ax.set_ylabel('Detector y position (pixels)')
     ax.set_aspect('equal', 'box')
-    ax.set_xlim(min(self.x)-5, max(self.x)+5)
-    ax.set_ylim(min(self.y)-5, max(self.y)+5)
+    ax.set_xlim(flex.min(self.x)-5, flex.max(self.x)+5)
+    ax.set_ylim(flex.min(self.y)-5, flex.max(self.y)+5)
     det_map = ax.scatter(
       self.x.select(sel),
       self.y.select(sel),
@@ -292,7 +292,7 @@ class DataDist:
     ax.set_ylim(-10,10)
     ax.set_xscale('log')
     ax.plot(
-      abs(self.Imeans/self.sigImeans),
+      flex.abs(self.Imeans/self.sigImeans),
       self.z,
       '.')
 
@@ -315,7 +315,7 @@ class DataDist:
     ax.set_ylim(-10,10)
     ax.set_xscale('log')
     ax.plot(
-      abs(self.Imeans),
+      flex.abs(self.Imeans),
       self.z,
       '.')
 
