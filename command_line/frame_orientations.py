@@ -8,7 +8,7 @@ orientation is expressed as a zone axis (a direction referenced to the direct
 lattice) [uvw] giving the beam direction with respect to the crystal lattice.
 Take into account any scan-varying models.
 
-Usage: dev.dials.frame_orientations.py refined_experiments.json
+Usage: dev.dials.frame_orientations refined_experiments.json
 """
 
 from __future__ import division, print_function, absolute_import
@@ -46,6 +46,7 @@ class Script(object):
       usage=usage,
       phil=phil_scope,
       read_experiments=True,
+      check_format=False,
       epilog=__doc__)
 
     return
@@ -68,7 +69,8 @@ class Script(object):
       self.parser.print_help()
       return
 
-    header = ["Image", "Beam direction (xyz)", "Zone axis [uvw]"]
+    header = ["Image", "Beam direction (xyz)", "Zone axis [uvw]",
+        "Angle from\nprevious (deg)"]
     for iexp, exp in enumerate(experiments):
       print("For Experiment id = {0}".format(iexp))
       print(exp.beam)
@@ -85,15 +87,21 @@ class Script(object):
       print("Beam direction scaled by {0} = {1:.3f} to "
             "calculate zone axis\n".format(self.params.scale, scale))
 
-      rows = []
       dat = extract_experiment_data(exp, scale)
       images = dat['images']
       directions = dat['directions']
       zone_axes = dat['zone_axes']
-      for i, d, z in zip(images, directions, zone_axes):
+
+      # calculate the orientation offset between each image
+      offset = [e1.angle(e2, deg=True) for e1, e2 in zip(zone_axes[:-1], zone_axes[1:])]
+      str_off = ["---"] + ["{:.8f}".format(e) for e in offset]
+
+      rows = []
+      for i, d, z, a in zip(images, directions, zone_axes, str_off):
         row = [str(i),
                "{:.5f} {:.5f} {:.5f}".format(*d.elems),
-               "{:.5f} {:.5f} {:.5f}".format(*z.elems)]
+               "{:.5f} {:.5f} {:.5f}".format(*z.elems),
+               a]
         rows.append(row)
 
     st = simple_table(rows, header)
