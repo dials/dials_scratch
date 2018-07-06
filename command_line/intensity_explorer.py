@@ -1,8 +1,24 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
+"""Examine the distribution of diffraction spot intensities.
 
-"""Learning a little about the distribution of diffraction spot intensities
-and their errors, reading from an unmerged MTZ file."""
+This module defines a class IntensityDist, with several methods for exploring
+the distribution of measured spot intensities in an X-ray diffraction
+experiment.  The user may wish to use this information to inform decisions
+regarding the error model employed in analysing the data.  Data are passed in
+as an unmerged MTZ file (see http://www.ccp4.ac.uk/html/mtzformat.html) and the
+resulting IntensityDist instance contains the pertinent columns of data, along
+with normal order statistic medians of the z-scores of the intensities, for constructing a normal probability plot (See
+https://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm).
+
+If called as a script, read data from an unmerged MTZ file; generate a
+histogram and a normal probability plot of the z-scores of the intensity data,
+along with plots of z as a function of batch number, of multiplicity, of
+detector position, of measured multiplicity, of absolute intensity and of
+I/sigma.
+
+Example:
+  $ dials.python intensity_explorer.py <unmerged MTZ file>"""
 
 # TODO Proper documentation.
 # TODO Sprinkle some sensible tests around the place.
@@ -16,12 +32,73 @@ from cctbx.array_family import flex
 from matplotlib import colors, pyplot as plt
 
 
-class DataDist:
-  def __init__(self, filename, outfile=False, keep_singles=False, error=None):
+class IntensityDist(object):
+  """Store intensity data and generate normal order statistic medians."""
+  self.outfile = None
+  """str: File root for generated plots.  Defaults to MTZ input file root."""
+  self.ind = None #: cctbx_array_family_flex_ext.miller_index: Miller indices
+  self.I = None #: cctbx_array_family_flex_ext.double: Measured intensity data
+  self.sigI =None
+  """cctbx_array_family_flex_ext.double: Measured intensity standard deviations
+    """
+  self.x = None
+  """cctbx_array_family_flex_ext.double: Detector position, x (fast) axis
+    component"""
+  self.y = None
+  """cctbx_array_family_flex_ext.double: Detector position, y (slow) axis
+    component"""
+  self.image = None #: cctbx_array_family_flex_ext.double: Batch (image) number
+  self.multis = None
+  """cctbx_array_family_flex_ext.int: Measured multiplicity of symmetry-
+    equivalent spots"""
+  self.ind_unique #: set: Set of observed symmetry-inequivalent Miller indices
+  self.kept_singles
+  """bool: Indicates whether multiplicity-1 reflections were retained.
+    Defaults to False."""
+  self.Imeans = None
+  """cctbx_array_family_flex_ext.double: Weighted means of symmetry-equivalent
+    reflection intensities."""
+  self.sigImeans = None
+  """cctbx_array_family_flex_ext.double: Standard deviation on the weighted
+    mean intensities"""
+  self.stddevs = None
+  """cctbx_array_family_flex_ext.double: Sample standard deviations, calculated
+    as square-root of unbiased weighted sample variances of symmetry-equivalent
+    reflection intensities"""
+  self.z = None
+  """cctbx_array_family_flex_ext.double: z-scores of weighted mean intensities
+    """
+  self.order = None
+  """scitbx_array_family_flex_ext.size_t: Index with which to sort the z-scores
+    in ascending order.  Useful for making a normal probability plot."""
+  self.osm = None
+  """cctbx_array_family_flex_ext.double: Normal order statistic medians of the
+    z-scores"""
+
+  def __init__(self, filename, outfile=None, keep_singles=False, 
+              error='sigma'):
+    """Generate z-scores and normal probability plot from an unmerged MTZ file.
+    
+    Args:
+      filename (str): Unmerged MTZ input file.
+      outfile (str): File root for output PNG plots.  If None, the root of the
+        input filename is used.  Defaults to None.
+      keep_singles (bool): Choose whether to keep multiplicity-1 reflections.
+        Defaults to False.
+      error (str): Measure of spread to use in normalising the z-scores, i.e.
+        z = (I - <I>) / error.
+        'sigma': Use measured sigma values;
+        'stddev': Use sample standard deviations calculated as square-root of
+          unbiased weighted sample variances of symmetry-equivalent reflection
+          intensities;
+        'sigImean': Use standard deviation on the weighted mean intensities.
+          Mathematically meaningless, this is just for debugging.
+        Defaults to 'sigma'.
+    """
     if outfile:
-      self.outfile = outfile
+      self.outfile = os.path.splitext(os.path.basename(outfile))[0]
     else:
-      self.outfile = filename
+      self.outfile = os.path.splitext(os.path.basename(filename))[0]
     (self.ind,
       self.I,
       self.sigI,
@@ -136,23 +213,21 @@ class DataDist:
 
 
   def plot_z_histogram(self):
+    """Plot a hitogram of the z-scores of the weighted mean intensities."""
     fig, ax = plt.subplots()
 
     ax.set_title(r'$z$ histogram')
     ax.set_xlabel(r'$z$')
     ax.set_ylabel(r'$N$')
     ax.hist(self.z, label='$z$', bins=100, range=(-5, 5))
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0] + '_zhistogram',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_zhistogram', transparent = True)
     plt.close()
 
 
   def _plot_symmetry_equivalents(self,
     overlay_mean=False, overlay_error=False
   ):
-    '''Really just a test function.  Slow.  You probably don't want to use.'''
+    """Really just a test plot.  Slow.  You probably don't want to use."""
     fig, ax = plt.subplots()
     
     for hkl in self.ind_unique:
@@ -181,13 +256,12 @@ class DataDist:
           lw = .5
         )
       
-    #fig.savefig(
-    #  os.path.splitext(os.path.basename(self.outfile))[0] + 'testfig'
-    #)
+    #fig.savefig(self.outfile + 'testfig')
     plt.show()
 
 
   def probplot(self):
+    """Create a normal probability plot from the z-scores."""
     fig, ax = plt.subplots()
 
     ax.set_title('Normal probability plot')
@@ -197,15 +271,12 @@ class DataDist:
     ax.plot(self.osm, self.z, '.b')
     ax.plot([-5,5], [-5,5], '-g')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_probplot',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_probplot', transparent = True)
     plt.close()
 
 
   def z_vs_multiplicity(self):
+    "Plot intensity z-scores versus multiplicity."
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -215,15 +286,15 @@ class DataDist:
     ax.set_ylabel(r'$z$')
     ax.plot(self.multis, self.z, '.')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_z_vs_multiplicity',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_z_vs_multiplicity', transparent = True)
     plt.close()
 
 
   def z_map(self, minimum=0):
+    """Plot a z-score heatmap of the detector.
+    
+    Beware, this is only meaningful if the data have a single geometry model.
+    """
     sel = (flex.abs(self.z) >= minimum).iselection()
 
     extreme = math.ceil(flex.max(flex.abs(self.z)))
@@ -254,15 +325,14 @@ class DataDist:
     cbar = fig.colorbar(det_map, ax=ax, **cmap_kws)
     cbar.set_label(r'$z$')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_z_detector_map',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_z_detector_map', transparent = True)
     plt.close()
 
 
   def time_series(self):
+    """Plot a crude time series of z-scores.
+    
+    Batch (image) number is used as a proxy for time."""
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -273,15 +343,12 @@ class DataDist:
 
     ax.plot(self.image, self.z, '.')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_z_time_series',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_z_time_series', transparent = True)
     plt.close()
 
 
   def z_vs_IsigI(self):
+    """Plot z-scores versus I/sigma."""
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -296,15 +363,12 @@ class DataDist:
       self.z,
       '.')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_z_vs_I_over_sigma',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_z_vs_I_over_sigma', transparent = True)
     plt.close()
 
 
   def z_vs_I(self):
+    """Plot z-scores versus absolute intensity."""
     fig, ax = plt.subplots()
 
     ax.set_title(
@@ -319,23 +383,19 @@ class DataDist:
       self.z,
       '.')
 
-    fig.savefig(
-      os.path.splitext(os.path.basename(self.outfile))[0]
-      + '_z_vs_I',
-      transparent = True
-    )
+    fig.savefig(self.outfile + '_z_vs_I', transparent = True)
     plt.close()
 
 
 if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.
   # TODO Allow determination of output filename root.
-  data = DataDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
+  data = IntensityDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
 
-  data.probplot()
-  data.z_vs_multiplicity()
-  data.z_map()
-  data.time_series()
   data.plot_z_histogram()
-  data.z_vs_IsigI()
+  data.probplot()
+  data.time_series()
+  data.z_map()
+  data.z_vs_multiplicity()
   data.z_vs_I()
+  data.z_vs_IsigI()
