@@ -759,6 +759,7 @@ class FinalIntegrator(object):
     self._compute_mask()
     self._compute_background()
     self._compute_intensity()
+    self._compute_centroid()
     self._compute_partiality()
 
     # Plot the partialities
@@ -910,6 +911,14 @@ class FinalIntegrator(object):
     self.reflections.compute_corrections(self.experiments)
     logger.info("%d reflections integrated" % self.reflections.get_flags(
       self.reflections.flags.integrated_sum).count(True))
+
+  def _compute_centroid(self):
+    '''
+    Compute the reflection centroid
+
+    '''
+    logger.info("Computing centroid for %d reflections" % len(self.reflections))
+    self.reflections.compute_centroid(self.experiments)
 
   def _compute_partiality(self):
     '''
