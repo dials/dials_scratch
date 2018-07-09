@@ -25,6 +25,7 @@ Example:
 # TODO Proper documentation.
 # TODO Sprinkle some sensible tests around the place.
 
+from __future__ import absolute_import, division, print_function
 import os
 import sys
 import math
