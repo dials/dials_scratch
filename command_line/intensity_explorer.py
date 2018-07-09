@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
-"""Examine the distribution of diffraction spot intensities.
+"""
+Examine the distribution of diffraction spot intensities.
 
 This module defines a class IntensityDist, with several methods for exploring
 the distribution of measured spot intensities in an X-ray diffraction
@@ -18,7 +19,8 @@ detector position, of measured multiplicity, of absolute intensity and of
 I/sigma.
 
 Example:
-  $ dials.python intensity_explorer.py <unmerged MTZ file>"""
+  $ dials.python intensity_explorer.py <unmerged MTZ file>
+"""
 
 # TODO Proper documentation.
 # TODO Sprinkle some sensible tests around the place.
@@ -33,86 +35,101 @@ from matplotlib import colors, pyplot as plt
 
 
 class IntensityDist(object):
-  """Store intensity data and generate normal order statistic medians."""
-  self.outfile = None
-  """str: File root for generated plots.  Defaults to MTZ input file root."""
-  self.ind = None #: cctbx_array_family_flex_ext.miller_index: Miller indices
-  self.I = None #: cctbx_array_family_flex_ext.double: Measured intensity data
-  self.sigI =None
-  """cctbx_array_family_flex_ext.double: Measured intensity standard deviations
-    """
-  self.x = None
-  """cctbx_array_family_flex_ext.double: Detector position, x (fast) axis
-    component"""
-  self.y = None
-  """cctbx_array_family_flex_ext.double: Detector position, y (slow) axis
-    component"""
-  self.image = None #: cctbx_array_family_flex_ext.double: Batch (image) number
-  self.multis = None
-  """cctbx_array_family_flex_ext.int: Measured multiplicity of symmetry-
-    equivalent spots"""
-  self.ind_unique #: set: Set of observed symmetry-inequivalent Miller indices
-  self.kept_singles
-  """bool: Indicates whether multiplicity-1 reflections were retained.
-    Defaults to False."""
-  self.Imeans = None
-  """cctbx_array_family_flex_ext.double: Weighted means of symmetry-equivalent
-    reflection intensities."""
-  self.sigImeans = None
-  """cctbx_array_family_flex_ext.double: Standard deviation on the weighted
-    mean intensities"""
-  self.stddevs = None
-  """cctbx_array_family_flex_ext.double: Sample standard deviations, calculated
-    as square-root of unbiased weighted sample variances of symmetry-equivalent
-    reflection intensities"""
-  self.z = None
-  """cctbx_array_family_flex_ext.double: z-scores of weighted mean intensities
-    """
-  self.order = None
-  """scitbx_array_family_flex_ext.size_t: Index with which to sort the z-scores
-    in ascending order.  Useful for making a normal probability plot."""
-  self.osm = None
-  """cctbx_array_family_flex_ext.double: Normal order statistic medians of the
-    z-scores"""
+  """
+  Store intensity data and generate normal order statistic medians.
+  
+  Attributes:
+    ind
+      (cctbx_array_family_flex_ext.miller_index): Miller indices.
+    I (cctbx_array_family_flex_ext.double):       Measured intensity data.
+    sigI (cctbx_array_family_flex_ext.double):    Measured intensity standard
+                                                    deviations.
+    x (cctbx_array_family_flex_ext.double):       Detector position, x (fast)
+                                                    axis component.
+    y (cctbx_array_family_flex_ext.double):       Detector position, y (slow)
+                                                    axis component.
+    image (cctbx_array_family_flex_ext.double):   Batch (image) number.
+    multis (cctbx_array_family_flex_ext.int):     Measured multiplicity of
+                                                    symmetry-equivalent spots.
+    Imeans (cctbx_array_family_flex_ext.double):  Weighted means of symmetry-
+                                                    equivalent reflection
+                                                    intensities.
+    sigImeans
+      (cctbx_array_family_flex_ext.double):   Standard deviation on the 
+                                                weighted mean intensities.
+    stddevs
+      (cctbx_array_family_flex_ext.double):   Sample standard deviations,
+                                                calculated as square-root of
+                                                unbiased weighted sample
+                                                variances of symmetry-
+                                                equivalent reflection
+                                                intensities.
+    z (cctbx_array_family_flex_ext.double):   z-scores of weighted mean
+                                                intensities.
+    order
+      (scitbx_array_family_flex_ext.size_t):  Index with which to sort the
+                                                z-scores in ascending order.
+                                                Useful for making a normal
+                                                probability plot.
+    osm (cctbx_array_family_flex_ext.double): Normal order statistic medians of
+                                                the z-scores.
+    ind_unique (set):     Set of observed symmetry-inequivalent Miller indices.
+    kept_singles (bool):  Indicates whether multiplicity-1 reflections were
+                            retained.
+                            Defaults to False.
+    outfile (str):        File root for generated plots.
+                            Defaults to MTZ input file root.
+  """
 
   def __init__(self, filename, outfile=None, keep_singles=False, 
               error='sigma'):
-    """Generate z-scores and normal probability plot from an unmerged MTZ file.
+    """
+    Generate z-scores and normal probability plot from an unmerged MTZ file
     
     Args:
-      filename (str): Unmerged MTZ input file.
-      outfile (str): File root for output PNG plots.  If None, the root of the
-        input filename is used.  Defaults to None.
-      keep_singles (bool): Choose whether to keep multiplicity-1 reflections.
-        Defaults to False.
-      error (str): Measure of spread to use in normalising the z-scores, i.e.
-        z = (I - <I>) / error.
-        'sigma': Use measured sigma values;
-        'stddev': Use sample standard deviations calculated as square-root of
+      filename (str):       Unmerged MTZ input file.
+      outfile (str):        File root for output PNG plots.  If None, the root
+                              of the input filename is used.
+                              Defaults to None.
+      keep_singles (bool):  Choose whether to keep multiplicity-1 reflections.
+                              Defaults to False.
+      error (str):          Measure of spread to use in normalising the
+                              z-scores, i.e. z = (I - <I>) / error.
+        Possible values for error:
+        'sigma':    Use measured sigma values;
+        'stddev':   Use sample standard deviations calculated as square-root of
           unbiased weighted sample variances of symmetry-equivalent reflection
           intensities;
         'sigImean': Use standard deviation on the weighted mean intensities.
           Mathematically meaningless, this is just for debugging.
         Defaults to 'sigma'.
     """
+    self.ind = None
+    self.I = None
+    self.sigI =None
+    self.x = None
+    self.y = None
+    self.image = None
+    self.multis = None
+    self.Imeans = None
+    self.sigImeans = None
+    self.stddevs = None
+    self.z = None
+    self.order = None
+    self.osm = None
+    self.ind_unique = None
+    self.kept_singles = None
+    self.outfile = None
+
     if outfile:
       self.outfile = os.path.splitext(os.path.basename(outfile))[0]
     else:
       self.outfile = os.path.splitext(os.path.basename(filename))[0]
-    (self.ind,
-      self.I,
-      self.sigI,
-      self.x,
-      self.y,
+    (self.ind, self.I, self.sigI, self.x, self.y,
       self.image) = self._data_from_unmerged_mtz(filename)
-    (self.ind,
-      self.I,
-      self.sigI,
-      self.x,
-      self.y,
-      self.image,
-      self.multis,
-      self.ind_unique,
+    (self.ind, self.I, self.sigI,
+      self.x, self.y, self.image,
+      self.multis, self.ind_unique,
       self.kept_singles) = self._select_by_multiplicity(keep_singles)
     self.Imeans, self.sigImeans, self.stddevs = self._mean_error_stddev()
     self.z, self.order = self._make_z(error)
