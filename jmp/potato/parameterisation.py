@@ -368,6 +368,7 @@ class ModelState(object):
 
   def __init__(self,
                experiment,
+               fix_mosaic_spread=False,
                fix_wavelength_spread=False,
                fix_unit_cell=False,
                fix_orientation=False):
@@ -389,6 +390,7 @@ class ModelState(object):
     self.L_parameterisation = WavelengthSpreadParameterisation()
 
     # Set the flags to fix parameters
+    self._is_mosaic_spread_fixed = fix_mosaic_spread
     self._is_wavelength_spread_fixed = fix_wavelength_spread
     self._is_unit_cell_fixed = fix_unit_cell
     self._is_orientation_fixed = fix_orientation
@@ -407,6 +409,13 @@ class ModelState(object):
     '''
     return self._is_unit_cell_fixed
 
+  def is_mosaic_spread_fixed(self):
+    '''
+    Return whether the mosaic spread is fixed
+
+    '''
+    return self._is_mosaic_spread_fixed
+  
   def is_wavelength_spread_fixed(self):
     '''
     Return whether the wavelength spread is fixed
@@ -578,9 +587,11 @@ class ModelState(object):
       active_params.extend(self.get_U_params())
     if not self._is_unit_cell_fixed:
       active_params.extend(self.get_B_params())
-    active_params.extend(self.get_M_params())
+    if not self._is_mosaic_spread_fixed:
+      active_params.extend(self.get_M_params())
     if not self._is_wavelength_spread_fixed:
       active_params.extend(self.get_L_params())
+    assert len(active_params) > 0
     return active_params
 
   def set_active_parameters(self, params):
@@ -596,9 +607,10 @@ class ModelState(object):
       temp   = params[:self.num_B_params()]
       params = params[self.num_B_params():]
       self.set_B_params(temp)
-    temp   = params[:self.num_M_params()]
-    params = params[self.num_M_params():]
-    self.set_M_params(temp)
+    if not self._is_mosaic_spread_fixed:
+      temp   = params[:self.num_M_params()]
+      params = params[self.num_M_params():]
+      self.set_M_params(temp)
     if not self._is_wavelength_spread_fixed:
       temp   = params[:self.num_L_params()]
       params = params[self.num_L_params():]
@@ -616,10 +628,12 @@ class ModelState(object):
     if not self._is_unit_cell_fixed:
       for i in range(len(self.get_B_params())):
         labels.append("Crystal_B_%d" % i)
-    for i in range(len(self.get_M_params())):
-      labels.append("Mosaicity_%d" % i)
+    if not self._is_mosaic_spread_fixed:
+      for i in range(len(self.get_M_params())):
+        labels.append("Mosaicity_%d" % i)
     if not self._is_wavelength_spread_fixed:
       labels.append("Wavelength_Spread")
+    assert len(labels) > 0
     return labels
 
 
@@ -723,13 +737,14 @@ class ReflectionModelState(object):
       self._ds_dp.extend(ds_dp_b)
 
     # Compute derivatives w.r.t M parameters
-    dr_dp_m = flex.vec3_double(state.num_M_params())
-    ds_dp_m = flex.mat3_double(state.num_M_params())
-    for i in range(state.num_M_params()):
-      dr_dp_m[i] = (0, 0, 0)
-      ds_dp_m[i] = dM_dp[i]
-    self._dr_dp.extend(dr_dp_m)
-    self._ds_dp.extend(ds_dp_m)
+    if not state.is_mosaic_spread_fixed():
+      dr_dp_m = flex.vec3_double(state.num_M_params())
+      ds_dp_m = flex.mat3_double(state.num_M_params())
+      for i in range(state.num_M_params()):
+        dr_dp_m[i] = (0, 0, 0)
+        ds_dp_m[i] = dM_dp[i]
+      self._dr_dp.extend(dr_dp_m)
+      self._ds_dp.extend(ds_dp_m)
 
     # Compute derivatives w.r.t L parameters
     # if not state.is_wavelength_spread_fixed():

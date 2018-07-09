@@ -87,8 +87,11 @@ phil_scope = parse('''
   }
 
   refinement {
-
-    outlier_probability = 0.999936
+    
+    max_separation = 2
+      .type = float
+    
+    outlier_probability = 0.9999
       .type = float
 
     n_macro_cycles = 3
@@ -283,6 +286,7 @@ class Indexer(object):
 
     # compare to the threshold
     selection = d2s < mahasq_cutoff
+    selection = selection & (flex.sqrt(Xres**2+Yres**2) < self.params.refinement.max_separation)
 
     # Select the reflections
     self.reflections = self.reflections.select(selection)
@@ -528,7 +532,9 @@ class Refiner(object):
     self._preprocess()
 
     # Do the refinement
-    self._refine_profile()
+    for i in range(5):
+      self._refine_profile()
+      self._refine_crystal()
 
     # Post process the reflections
     self._postprocess()
@@ -583,13 +589,18 @@ class Refiner(object):
     # Create the parameterisation
     state = ModelState(
       self.experiments[0],
-      fix_orientation       = self.params.profile.orientation.fixed,
-      fix_unit_cell         = self.params.profile.unit_cell.fixed,
+      fix_orientation       = True,
+      fix_unit_cell         = True,
       fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
 
+  
     # Set the parameters
     state.set_M_params(self.M_params)
     state.set_L_params(self.L_params)
+    
+    # self.experiments[0].crystal.mosaicity = state.get_M()
+    # self.history = []
+    # return
 
     # Create the refiner and refine
     refiner = ProfileRefiner(state, self._refiner_data)
@@ -617,6 +628,28 @@ class Refiner(object):
       self._plot_corrgram(
         refiner.correlation(),
         refiner.labels())
+
+  def _refine_crystal(self):
+    '''
+    Do the crystal refinement
+
+    '''
+    logger.info("")
+    logger.info("Refining crystal parmameters")
+
+    # Create the parameterisation
+    state = ModelState(
+      self.experiments[0],
+      fix_mosaic_spread = True,
+      fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
+
+    # Set the parameters
+    state.set_M_params(self.M_params)
+    state.set_L_params(self.L_params)
+
+    # Create the refiner and refine
+    refiner = ProfileRefiner(state, self._refiner_data)
+    refiner.refine()
 
   def _predict(self):
     '''

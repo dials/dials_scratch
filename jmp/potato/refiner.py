@@ -259,7 +259,6 @@ class ReflectionLikelihood(object):
     dSbar = self.conditional.first_derivatives_of_sigma()
     dmbar = self.conditional.first_derivatives_of_mean()
     Sbar_inv = Sbar.inverse()
-    ctot = 1
 
     # The distance from the ewald sphere
     epsilon = s0.length() - mu2
@@ -310,7 +309,6 @@ class ReflectionLikelihood(object):
     dmbar = self.conditional.first_derivatives_of_mean()
     Sbar_inv = Sbar.inverse()
     dmu = self.dmu
-    ctot = 1
 
     # Compute the fisher information wrt parameter i j
     I = flex.double(flex.grid(len(dS22), len(dS22)))
@@ -895,7 +893,7 @@ class Refiner(object):
     logger.info("Components to refine:")
     logger.info(" Orientation:       %s" % (not self.state.is_orientation_fixed()))
     logger.info(" Unit cell:         %s" % (not self.state.is_unit_cell_fixed()))
-    logger.info(" RLP mosaicity:     %s" % (True))
+    logger.info(" RLP mosaicity:     %s" % (not self.state.is_mosaic_spread_fixed()))
     logger.info(" Wavelength spread: %s" % (not self.state.is_wavelength_spread_fixed()))
     logger.info("")
 
@@ -1034,7 +1032,8 @@ class RefinerData(object):
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
           c = data[0,j,i] - bgrd[0,j,i]
-          if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
+          #if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
+          if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
             ctot += c
             ii = i + i0
             jj = j + j0
@@ -1068,6 +1067,8 @@ class RefinerData(object):
       zero = matrix.col((0, 0))
       Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       Bmean += Bias_sq
+      
+      #ctot = 1
 
       # Add to the lists
       sp_list[r] = sp
