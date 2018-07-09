@@ -48,7 +48,7 @@ class IntensityDist(object):
                                                     axis component.
     y (cctbx_array_family_flex_ext.double):       Detector position, y (slow)
                                                     axis component.
-    image (cctbx_array_family_flex_ext.double):   Batch (image) number.
+    image (cctbx_array_family_flex_ext.int):      Batch (image) number.
     multis (cctbx_array_family_flex_ext.int):     Measured multiplicity of
                                                     symmetry-equivalent spots.
     Imeans (cctbx_array_family_flex_ext.double):  Weighted means of symmetry-
@@ -143,10 +143,11 @@ class IntensityDist(object):
 
     cols = m.columns()  #Generates columns (augmented flex arrays).
     col_dict = { c.label() : c for c in cols }  #A dict of all the columns.
-    I, sigI, x, y, image = (
+    I, sigI, x, y = (
       col_dict[label].extract_values().as_double()
-      for label in ('I', 'SIGI', 'XDET', 'YDET', 'BATCH')
+      for label in ('I', 'SIGI', 'XDET', 'YDET')
     )
+    image = col_dict['BATCH'].extract_values().as_double().iround()
 
     return ind, I, sigI, x, y, image
 
