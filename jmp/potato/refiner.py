@@ -1032,8 +1032,8 @@ class RefinerData(object):
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
           c = data[0,j,i] - bgrd[0,j,i]
-          #if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
-          if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
+          if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
+          #if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
             ctot += c
             ii = i + i0
             jj = j + j0
@@ -1068,7 +1068,7 @@ class RefinerData(object):
       Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       Bmean += Bias_sq
       
-      #ctot = 1
+      ctot = 1
 
       # Add to the lists
       sp_list[r] = sp

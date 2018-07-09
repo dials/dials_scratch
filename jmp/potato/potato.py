@@ -180,7 +180,7 @@ class Indexer(object):
     selection = flex.size_t()
     num_reindexed = 0
     for i in range(len(self.reflections)):
-
+        
       # Get the observed pixel coordinate
       x, y, _ = xyz_list[i]
 
@@ -272,14 +272,20 @@ class Indexer(object):
     Xres = (Xobs - Xcal)
     Yres = (Yobs - Ycal)
 
+    # Compute the epsilon residual
+    s0_length = 1.0 / self.experiments[0].beam.get_wavelength()
+    s1x, s1y, s1z = self.reflections['s2'].parts()
+    s1_length = flex.sqrt(s1x**2 + s1y**2 + s1z**2)
+    Eres = s1_length - s0_length
+
     # Initialise the fast_mcd outlier algorithm
-    fast_mcd = FastMCD((Xres, Yres))
+    fast_mcd = FastMCD((Xres, Yres, Eres))
 
     # get location and MCD scatter estimate
     T, S = fast_mcd.get_corrected_T_and_S()
 
     # get squared Mahalanobis distances
-    d2s = maha_dist_sq((Xres, Yres), T, S)
+    d2s = maha_dist_sq((Xres, Yres, Eres), T, S)
 
     # Compute the cutoff
     mahasq_cutoff = chisq_quantile(2, self.params.refinement.outlier_probability)
@@ -296,10 +302,15 @@ class Indexer(object):
       self.params.refinement.outlier_probability)
     logger.info(" Max X residual: %f" % flex.max(flex.abs(Xres)))
     logger.info(" Max Y residual: %f" % flex.max(flex.abs(Yres)))
+    logger.info(" Max E residual: %f" % flex.max(flex.abs(Eres)))
     logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres**2)/len(Xres))))
     logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2)/len(Yres))))
-    logger.info(" MCD location estimate: %.2f, %.2f" % tuple(T))
-    logger.info(" MCD scatter estimate:  %.2f, %.2f, %.2f, %.2f" % tuple(list(S)))
+    logger.info(" Mean E RMSD: %f" % (sqrt(flex.sum(Eres**2)/len(Eres))))
+    logger.info(" MCD location estimate: %.4f, %.4f, %.4f" % tuple(T))
+    logger.info(''' MCD scatter estimate:  
+      %.7f, %.7f, %.7f, 
+      %.7f, %.7f, %.7f,
+      %.7f, %.7f, %.7f''' % tuple(list(S)))
     logger.info(" Number of outliers: %d" % selection.count(False))
     logger.info(" Number of reflections selection for refinement: %d" % len(self.reflections))
     logger.info("-" * 80)
