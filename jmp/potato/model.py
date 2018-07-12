@@ -26,7 +26,7 @@ class Simple6ProfileModel(object):
 
     '''
     self.params = params
-  
+
   def parameterisation(self):
     '''
     Get the parameterisation
@@ -64,8 +64,8 @@ class Simple6ProfileModel(object):
 
     self.params = state.get_M_params()
 
-  def predict_reflections(self, 
-                          experiments, 
+  def predict_reflections(self,
+                          experiments,
                           miller_indices,
                           probability=0.997):
     '''
@@ -84,7 +84,7 @@ class Simple6ProfileModel(object):
 
     '''
     calculator = BBoxCalculatorSimple(
-      experiments[0], 
+      experiments[0],
       self.sigma(),
       0.999999998,
       4)
@@ -96,11 +96,11 @@ class Simple6ProfileModel(object):
 
     '''
     calculator = MaskCalculatorSimple(
-      experiments[0], 
+      experiments[0],
       self.sigma(),
       0.999999998)
     calculator.compute(reflections)
- 
+
   def sigma_for_reflection(self, s0, r):
     '''
     Get sigma for a reflections
@@ -176,7 +176,7 @@ class Simple6ProfileModel(object):
       LL[0],
       LL[1], LL[2],
       LL[3], LL[4], LL[5])))
-      
+
 
 
 class Angular2ProfileModel(object):
@@ -184,7 +184,7 @@ class Angular2ProfileModel(object):
   Class to store profile model
 
   '''
-  
+
   def __init__(self, params):
     '''
     Initialise the class
@@ -237,8 +237,8 @@ class Angular2ProfileModel(object):
     Q = compute_change_of_basis_operation(s0, r)
     return Q.transpose()*self.sigma()*Q
 
-  def predict_reflections(self, 
-                          experiments, 
+  def predict_reflections(self,
+                          experiments,
                           miller_indices,
                           probability=0.997):
     '''
@@ -257,7 +257,7 @@ class Angular2ProfileModel(object):
 
     '''
     calculator = BBoxCalculatorAngular(
-      experiments[0], 
+      experiments[0],
       self.sigma(),
       0.999999998,
       4)
@@ -269,7 +269,7 @@ class Angular2ProfileModel(object):
 
     '''
     calculator = MaskCalculatorAngular(
-      experiments[0], 
+      experiments[0],
       self.sigma(),
       0.999999998)
     calculator.compute(reflections)
@@ -322,7 +322,7 @@ class Angular2ProfileModel(object):
 
     '''
     return Class(params)
- 
+
   @classmethod
   def from_sigma(Class, sigma):
     '''
@@ -338,7 +338,7 @@ class Angular2ProfileModel(object):
 
     # Do the cholesky decomposition
     ll = l_l_transpose_cholesky_decomposition_in_place(LL)
-   
+
     # Check the sigma is as we expect
     TINY = 1e-10
     assert abs(LL[1] - 0) < TINY
@@ -365,7 +365,7 @@ class ProfileModelFactory(object):
       return Simple6ProfileModel.from_sigma_d(sigma_d)
     elif params.profile.rlp_mosaicity.model == "angular2":
       return Angular2ProfileModel.from_sigma_d(sigma_d)
-    
+
     raise RuntimeError("Unknown profile model: %s" %
                        params.profile.rlp_mosaicity.model)
 
@@ -397,5 +397,3 @@ def compute_change_of_basis_operation2(s0, r):
     e2.elems +
     e3.elems)
   return R
-
-

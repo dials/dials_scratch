@@ -30,6 +30,13 @@ class SimpleMosaicityParameterisation(object):
     else:
       self.params = flex.double(self.num_parameters(), 0)
 
+  def is_angular(self):
+    '''
+    Is angular
+
+    '''
+    return False
+
   def num_parameters(self):
     '''
     Get the number of parameters
@@ -222,13 +229,6 @@ class WavelengthSpreadParameterisation(object):
       self.params = params
     else:
       self.params = flex.double(self.num_parameters(), 0)
-
-  def is_angular(self):
-    '''
-    Is angular
-
-    '''
-    return False
 
   def num_parameters(self):
     '''
@@ -433,7 +433,7 @@ class ModelState(object):
 
     '''
     return self.M_parameterisation.is_angular()
-  
+
   def is_wavelength_spread_fixed(self):
     '''
     Return whether the wavelength spread is fixed
@@ -661,7 +661,7 @@ class ReflectionModelState(object):
       self._sigma = Q.transpose()*M*Q
     else:
       self._sigma = M
-   
+
     # Set the reciprocal lattice vector
     self._r = r
 
@@ -681,21 +681,21 @@ class ReflectionModelState(object):
       ds_dp_u = flex.mat3_double(state.num_U_params())
       for i in range(state.num_U_params()):
         dr_dp_u[i] = matrix.sqr(dU_dp[i])*B*h
-        dr = matrix.col(dr_dp_u[i])
-        dt = r.dot(matrix.col(dr)) / t
-        drs0 = dr.cross(s0)
-        dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
-        drq1 = dr.cross(q1) + r.cross(dq1)
-        dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
-        dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
-        dQ = matrix.sqr(
-          dq1.elems +
-          dq2.elems +
-          dq3.elems)
-        if state.is_mosaic_spread_angular():
-          ds_dp_u[i] = Q*M*Q.transpose() \
-                     + dQ*M*Q.transpose() \
-                     + Q*M*dQ.transpose()
+        # dr = matrix.col(dr_dp_u[i])
+        # dt = r.dot(matrix.col(dr)) / t
+        # drs0 = dr.cross(s0)
+        # dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
+        # drq1 = dr.cross(q1) + r.cross(dq1)
+        # dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
+        # dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
+        # dQ = matrix.sqr(
+        #   dq1.elems +
+        #   dq2.elems +
+        #   dq3.elems)
+        # if state.is_mosaic_spread_angular():
+        #   ds_dp_u[i] = Q.transpose()*M*Q \
+        #              + dQ.transpose()*M*Q \
+        #              + Q.transpose()*M*dQ
         # ds_dp_u[i] = dt*Q*(L+W)*Q.transpose() \
         #            + t*dQ*(L+W)*Q.transpose() \
         #            + t*Q*(L+W)*dQ.transpose()
@@ -709,21 +709,21 @@ class ReflectionModelState(object):
       ds_dp_b = flex.mat3_double(state.num_B_params())
       for i in range(state.num_B_params()):
         dr_dp_b[i] = U*matrix.sqr(dB_dp[i])*h
-        dr = matrix.col(dr_dp_b[i])
-        dt = r.dot(matrix.col(dr)) / t
-        drs0 = dr.cross(s0)
-        dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
-        drq1 = dr.cross(q1) + r.cross(dq1)
-        dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
-        dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
-        dQ = matrix.sqr(
-          dq1.elems +
-          dq2.elems +
-          dq3.elems)
-        if state.is_mosaic_spread_angular():
-          ds_dp_b[i] = Q*M*Q.transpose() \
-                     + dQ*M*Q.transpose() \
-                     + Q*M*dQ.transpose()
+        # dr = matrix.col(dr_dp_b[i])
+        # dt = r.dot(matrix.col(dr)) / t
+        # drs0 = dr.cross(s0)
+        # dq1 = drs0/rs0.length() - rs0*rs0.dot(drs0)/rs0.length()**3
+        # drq1 = dr.cross(q1) + r.cross(dq1)
+        # dq2 = drq1/rq1.length() - rq1*rq1.dot(drq1)/rq1.length()**3
+        # dq3 = dr/r.length() - r*r.dot(dr)/r.length()**3
+        # dQ = matrix.sqr(
+        #   dq1.elems +
+        #   dq2.elems +
+        #   dq3.elems)
+        # if state.is_mosaic_spread_angular():
+        #   ds_dp_b[i] = Q.transpose()*M*Q \
+        #              + dQ.transpose()*M*Q \
+                     # + Q.transpose()*M*dQ
         # ds_dp_b[i] = dt*Q*(L+W)*Q.transpose() \
         #            + t*dQ*(L+W)*Q.transpose() \
         #            + t*Q*(L+W)*dQ.transpose()

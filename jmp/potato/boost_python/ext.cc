@@ -266,7 +266,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     }
 
   protected:
-    
+
     /**
      * Get the sigma for a reflection
      */
@@ -278,20 +278,20 @@ namespace dials { namespace algorithms { namespace boost_python {
     Experiment experiment_;
     double probability_;
   };
- 
+
 
   /**
    * The predictor for simple profile models
    */
   class PredictorSimple : public PredictorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
      * @param sigma The covariance matrix
      */
-    PredictorSimple(Experiment experiment, 
+    PredictorSimple(Experiment experiment,
                          mat3<double> sigma,
                          double probability)
       : PredictorBase(experiment, probability),
@@ -311,13 +311,13 @@ namespace dials { namespace algorithms { namespace boost_python {
     mat3<double> sigma_;
   };
 
- 
+
   /**
    * The predictor for angular profile models
    */
   class PredictorAngular : public PredictorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
@@ -340,7 +340,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       const double TINY = 1e-7;
       mat3<double> Q = compute_change_of_basis_operation2(s0, r);
       vec3<double> zaxis(0,0,1);
-      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY); 
+      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY);
       return (Q.transpose()*sigma_*Q);
     }
 
@@ -518,13 +518,13 @@ namespace dials { namespace algorithms { namespace boost_python {
    */
   class BBoxCalculatorSimple : public BBoxCalculatorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
      * @param sigma The covariance matrix
      */
-    BBoxCalculatorSimple(Experiment experiment, 
+    BBoxCalculatorSimple(Experiment experiment,
                          mat3<double> sigma,
                          double probability,
                          int border)
@@ -545,13 +545,13 @@ namespace dials { namespace algorithms { namespace boost_python {
     mat3<double> sigma_;
   };
 
- 
+
   /**
    * The bbox calculator for angular profile models
    */
   class BBoxCalculatorAngular : public BBoxCalculatorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
@@ -575,7 +575,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       const double TINY = 1e-7;
       mat3<double> Q = compute_change_of_basis_operation2(s0, r);
       vec3<double> zaxis(0,0,1);
-      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY); 
+      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY);
       return (Q.transpose()*sigma_*Q);
     }
 
@@ -660,12 +660,12 @@ namespace dials { namespace algorithms { namespace boost_python {
       vec3<double> s0 = experiment_.get_beam()->get_s0();
       double s0_length = s0.length();
       DIALS_ASSERT(std::abs(s0_length - s1.length()) < TINY);
-      
+
       vec3<double> r = s2 - s0;
 
       // Compute the change of basis for the reflection
       mat3<double> R = compute_change_of_basis_operation(s0, s2);
-      
+
       // Rotate the covariance matrix and s2 vector
       mat3<double> S = R*get_sigma(s0, r)*R.transpose();
       vec3<double> mu = R*s2;
@@ -767,13 +767,13 @@ namespace dials { namespace algorithms { namespace boost_python {
    */
   class MaskCalculatorSimple : public MaskCalculatorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
      * @param sigma The covariance matrix
      */
-    MaskCalculatorSimple(Experiment experiment, 
+    MaskCalculatorSimple(Experiment experiment,
                          mat3<double> sigma,
                          double probability)
       : MaskCalculatorBase(experiment, probability),
@@ -793,13 +793,13 @@ namespace dials { namespace algorithms { namespace boost_python {
     mat3<double> sigma_;
   };
 
- 
+
   /**
    * The mask calculator for angular profile models
    */
   class MaskCalculatorAngular : public MaskCalculatorBase {
   public:
-    
+
     /**
      * Initialise the class
      * @param experiment The experiment
@@ -822,7 +822,7 @@ namespace dials { namespace algorithms { namespace boost_python {
       const double TINY = 1e-7;
       mat3<double> Q = compute_change_of_basis_operation2(s0, r);
       vec3<double> zaxis(0,0,1);
-      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY); 
+      DIALS_ASSERT(std::abs(((Q * r.normalize()) * zaxis) - 1) < TINY);
       return (Q.transpose()*sigma_*Q);
     }
 
@@ -838,11 +838,11 @@ namespace dials { namespace algorithms { namespace boost_python {
     class_<PredictorBase>("PredictorBase", no_init)
       .def("predict", &PredictorBase::predict)
       ;
-    
+
     class_<PredictorSimple, bases<PredictorBase> >("PredictorSimple", no_init)
       .def(init<Experiment, mat3<double>, double >())
       ;
-    
+
     class_<PredictorAngular, bases<PredictorBase> >("PredictorAngular", no_init)
       .def(init<Experiment, mat3<double>, double >())
       ;
@@ -850,11 +850,11 @@ namespace dials { namespace algorithms { namespace boost_python {
     class_<BBoxCalculatorBase>("BBoxCalculatorBase", no_init)
       .def("compute", &BBoxCalculatorBase::compute)
       ;
-    
+
     class_<BBoxCalculatorSimple, bases<BBoxCalculatorBase> >("BBoxCalculatorSimple", no_init)
       .def(init<Experiment, mat3<double>, double, int >())
       ;
-    
+
     class_<BBoxCalculatorAngular, bases<BBoxCalculatorBase> >("BBoxCalculatorAngular", no_init)
       .def(init<Experiment, mat3<double>, double, int >())
       ;
@@ -862,11 +862,11 @@ namespace dials { namespace algorithms { namespace boost_python {
     class_<MaskCalculatorBase>("MaskCalculatorBase", no_init)
       .def("compute", &MaskCalculatorBase::compute)
       ;
-    
+
     class_<MaskCalculatorSimple, bases<MaskCalculatorBase> >("MaskCalculatorSimple", no_init)
       .def(init<Experiment, mat3<double>, double>())
       ;
-    
+
     class_<MaskCalculatorAngular, bases<MaskCalculatorBase> >("MaskCalculatorAngular", no_init)
       .def(init<Experiment, mat3<double>, double>())
       ;

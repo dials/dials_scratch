@@ -224,13 +224,17 @@ class ReflectionLikelihood(object):
     Sbar_inv = Sbar.inverse()
     Sbar_det = Sbar.determinant()
 
+    # Weights for marginal and conditional components
+    m_w = 1
+    c_w = ctot
+
     # Compute the marginal likelihood
     m_d = s0.length() - mu2
-    m_lnL = (log(S22) + S22_inv*m_d**2)
+    m_lnL = m_w * (log(S22) + S22_inv*m_d**2)
 
     # Compute the conditional likelihood
     c_d = mobs - mubar
-    c_lnL = ctot*(log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
+    c_lnL = c_w * (log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
 
     # Return the joint likelihood
     return -0.5 * (m_lnL + c_lnL)
@@ -264,6 +268,10 @@ class ReflectionLikelihood(object):
     epsilon = s0.length() - mu2
     c_d = mobs - mubar
 
+    # Weights for marginal and conditional components
+    m_w = 1
+    c_w = ctot
+
     # Compute the derivative wrt parameter i
     dL = flex.double()
     for i in range(len(dS22)):
@@ -277,9 +285,9 @@ class ReflectionLikelihood(object):
         1, 0,
         0, 1))
 
-      U = ctot*(S22_inv*dS22[i]*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep)
-      V = (Sbar_inv*dSbar[i]*ctot*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
-      W = (-2*ctot*Sbar_inv*c_d*dmbar[i].transpose()).trace()
+      U = m_w*(S22_inv*dS22[i]*(1 - S22_inv*epsilon**2)+2*S22_inv*epsilon*dep)
+      V = c_w*(Sbar_inv*dSbar[i]*(I - Sbar_inv*(Sobs+c_d*c_d.transpose()))).trace()
+      W = c_w*(-2*Sbar_inv*c_d*dmbar[i].transpose()).trace()
       dL.append(-0.5*(U+V+W))
 
     # Return the derivative of the log likelihood
@@ -310,6 +318,10 @@ class ReflectionLikelihood(object):
     Sbar_inv = Sbar.inverse()
     dmu = self.dmu
 
+    # Weights for marginal and conditional components
+    m_w = 1
+    c_w = ctot
+
     # Compute the fisher information wrt parameter i j
     I = flex.double(flex.grid(len(dS22), len(dS22)))
     for j in range(len(dS22)):
@@ -318,7 +330,7 @@ class ReflectionLikelihood(object):
         V = (Sbar_inv*dSbar[j]*Sbar_inv*dSbar[i]).trace()
         W = 2*(Sbar_inv*dmbar[i]*dmbar[j].transpose()).trace()
         X = 2*dmu[i][2]*S22_inv*dmu[j][2]
-        I[j,i] = 0.5*ctot*(U+V+W+X)
+        I[j,i] = 0.5*c_w*(V+W)+0.5*m_w*(U+X)
 
     return I
 
@@ -804,7 +816,7 @@ class Refiner(object):
     Perform the profile refinement
 
     '''
-    if True:
+    if False:
       self.refine_simplex()
     else:
       self.refine_fisher_scoring()
@@ -1066,7 +1078,7 @@ class RefinerData(object):
       zero = matrix.col((0, 0))
       Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       Bmean += Bias_sq
-      
+
       #ctot = 1
 
       # Add to the lists

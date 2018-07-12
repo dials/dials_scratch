@@ -83,10 +83,10 @@ phil_scope = parse('''
   }
 
   refinement {
-    
+
     max_separation = 2
       .type = float
-    
+
     outlier_probability = 0.9999
       .type = float
 
@@ -176,7 +176,7 @@ class Indexer(object):
     selection = flex.size_t()
     num_reindexed = 0
     for i in range(len(self.reflections)):
-        
+
       # Get the observed pixel coordinate
       x, y, _ = xyz_list[i]
 
@@ -303,8 +303,8 @@ class Indexer(object):
     logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2)/len(Yres))))
     logger.info(" Mean E RMSD: %f" % (sqrt(flex.sum(Eres**2)/len(Eres))))
     logger.info(" MCD location estimate: %.4f, %.4f, %.4f" % tuple(T))
-    logger.info(''' MCD scatter estimate:  
-      %.7f, %.7f, %.7f, 
+    logger.info(''' MCD scatter estimate:
+      %.7f, %.7f, %.7f,
       %.7f, %.7f, %.7f,
       %.7f, %.7f, %.7f''' % tuple(list(S)))
     logger.info(" Number of outliers: %d" % selection.count(False))
