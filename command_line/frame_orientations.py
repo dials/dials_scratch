@@ -104,8 +104,8 @@ class Script(object):
                a]
         rows.append(row)
 
-    st = simple_table(rows, header)
-    print(st.format())
+      st = simple_table(rows, header)
+      print(st.format())
     print()
 
     return
