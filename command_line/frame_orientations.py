@@ -99,8 +99,8 @@ class Script(object):
       rows = []
       for i, d, z, a in zip(images, directions, zone_axes, str_off):
         row = [str(i),
-               "{:.5f} {:.5f} {:.5f}".format(*d.elems),
-               "{:.5f} {:.5f} {:.5f}".format(*z.elems),
+               "{:.8f} {:.8f} {:.8f}".format(*d.elems),
+               "{:.8f} {:.8f} {:.8f}".format(*z.elems),
                a]
         rows.append(row)
 
