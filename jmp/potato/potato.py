@@ -21,18 +21,14 @@ from dials_scratch.jmp.potato.refiner import RefinerData
 from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
 from dials_scratch.jmp.potato.refiner import print_eigen_values_and_vectors
 from dials_scratch.jmp.potato.parameterisation import ModelState
-from dials_scratch.jmp.potato.model import compute_change_of_basis_operation
-from dials_scratch.jmp.potato.model import SimpleMosaicityModel
+from dials_scratch.jmp.potato.model import ProfileModelFactory
 from dials_scratch.jmp.potato import chisq_pdf
 from dials_scratch.jmp.potato import chisq_quantile
-from dials_scratch.jmp.potato import Predictor
-from dials_scratch.jmp.potato import BBoxCalculator as BBoxCalculatorNew
-from dials_scratch.jmp.potato import MaskCalculator as MaskCalculatorNew
 from dials.algorithms.spot_prediction import IndexGenerator
 from scitbx.linalg import eigensystem, l_l_transpose_cholesky_decomposition_in_place
 from dials.array_family import flex
 from scitbx import matrix
-from math import pi, sqrt, floor, ceil, exp
+from math import pi, sqrt, floor
 from dials.algorithms.shoebox import MaskCode
 import logging
 import matplotlib
@@ -49,12 +45,12 @@ phil_scope = parse('''
   profile
   {
 
-    # rlp_mosaicity {
+    rlp_mosaicity {
 
-    #   model = *simple *angular
-    #     .type = choice
+      model = simple6 *angular2
+        .type = choice
 
-    # }
+    }
 
     wavelength_spread {
 
@@ -389,7 +385,7 @@ class InitialIntegrator(object):
       self.experiments[0].detector,
       self.experiments[0].goniometer,
       self.experiments[0].scan,
-      self.sigma_d * 6,
+      self.sigma_d * 7,
       0)
 
     # Compute the bounding box
@@ -425,7 +421,7 @@ class InitialIntegrator(object):
       self.experiments[0].detector,
       self.experiments[0].goniometer,
       self.experiments[0].scan,
-      self.sigma_d * 3,
+      self.sigma_d * 6,
       0)
 
     # Compute the reflection mask
@@ -512,38 +508,15 @@ class Refiner(object):
 
     # Set the M params
     if not hasattr(self.experiments[0].crystal, "mosaicity"):
-      self.M_params = flex.double((sigma_d, 0, sigma_d, 0, 0, sigma_d))
+      self.profile = ProfileModelFactory.from_sigma_d(self.params, sigma_d)
     else:
-
-      # Construct triangular matrix
-      LL = flex.double()
-      for j in range(3):
-        for i in range(j+1):
-          LL.append(self.experiments[0].crystal.mosaicity[j*3+i])
-
-      # Do the cholesky decomposition
-      ll = l_l_transpose_cholesky_decomposition_in_place(LL)
-
-      # Setup the parameters
-      self.M_params = flex.double((
-        LL[0],
-        LL[1], LL[2],
-        LL[3], LL[4], LL[5]))
-
-    # Set the L params
-    if self.params.profile.wavelength_spread.model == "gaussian":
-      self.L_params = flex.double((sigma_d,))
-    elif self.params.profile.wavelength_spread.model == "delta":
-      self.L_params = flex.double([0])
-    else:
-      raise RuntimeError("Unknown wavelength spread model %s" %
-                         self.params.profile.wavelength_spread.model)
+      self.profile = self.experiments[0].crystal.mosaicity
 
     # Preprocess the reflections
     self._preprocess()
 
     # Do the refinement
-    for i in range(5):
+    for i in range(3):
       self._refine_profile()
       self._refine_crystal()
 
@@ -600,18 +573,10 @@ class Refiner(object):
     # Create the parameterisation
     state = ModelState(
       self.experiments[0],
+      self.profile.parameterisation(),
       fix_orientation       = True,
       fix_unit_cell         = True,
       fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
-
-  
-    # Set the parameters
-    state.set_M_params(self.M_params)
-    state.set_L_params(self.L_params)
-    
-    # self.experiments[0].crystal.mosaicity = state.get_M()
-    # self.history = []
-    # return
 
     # Create the refiner and refine
     refiner = ProfileRefiner(state, self._refiner_data)
@@ -621,18 +586,10 @@ class Refiner(object):
     self.history = refiner.history
 
     # Set the profile parameters
-    self.M_params = state.get_M_params()
-    self.L_params = state.get_L_params()
+    self.profile.update_model(state)
 
     # Set the mosaicity
-    self.experiments[0].crystal.mosaicity = state.get_M()
-
-    # Compute the eigen decomposition of the covariance matrix and check
-    # largest eigen value
-    eigen_decomposition = eigensystem.real_symmetric(state.get_M().as_flex_double_matrix())
-    L = eigen_decomposition.values()
-    if L[0] > 1e-5:
-      raise RuntimeError("Mosaicity matrix is unphysically large")
+    self.experiments[0].crystal.mosaicity = self.profile
 
     # Plot the corrgram
     if self.params.debug.output.plots:
@@ -651,12 +608,9 @@ class Refiner(object):
     # Create the parameterisation
     state = ModelState(
       self.experiments[0],
+      self.profile.parameterisation(),
       fix_mosaic_spread = True,
       fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
-
-    # Set the parameters
-    state.set_M_params(self.M_params)
-    state.set_L_params(self.L_params)
 
     # Create the refiner and refine
     refiner = ProfileRefiner(state, self._refiner_data)
@@ -702,17 +656,17 @@ class Refiner(object):
 
       # Get stuff from experiment
       s0 = matrix.col(self.experiments[0].beam.get_s0())
-      sigma = self.experiments[0].crystal.mosaicity
-
-      # Invert the matrix
-      sigma_inv = sigma.inverse()
+      profile = self.experiments[0].crystal.mosaicity
 
       # Loop through reflections
       min_p = None
       for i in range(len(self.reflections)):
         s2 = matrix.col(self.reflections[i]['s2'])
         s3 = s2.normalize()*s0.length()
+        r = s2 - s0
         epsilon = s3 - s2
+        sigma = profile.sigma_for_reflection(s0, r)
+        sigma_inv = sigma.inverse()
         d = (epsilon.transpose()*sigma_inv*epsilon)[0]
         p = chisq_pdf(3, d)
         if min_p is None or p < min_p:
@@ -762,7 +716,7 @@ class Refiner(object):
     '''
     with open("profile_model.json", "w") as outfile:
       data = {
-        'rlp_mosaicity' : tuple(self.experiments[0].crystal.mosaicity),
+        'rlp_mosaicity' : tuple(self.experiments[0].crystal.mosaicity.sigma()),
       }
       json.dump(data, outfile, indent=2)
 
@@ -860,13 +814,9 @@ class FinalIntegrator(object):
     Compute the bounding box
 
     '''
-
-    # Get the sigma
-    sigma = self.experiments[0].crystal.mosaicity
-
-    # Compute the bounding boxes
-    calculator = BBoxCalculatorNew(self.experiments[0], sigma)
-    calculator.compute(self.reflections)
+    # Compute the bounding box
+    profile = self.experiments[0].crystal.mosaicity
+    profile.compute_bbox(self.experiments, self.reflections)
 
     # Select reflections within detector
     x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
@@ -925,9 +875,8 @@ class FinalIntegrator(object):
     Compute the reflection mask
 
     '''
-    sigma = self.experiments[0].crystal.mosaicity
-    calculator = MaskCalculatorNew(self.experiments[0], sigma)
-    calculator.compute(self.reflections)
+    profile = self.experiments[0].crystal.mosaicity
+    profile.compute_mask(self.experiments, self.reflections)
 
   def _extract_shoebox(self):
     '''
@@ -969,30 +918,8 @@ class FinalIntegrator(object):
     Compute the partiality
 
     '''
-    s0 = matrix.col(self.experiments[0].beam.get_s0())
-    partiality = flex.double(len(self.reflections))
-    for k in range(len(self.reflections)):
-      s1 = matrix.col(self.reflections[k]['s1'])
-      s2 = matrix.col(self.reflections[k]['s2'])
-      sbox = self.reflections[k]['shoebox']
-
-      sigma = self.experiments[0].crystal.mosaicity
-      R = compute_change_of_basis_operation(s0, s2)
-      S = R*sigma*R.transpose()
-      mu = R*s2
-      assert(abs(1-mu.normalize().dot(matrix.col((0,0,1)))) < 1e-7)
-
-      S11 = matrix.sqr((
-        S[0], S[1],
-        S[3], S[4]))
-      S12 = matrix.col((S[2], S[5]))
-      S21 = matrix.col((S[6], S[7])).transpose()
-      S22 = S[8]
-
-      mu1 = matrix.col((mu[0], mu[1]))
-      mu2 = mu[2]
-      partiality[k] = exp(-0.5*(s0.length()-mu2) * (1/S22) * (s0.length()-mu2))
-    self.reflections['partiality'] = partiality
+    profile = self.experiments[0].crystal.mosaicity
+    profile.compute_partiality(self.experiments, self.reflections)
 
   def _plot_partiality(self):
     '''
@@ -1106,17 +1033,14 @@ class Integrator(object):
     logger.info("Generated %d miller indices" % len(miller_indices_to_test))
 
     # Get the covariance matrix
-    sigma = self.experiments[0].crystal.mosaicity
-
-    # Create the predictor
-    predictor = Predictor(
-      self.experiments[0],
-      sigma,
+    profile = self.experiments[0].crystal.mosaicity
+    self.reflections = profile.predict_reflections(
+      self.experiments,
+      miller_indices_to_test,
       self.params.prediction.probability)
 
     # Do the prediction
     self.reference = self.reference
-    self.reflections = predictor.predict(miller_indices_to_test)
     self.reflections.compute_d(self.experiments)
     logger.info("Predicted %d reflections" % len(self.reflections))
 
