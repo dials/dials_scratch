@@ -226,7 +226,7 @@ class ReflectionLikelihood(object):
 
     # Compute the marginal likelihood
     m_d = s0.length() - mu2
-    m_lnL = ctot*(log(S22) + S22_inv*m_d**2)
+    m_lnL = (log(S22) + S22_inv*m_d**2)
 
     # Compute the conditional likelihood
     c_d = mobs - mubar
@@ -737,7 +737,6 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     # Get some matrices
     U = self.model.get_U()
     M = self.model.get_M()
-    # L = self.model.get_L_W()
 
     # Print some information
     format_string1 = "  Unit cell: (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
@@ -805,7 +804,7 @@ class Refiner(object):
     Perform the profile refinement
 
     '''
-    if False:
+    if True:
       self.refine_simplex()
     else:
       self.refine_fisher_scoring()
@@ -850,7 +849,7 @@ class Refiner(object):
         return -lnL
 
     # Starting values for simplex
-    values = flex.double(self.parameterisation.parameters())
+    values = flex.double(self.state.get_active_parameters())
     offset = flex.double([sqrt(1e-7)  for v in values])
 
     # Do the simplex optimization
@@ -1031,9 +1030,9 @@ class RefinerData(object):
 
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
-          c = data[0,j,i] - bgrd[0,j,i]
-          if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
-          #if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
+          c = data[0,j,i] #- bgrd[0,j,i]
+          #if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
+          if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
             ctot += c
             ii = i + i0
             jj = j + j0
@@ -1068,7 +1067,7 @@ class RefinerData(object):
       Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       Bmean += Bias_sq
       
-      ctot = 1
+      #ctot = 1
 
       # Add to the lists
       sp_list[r] = sp
