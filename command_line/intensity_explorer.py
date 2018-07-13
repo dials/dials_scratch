@@ -22,8 +22,8 @@ Example:
   $ dials.python intensity_explorer.py <unmerged MTZ file>
 """
 
-# TODO Proper documentation.
-# TODO Sprinkle some sensible tests around the place.
+# FIXME Docstrings are in Google-ish format — move to Sphinx-ish.
+# TODO Once ∃ a dials tool for (unmerged MTZ) –> (exp list, refl table), use it
 
 from __future__ import absolute_import, division, print_function
 import os
@@ -279,7 +279,7 @@ class IntensityDist(object):
     plt.show()
 
 
-  def probplot(self):
+  def probplot(self, **kwargs):
     """Create a normal probability plot from the z-scores."""
     fig, ax = plt.subplots()
 
@@ -287,14 +287,14 @@ class IntensityDist(object):
     ax.set_xlabel('Order statistic medians, $m$')
     ax.set_ylabel(r'Ordered responses, $z$')
     ax.set_ylim(-10,10)
-    ax.plot(self.osm, self.z, '.b')
+    ax.plot(self.osm, self.z, '.b', **kwargs)
     ax.plot([-5,5], [-5,5], '-g')
 
     fig.savefig(self.outfile + '_probplot', transparent = True)
     plt.close()
 
 
-  def z_vs_multiplicity(self):
+  def plot_z_vs_multiplicity(self, **kwargs):
     "Plot intensity z-scores versus multiplicity."
     fig, ax = plt.subplots()
 
@@ -303,13 +303,13 @@ class IntensityDist(object):
     )
     ax.set_xlabel('Multiplicity')
     ax.set_ylabel(r'$z$')
-    ax.plot(self.multis, self.z, '.')
+    ax.plot(self.multis, self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_vs_multiplicity', transparent = True)
     plt.close()
 
 
-  def z_map(self, minimum=0):
+  def plot_z_map(self, minimum=0):
     """Plot a z-score heatmap of the detector.
     
     Beware, this is only meaningful if the data have a single geometry model.
@@ -348,7 +348,7 @@ class IntensityDist(object):
     plt.close()
 
 
-  def time_series(self):
+  def plot_time_series(self, **kwargs):
     """Plot a crude time series of z-scores.
     
     Batch (image) number is used as a proxy for time."""
@@ -360,13 +360,13 @@ class IntensityDist(object):
     ax.set_xlabel('Approximate chronology (image number)')
     ax.set_ylabel(r'$z$')
 
-    ax.plot(self.image, self.z, '.')
+    ax.plot(self.image, self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_time_series', transparent = True)
     plt.close()
 
 
-  def z_vs_IsigI(self):
+  def plot_z_vs_IsigI(self, **kwargs):
     """Plot z-scores versus I/sigma."""
     fig, ax = plt.subplots()
 
@@ -377,16 +377,13 @@ class IntensityDist(object):
     ax.set_ylabel(r'$z$')
     ax.set_ylim(-10,10)
     ax.set_xscale('log')
-    ax.plot(
-      flex.abs(self.Imeans/self.sigImeans),
-      self.z,
-      '.')
+    ax.plot(flex.abs(self.Imeans/self.sigImeans), self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_vs_I_over_sigma', transparent = True)
     plt.close()
 
 
-  def z_vs_I(self):
+  def plot_z_vs_I(self, **kwargs):
     """Plot z-scores versus absolute intensity."""
     fig, ax = plt.subplots()
 
@@ -397,10 +394,7 @@ class IntensityDist(object):
     ax.set_ylabel(r'$z$')
     ax.set_ylim(-10,10)
     ax.set_xscale('log')
-    ax.plot(
-      flex.abs(self.Imeans),
-      self.z,
-      '.')
+    ax.plot(flex.abs(self.Imeans), self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_vs_I', transparent = True)
     plt.close()
