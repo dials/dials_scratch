@@ -407,8 +407,8 @@ if __name__ == "__main__":
 
   data.plot_z_histogram()
   data.probplot()
-  data.time_series()
-  data.z_map()
-  data.z_vs_multiplicity()
-  data.z_vs_I()
-  data.z_vs_IsigI()
+  data.plot_time_series()
+  data.plot_z_map()
+  data.plot_z_vs_multiplicity()
+  data.plot_z_vs_I()
+  data.plot_z_vs_IsigI()
