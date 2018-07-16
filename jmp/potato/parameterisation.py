@@ -5,7 +5,87 @@ from dials.algorithms.refinement.parameterisation.crystal_parameters import Crys
 from dials.algorithms.refinement.parameterisation.crystal_parameters import CrystalOrientationParameterisation
 
 
-class SimpleMosaicityParameterisation(object):
+class Simple1MosaicityParameterisation(object):
+  '''
+  A simple mosaicity parameterisation that uses 6 parameters to describe a
+  multivariate normal reciprocal lattice profile. Sigma is enforced as positive
+  definite by parameterising using the cholesky decomposition.
+
+  M = | b1 0  0  |
+      |  0 b1 0  |
+      |  0  0 b1 |
+
+  S = M*M^T
+
+  '''
+
+  def __init__(self, params=None):
+    '''
+    Initialise with the parameters
+
+    '''
+    if params is not None:
+      assert len(params) == self.num_parameters()
+      self.params = params
+    else:
+      self.params = flex.double(self.num_parameters(), 0)
+
+  def is_angular(self):
+    '''
+    Is angular
+
+    '''
+    return False
+
+  def num_parameters(self):
+    '''
+    Get the number of parameters
+
+    '''
+    return 1
+
+  def set_parameters(self, params):
+    '''
+    Set the parameters
+
+    '''
+    assert len(params) == self.num_parameters()
+    self.params = params
+
+  def parameters(self):
+    '''
+    Return the parameters
+
+    '''
+    return self.params
+
+  def sigma(self):
+    '''
+    Compute the covariance matrix of the MVN from the parameters
+
+    '''
+    M = matrix.sqr((
+      self.params[0], 0, 0,
+      0, self.params[0], 0,
+      0, 0, self.params[0]))
+    return M*M.transpose()
+
+  def first_derivatives(self):
+    '''
+    Compute the first derivatives of Sigma w.r.t the parameters
+
+    '''
+    b1, = self.params
+
+    dSdb1 = (
+      2*b1,0,0,
+      0,2*b1,0,
+      0,0,2*b1)
+
+    return flex.mat3_double([dSdb1])
+
+
+class Simple6MosaicityParameterisation(object):
   '''
   A simple mosaicity parameterisation that uses 6 parameters to describe a
   multivariate normal reciprocal lattice profile. Sigma is enforced as positive
@@ -295,7 +375,7 @@ class WavelengthSpreadParameterisation(object):
     return d2
 
 
-class AngularMosaicityParameterisation(object):
+class Angular2MosaicityParameterisation(object):
   '''
   A simple mosaicity parameterisation that uses 2 parameters to describe a
   multivariate normal angular mosaic spread. Sigma is enforced as positive
@@ -369,6 +449,91 @@ class AngularMosaicityParameterisation(object):
       0,0,2*b2)
 
     return flex.mat3_double([d1, d2])
+
+class Angular4MosaicityParameterisation(object):
+  '''
+  A simple mosaicity parameterisation that uses 4 parameters to describe a
+  multivariate normal angular mosaic spread. Sigma is enforced as positive
+  definite by parameterising using the cholesky decomposition.
+  W = | w1  0  0  |
+      | w2 w3  0  |
+      | 0   0 w4 |
+  S = W*W^T
+  '''
+
+  def __init__(self, params=None):
+    '''
+    Initialise with the parameters
+    '''
+    if params is not None:
+      assert len(params) == self.num_parameters()
+      self.params = params
+    else:
+      self.params = flex.double(self.num_parameters(), 0)
+
+  def is_angular(self):
+    '''
+    Is angular
+
+    '''
+    return True
+
+  def num_parameters(self):
+    '''
+    Get the number of parameters
+    '''
+    return 4
+
+  def set_parameters(self, params):
+    '''
+    Set the parameters
+    '''
+    assert len(params) == self.num_parameters()
+    self.params = params
+
+  def parameters(self):
+    '''
+    Return the parameters
+    '''
+    return self.params
+
+  def sigma(self):
+    '''
+    Compute the covariance matrix of the MVN from the parameters
+    '''
+    M = matrix.sqr((
+      self.params[0], 0, 0,
+      self.params[1], self.params[2], 0,
+      0, 0, self.params[3]))
+    return M*M.transpose()
+
+  def first_derivatives(self):
+    '''
+    Compute the first derivatives of Sigma w.r.t the parameters
+    '''
+    b1, b2, b3, b4 = self.params
+
+    d1 = (
+      2*b1,b2,0,
+      b2,0,0,
+      0,0,0)
+
+    d2 = (
+      0,b1,0,
+      b1,2*b2,0,
+      0,0,0)
+
+    d3 = (
+      0,0,0,
+      0,2*b3,0,
+      0,0,0)
+
+    d4 = (
+      0,0,0,
+      0,0,0,
+      0,0,2*b4)
+
+    return flex.mat3_double([d1, d2, d3, d4])
 
 
 class ModelState(object):
