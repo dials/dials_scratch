@@ -18,6 +18,9 @@ from dials.util.options import (flatten_reflections, flatten_experiments,
     OptionParser)
 from libtbx.table_utils import simple_table
 from scitbx import matrix
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 class Script(object):
   '''A class for running the script.'''
@@ -34,6 +37,11 @@ class Script(object):
         .help = "Choose the scale for the direction vector in orthogonal"
                 "coordinates prior to transformation into fractional"
                 "coordinates [uvw]"
+
+      plot_filename = None
+        .type = str
+        .help = "Filename for a plot of angle between neighbouring frames"
+                "(set to None for no plot)"
     ''', process_includes=True)
 
     # The script usage
@@ -68,6 +76,10 @@ class Script(object):
       print("No Experiments found in the input")
       self.parser.print_help()
       return
+
+    # Set up a plot if requested
+    if self.params.plot_filename:
+      fig = plt.figure()
 
     header = ["Image", "Beam direction (xyz)", "Zone axis [uvw]",
         "Angle from\nprevious (deg)"]
@@ -104,8 +116,22 @@ class Script(object):
                a]
         rows.append(row)
 
+      # Print the table
       st = simple_table(rows, header)
       print(st.format())
+
+      # Add to the plot, if requested
+      if self.params.plot_filename:
+        plt.scatter(images[1:], offset, s=1)
+
+    # Finish and save plot, if requested
+    if self.params.plot_filename:
+      plt.xlabel('Image number')
+      plt.ylabel(r'Angle from previous image $\left(^\circ\right)$')
+      plt.title(r'Angle between neighbouring images')
+      print('Saving plot to {0}'.format(self.params.plot_filename))
+      plt.savefig(self.params.plot_filename)
+
     print()
 
     return
@@ -172,7 +198,7 @@ def extract_experiment_data(exp, scale=1):
   # transpose (https://dials.github.io/documentation/conventions.html)
   frac_mats = [m.transpose() for m in SRFUB]
 
-  zone_axes = [F * (d * scale) for F, d in zip(frac_mats, directions)]
+  zone_axes = [frac * (d * scale) for frac, d in zip(frac_mats, directions)]
 
   return {'images':images,
           'directions':directions,
