@@ -34,8 +34,8 @@ def linear_regression(x, y, fit_intercept=True, fit_gradient=True):
           (otherwise assume an intercept of zero).
 
   Returns:
-
-      """
+      list: Values of the model parameters
+  """
 
   from scitbx.lstbx import normal_eqns
   from scitbx import sparse
@@ -235,9 +235,6 @@ def test_hyperbola_fit():
 
 if __name__ == '__main__':
   from dials.util import halraiser
-
-  test_hyperbola_fit()
-  test_linear_fit()
 
   try:
     script = Script()
