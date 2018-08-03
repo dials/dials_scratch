@@ -21,6 +21,7 @@ from matplotlib.ticker import MultipleLocator
 from iotbx import mtz
 from scitbx.array_family import flex
 from scitbx.lstbx import normal_eqns, normal_eqns_solving
+from math import sqrt
 
 class HyperbolaFit(normal_eqns.non_linear_ls, normal_eqns.non_linear_ls_mixin):
   """Fit the function y = sqrt(x^2 + a^2) by non-linear regression. There is
@@ -65,6 +66,21 @@ class HyperbolaFit(normal_eqns.non_linear_ls, normal_eqns.non_linear_ls_mixin):
   def step_backward(self):
     assert self.old_param is not None
     self.param, self.old_param = self.old_param, None
+
+  def goodness_of_fit(self):
+    """Calculate various goodness of fit metrics (assumes fit has been
+    performed already)"""
+    a_sq = self.param[0]
+    model_y = flex.sqrt(flex.pow2(self.x) + a_sq)
+    resid = model_y - self.y
+    resid2 = flex.pow2(resid)
+
+    sse = flex.sum(resid2)
+    sst = flex.sum(flex.pow2(model_y - flex.mean(model_y)))
+    r_sq = 1 - sse/sst
+    rmse = sqrt(sse / (self.n_data - 1))
+
+    return {"SSE": sse, "R-square":r_sq, "RMSE":rmse}
 
 class Script(object):
   '''A class for running the script.'''
@@ -195,8 +211,14 @@ class Script(object):
       intercept = hyperbola_fit.param[0]
 
       print("Model fit described by the formula: |Fo|^2 = sqrt(|Fc|^2 + |Fe|^2)")
-      from math import sqrt
       print("where |Fe| = {:.5f}\n".format(sqrt(intercept)))
+
+      print("Goodness of fit:")
+      gof = hyperbola_fit.goodness_of_fit()
+      print("SSE: {:.5g}".format(gof['SSE']))
+      print("R-square: {:.5f}".format(gof['R-square']))
+      print("RMSE: {:.2f}".format(gof['RMSE']))
+      print()
 
       # Set the model_fit function using the determined intercept
       def hyperbola(x, c):
