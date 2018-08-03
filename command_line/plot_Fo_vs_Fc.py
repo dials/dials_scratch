@@ -20,54 +20,51 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from iotbx import mtz
 from scitbx.array_family import flex
+from scitbx.lstbx import normal_eqns, normal_eqns_solving
 
-def linear_regression(x, y, fit_intercept=True, fit_gradient=True):
-  """Perform linear regression by least squares to model how a response
-  variable (y) is linearly-related to an explanatory variable (x).
+class HyperbolaFit(normal_eqns.non_linear_ls, normal_eqns.non_linear_ls_mixin):
+  """Fit the function y = sqrt(x^2 + a^2) by non-linear regression. There is
+  just one parameter, a^2."""
 
-  Args:
-      x: Sequence of values of the explanatory variable
-      y: Sequence of values of the response variable (observations)
-      fit_gradient (bool): Fit the gradient as a parameter of the model
-          (otherwise assume unit gradient).
-      fit_intercept (bool): Fit the intercept as a parameter of the model
-          (otherwise assume an intercept of zero).
+  # Initial guess for the value of a^2
+  a_sq0 = flex.double([1000])
 
-  Returns:
-      list: Values of the model parameters
-  """
+  def __init__(self, x, y):
+    super(HyperbolaFit, self).__init__(n_parameters=1)
+    self.x = x
+    self.y = y
+    self.n_data = len(self.x)
+    assert len(self.y) == self.n_data
+    self.restart()
 
-  from scitbx.lstbx import normal_eqns
-  from scitbx import sparse
-  n_obs = len(y)
-  assert len(x) == n_obs
-  n_param = [fit_gradient, fit_intercept].count(True)
-  assert n_param > 0
-  eqns = normal_eqns.linear_ls(n_param)
+  def restart(self):
+    self.param = self.a_sq0.deep_copy()
+    self.old_param = None
 
-  # The method add_equations requires a sparse matrix, so must convert to that
-  # even though we build the design matrix as dense.
-  a = sparse.matrix(n_obs, n_param)
-  icol = 0
+  def parameter_vector_norm(self):
+    return self.param.norm()
 
-  if fit_intercept:
-    col = flex.double(n_obs, 1)
-    col.reshape(flex.grid(n_obs,1))
-    a.assign_block(col, 0, icol)
-    icol += 1
+  def build_up(self, objective_only=False):
+    a_sq = self.param[0]
+    model_y = flex.sqrt(flex.pow2(self.x) + a_sq)
+    residuals = model_y - self.y
 
-  if fit_gradient:
-    col = flex.double(x)
-    col.reshape(flex.grid(n_obs,1))
-    a.assign_block(col, 0, icol)
+    self.reset()
+    if objective_only:
+      self.add_residuals(residuals, weights=None)
+    else:
+      dy_dp = 0.5/model_y
+      jacobian = flex.double(flex.grid(self.n_data, 1))
+      jacobian.matrix_paste_column_in_place(dy_dp, 0)
+      self.add_equations(residuals, jacobian, weights=None)
 
-  # Unweighted fit only, for now
-  w = flex.double(n_obs, 1)
+  def step_forward(self):
+    self.old_param = self.param.deep_copy()
+    self.param += self.step()
 
-  eqns.add_equations(right_hand_side=y, design_matrix=a, weights=w)
-  eqns.solve()
-
-  return list(eqns.solution())
+  def step_backward(self):
+    assert self.old_param is not None
+    self.param, self.old_param = self.old_param, None
 
 class Script(object):
   '''A class for running the script.'''
@@ -87,13 +84,14 @@ class Script(object):
         .type = str
         .help = "MTZ column name for Fobs"
 
-      Fc = FC
+      Fc = FC_ALL
         .type = str
-        .help = "MTZ column name for Fcalc"
+        .help = "MTZ column name for Fcalc (FC_ALL from Refmac includes the"
+                "bulk solvent contribution)"
 
       max_Fc = 300
         .type = float
-        .help = "Plot and perform fit with data up this value of Fc"
+        .help = "Set plot limits to display data up to this value of Fc"
 
       plot_filename = Fo_vs_Fc.pdf
         .type = str
@@ -112,7 +110,6 @@ class Script(object):
     ''', process_includes=True)
 
     # The script usage
-    #import __main__
     usage = ("usage: dev.dials.plot_Fo_vs_Fc hklin=refined.mtz")
 
     # Create the parser
@@ -141,11 +138,6 @@ class Script(object):
 
     self.fobs = fobs.data
     self.fc = fc.data
-
-    if self.params.max_Fc:
-      sel = self.fc <= self.params.max_Fc
-      self.fobs = self.fobs.select(sel)
-      self.fc = self.fc.select(sel)
 
     return
 
@@ -190,12 +182,21 @@ class Script(object):
     self._extract_data_from_mtz()
 
     if self.params.fit_hyperbola:
-      # The hyperbola formula has a single parameter, |Fe|, which can be
-      # determined as the intercept of a linear regression line after a
-      # change of variables
-      x = flex.pow2(self.fc)
-      y = flex.pow2(self.fobs)
-      intercept = linear_regression(x, (y - x), fit_gradient=False)[0]
+      # fit by NLLS Levenberg Marquardt algorithm
+      hyperbola_fit = HyperbolaFit(self.fc, self.fobs)
+      hyperbola_fit.restart()
+      iterations = normal_eqns_solving.levenberg_marquardt_iterations(
+        hyperbola_fit,
+        track_all=True,
+        gradient_threshold=1e-8,
+        step_threshold=1e-8,
+        tau=1e-4,
+        n_max_iterations=200)
+      intercept = hyperbola_fit.param[0]
+
+      print("Model fit described by the formula: |Fo|^2 = sqrt(|Fc|^2 + |Fe|^2)")
+      from math import sqrt
+      print("where |Fe| = {:.5f}\n".format(sqrt(intercept)))
 
       # Set the model_fit function using the determined intercept
       def hyperbola(x, c):
@@ -207,31 +208,6 @@ class Script(object):
       self._plot()
 
     return
-
-def test_linear_fit():
-
-  speed = flex.double([4, 4, 7, 7, 8, 9, 10, 10, 10, 11])
-  dist = flex.double([2,10,4,22,16,10,18,26,34,17])
-
-  import pytest
-  assert linear_regression(dist, speed) == pytest.approx([5.40711598, 0.16307447])
-
-def test_hyperbola_fit():
-
-  # Create hyperbola with intercept of 10
-  c = 10
-  x = flex.double([1,2,3,4,5,6,8,9,10])
-  y = flex.sqrt(flex.pow2(x) + c)
-
-  # Change of variables to do a linear fit
-  u = flex.pow2(x)
-  v = flex.pow2(y)
-
-  # Perform fit of the intercept only (could equivalently just use the mean
-  # of v - u)
-  intercept = linear_regression(u, (v - u), fit_gradient=False)[0]
-  import pytest
-  assert intercept == pytest.approx(10)
 
 if __name__ == '__main__':
   from dials.util import halraiser
