@@ -32,5 +32,20 @@ namespace dials_scratch { namespace examples { namespace boost_python {
       ;
   }
 
+  void export_two_dimensional_array()
+  {
+    // Broken version
+    class_ <TwoDimensionalArray> ("TwoDimensionalArrayBroken")
+      .def("set_array_data", &TwoDimensionalArray::set_array_data_from_versa)
+      .def("get_array_data", &TwoDimensionalArray::get_array_data)
+      ;
+
+    // Fixed version
+    class_ <TwoDimensionalArray> ("TwoDimensionalArrayFixed")
+      .def("set_array_data", &TwoDimensionalArray::set_array_data_from_const_ref)
+      .def("get_array_data", &TwoDimensionalArray::get_array_data)
+      ;
+  }
+
 }}} // namespace = dials_scratch::examples::boost_python
 

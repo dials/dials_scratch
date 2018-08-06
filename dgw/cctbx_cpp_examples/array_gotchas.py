@@ -53,6 +53,7 @@ def demo_data_loss_with_const_ref_storage():
   '''Demonstrate that a C++ object that stores data as a
   scitbx::af::const_ref<> without taking a copy of the data cannot guarantee
   veracity of that data.'''
+
   from dials_scratch_cctbx_cpp_examples_ext import BadBucket
   from cctbx.array_family import flex
 
@@ -80,7 +81,45 @@ def demo_data_loss_with_const_ref_storage():
 
   return
 
+def demo_cannot_pass_versa_from_python():
+  '''Demonstrate that multidimensional arrays using scitbx::af::versa type
+  cannot be passed from Python by a setter taking that type. They can be
+  passed as a scitbx::af::const_ref though.'''
+
+  from dials_scratch_cctbx_cpp_examples_ext import TwoDimensionalArrayBroken
+  from dials_scratch_cctbx_cpp_examples_ext import TwoDimensionalArrayFixed
+  from scitbx.array_family import flex
+
+  print 'Create a 2D flex.double array'
+  nrow = 10
+  ncol = 2
+  array = flex.double(range(nrow * ncol))
+  array.reshape(flex.grid(nrow, ncol))
+
+  broken = TwoDimensionalArrayBroken()
+  fixed = TwoDimensionalArrayFixed()
+
+  # Cannot pass array from Python as versa
+  print 'Attempt to pass the array to a C++ extension as an af::versa.'
+  try:
+    broken.set_array_data(array)
+  except TypeError as e:
+    print "This fails with a Boost.Python.ArgumentError and this message:"
+    print e.message
+
+  # Can pass the array from Python as const_ref
+  print 'Now attempt to pass the array to a C++ extension as an af::const_ref.'
+  fixed.set_array_data(array)
+
+  # Getter as versa works fine
+  array2 = fixed.get_array_data()
+
+  assert (array2 == array).all_eq(True)
+  print 'This works, and the data can be passed back to Python via af::versa'
+
+
 if __name__ == '__main__':
 
   runner(demo_no_converter_for_const_ref)
   runner(demo_data_loss_with_const_ref_storage)
+  runner(demo_cannot_pass_versa_from_python)

@@ -14,6 +14,10 @@
 
 #include <scitbx/array_family/shared.h>
 #include <scitbx/array_family/ref.h>
+
+#include <scitbx/array_family/versa.h>
+#include <scitbx/array_family/accessors/c_grid.h>
+
 #include <dials/error.h>
 #include <cctbx/miller.h>
 
@@ -42,6 +46,32 @@ namespace dials_scratch { namespace examples {
 
   private:
     scitbx::af::const_ref< miller_index > hkl_;
+  };
+
+  class TwoDimensionalArray {
+    public:
+      TwoDimensionalArray() {}
+
+    // Setter as versa< double, scitbx::af::c_grid<2> > - does not work from Python!
+    void set_array_data_from_versa(const scitbx::af::versa< double, scitbx::af::c_grid<2> > array_data) {
+      array_data_ = scitbx::af::versa<double, scitbx::af::c_grid<2> >(array_data.accessor());
+      std::copy(array_data.begin(), array_data.end(), array_data_.begin());
+    }
+
+    // Setter as const_ref<double, scitbx::af::c_grid<2> > - works from Python
+    void set_array_data_from_const_ref(const scitbx::af::const_ref< double, scitbx::af::c_grid<2> > array_data) {
+      array_data_ = scitbx::af::versa< double, scitbx::af::c_grid<2> >(array_data.accessor());
+      std::copy(array_data.begin(), array_data.end(), array_data_.begin());
+    }
+
+    // Getter as versa<double, scitbx::af::c_grid<2>>
+    scitbx::af::versa< double, scitbx::af::c_grid<2> > get_array_data() const {
+      return array_data_;
+    }
+
+  private:
+    // Store the array as versa<double>
+    scitbx::af::versa< double, scitbx::af::c_grid<2> > array_data_;
   };
 
 }} // namespace dials_scratch::examples

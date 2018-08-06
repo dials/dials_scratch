@@ -7,6 +7,7 @@ using namespace boost::python;
 namespace dials_scratch { namespace examples { namespace boost_python {
 
   void export_bad_bucket();
+  void export_two_dimensional_array();
   void export_print_array();
   void export_print_array_head();
   void export_create_sparse_matrix();
@@ -15,6 +16,7 @@ namespace dials_scratch { namespace examples { namespace boost_python {
   BOOST_PYTHON_MODULE(dials_scratch_cctbx_cpp_examples_ext)
   {
     export_bad_bucket();
+    export_two_dimensional_array();
     export_print_array();
     export_print_array_head();
     export_create_sparse_matrix();
