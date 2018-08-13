@@ -10,7 +10,7 @@ def residual(Oij, Gi, Ij):
   return f
 
 def gradients_Gi(Oij, Gi, Ij):
-  '''Oij, Gi, Ij are *dictionaries*'''
+  '''Oij, Gi, Ij are dictionaries'''
   gGi = { }
   for i in Gi:
     gGi[i] = 0.0
