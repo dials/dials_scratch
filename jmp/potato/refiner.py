@@ -225,7 +225,7 @@ class ReflectionLikelihood(object):
     Sbar_det = Sbar.determinant()
 
     # Weights for marginal and conditional components
-    m_w = 1
+    m_w = ctot
     c_w = ctot
 
     # Compute the marginal likelihood
@@ -269,7 +269,7 @@ class ReflectionLikelihood(object):
     c_d = mobs - mubar
 
     # Weights for marginal and conditional components
-    m_w = 1
+    m_w = ctot
     c_w = ctot
 
     # Compute the derivative wrt parameter i
@@ -319,7 +319,7 @@ class ReflectionLikelihood(object):
     dmu = self.dmu
 
     # Weights for marginal and conditional components
-    m_w = 1
+    m_w = ctot
     c_w = ctot
 
     # Compute the fisher information wrt parameter i j
@@ -1039,10 +1039,9 @@ class RefinerData(object):
       X = flex.vec2_double(flex.grid(data.all()[1], data.all()[2]))
       ctot = 0
       C = flex.double(X.accessor())
-
       for j in range(data.all()[1]):
         for i in range(data.all()[2]):
-          c = data[0,j,i] #- bgrd[0,j,i]
+          c = data[0,j,i] - bgrd[0,j,i]
           #if mask[0,j,i] & (1 | 4 | 8) == (1 | 4 | 8) and c > 0:
           if mask[0,j,i] & (1 | 4) == (1 | 4) and c > 0:
             ctot += c
@@ -1059,11 +1058,11 @@ class RefinerData(object):
 
       # Compute the mean vector
       xbar = matrix.col((0,0))
-      for j in range(X.all()[0]):
-        for i in range(X.all()[1]):
-          x = matrix.col(X[j,i])
-          xbar += C[j,i] * x
-      xbar /= ctot
+      # for j in range(X.all()[0]):
+      #   for i in range(X.all()[1]):
+      #     x = matrix.col(X[j,i])
+      #     xbar += C[j,i] * x
+      # xbar /= ctot
 
       # Compute the covariance matrix
       Sobs = matrix.sqr((0, 0, 0, 0))
@@ -1075,11 +1074,11 @@ class RefinerData(object):
       assert Sobs > 0, "BUG: variance must be > 0"
 
       # Compute the bias
-      zero = matrix.col((0, 0))
-      Bias_sq = (xbar - zero)*(xbar - zero).transpose()
-      Bmean += Bias_sq
+      # zero = matrix.col((0, 0))
+      # Bias_sq = (xbar - zero)*(xbar - zero).transpose()
+      # Bmean += Bias_sq
 
-      #ctot = 1
+      ctot += 10000
 
       # Add to the lists
       sp_list[r] = sp
@@ -1103,15 +1102,15 @@ class RefinerData(object):
     for r in range(Sobs_list.all()[0]):
       Smean += matrix.sqr(tuple(Sobs_list[r:r+1,:]))
     Smean /= Sobs_list.all()[0]
-    Bmean /= len(reflections)
+    # Bmean /= len(reflections)
 
     logger.info("")
     logger.info( "Mean observed covariance:")
     print_matrix(Smean)
     print_eigen_values_and_vectors_of_observed_covariance(Smean, s0)
-    logger.info("")
-    logger.info("Mean observed bias^2:")
-    print_matrix(Bmean)
+    # logger.info("")
+    # logger.info("Mean observed bias^2:")
+    # print_matrix(Bmean)
 
     # Compute the distance from the Ewald sphere
     epsilon = flex.double(s0.length() - matrix.col(s).length() for s in reflections['s2'])

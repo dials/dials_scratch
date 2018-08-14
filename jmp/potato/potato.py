@@ -87,7 +87,7 @@ phil_scope = parse('''
     max_separation = 2
       .type = float
 
-    outlier_probability = 0.9999
+    outlier_probability = 0.975
       .type = float
 
     n_macro_cycles = 3
@@ -275,13 +275,15 @@ class Indexer(object):
     Eres = s1_length - s0_length
 
     # Initialise the fast_mcd outlier algorithm
-    fast_mcd = FastMCD((Xres, Yres, Eres))
+    #fast_mcd = FastMCD((Xres, Yres, Eres))
+    fast_mcd = FastMCD((Xres, Yres))
 
     # get location and MCD scatter estimate
     T, S = fast_mcd.get_corrected_T_and_S()
 
     # get squared Mahalanobis distances
-    d2s = maha_dist_sq((Xres, Yres, Eres), T, S)
+    #d2s = maha_dist_sq((Xres, Yres, Eres), T, S)
+    d2s = maha_dist_sq((Xres, Yres), T, S)
 
     # Compute the cutoff
     mahasq_cutoff = chisq_quantile(2, self.params.refinement.outlier_probability)
@@ -302,11 +304,15 @@ class Indexer(object):
     logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres**2)/len(Xres))))
     logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2)/len(Yres))))
     logger.info(" Mean E RMSD: %f" % (sqrt(flex.sum(Eres**2)/len(Eres))))
-    logger.info(" MCD location estimate: %.4f, %.4f, %.4f" % tuple(T))
+    logger.info(" MCD location estimate: %.4f, %.4f" % tuple(T))
     logger.info(''' MCD scatter estimate:
-      %.7f, %.7f, %.7f,
-      %.7f, %.7f, %.7f,
-      %.7f, %.7f, %.7f''' % tuple(list(S)))
+      %.7f, %.7f,
+      %.7f, %.7f''' % tuple(list(S)))
+    # logger.info(" MCD location estimate: %.4f, %.4f, %.4f" % tuple(T))
+    # logger.info(''' MCD scatter estimate:
+    #   %.7f, %.7f, %.7f,
+    #   %.7f, %.7f, %.7f,
+    #   %.7f, %.7f, %.7f''' % tuple(list(S)))
     logger.info(" Number of outliers: %d" % selection.count(False))
     logger.info(" Number of reflections selection for refinement: %d" % len(self.reflections))
     logger.info("-" * 80)
@@ -385,7 +391,7 @@ class InitialIntegrator(object):
       self.experiments[0].detector,
       self.experiments[0].goniometer,
       self.experiments[0].scan,
-      self.sigma_d * 7,
+      self.sigma_d * 6,
       0)
 
     # Compute the bounding box
@@ -421,7 +427,7 @@ class InitialIntegrator(object):
       self.experiments[0].detector,
       self.experiments[0].goniometer,
       self.experiments[0].scan,
-      self.sigma_d * 6,
+      self.sigma_d * 3,
       0)
 
     # Compute the reflection mask
