@@ -9,7 +9,8 @@ experiment.  The user may wish to use this information to inform decisions
 regarding the error model employed in analysing the data.  Data are passed in
 as an unmerged MTZ file (see http://www.ccp4.ac.uk/html/mtzformat.html) and the
 resulting IntensityDist instance contains the pertinent columns of data, along
-with normal order statistic medians of the z-scores of the intensities, for constructing a normal probability plot (See
+with normal order statistic medians of the z-scores of the intensities, for
+constructing a normal probability plot (See
 https://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm).
 
 If called as a script, read data from an unmerged MTZ file; generate a
@@ -31,7 +32,7 @@ import sys
 import math
 from scipy import stats as ss
 from iotbx import mtz
-from cctbx.array_family import flex
+from dials.array_family import flex
 from matplotlib import colors, pyplot as plt
 
 
@@ -49,7 +50,7 @@ class IntensityDist(object):
                                                     axis component.
     y (cctbx_array_family_flex_ext.double):       Detector position, y (slow)
                                                     axis component.
-    image (cctbx_array_family_flex_ext.int):      Batch (image) number.
+    frame (cctbx_array_family_flex_ext.int):      Batch (frame) number.
     multis (cctbx_array_family_flex_ext.int):     Measured multiplicity of
                                                     symmetry-equivalent spots.
     Imeans (cctbx_array_family_flex_ext.double):  Weighted means of symmetry-
@@ -82,7 +83,7 @@ class IntensityDist(object):
                             Defaults to MTZ input file root.
   """
 
-  def __init__(self, filename, outfile=None, keep_singles=False, 
+  def __init__(self, rtable, filename, outfile=None, keep_singles=False,
               error='sigma'):
     """
     Generate z-scores and normal probability plot from an unmerged MTZ file
@@ -105,39 +106,37 @@ class IntensityDist(object):
           Mathematically meaningless, this is just for debugging.
         Defaults to 'sigma'.
     """
-    self.ind = None
-    self.I = None
-    self.sigI =None
-    self.x = None
-    self.y = None
-    self.image = None
-    self.multis = None
-    self.Imeans = None
-    self.sigImeans = None
-    self.stddevs = None
-    self.z = None
-    self.order = None
-    self.osm = None
-    self.ind_unique = None
-    self.kept_singles = None
-    self.outfile = None
 
     if outfile:
       self.outfile = os.path.splitext(os.path.basename(outfile))[0]
     else:
       self.outfile = os.path.splitext(os.path.basename(filename))[0]
-    (self.ind, self.I, self.sigI, self.x, self.y,
-      self.image) = self._data_from_unmerged_mtz(filename)
+    self.rtable = self._data_from_unmerged_mtz(filename)
     (self.ind, self.I, self.sigI,
-      self.x, self.y, self.image,
-      self.multis, self.ind_unique,
-      self.kept_singles) = self._select_by_multiplicity(keep_singles)
+     self.x, self.y, self.frame,
+     self.multis, self.ind_unique,
+     self.kept_singles) = self._select_by_multiplicity(keep_singles)
     self.Imeans, self.sigImeans, self.stddevs = self._mean_error_stddev()
     self.z, self.order = self._make_z(error)
     self.osm = self._probplot_data()
 
 
   def _data_from_unmerged_mtz(self, filename):
+    """
+    Produce a minimal reflection table from an MTZ file.
+
+    The returned reflection table will not contain all the standard
+    columns, only those that are necessary for this script.  Sorry!
+
+    :param filename: :type str: Name of an unmerged MTZ input file.
+    :return: :type dials.array_family_flex_ext.reflection_table: A
+      reflection table object, containing only the columns
+      * ``miller_index``
+      * ``intensity.sum.value``
+      * ``intensity.sum.variance``
+      * ``xyzobs.px.value``
+    """
+
     m = mtz.object(filename)  #Parse MTZ, with lots of useful methods.
 
     ind = m.extract_miller_indices()  #A flex array of Miller indices.
@@ -148,10 +147,21 @@ class IntensityDist(object):
       col_dict[label].extract_values().as_double()
       for label in ('I', 'SIGI', 'XDET', 'YDET')
     )
-    image = col_dict['BATCH'].extract_values().as_double().iround()
+    frame = col_dict['BATCH'].extract_values().as_double().iround()
 
-    return ind, I, sigI, x, y, image
+    rtable = flex.reflection_table()
+    rtable['miller_index'] = ind
+    rtable['intensity.sum.value'] = I
+    rtable['intensity.sum.variance'] = flex.pow2(sigI)
+    rtable['xyzobs.px.value'] = flex.vec3double(x, y, frame)
 
+    return rtable
+
+  def _data_from_pickle(self):
+    """
+    Do stuff
+    """
+    pass
 
   def _select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
@@ -172,10 +182,10 @@ class IntensityDist(object):
       sigI = self.sigI.select(sel)
       x = self.x.select(sel)
       y = self.y.select(sel)
-      image = self.image.select(sel)
+      frame = self.frame.select(sel)
       ind_unique = set(ind)
 
-    return ind, I, sigI, x, y, image, multis, ind_unique, keep_singles
+    return ind, I, sigI, x, y, frame, multis, ind_unique, keep_singles
 
 
   def _mean_error_stddev(self):
@@ -260,14 +270,14 @@ class IntensityDist(object):
         yerr = None
 
       plt.errorbar(
-        sel,#self.image.select(sel),
+        sel,#self.frame.select(sel),
         self.I.select(sel),
         yerr=self.sigI.select(sel),
         ls="--"
       )
       if overlay_mean:
         plt.errorbar(
-          sel,#self.image.select(sel),
+          sel,#self.frame.select(sel),
           self.Imeans.select(sel),
           yerr = yerr,
           ls = "-",
@@ -351,16 +361,16 @@ class IntensityDist(object):
   def plot_time_series(self, **kwargs):
     """Plot a crude time series of z-scores.
     
-    Batch (image) number is used as a proxy for time."""
+    Batch (frame) number is used as a proxy for time."""
     fig, ax = plt.subplots()
 
     ax.set_title(
       r'Time series of $z$-scores'
     )
-    ax.set_xlabel('Approximate chronology (image number)')
+    ax.set_xlabel('Approximate chronology (frame number)')
     ax.set_ylabel(r'$z$')
 
-    ax.plot(self.image, self.z, '.', **kwargs)
+    ax.plot(self.frame, self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_time_series', transparent = True)
     plt.close()
