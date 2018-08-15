@@ -150,6 +150,7 @@ class IntensityDist(object):
       for label in ('I', 'SIGI', 'XDET', 'YDET')
     )
     frame = col_dict['BATCH'].extract_values().as_double().iround().as_double()
+    # Honestly flex?!  Oh well, for now, we have to go round the houses.
 
     rtable = flex.reflection_table()
     rtable['miller_index'] = ind
@@ -160,9 +161,7 @@ class IntensityDist(object):
     return rtable
 
   def _data_from_pickle(self):
-    """
-    Do stuff
-    """
+    # TODO Make this do stuff.
     pass
 
   def _select_by_multiplicity(self, keep_singles=False):
