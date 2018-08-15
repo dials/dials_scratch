@@ -59,10 +59,8 @@ class IntensityDist(object):
     sigImeans
       (cctbx_array_family_flex_ext.double):   Standard deviation on the 
                                                 weighted mean intensities.
-    stddevs
-      (cctbx_array_family_flex_ext.double):   Sample standard deviations,
-                                                calculated as square-root of
-                                                unbiased weighted sample
+    variances
+      (cctbx_array_family_flex_ext.double):   Unbiased weighted sample
                                                 variances of symmetry-
                                                 equivalent reflection
                                                 intensities.
@@ -83,8 +81,8 @@ class IntensityDist(object):
                             Defaults to MTZ input file root.
   """
 
-  def __init__(self, rtable, filename, outfile=None, keep_singles=False,
-              error='sigma'):
+  def __init__(self, rtable=None, filename=None, outfile=None,
+               keep_singles=False, uncertainty='sigma'):
     """
     Generate z-scores and normal probability plot from an unmerged MTZ file
     
@@ -95,9 +93,9 @@ class IntensityDist(object):
                               Defaults to None.
       keep_singles (bool):  Choose whether to keep multiplicity-1 reflections.
                               Defaults to False.
-      error (str):          Measure of spread to use in normalising the
-                              z-scores, i.e. z = (I - <I>) / error.
-        Possible values for error:
+      uncertainty (str):    Measure of spread to use in normalising the
+                              z-scores, i.e. z = (I - <I>) / uncertainty.
+        Possible values for uncertainty:
         'sigma':    Use measured sigma values;
         'stddev':   Use sample standard deviations calculated as square-root of
           unbiased weighted sample variances of symmetry-equivalent reflection
@@ -111,13 +109,17 @@ class IntensityDist(object):
       self.outfile = os.path.splitext(os.path.basename(outfile))[0]
     else:
       self.outfile = os.path.splitext(os.path.basename(filename))[0]
-    self.rtable = self._data_from_unmerged_mtz(filename)
-    (self.ind, self.I, self.sigI,
-     self.x, self.y, self.frame,
-     self.multis, self.ind_unique,
-     self.kept_singles) = self._select_by_multiplicity(keep_singles)
-    self.Imeans, self.sigImeans, self.stddevs = self._mean_error_stddev()
-    self.z, self.order = self._make_z(error)
+    if rtable:
+      self.rtable = rtable
+    elif filename:
+      self.rtable = self._data_from_unmerged_mtz(filename)
+    else:
+      raise AttributeError(
+          'Please specify either rtable or an input filename.')
+    (self.rtable, self.multis, self.ind_unique,
+      self.kept_singles) = self._select_by_multiplicity(keep_singles)
+    self.Imeans, self.sigImeans, self.variances = self._mean_error_stddev()
+    self.z, self.order = self._make_z(uncertainty)
     self.osm = self._probplot_data()
 
 
@@ -147,13 +149,13 @@ class IntensityDist(object):
       col_dict[label].extract_values().as_double()
       for label in ('I', 'SIGI', 'XDET', 'YDET')
     )
-    frame = col_dict['BATCH'].extract_values().as_double().iround()
+    frame = col_dict['BATCH'].extract_values().as_double().iround().as_double()
 
     rtable = flex.reflection_table()
     rtable['miller_index'] = ind
     rtable['intensity.sum.value'] = I
     rtable['intensity.sum.variance'] = flex.pow2(sigI)
-    rtable['xyzobs.px.value'] = flex.vec3double(x, y, frame)
+    rtable['xyzobs.px.value'] = flex.vec3_double(x, y, frame)
 
     return rtable
 
@@ -165,69 +167,64 @@ class IntensityDist(object):
 
   def _select_by_multiplicity(self, keep_singles=False):
     # Find unique Miller indices.
-    ind_unique = set(self.ind)
+    ind_unique = set(self.rtable['miller_index'])
     # Record the multiplicities.
-    multis = flex.int(self.ind.size(), 0)
+    multis = flex.int(self.rtable.size(), 0)
 
     for hkl in ind_unique:
-      sel = (self.ind == hkl).iselection()
+      sel = (self.rtable['miller_index'] == hkl).iselection()
       multis.set_selected(sel, sel.size())
 
     # Drop multiplicity-1 data unless instructed otherwise.
     if not keep_singles:
       sel = (multis != 1).iselection()
       multis = multis.select(sel)
-      ind = self.ind.select(sel)
-      I = self.I.select(sel)
-      sigI = self.sigI.select(sel)
-      x = self.x.select(sel)
-      y = self.y.select(sel)
-      frame = self.frame.select(sel)
-      ind_unique = set(ind)
+      rtable = self.rtable.select(sel)
+      ind_unique = set(rtable['miller_index'])
 
-    return ind, I, sigI, x, y, frame, multis, ind_unique, keep_singles
+    return rtable, multis, ind_unique, keep_singles
 
 
   def _mean_error_stddev(self):
     # Calculate the weighted mean intensities.
-    Imeans = flex.double(self.ind.size(), 0)
+    Imeans = flex.double(self.rtable.size(), 0)
     # Calculate the standard errors on the means.
-    sigImeans = flex.double(self.ind.size(), 0)
+    sigImeans = flex.double(self.rtable.size(), 0)
     # Calculate the standard deviations from unbiased weighted variances.
-    stddevs = flex.double(self.ind.size(), 0)
+    variances = flex.double(self.rtable.size(), 0)
     # For weighted averaging.
-    weights = 1 / flex.pow2(self.sigI)
+    weights = 1 / self.rtable['intensity.sum.variance']
 
     for hkl in self.ind_unique:
-      sel = (self.ind == hkl).iselection()
+      sel = (self.rtable['miller_index'] == hkl).iselection()
       multi = self.multis.select(sel)[0]
       weight = weights.select(sel)
       sum_weights = flex.sum(weight)
-      I = self.I.select(sel)
+      I = self.rtable['intensity.sum.value'].select(sel)
       Imean = flex.sum( weight * I ) / sum_weights
       Imeans.set_selected(sel, Imean)
       sigImean = math.sqrt(1 / sum_weights)
       sigImeans.set_selected(sel, sigImean)
       if multi == 1:
-        stddevs.set_selected(sel, self.sigI.select(sel))
+        variance = self.rtable['intensity.sum.variance'].select(sel)
       else:
         variance = (
           flex.sum(weight * flex.pow2(I - Imean)) /
           (sum_weights - flex.sum(flex.pow2(weight)) / sum_weights)
         )
-        stddev = math.sqrt(variance)
-        stddevs.set_selected(sel, stddev)
+      variances.set_selected(sel, variance)
 
-    return Imeans, sigImeans, stddevs
+    return Imeans, sigImeans, variances
 
 
-  def _make_z(self, error='sigma'):
-    if error in ('stddev', 'sigImean'):
-      error = {'stddev':self.stddevs, 'sigImean':self.sigImeans}[error]
+  def _make_z(self, uncertainty='sigma'):
+    if uncertainty in ('stddev', 'sigImean'):
+      uncertainty = {'stddev': flex.sqrt(self.variances),
+                     'sigImean': self.sigImeans}[uncertainty]
     else:
-      error = self.sigI
+      uncertainty = flex.sqrt(self.rtable['intensity.sum.variance'])
 
-    z = (self.I - self.Imeans) / error
+    z = (self.rtable['intensity.sum.value'] - self.Imeans) / uncertainty
     order = flex.sort_permutation(z)
 
     return z, order
@@ -242,7 +239,7 @@ class IntensityDist(object):
 
 
   def plot_z_histogram(self):
-    """Plot a hitogram of the z-scores of the weighted mean intensities."""
+    """Plot a histogram of the z-scores of the weighted mean intensities."""
     fig, ax = plt.subplots()
 
     ax.set_title(r'$z$ histogram')
@@ -254,7 +251,7 @@ class IntensityDist(object):
 
 
   def _plot_symmetry_equivalents(self,
-    overlay_mean=False, overlay_error=False
+    overlay_mean=False, uncertainty=False
   ):
     """Really just a test plot.  Slow.  You probably don't want to use."""
     fig, ax = plt.subplots()
@@ -262,22 +259,22 @@ class IntensityDist(object):
     for hkl in self.ind_unique:
       sel = (self.ind == hkl).iselection()
 
-      if overlay_error == 'sigImean':
+      if overlay_uncertainty == 'sigImean':
         yerr = self.sigImeans.select(sel)
-      elif overlay_error:
-        yerr = self.stddevs.select(sel)
+      elif overlay_uncertainty:
+        yerr = flex.sqrt(self.variances.select(sel))
       else:
         yerr = None
 
       plt.errorbar(
-        sel,#self.frame.select(sel),
-        self.I.select(sel),
-        yerr=self.sigI.select(sel),
+        sel,
+        self.rtable['intensity.sum.value'].select(sel),
+        yerr=flex.sqrt(self.rtable['intensity.sum.variance'].select(sel)),
         ls="--"
       )
       if overlay_mean:
         plt.errorbar(
-          sel,#self.frame.select(sel),
+          sel,
           self.Imeans.select(sel),
           yerr = yerr,
           ls = "-",
@@ -308,9 +305,7 @@ class IntensityDist(object):
     "Plot intensity z-scores versus multiplicity."
     fig, ax = plt.subplots()
 
-    ax.set_title(
-      r'$z$-scores versus multiplicity'
-    )
+    ax.set_title(r'$z$-scores versus multiplicity')
     ax.set_xlabel('Multiplicity')
     ax.set_ylabel(r'$z$')
     ax.plot(self.multis, self.z, '.', **kwargs)
@@ -325,6 +320,7 @@ class IntensityDist(object):
     Beware, this is only meaningful if the data have a single geometry model.
     """
     sel = (flex.abs(self.z) >= minimum).iselection()
+    x, y, z =  self.rtable.select(sel)['xyzobs.px.value'].parts()
 
     extreme = math.ceil(flex.max(flex.abs(self.z)))
     norm = colors.SymLogNorm(
@@ -335,18 +331,16 @@ class IntensityDist(object):
 
     fig, ax = plt.subplots()
 
-    ax.set_title(
-      r'$z$-scores versus detector position'
-    )
+    ax.set_title(r'$z$-scores versus detector position')
     ax.set_xlabel('Detector x position (pixels)')
     ax.set_ylabel('Detector y position (pixels)')
     ax.set_aspect('equal', 'box')
-    ax.set_xlim(flex.min(self.x)-5, flex.max(self.x)+5)
-    ax.set_ylim(flex.min(self.y)-5, flex.max(self.y)+5)
+    ax.set_xlim(flex.min(x)-5, flex.max(x)+5)
+    ax.set_ylim(flex.min(y)-5, flex.max(y)+5)
     det_map = ax.scatter(
-      self.x.select(sel),
-      self.y.select(sel),
-      c = self.z.select(sel),
+      x,
+      y,
+      c = z,
       marker = ',',
       s = 0.5,
       **cmap_kws
@@ -364,13 +358,11 @@ class IntensityDist(object):
     Batch (frame) number is used as a proxy for time."""
     fig, ax = plt.subplots()
 
-    ax.set_title(
-      r'Time series of $z$-scores'
-    )
+    ax.set_title(r'Time series of $z$-scores')
     ax.set_xlabel('Approximate chronology (frame number)')
     ax.set_ylabel(r'$z$')
 
-    ax.plot(self.frame, self.z, '.', **kwargs)
+    ax.plot(self.rtable['xyzobs.px.value'].parts()[2], self.z, '.', **kwargs)
 
     fig.savefig(self.outfile + '_z_time_series', transparent = True)
     plt.close()
@@ -380,9 +372,7 @@ class IntensityDist(object):
     """Plot z-scores versus I/sigma."""
     fig, ax = plt.subplots()
 
-    ax.set_title(
-      r'$z$-scores versus spot intensity'
-    )
+    ax.set_title(r'$z$-scores versus spot intensity')
     ax.set_xlabel(r'$\bar{I}_\mathbf{h} / \sigma_\mathbf{h}$')
     ax.set_ylabel(r'$z$')
     ax.set_ylim(-10,10)
@@ -397,9 +387,7 @@ class IntensityDist(object):
     """Plot z-scores versus absolute intensity."""
     fig, ax = plt.subplots()
 
-    ax.set_title(
-      r'$z$-scores versus spot intensity'
-    )
+    ax.set_title(r'$z$-scores versus spot intensity')
     ax.set_xlabel(r'$\bar{I}_\mathbf{h}$')
     ax.set_ylabel(r'$z$')
     ax.set_ylim(-10,10)
@@ -413,7 +401,8 @@ class IntensityDist(object):
 if __name__ == "__main__":
   # TODO Handle multiple input MTZ files.
   # TODO Allow determination of output filename root.
-  data = IntensityDist(sys.argv[1]) #Give an unmerged MTZ file as an argument.
+  # Give an unmerged MTZ file as an argument:
+  data = IntensityDist(filename=sys.argv[1])
 
   data.plot_z_histogram()
   data.probplot()
