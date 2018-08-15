@@ -23,7 +23,8 @@ Example:
   $ dials.python intensity_explorer.py <unmerged MTZ file>
 """
 
-# FIXME Docstrings are in Google-ish format — move to Sphinx-ish.
+# TODO Docstrings are in Google-ish format — move to Sphinx-ish.
+# TODO Docstrings need updating since new reflection table functionality.
 # TODO Once ∃ a dials tool for (unmerged MTZ) –> (exp list, refl table), use it
 
 from __future__ import absolute_import, division, print_function
