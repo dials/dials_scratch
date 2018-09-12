@@ -25,6 +25,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 import itertools
 import time
+import sys
 from copy import deepcopy
 from libtbx import phil
 from libtbx.table_utils import simple_table
@@ -80,6 +81,9 @@ def cross_validate():
       read_reflections=True, read_datablocks=False, phil=phil_scope,
       check_format=False)
   params, _ = optionparser.parse_args(show_diff_phil=False)
+  if not params.input.experiments or not params.input.reflections:
+    optionparser.print_help()
+    sys.exit()
 
   log.config(verbosity=1, info=params.log,
       debug=params.debug_log)
