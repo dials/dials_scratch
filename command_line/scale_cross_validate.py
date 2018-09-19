@@ -10,15 +10,26 @@ final rmsds averaged. For full k-fold cross validation, nfolds should be set to
 100/free_set_percentage, which would be nfolds=10 for the default
 free_set_percentage=10.0.
 
-There are currently three types of options to use;
-1) Toggling a list of options on and off with the command toggle_bools="a b c",
-  where a, b, c etc are boolean command line options.
-2) optimising a single parameter with the command optimise_parameter=x, where
-  x is the name of the command line parameter for dials.scale. A list of
-  parameter_values must also be supplied.
-3) Optimising a choice with the command optimise_choice=x, where
-  x is the name of the command line parameter for dials.scale which has a
-  type = choice. A list of choice_values=a,b etc must also be supplied.
+Three different modes are currently supported, controlled by mode=;
+1) mode=single
+   dials.scale in run nfolds times for the user specified dials.scale options
+2) mode=choice
+   optimise a dials.scale parameter that has discreet allowed values.
+   For example, this mode would be used for the option:
+   parameter=absorption_term (which can be True or False)
+   parameter=outlier_rejection (which can be simple or standard)
+3) mode=variable
+   optimise a dials.scale parameter that has continuous allowed values. With
+   this option, parameter_values= must also be specified.
+   For example
+   mode=variable parameter=decay_interval parameter_values="5.0 10.0"
+
+Therefore one must choose:
+  mode=              (single, variable or choice)
+  parameter=         (a supported dials.scale command line option, optional
+                      if mode=single)
+  parameter_values=  (values to test, only optional if parameter= selectes a
+                      boolean command-line parameter)
 """
 
 from __future__ import absolute_import, division, print_function
@@ -29,6 +40,7 @@ import sys
 from copy import deepcopy
 from libtbx import phil
 from libtbx.table_utils import simple_table
+from scitbx.array_family import flex
 from dials.util import halraiser, log
 from dials.util.options import OptionParser, flatten_reflections,\
   flatten_experiments
@@ -43,26 +55,24 @@ phil_scope = phil.parse('''
       .type = str
       .help = "The debug log filename"
   cross_validation {
-    toggle_bools = None
-      .type = strings
-      .help = "Command-line options to turn on and off for cross validation e.g.
-               decay_term"
-    optimise_choice = None
+    mode = choice variable *single
+      .type = choice
+      .help = "Choose the cross validation running mode, for a full description"
+              "see the module docstring. Choice is used for testing a parameter"
+              "that can only have discreet values (a choice or bool phil parameter)."
+              "Variable is used for testing a parameter that can have a float or"
+              "int value (that is also not a 'choice' type). Single just performs"
+              "cross validation on one parameter configuration."
+    parameter = None
       .type = str
-      .help = "Command-line option to turn on and off for cross validation e.g.
-               decay_term"
-    choice_values = None
-      .type = strings
-      .help = "Choice values to try."
-    optimise_parameter = None
-      .type = str
-      .help = "Optimise a command-line parameter. sample_values must also be
-               specified."
+      .help = "Optimise a command-line parameter. parameter_values must also be"
+              "specified, unless the parameter is a True/False option."
     parameter_values = None
-      .type = floats
-      .help = "Parameter values to compare."
+      .type = strings
+      .help = "Parameter values to compare, entered as a string of space"
+              "separated values."
     nfolds = 1
-      .type = int
+      .type = int(value_min=1)
       .help = "Number of cross-validation folds to perform. If nfolds > 1, the
                minimisation for each option is repeated nfolds times, with an
                incremental offset for the free set. The max number of folds
@@ -101,17 +111,46 @@ def cross_validate():
 
   options_dict = {}
 
-  if [bool(params.cross_validation.toggle_bools),
-    bool(params.cross_validation.optimise_choice),
-    bool(params.cross_validation.optimise_parameter)].count(True) > 1:
-    assert 0, """Cannot set more than one of toggle_bools, optimise_choice and
-      optimise_parameter simultaneously, please choose only one of these and retry."""
-
   start_time = time.time()
 
-  if params.cross_validation.toggle_bools:
-    for option in params.cross_validation.toggle_bools:
-      options_dict[option] = [True, False]
+  if params.cross_validation.mode == 'single':
+    #just run the setup nfolds times
+    results_dict = {}
+    results_dict[0] = {"configuration": ['user'], "Rwork": [], "Rfree": [],
+      "CCwork": [], "CCfree": []}
+    for n in range(params.cross_validation.nfolds):
+      if n < 100.0/params.scaling_options.free_set_percentage:
+        params.scaling_options.free_set_offset = n
+        results_dict[0] = run_script(params, experiments, reflections,
+          results_dict[0])
+
+  elif params.cross_validation.mode == 'choice':
+    if params.cross_validation.parameter is None:
+      assert 0, "parameter= must be set to specify what command line option should be optimised"
+    #now inspect the phil scope to see what the parameter type is - bool or choice
+    choice = params.cross_validation.parameter
+    typ = get_parameter_type(choice)
+
+    if typ == 'bool' and not params.cross_validation.parameter_values:
+      #choice values not specified so try on off
+      options_dict[choice] = [True, False]
+    elif typ == 'bool':
+      options_dict[choice] = []
+      if 'true' in params.cross_validation.parameter_values or \
+        'True' in params.cross_validation.parameter_values:
+        options_dict[choice].append(True)
+      if 'false' in params.cross_validation.parameter_values or \
+        'False' in params.cross_validation.parameter_values:
+        options_dict[choice].append(False)
+    elif typ == 'choice':
+      if not params.cross_validation.parameter_values:
+        assert 0, "choice_values = must be set to specify what options should be tested"
+      options_dict[choice] = []
+      for option in params.cross_validation.parameter_values:
+        options_dict[choice].append(option)
+    else:
+      assert 0, "Error in interpreting choice option and choice_values"
+
     keys, values = zip(*options_dict.items())
     results_dict = {}
     for i, v in enumerate(itertools.product(*values)):
@@ -126,12 +165,15 @@ def cross_validate():
           results_dict[i] = run_script(params, experiments, reflections,
             results_dict[i])
 
-  elif params.cross_validation.optimise_choice:
-    assert params.cross_validation.choice_values, """choice_values must be
-      specified."""
+  elif params.cross_validation.mode == 'variable':
+    if params.cross_validation.parameter is None or \
+      params.cross_validation.parameter_values is None:
+      assert 0, """parameter= and parameter_values= must be set to specify what
+command line option should be optimised and what values should be tested."""
     results_dict = {}
-    for i, value in enumerate(params.cross_validation.choice_values):
-      k = params.cross_validation.optimise_choice
+    for i, value in enumerate(params.cross_validation.parameter_values):
+      k = params.cross_validation.parameter
+      value = str_to_int_or_float(k, value)
       params = set_parameter(params, k, value)
       results_dict[i] = {"configuration": [str(k)+'='+str(value)],
         "Rwork": [], "Rfree": [], "CCwork": [], "CCfree": []}
@@ -141,20 +183,8 @@ def cross_validate():
           results_dict[i] = run_script(params, experiments, reflections,
             results_dict[i])
 
-  elif params.cross_validation.optimise_parameter:
-    assert params.cross_validation.parameter_values, """parameter_values must be
-      specified."""
-    results_dict = {}
-    for i, value in enumerate(params.cross_validation.parameter_values):
-      k = params.cross_validation.optimise_parameter
-      params = set_parameter(params, k, value)
-      results_dict[i] = {"configuration": [str(k)+'='+str(value)],
-        "Rwork": [], "Rfree": [], "CCwork": [], "CCfree": []}
-      for n in range(params.cross_validation.nfolds):
-        if n < 100.0/params.scaling_options.free_set_percentage:
-          params.scaling_options.free_set_offset = n
-          results_dict[i] = run_script(params, experiments, reflections,
-            results_dict[i])
+  else:
+    assert 0, "Error in interpreting mode and options."
 
   interpret_results(results_dict)
   if diff_phil.objects:
@@ -168,7 +198,7 @@ def cross_validate():
 
 def set_parameter(params, name, val):
   """Find the name in the params scope extract and set it to the val."""
-  #Note: must be a better way to do this?
+  # Note: must be a better way to do this?
   if name in ['lmax', 'n_modulation_bins', 'n_resolution_bins',
     'n_absorption_bins']:
     params.parameterisation.__setattr__(name, int(val)) #convert float to int
@@ -182,9 +212,27 @@ def set_parameter(params, name, val):
   elif name in ['target_cycle', 'concurrent', 'full_matrix', 'outlier_zmax',
     'outlier_rejection']:
     params.scaling_options.__setattr__(name, val)
+  elif name in ['model']:
+    params.__setattr__(name, val)
   else:
     assert 0, "Unable to set chosen attribute " + str(name)+"="+str(val)
   return params
+
+def get_parameter_type(name):
+  """Find the parameter type for a discreet phil option - bool or choice."""
+  # Note - ideally could inspect the phil_scope
+  if name in ['outlier_rejection', 'model']:
+    return 'choice'
+  elif name in ['absorption_term', 'decay_term', 'scale_term', 'modulation_term',
+    'optimise_errors', 'full_matrix', 'concurrent', 'target_cycle']:
+    return 'bool'
+
+def str_to_int_or_float(k, value):
+  if k in ['lmax', 'n_modulation_bins', 'n_resolution_bins', 'n_absorption_bins']:
+    return int(value)
+  elif k in ['surface_weight', 'scale_interval', 'decay_interval', 'd_min',
+    'd_max', 'outlier_zmax']:
+    return float(value)
 
 def run_script(params, experiments, reflections, results_dict):
   """Run the scaling script with the params and append to results dict."""
@@ -203,23 +251,33 @@ def interpret_results(results_dict):
   Expect a configuration and final_rmsds columns. Score the data and make a
   nice table."""
   rows = []
-  headers = ['option', 'Rwork', 'Rfree', 'CCwork', 'CCfree']
+  headers = ['option', '', 'Rwork', 'Rfree', 'CCwork', 'CCfree']
   free_rmsds = []
   free_cc12s = []
+
+  def avg_sd_from_list(lst):
+    arr = flex.double(lst)
+    avg = round(flex.mean(arr), 5)
+    std = round(arr.standard_deviation_of_the_sample(), 5)
+    return avg, std
+
   for v in results_dict.itervalues():
     config_str = ' '.join(v['configuration'])
-    avg_work = round(sum(v['Rwork'])/len(v['Rwork']), 5)
-    avg_free = round(sum(v['Rfree'])/len(v['Rfree']), 5)
-    avg_ccwork = round(sum(v['CCwork'])/len(v['CCwork']), 5)
-    avg_ccfree = round(sum(v['CCfree'])/len(v['CCfree']), 5)
-    rows.append([config_str, str(avg_work), str(avg_free), str(avg_ccwork), str(avg_ccfree)])
+    avg_work, std_work = avg_sd_from_list(v['Rwork'])
+    avg_free, std_free = avg_sd_from_list(v['Rfree'])
+    avg_ccwork, std_ccwork = avg_sd_from_list(v['CCwork'])
+    avg_ccfree, std_ccfree = avg_sd_from_list(v['CCfree'])
+    rows.append([config_str, 'mean', str(avg_work), str(avg_free),
+      str(avg_ccwork), str(avg_ccfree)])
+    rows.append(['', 'std dev', str(std_work), str(std_free), str(std_ccwork),
+      str(std_ccfree)])
     free_rmsds.append(avg_free)
     free_cc12s.append(avg_ccfree)
   #find lowest free rmsd
-  low_rmsd_idx = free_rmsds.index(min(free_rmsds))
-  high_cc12_idx = free_cc12s.index(max(free_cc12s))
-  rows[low_rmsd_idx][2] += '*'
-  rows[high_cc12_idx][4] += '*'
+  low_rmsd_idx = free_rmsds.index(min(free_rmsds)) * 2 #*2 to skip std rows
+  high_cc12_idx = free_cc12s.index(max(free_cc12s)) * 2
+  rows[low_rmsd_idx][3] += '*'
+  rows[high_cc12_idx][5] += '*'
   st = simple_table(rows, headers)
   logger.info('Summary of the cross validation analysis: \n')
   logger.info(st.format())
