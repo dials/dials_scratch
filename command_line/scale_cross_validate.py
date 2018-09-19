@@ -10,26 +10,25 @@ final rmsds averaged. For full k-fold cross validation, nfolds should be set to
 100/free_set_percentage, which would be nfolds=10 for the default
 free_set_percentage=10.0.
 
-Three different modes are currently supported, controlled by mode=;
+Two different modes are currently supported, controlled by mode=;
 1) mode=single
    dials.scale in run nfolds times for the user specified dials.scale options
-2) mode=choice
-   optimise a dials.scale parameter that has discreet allowed values.
-   For example, this mode would be used for the option:
-   parameter=absorption_term (which can be True or False)
-   parameter=outlier_rejection (which can be simple or standard)
-3) mode=variable
-   optimise a dials.scale parameter that has continuous allowed values. With
-   this option, parameter_values= must also be specified.
-   For example
-   mode=variable parameter=decay_interval parameter_values="5.0 10.0"
+2) mode=multi
+   optimise a dials.scale parameter, specified by parameter= .
+   parameter_values must also be specified as a string of space separated values,
+   unless the dials.scale parameter type is bool.
 
 Therefore one must choose:
-  mode=              (single, variable or choice)
+  mode=              (single or multi)
   parameter=         (a supported dials.scale command line option, optional
                       if mode=single)
   parameter_values=  (values to test, only optional if parameter= selectes a
                       boolean command-line parameter)
+
+For example
+mode=multi parameter=absorption_term
+mode=multi parameter=decay_interval parameter_values="5.0 10.0 15.0"
+mode=multi parameter=model parameter_values="array physical"
 """
 
 from __future__ import absolute_import, division, print_function
@@ -55,7 +54,7 @@ phil_scope = phil.parse('''
       .type = str
       .help = "The debug log filename"
   cross_validation {
-    mode = choice variable *single
+    mode = multi *single
       .type = choice
       .help = "Choose the cross validation running mode, for a full description"
               "see the module docstring. Choice is used for testing a parameter"
@@ -73,11 +72,11 @@ phil_scope = phil.parse('''
               "separated values."
     nfolds = 1
       .type = int(value_min=1)
-      .help = "Number of cross-validation folds to perform. If nfolds > 1, the
-               minimisation for each option is repeated nfolds times, with an
-               incremental offset for the free set. The max number of folds
-               allowed is 1/free_set_percentage; if set greater than this then
-               the repetition will finish afer 1/free_set_percentage folds."
+      .help = "Number of cross-validation folds to perform. If nfolds > 1, the"
+              "minimisation for each option is repeated nfolds times, with an"
+              "incremental offset for the free set. The max number of folds"
+              "allowed is 1/free_set_percentage; if set greater than this then"
+              "the repetition will finish afer 1/free_set_percentage folds."
   }
   include scope dials.command_line.scale.phil_scope
 ''', process_includes=True)
@@ -114,7 +113,7 @@ def cross_validate():
   start_time = time.time()
 
   if params.cross_validation.mode == 'single':
-    #just run the setup nfolds times
+    # just run the setup nfolds times
     results_dict = {}
     results_dict[0] = {"configuration": ['user'], "Rwork": [], "Rfree": [],
       "CCwork": [], "CCfree": []}
@@ -124,59 +123,52 @@ def cross_validate():
         results_dict[0] = run_script(params, experiments, reflections,
           results_dict[0])
 
-  elif params.cross_validation.mode == 'choice':
+  elif params.cross_validation.mode == 'multi':
+    # run each option nfolds times
     if params.cross_validation.parameter is None:
       assert 0, "parameter= must be set to specify what command line option should be optimised"
-    #now inspect the phil scope to see what the parameter type is - bool or choice
+
     choice = params.cross_validation.parameter
-    typ = get_parameter_type(choice)
+    # inspect the phil scope to see what the parameter type is - bool, choice,
+    # int or float.
+    typ, _ = get_parameter_type_and_value(choice, 0)
 
     if typ == 'bool' and not params.cross_validation.parameter_values:
-      #choice values not specified so try on off
+      # values not specified, implied that should test both True and False
       options_dict[choice] = [True, False]
-    elif typ == 'bool':
-      options_dict[choice] = []
-      if 'true' in params.cross_validation.parameter_values or \
-        'True' in params.cross_validation.parameter_values:
-        options_dict[choice].append(True)
-      if 'false' in params.cross_validation.parameter_values or \
-        'False' in params.cross_validation.parameter_values:
-        options_dict[choice].append(False)
-    elif typ == 'choice':
-      if not params.cross_validation.parameter_values:
-        assert 0, "choice_values = must be set to specify what options should be tested"
-      options_dict[choice] = []
-      for option in params.cross_validation.parameter_values:
-        options_dict[choice].append(option)
     else:
-      assert 0, "Error in interpreting choice option and choice_values"
+      if not params.cross_validation.parameter_values:
+        assert 0, "parameter_values= must be set to specify what options should be tested"
+      options_dict[choice] = []
+      if typ == 'bool':
+        if 'true' in params.cross_validation.parameter_values or \
+          'True' in params.cross_validation.parameter_values:
+          options_dict[choice].append(True)
+        if 'false' in params.cross_validation.parameter_values or \
+          'False' in params.cross_validation.parameter_values:
+          options_dict[choice].append(False)
+      elif typ == 'choice':
+        for option in params.cross_validation.parameter_values:
+          options_dict[choice].append(option)
+      elif typ == 'int' or typ == 'float':
+        for value in params.cross_validation.parameter_values:
+          # first convert str to float or int
+          _, val = get_parameter_type_and_value(choice, value)
+          options_dict[choice].append(val)
+      else:
+        assert 0, "Error in interpreting parameter and parameter_values"
 
+    # this code below should work for more than one parameter to be optimised,
+    # but one cannot specify this yet from the command line
     keys, values = zip(*options_dict.items())
     results_dict = {}
     for i, v in enumerate(itertools.product(*values)):
       e = dict(zip(keys, v))
-      results_dict[i] = {"configuration": [], "Rwork": [], "Rfree": [], "CCwork": [], "CCfree": []}
+      results_dict[i] = {"configuration": [], "Rwork": [], "Rfree": [],
+        "CCwork": [], "CCfree": []}
       for k, v in e.iteritems():
         params = set_parameter(params, k, v)
         results_dict[i]["configuration"].append(str(k)+'='+str(v))
-      for n in range(params.cross_validation.nfolds):
-        if n < 100.0/params.scaling_options.free_set_percentage:
-          params.scaling_options.free_set_offset = n
-          results_dict[i] = run_script(params, experiments, reflections,
-            results_dict[i])
-
-  elif params.cross_validation.mode == 'variable':
-    if params.cross_validation.parameter is None or \
-      params.cross_validation.parameter_values is None:
-      assert 0, """parameter= and parameter_values= must be set to specify what
-command line option should be optimised and what values should be tested."""
-    results_dict = {}
-    for i, value in enumerate(params.cross_validation.parameter_values):
-      k = params.cross_validation.parameter
-      value = str_to_int_or_float(k, value)
-      params = set_parameter(params, k, value)
-      results_dict[i] = {"configuration": [str(k)+'='+str(value)],
-        "Rwork": [], "Rfree": [], "CCwork": [], "CCfree": []}
       for n in range(params.cross_validation.nfolds):
         if n < 100.0/params.scaling_options.free_set_percentage:
           params.scaling_options.free_set_offset = n
@@ -218,21 +210,19 @@ def set_parameter(params, name, val):
     assert 0, "Unable to set chosen attribute " + str(name)+"="+str(val)
   return params
 
-def get_parameter_type(name):
+def get_parameter_type_and_value(name, value):
   """Find the parameter type for a discreet phil option - bool or choice."""
   # Note - ideally could inspect the phil_scope
   if name in ['outlier_rejection', 'model']:
-    return 'choice'
+    return 'choice', value
   elif name in ['absorption_term', 'decay_term', 'scale_term', 'modulation_term',
     'optimise_errors', 'full_matrix', 'concurrent', 'target_cycle']:
-    return 'bool'
-
-def str_to_int_or_float(k, value):
-  if k in ['lmax', 'n_modulation_bins', 'n_resolution_bins', 'n_absorption_bins']:
-    return int(value)
-  elif k in ['surface_weight', 'scale_interval', 'decay_interval', 'd_min',
+    return 'bool', value
+  elif name in ['lmax', 'n_modulation_bins', 'n_resolution_bins', 'n_absorption_bins']:
+    return 'int', int(value)
+  elif name in ['surface_weight', 'scale_interval', 'decay_interval', 'd_min',
     'd_max', 'outlier_zmax']:
-    return float(value)
+    return 'float', float(value)
 
 def run_script(params, experiments, reflections, results_dict):
   """Run the scaling script with the params and append to results dict."""
@@ -256,6 +246,7 @@ def interpret_results(results_dict):
   free_cc12s = []
 
   def avg_sd_from_list(lst):
+    """simple function to get average and standard deviation"""
     arr = flex.double(lst)
     avg = round(flex.mean(arr), 5)
     std = round(arr.standard_deviation_of_the_sample(), 5)
