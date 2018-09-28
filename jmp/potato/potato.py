@@ -99,7 +99,7 @@ phil_scope = parse('''
     d_min = None
       .type = float
 
-    probability = 0.997
+    probability = 0.9973
       .type = float
   }
 
@@ -107,6 +107,13 @@ phil_scope = parse('''
 
     use_crude_shoebox_mask = False
       .type = bool
+
+    shoebox {
+
+      probability = 0.9973
+        .type = float
+
+    }
 
   }
 
@@ -822,7 +829,10 @@ class FinalIntegrator(object):
     '''
     # Compute the bounding box
     profile = self.experiments[0].crystal.mosaicity
-    profile.compute_bbox(self.experiments, self.reflections)
+    profile.compute_bbox(
+      self.experiments, 
+      self.reflections,
+      self.params.integration.shoebox.probability)
 
     # Select reflections within detector
     x0, x1, y0, y1, _, _ = self.reflections["bbox"].parts()
@@ -882,7 +892,10 @@ class FinalIntegrator(object):
 
     '''
     profile = self.experiments[0].crystal.mosaicity
-    profile.compute_mask(self.experiments, self.reflections)
+    profile.compute_mask(
+      self.experiments, 
+      self.reflections,
+      self.params.integration.shoebox.probability)
 
   def _extract_shoebox(self):
     '''

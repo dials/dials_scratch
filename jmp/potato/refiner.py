@@ -455,7 +455,10 @@ def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
 
   '''
   fa = func(x)
-  min_delta = min(tolerance, tolerance / p.length())
+  if p.length() < 1:
+    min_delta = tolerance
+  else:
+    min_delta = tolerance / p.length()
   while delta > min_delta:
     try:
       fb = func(x + delta*p)

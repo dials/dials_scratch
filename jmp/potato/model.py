@@ -13,7 +13,7 @@ from dials_scratch.jmp.potato import MaskCalculatorAngular
 from dials_scratch.jmp.potato import MaskCalculatorSimple
 from dials.array_family import flex
 from scitbx import matrix
-from math import exp
+from math import exp, sqrt
 
 class ProfileModelBase(object):
   '''
@@ -68,7 +68,7 @@ class SimpleProfileModelBase(ProfileModelBase):
   def predict_reflections(self,
                           experiments,
                           miller_indices,
-                          probability=0.997):
+                          probability=0.9973):
     '''
     Predict the reflections
 
@@ -79,7 +79,10 @@ class SimpleProfileModelBase(ProfileModelBase):
       probability)
     return predictor.predict(miller_indices)
 
-  def compute_bbox(self, experiments, reflections):
+  def compute_bbox(self, 
+                   experiments, 
+                   reflections,
+                   probability=0.9973):
     '''
     Compute the bounding box
 
@@ -87,11 +90,14 @@ class SimpleProfileModelBase(ProfileModelBase):
     calculator = BBoxCalculatorSimple(
       experiments[0],
       self.sigma(),
-      0.999999998,
+      probability,
       4)
     calculator.compute(reflections)
 
-  def compute_mask(self, experiments, reflections):
+  def compute_mask(self, 
+                   experiments, 
+                   reflections,
+                   probability=0.9973):
     '''
     Compute the mask
 
@@ -99,7 +105,7 @@ class SimpleProfileModelBase(ProfileModelBase):
     calculator = MaskCalculatorSimple(
       experiments[0],
       self.sigma(),
-      0.999999998)
+      probability)
     calculator.compute(reflections)
 
   def sigma_for_reflection(self, s0, r):
@@ -115,7 +121,13 @@ class SimpleProfileModelBase(ProfileModelBase):
 
     '''
     s0 = matrix.col(experiments[0].beam.get_s0())
+    num = reflections.get_flags(reflections.flags.indexed).count(True)
+    
+    # Compute the marginal variance for the 000 reflection
+    S00 = experiments[0].crystal.mosaicity.sigma()[8]
+
     partiality = flex.double(len(reflections))
+    partiality_variance = flex.double(len(reflections))
     for k in range(len(reflections)):
       s1 = matrix.col(reflections[k]['s1'])
       s2 = matrix.col(reflections[k]['s2'])
@@ -137,8 +149,14 @@ class SimpleProfileModelBase(ProfileModelBase):
 
       mu1 = matrix.col((mu[0], mu[1]))
       mu2 = mu[2]
-      partiality[k] = exp(-0.5*(s0.length()-mu2) * (1/S22) * (s0.length()-mu2))
+      eps = s0.length()-mu2
+      var_eps = S22 / num # FIXME Approximation
+
+      partiality[k] = exp(-0.5*eps * (1/S22) * eps) * sqrt(S00 / S22)
+      partiality_variance[k] = var_eps * (eps**2 / (S00*S22)) * exp(eps**2/S22)
+
     reflections['partiality'] = partiality
+    reflections['partiality.inv.variance'] = partiality_variance
 
   @classmethod
   def from_params(Class, params):
@@ -257,7 +275,7 @@ class AngularProfileModelBase(ProfileModelBase):
   def predict_reflections(self,
                           experiments,
                           miller_indices,
-                          probability=0.997):
+                          probability=0.9973):
     '''
     Predict the reflections
 
@@ -268,7 +286,10 @@ class AngularProfileModelBase(ProfileModelBase):
       probability)
     return predictor.predict(miller_indices)
 
-  def compute_bbox(self, experiments, reflections):
+  def compute_bbox(self, 
+                   experiments, 
+                   reflections,
+                   probability=0.9973):
     '''
     Compute the bounding box
 
@@ -276,11 +297,14 @@ class AngularProfileModelBase(ProfileModelBase):
     calculator = BBoxCalculatorAngular(
       experiments[0],
       self.sigma(),
-      0.999999998,
+      probability,
       4)
     calculator.compute(reflections)
 
-  def compute_mask(self, experiments, reflections):
+  def compute_mask(self, 
+                   experiments, 
+                   reflections,
+                   probability=0.9973):
     '''
     Compute the mask
 
@@ -288,7 +312,7 @@ class AngularProfileModelBase(ProfileModelBase):
     calculator = MaskCalculatorAngular(
       experiments[0],
       self.sigma(),
-      0.999999998)
+      probability)
     calculator.compute(reflections)
 
   def compute_partiality(self, experiments, reflections):
@@ -297,7 +321,9 @@ class AngularProfileModelBase(ProfileModelBase):
 
     '''
     s0 = matrix.col(experiments[0].beam.get_s0())
+    num = reflections.get_flags(reflections.flags.indexed).count(True)
     partiality = flex.double(len(reflections))
+    partiality_variance = flex.double(len(reflections))
     for k in range(len(reflections)):
       s1 = matrix.col(reflections[k]['s1'])
       s2 = matrix.col(reflections[k]['s2'])
@@ -320,8 +346,15 @@ class AngularProfileModelBase(ProfileModelBase):
 
       mu1 = matrix.col((mu[0], mu[1]))
       mu2 = mu[2]
-      partiality[k] = exp(-0.5*(s0.length()-mu2) * (1/S22) * (s0.length()-mu2))
+      eps = s0.length() - mu2
+      var_eps = S22 / num # FIXME Approximation
+
+      S00 = S22 # FIXME
+      partiality[k] = exp(-0.5*eps * (1/S22) * eps) * sqrt(S00 / S22)
+      partiality_variance[k] = var_eps * (eps**2 / (S00*S22)) * exp(eps**2/S22)
+
     reflections['partiality'] = partiality
+    reflections['partiality.inv.variance'] = partiality_variance
 
   @classmethod
   def from_params(Class, params):
