@@ -235,7 +235,7 @@ class ReflectionLikelihood(object):
     # Compute the conditional likelihood
     c_d = mobs - mubar
     c_lnL = c_w * (log(Sbar_det) + (Sbar_inv * (Sobs + c_d*c_d.transpose())).trace())
-
+    
     # Return the joint likelihood
     return -0.5 * (m_lnL + c_lnL)
 
@@ -1061,11 +1061,11 @@ class RefinerData(object):
 
       # Compute the mean vector
       xbar = matrix.col((0,0))
-      # for j in range(X.all()[0]):
-      #   for i in range(X.all()[1]):
-      #     x = matrix.col(X[j,i])
-      #     xbar += C[j,i] * x
-      # xbar /= ctot
+      for j in range(X.all()[0]):
+        for i in range(X.all()[1]):
+          x = matrix.col(X[j,i])
+          xbar += C[j,i] * x
+      xbar /= ctot
 
       # Compute the covariance matrix
       Sobs = matrix.sqr((0, 0, 0, 0))
@@ -1080,8 +1080,8 @@ class RefinerData(object):
       # zero = matrix.col((0, 0))
       # Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       # Bmean += Bias_sq
-
-      ctot += 10000
+      
+      # ctot += 10000
 
       # Add to the lists
       sp_list[r] = sp

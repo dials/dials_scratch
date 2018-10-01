@@ -119,6 +119,10 @@ phil_scope = parse('''
 
   debug {
     output {
+      
+      strong_spots = False
+        .type = bool
+
       shoeboxes = True
         .type = bool
 
@@ -352,6 +356,13 @@ class InitialIntegrator(object):
     self._compute_mask()
     self._compute_background()
     self._compute_intensity()
+    self._compute_centroid()
+
+    self.reflections.compute_d(self.experiments)
+
+    # Output some strong spots
+    if params.debug.output.strong_spots:
+      self.reflections.as_pickle("debug.strong.pickle")
 
     # Print shoeboxes
     if params.debug.output.print_shoeboxes:
@@ -488,6 +499,14 @@ class InitialIntegrator(object):
     logger.info("%d reflections integrated" % self.reflections.get_flags(
       self.reflections.flags.integrated_sum).count(True))
 
+  def _compute_centroid(self):
+    '''
+    Compute the reflection centroid
+
+    '''
+    logger.info("Computing centroid for %d reflections" % len(self.reflections))
+    self.reflections.compute_centroid(self.experiments)
+
   def _print_shoeboxes(self):
     '''
     Print the shoeboxes
@@ -615,6 +634,9 @@ class Refiner(object):
     Do the crystal refinement
 
     '''
+    if self.params.profile.unit_cell.fixed == True and self.params.profile.orientation.fixed == True:
+      return
+
     logger.info("")
     logger.info("Refining crystal parmameters")
 
@@ -623,6 +645,8 @@ class Refiner(object):
       self.experiments[0],
       self.profile.parameterisation(),
       fix_mosaic_spread = True,
+      fix_unit_cell = self.params.profile.unit_cell.fixed,
+      fix_orientation = self.params.profile.orientation.fixed,
       fix_wavelength_spread = self.params.profile.wavelength_spread.model == "delta")
 
     # Create the refiner and refine
