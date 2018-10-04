@@ -1080,8 +1080,8 @@ class RefinerData(object):
       # zero = matrix.col((0, 0))
       # Bias_sq = (xbar - zero)*(xbar - zero).transpose()
       # Bmean += Bias_sq
-      
-      # ctot += 10000
+
+      #ctot += 10000
 
       # Add to the lists
       sp_list[r] = sp
@@ -1091,14 +1091,35 @@ class RefinerData(object):
       Sobs_list[r,1] = Sobs[1]
       Sobs_list[r,2] = Sobs[2]
       Sobs_list[r,3] = Sobs[3]
-
-    # SSS /= len(ctot_list)
-    # print SSS
-    # print sqrt(SSS)*(180.0/pi)/s0.length()
-
+    
     # Print some information
+    logger.info("")
     logger.info("I_min = %.2f, I_max = %.2f" % (
       flex.min(ctot_list), flex.max(ctot_list)))
+    
+    # Sometimes a single reflection might have an enormouse intensity for
+    # whatever reason and since we weight by intensity, this can cause the
+    # refinement to be dominated by these reflections. Therefore, if the
+    # intensity is greater than some value, damp the weighting accordingly
+    def damp_outlier_intensity_weights(ctot_list):
+      sorted_ctot = sorted(ctot_list)
+      Q1 = sorted_ctot[len(ctot_list)//4]
+      Q2 = sorted_ctot[len(ctot_list)//2]
+      Q3 = sorted_ctot[3*len(ctot_list)//4]
+      IQR = Q3-Q1
+      T = Q3+1.5*IQR
+      logger.info("Median I = %.2f" % Q2)
+      logger.info("Q1/Q3 I = %.2f, %.2f" % (Q1, Q3))
+      logger.info("Damping effect of intensities > %f" % T)
+      ndamped = 0
+      for i in range(len(ctot_list)):
+        if ctot_list[i] > T:
+          logger.info("Damping %.2f" % ctot_list[i])
+          ctot_list[i] = T
+          ndamped += 1
+      logger.info("Damped %d/%d reflections" % (ndamped, len(ctot_list)))
+      return ctot_list
+    ctot_list = damp_outlier_intensity_weights(ctot_list)
 
     # Print the mean covariance
     Smean = matrix.sqr((0,0,0,0))

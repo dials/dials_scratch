@@ -35,7 +35,7 @@ import matplotlib
 import json
 
 # Set matplotlib backend
-matplotlib.use("agg", warn=False)
+#matplotlib.use("agg", warn=False)
 
 logger = logging.getLogger("dials." + __name__)
 
