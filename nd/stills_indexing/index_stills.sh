@@ -16,8 +16,9 @@ Options:
   -j JOBS     Submit to JOBS separate jobs. Only valid with --submit
   -n PROCS    Run PROCS instances in parallel. If GNU parallel is not available
               then this will be ignored.
-  --python=X  Use X as the python interpreter (defaults: libtbx.python)
-  --parallel=Y  Use GNU parallel from a specific location
+  --python X  Use X as the python interpreter (defaults: libtbx.python)
+  --parallel Y  Use GNU parallel from a specific location
+  --smp N     When submitting, request a specific SMP count. Default: PROCS
 HERE
 }
 
@@ -34,6 +35,8 @@ PARALLEL=$(command -v parallel 2>/dev/null || true)
 # Default arguments to always pass to dials.index
 # In this case, we want to always fix the parameters so that we can combine sensibly
 DEFAULT_PHIL="goniometer.fix=all detector.fix=all beam.fix=all"
+# The specific processor count to request from qsub
+PE_SMP_COUNT=""
 
 # Find the full path to *this* script - we may need to call ourself
 SOURCE="${BASH_SOURCE[0]}"
@@ -88,6 +91,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --smp)
+    PE_SMP_COUNT="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -113,7 +121,7 @@ function ctrl_c() {
 # Validate that we have parallel if more than one job
 if [[ -z $PARALLEL && $NPROCS -gt 1 ]]; then
   echo "$(tput bold)Warning: NPROCS=$NPROCS but GNU parallel not found. Running sequentially.$(tput sgr0)"
-  NJOBS=1
+  NPROCS=1
 fi
 
 # Check that we have a python interpreter
@@ -244,11 +252,17 @@ if [[ $MODE == "index" ]]; then
     echo "Not collating output in SGE mode"
   fi
 elif [[ $MODE == "submit" ]]; then
+  if [[ -z "$PE_SMP_COUNT" && $NPROCS -gt 1 ]]; then
+    PE_SMP_COUNT=$NPROCS
+  fi
+  if [[ -n "$PE_SMP_COUNT" ]]; then
+    PE_SMP_ARGS="-pe smp $PE_SMP_COUNT"
+  fi
   # Work out the rough step so that we get N jobs
   step=$(python -c "import math; print(int(math.ceil(float($id_end-$id_start)/$NJOBS)))")
   # Recursively submit ourselves in index mode
   set -x
-  qsub -t $id_start-$id_end:$step -b y -e /dev/null \
+  qsub -t $id_start-$id_end:$step -b y -e /dev/null $PE_SMP_ARGS \
       $SOURCE -n $NPROCS \
       --python "$PYEXE" --parallel "$PARALLEL" \
       $datablock $reflections $*
