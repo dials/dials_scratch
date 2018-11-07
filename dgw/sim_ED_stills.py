@@ -36,6 +36,10 @@ class Simulation(object):
 
   def __init__(self, i0, i1):
 
+    self.i0 = i0
+    self.i1 = i1
+    assert i0 > 0 and i1 > i0
+
     # Set up detector
     distance = 1590.00
     pixel_size = 0.055
@@ -57,15 +61,14 @@ class Simulation(object):
     # Set up simulated structure factors
     self.sfall = self.fcalc_from_pdb(resolution=2.0)
 
-    self.i0 = i0
-    self.i1 = i1
-    assert i0 > 0 and i1 > i0
+    self._unit_cell = self.cell_from_pdb()
+    a, b, c, aa, bb, cc = self._unit_cell.parameters()
     self.experiments = ExperimentList()
     for i in range(i1-i0):
       # Set up crystal - does not need to be correct, it is overwritten anyway
-      crystal = Crystal(real_space_a = (78.840,0,0),
-                        real_space_b = (0,78.840,0),
-                        real_space_c = (0,0,38.290),
+      crystal = Crystal(real_space_a = (a,0,0),
+                        real_space_b = (0,b,0),
+                        real_space_c = (0,0,c),
                         space_group_symbol="P 43 21 2")
 
       self.experiments.append(Experiment(
@@ -77,6 +80,11 @@ class Simulation(object):
     dump = ExperimentListDumper(experiments)
     dump.as_json(filename)
     return
+
+  def cell_from_pdb(self):
+    from iotbx import pdb
+    pdb_inp = pdb.input(source_info=None,lines = pdb_lines)
+    return pdb_inp.crystal_symmetry().unit_cell()
 
   def fcalc_from_pdb(self, resolution):
     from iotbx import pdb
@@ -119,7 +127,13 @@ class Simulation(object):
     SIM = nanoBragg(self.detector, beam, verbose=0)
     print "#######################################"
 
-    SIM.Ncells_abc=(10,10,10)
+    # Set Ncells to give approx 200nm cube
+    a, b, c, aa, bb, cc = self._unit_cell.parameters()
+    Na = int(round(2000 / a))
+    Nb = int(round(2000 / b))
+    Nc = int(round(2000 / c))
+    print "setting Ncells:", (Na,Nb,Nc)
+    SIM.Ncells_abc=(Na,Nb,Nc)
     # set different random number seed for noise generation for each image
     SIM.seed = image_no
     SIM.oversample=1
@@ -139,11 +153,11 @@ class Simulation(object):
 
     SIM.xtal_shape=shapetype.Gauss # fastest option, least realistic
     SIM.flux=1e12 # photons/s
-    SIM.beamsize_mm=0.1 # assumes round beam
+    SIM.beamsize_mm=0.01 # assumes round beam
     SIM.exposure_s=0.1
 
     SIM.mosaic_domains=10
-    SIM.mosaic_spread_deg = 0.01
+    SIM.mosaic_spread_deg = 0.1
 
     # Set detector noise and offset parameters to zero
     SIM.adc_offset_adu = 0
