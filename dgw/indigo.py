@@ -20,6 +20,9 @@ from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections
 from dials.util.options import flatten_datablocks
 from dials.util.options import flatten_experiments
+import cctbx.miller
+from dials.array_family import flex
+import operator
 
 help_message = '''
 
@@ -43,6 +46,11 @@ indexing{
     {
       d_min = 16.0
         .type = float(value_min=0)
+
+      dstar_tolerance = 5.0
+        .help = "Number of sigmas from the centroid position for which to"
+                "calculate d* bands"
+        .type = float
     }
   }
 }
@@ -161,7 +169,7 @@ class indexer_low_res_spot_match(indexer_base):
     except AssertionError:
       raise Sorry("indigo requires a known unit_cell=a,b,c,aa,bb,cc")
 
-    self.low_res_spot_match()
+    self._low_res_spot_match()
     crystal_models = self.candidate_crystal_models
     experiments = ExperimentList()
     for cm in crystal_models:
@@ -174,9 +182,118 @@ class indexer_low_res_spot_match(indexer_base):
                                       crystal=cm))
     return experiments
 
-  def low_res_spot_match(self):
+  def _low_res_spot_match(self):
+
+    # Construct a library of candidate low res indices with their d* values
+    self.candidate_hkls = self._calc_candidate_hkls(
+        self.target_symmetry_primitive,
+        self.params.low_res_spot_match.candidate_spots.d_min)
+
+    # Take a subset of the observations at the same resolution
+    spot_dstar = self.reflections['rlp'].norms()
+    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
+    sel = spot_dstar <= dstar_max
+    self.spots = self.reflections.select(sel)
+    self.spots['dstar'] = spot_dstar.select(sel)
+
+    # Calculate d* bands encompassing each spot
+    self._calc_dstar_bands()
+
+    # First search: match each observation with candidate indices within the
+    # resolution band
+    seeds = self._seed_spots()
+
     self.candidate_crystal_models = None
     raise NotImplementedError("Nothing to see here")
+
+  @staticmethod
+  def _calc_candidate_hkls(symmetry, d_min):
+    hkl_list = cctbx.miller.build_set(symmetry, anomalous_flag=False,
+      d_min=d_min)
+    rt = flex.reflection_table()
+    rt['miller_index'] = hkl_list.indices()
+    rt['dstar'] = 1. / hkl_list.d_spacings().data()
+    return rt
+
+  def _calc_dstar_bands(self):
+    # Convert sigma_x and sigma_y in pixels for each reflection into sigma_r
+    # in radial direction from the beam centre
+
+    # XXX In what circumstance might there be more than one imageset?
+    detector = self.imagesets[0].get_detector()
+    beam = self.imagesets[0].get_beam()
+
+    beam_centre = flex.vec2_double(len(self.spots))
+    pnl_ids = set(self.spots['panel'])
+    for pnl in pnl_ids:
+      sel = self.spots['panel'] == pnl
+      panel = detector[pnl]
+      bc = panel.get_ray_intersection_px(beam.get_s0())
+      beam_centre.set_selected(sel, bc)
+
+    # Lab coordinate of the beam centre
+    panel = detector[self.spots[0]['panel']]
+    bc = panel.get_ray_intersection(beam.get_s0())
+    bc_lab = panel.get_lab_coord(bc)
+
+    # Lab coordinate of each spot
+    spot_lab = flex.vec3_double(len(self.spots))
+    pnl_ids = set(self.spots['panel'])
+    for pnl in pnl_ids:
+      sel = self.spots['panel'] == pnl
+      panel = detector[pnl]
+      obs = self.spots['xyzobs.mm.value'].select(sel)
+      x_mm, y_mm, _ = obs.parts()
+      spot_lab.set_selected(sel, panel.get_lab_coord(flex.vec2_double(x_mm, y_mm)))
+
+    # Radius and radial direction vectors for each spot
+    radius = spot_lab - bc_lab
+    unit_r = radius.each_normalize()
+
+    # Calculate radius and direction vector for each spot from the beam centre
+    x, y, _ = radius.parts()
+    x2, y2 = flex.pow2(x), flex.pow2(y)
+    r2 = x2 + y2
+
+    # Calc error along unit_radius direction with simple error propagation
+    # that assumes no covariance between x and y centroid errors
+    sig_x2, sig_y2, _ = self.spots['xyzobs.mm.variance'].parts()
+    var_r = (x2 / r2) * sig_x2 + (y2 / r2) * sig_y2
+    sig_r = flex.sqrt(var_r)
+
+    # Pixel coordinates at limits of the band
+    tol = self.params.low_res_spot_match.candidate_spots.dstar_tolerance
+    outer_spot_lab = spot_lab + unit_r * (tol * sig_r)
+    inner_spot_lab = spot_lab - unit_r * (tol * sig_r)
+
+    # Set d* at band limits
+    inv_lambda = 1./beam.get_wavelength()
+    s1_outer = outer_spot_lab.each_normalize() * inv_lambda
+    s1_inner = inner_spot_lab.each_normalize() * inv_lambda
+    self.spots['dstar_outer'] = (s1_outer - beam.get_s0()).norms()
+    self.spots['dstar_inner'] = (s1_inner - beam.get_s0()).norms()
+
+    return
+
+  def _seed_spots(self):
+    # As the first stage of search, determine a list of seed spots for further
+    # stages. Order these by distance of observation d* from the candidate
+    # reflection d*
+
+    result = []
+    for i, spot in enumerate(self.spots):
+      sel = ((self.candidate_hkls['dstar'] <= spot['dstar_outer']) &
+             (self.candidate_hkls['dstar'] >= spot['dstar_inner']))
+      cands = self.candidate_hkls.select(sel)
+      for c in cands:
+        dist = abs(c['dstar'] - spot['dstar'])
+        result.append({'spot_id':i,
+                       'miller_index':c['miller_index'],
+                       'dist':dist})
+
+    result.sort(key=operator.itemgetter('dist'))
+    return result
+
 
 def run(args):
   import libtbx.load_env
