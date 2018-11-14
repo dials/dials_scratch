@@ -76,6 +76,16 @@ class Simulation(object):
         detector=self.detector,
         crystal=crystal))
 
+  def set_imageset(self, filename):
+    from dxtbx.format.FormatSMVJHSim import FormatSMVJHSim
+    exp = self.experiments[0]
+    imset = FormatSMVJHSim.get_imageset([filename],
+        beam=exp.beam,
+        detector=exp.detector,
+        goniometer=exp.goniometer,
+        scan=exp.scan)
+    exp.imageset = imset
+
   def dump_experiment(self, experiments, filename):
     dump = ExperimentListDumper(experiments)
     dump.as_json(filename)
@@ -211,6 +221,9 @@ class Simulation(object):
     SIM.to_smv_format(fileout=fileout, intfile_scale=1)
 
     SIM.free_all()
+
+    # Set an imageset in the experiment list using the noiseimage
+    self.set_imageset(fileout)
 
     self.dump_experiment(self.experiments[expr_no:expr_no+1], "experiments_%03d.json" % image_no)
 
