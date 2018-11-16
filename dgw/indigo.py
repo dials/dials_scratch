@@ -12,7 +12,7 @@ logger = logging.getLogger('indigo')
 #  pass
 
 import copy
-
+from math import pi
 import libtbx
 from libtbx.utils import Sorry
 import iotbx.phil
@@ -23,6 +23,8 @@ from dials.util.options import flatten_experiments
 import cctbx.miller
 from dials.array_family import flex
 import operator
+
+TWO_PI = 2.0 * pi
 
 help_message = '''
 
@@ -185,9 +187,7 @@ class indexer_low_res_spot_match(indexer_base):
   def _low_res_spot_match(self):
 
     # Construct a library of candidate low res indices with their d* values
-    self.candidate_hkls = self._calc_candidate_hkls(
-        self.target_symmetry_primitive,
-        self.params.low_res_spot_match.candidate_spots.d_min)
+    self._calc_candidate_hkls()
 
     # Take a subset of the observations at the same resolution
     spot_dstar = self.reflections['rlp'].norms()
@@ -203,17 +203,40 @@ class indexer_low_res_spot_match(indexer_base):
     # resolution band
     seeds = self._seed_spots()
 
+    #DEBUG
+    # load up known indices
+    from dials.array_family import flex
+    indexed = flex.reflection_table.from_pickle("indexed.pickle")
+    idx_dstar = indexed['rlp'].norms()
+    sel = idx_dstar <= dstar_max
+    indexed = indexed.select(sel)
+
+    for seed in seeds:
+      stems = self._pairs_with_seed(seed, candidates=seeds)
+
     self.candidate_crystal_models = None
     raise NotImplementedError("Nothing to see here")
 
-  @staticmethod
-  def _calc_candidate_hkls(symmetry, d_min):
-    hkl_list = cctbx.miller.build_set(symmetry, anomalous_flag=False,
-      d_min=d_min)
+  def _calc_candidate_hkls(self):
+    # 1 ASU
+    hkl_list = cctbx.miller.build_set(self.target_symmetry_primitive,
+        anomalous_flag=False,
+        d_min=self.params.low_res_spot_match.candidate_spots.d_min)
     rt = flex.reflection_table()
     rt['miller_index'] = hkl_list.indices()
     rt['dstar'] = 1. / hkl_list.d_spacings().data()
-    return rt
+    self.candidate_hkls = rt
+
+    # P1 indices with separate Friedel pairs
+    hkl_list = cctbx.miller.build_set(self.target_symmetry_primitive,
+        anomalous_flag=True,
+        d_min=self.params.low_res_spot_match.candidate_spots.d_min)
+    hkl_list_p1 = hkl_list.expand_to_p1()
+    rt = flex.reflection_table()
+    rt['miller_index'] = hkl_list_p1.indices()
+    rt['dstar'] = 1. / hkl_list_p1.d_spacings().data()
+    self.candidate_hkls_p1 = rt
+    return
 
   def _calc_dstar_bands(self):
     # Convert sigma_x and sigma_y in pixels for each reflection into sigma_r
@@ -223,15 +246,7 @@ class indexer_low_res_spot_match(indexer_base):
     detector = self.imagesets[0].get_detector()
     beam = self.imagesets[0].get_beam()
 
-    beam_centre = flex.vec2_double(len(self.spots))
-    pnl_ids = set(self.spots['panel'])
-    for pnl in pnl_ids:
-      sel = self.spots['panel'] == pnl
-      panel = detector[pnl]
-      bc = panel.get_ray_intersection_px(beam.get_s0())
-      beam_centre.set_selected(sel, bc)
-
-    # Lab coordinate of the beam centre
+    # Lab coordinate of the beam centre, using the first spot's panel
     panel = detector[self.spots[0]['panel']]
     bc = panel.get_ray_intersection(beam.get_s0())
     bc_lab = panel.get_lab_coord(bc)
@@ -246,25 +261,49 @@ class indexer_low_res_spot_match(indexer_base):
       x_mm, y_mm, _ = obs.parts()
       spot_lab.set_selected(sel, panel.get_lab_coord(flex.vec2_double(x_mm, y_mm)))
 
-    # Radius and radial direction vectors for each spot
+    # Radius vectors for each spot
     radius = spot_lab - bc_lab
-    unit_r = radius.each_normalize()
 
-    # Calculate radius and direction vector for each spot from the beam centre
-    x, y, _ = radius.parts()
+    # Usually the radius vectors would all be in a single plane, but this might
+    # not be the case if the spots are on different panels. To put them on the
+    # same plane, project onto fast/slow of the panel used to get the beam
+    # centre
+    df = flex.vec3_double(len(self.spots), detector[0].get_fast_axis())
+    ds = flex.vec3_double(len(self.spots), detector[0].get_slow_axis())
+    clock_dirs = (radius.dot(df) * df + radius.dot(ds) * ds).each_normalize()
+
+    # From this, find positive angles of each vector around a clock, using the
+    # fast axis as 12 o'clock
+    angs = clock_dirs.angle(detector[0].get_fast_axis())
+    dots = clock_dirs.dot(detector[0].get_slow_axis())
+    sel = dots < 0 # select directions in the second half of the clock face
+    angs.set_selected(sel, (TWO_PI - angs.select(sel)))
+    self.spots['clock_angle'] = angs
+
+    # Project radius vectors onto fast/slow of the relevant panels
+    df = flex.vec3_double(len(self.spots))
+    ds = flex.vec3_double(len(self.spots))
+    for pnl in pnl_ids:
+      sel = self.spots['panel'] == pnl
+      panel = detector[pnl]
+      df.set_selected(sel, panel.get_fast_axis())
+      ds.set_selected(sel, panel.get_slow_axis())
+    panel_dirs = (radius.dot(df) * df + radius.dot(ds) * ds).each_normalize()
+
+    # Calc error along each panel direction with simple error propagation
+    # that assumes no covariance between x and y centroid errors.
+    x = panel_dirs.dot(df)
+    y = panel_dirs.dot(ds)
     x2, y2 = flex.pow2(x), flex.pow2(y)
     r2 = x2 + y2
-
-    # Calc error along unit_radius direction with simple error propagation
-    # that assumes no covariance between x and y centroid errors
     sig_x2, sig_y2, _ = self.spots['xyzobs.mm.variance'].parts()
     var_r = (x2 / r2) * sig_x2 + (y2 / r2) * sig_y2
     sig_r = flex.sqrt(var_r)
 
     # Pixel coordinates at limits of the band
     tol = self.params.low_res_spot_match.candidate_spots.dstar_tolerance
-    outer_spot_lab = spot_lab + unit_r * (tol * sig_r)
-    inner_spot_lab = spot_lab - unit_r * (tol * sig_r)
+    outer_spot_lab = spot_lab + panel_dirs * (tol * sig_r)
+    inner_spot_lab = spot_lab - panel_dirs * (tol * sig_r)
 
     # Set d* at band limits
     inv_lambda = 1./beam.get_wavelength()
@@ -289,11 +328,14 @@ class indexer_low_res_spot_match(indexer_base):
         dist = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
-                       'dist':dist})
+                       'dist':dist,
+                       'clock_angle':spot['clock_angle']})
 
     result.sort(key=operator.itemgetter('dist'))
     return result
 
+  def _pairs_with_seed(self, seed, candidates):
+    pass
 
 def run(args):
   import libtbx.load_env
