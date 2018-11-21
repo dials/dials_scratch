@@ -23,8 +23,10 @@ from dials.util.options import flatten_experiments
 import cctbx.miller
 from dials.array_family import flex
 import operator
+from scitbx import matrix
 
 TWO_PI = 2.0 * pi
+FIVE_DEG = TWO_PI * 5./360.
 
 help_message = '''
 
@@ -46,10 +48,10 @@ indexing{
   {
     candidate_spots
     {
-      d_min = 16.0
+      d_min = 15.0
         .type = float(value_min=0)
 
-      dstar_tolerance = 5.0
+      dstar_tolerance = 4.0
         .help = "Number of sigmas from the centroid position for which to"
                 "calculate d* bands"
         .type = float
@@ -88,9 +90,19 @@ refinement
 working_phil = phil_scope.fetch(sources=[phil_overrides])
 master_params = working_phil.extract()
 
-
 from dials.algorithms.indexing.indexer import indexer_base
 class indexer_low_res_spot_match(indexer_base):
+
+  #DEBUG - remove after algorithm development
+  def debug(self):
+    # load up known indices
+    from dials.array_family import flex
+    indexed = flex.reflection_table.from_pickle("indexed.pickle")
+    idx_dstar = indexed['rlp'].norms()
+    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
+    sel = idx_dstar <= dstar_max
+    indexed = indexed.select(sel)
+    return indexed
 
   def __init__(self, reflections, imagesets, params):
     super(indexer_low_res_spot_match, self).__init__(reflections, imagesets, params)
@@ -171,6 +183,10 @@ class indexer_low_res_spot_match(indexer_base):
     except AssertionError:
       raise Sorry("indigo requires a known unit_cell=a,b,c,aa,bb,cc")
 
+    # Set reciprocal space orthogonalisation matrix
+    uc = self.target_symmetry_primitive.unit_cell()
+    self.Bmat = matrix.sqr(uc.fractionalization_matrix()).transpose()
+
     self._low_res_spot_match()
     crystal_models = self.candidate_crystal_models
     experiments = ExperimentList()
@@ -189,30 +205,45 @@ class indexer_low_res_spot_match(indexer_base):
     # Construct a library of candidate low res indices with their d* values
     self._calc_candidate_hkls()
 
-    # Take a subset of the observations at the same resolution
-    spot_dstar = self.reflections['rlp'].norms()
-    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
-    sel = spot_dstar <= dstar_max
-    self.spots = self.reflections.select(sel)
-    self.spots['dstar'] = spot_dstar.select(sel)
-
-    # Calculate d* bands encompassing each spot
-    self._calc_dstar_bands()
+    # Take a subset of the observations at the same resolution and calculate
+    # some values that will be needed for the search
+    self._calc_obs_data()
 
     # First search: match each observation with candidate indices within the
     # resolution band
-    seeds = self._seed_spots()
+    self._calc_seeds_and_stems()
 
-    #DEBUG
-    # load up known indices
-    from dials.array_family import flex
-    indexed = flex.reflection_table.from_pickle("indexed.pickle")
-    idx_dstar = indexed['rlp'].norms()
-    sel = idx_dstar <= dstar_max
-    indexed = indexed.select(sel)
+    # Further search will try to index 3 spots within resolution bands and
+    # tolerated reciprocal space distance from one another
+    triplets = []
+    for seed in self.seeds:
+      stems = self._pairs_with_seed(seed)
 
-    for seed in seeds:
-      stems = self._pairs_with_seed(seed, candidates=seeds)
+      for stem in stems:
+        branches = self._triplets_with_seed_and_stem(seed, stem)
+
+        for branch in branches:
+          triplets.append((seed, stem, branch))
+
+    # DEBUG - check through these results to see which are correct
+    idx = self.debug()
+    triplets.sort(key=lambda x: x[2]['residual_rlp_dist_total'])
+
+    correct = {0:set((4, 3, 0)), 1:set((1,1,1)), 2:set((1,1,1)), 3:set((4,3,0))}
+    print("soln    seed    stem    branch")
+    for i, t in enumerate(triplets):
+      res = [(e['spot_id'], e['miller_index']) for e in t]
+      res.sort(key=operator.itemgetter(0))
+      nwrong=0
+      for r in res:
+        spot = r[0]
+        pos_hkl = set([abs(e) for e in r[1]])
+        if pos_hkl != correct[spot]: nwrong +=1
+      if nwrong > 0: continue
+      miller1 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[0][0], *res[0][1])
+      miller2 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[1][0], *res[1][1])
+      miller3 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[2][0], *res[2][1])
+      print("{0:03d} {1} {2} {3}".format(i, miller1, miller2, miller3))
 
     self.candidate_crystal_models = None
     raise NotImplementedError("Nothing to see here")
@@ -238,9 +269,17 @@ class indexer_low_res_spot_match(indexer_base):
     self.candidate_hkls_p1 = rt
     return
 
-  def _calc_dstar_bands(self):
-    # Convert sigma_x and sigma_y in pixels for each reflection into sigma_r
-    # in radial direction from the beam centre
+  def _calc_obs_data(self):
+    """Calculates a set of low resolution observations to try to match to
+    indices. Each observation will record its d* value as well as
+    tolerated d* bands and a 'clock angle'"""
+
+    # First select low resolution spots only
+    spot_dstar = self.reflections['rlp'].norms()
+    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
+    sel = spot_dstar <= dstar_max
+    self.spots = self.reflections.select(sel)
+    self.spots['dstar'] = spot_dstar.select(sel)
 
     # XXX In what circumstance might there be more than one imageset?
     detector = self.imagesets[0].get_detector()
@@ -314,28 +353,136 @@ class indexer_low_res_spot_match(indexer_base):
 
     return
 
-  def _seed_spots(self):
+  def _calc_seeds_and_stems(self):
     # As the first stage of search, determine a list of seed spots for further
     # stages. Order these by distance of observation d* from the candidate
     # reflection d*
 
+    # First the 'seeds' (in 1 ASU)
     result = []
     for i, spot in enumerate(self.spots):
       sel = ((self.candidate_hkls['dstar'] <= spot['dstar_outer']) &
              (self.candidate_hkls['dstar'] >= spot['dstar_inner']))
       cands = self.candidate_hkls.select(sel)
       for c in cands:
-        dist = abs(c['dstar'] - spot['dstar'])
+        r_dst = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
-                       'dist':dist,
+                       'residual_dstar':r_dst,
                        'clock_angle':spot['clock_angle']})
 
-    result.sort(key=operator.itemgetter('dist'))
+    result.sort(key=operator.itemgetter('residual_dstar'))
+    self.seeds = result
+
+    # Now the 'stems' to use in second search level, using all indices
+    result = []
+    for i, spot in enumerate(self.spots):
+      sel = ((self.candidate_hkls_p1['dstar'] <= spot['dstar_outer']) &
+             (self.candidate_hkls_p1['dstar'] >= spot['dstar_inner']))
+      cands = self.candidate_hkls_p1.select(sel)
+      for c in cands:
+        r_dst = abs(c['dstar'] - spot['dstar'])
+        result.append({'spot_id':i,
+                       'miller_index':c['miller_index'],
+                       'residual_dstar':r_dst,
+                       'clock_angle':spot['clock_angle']})
+
+    result.sort(key=operator.itemgetter('residual_dstar'))
+    self.stems = result
+    return
+
+  def _pairs_with_seed(self, seed):
+
+    seed_rlp = matrix.col(self.spots[seed['spot_id']]['rlp'])
+
+    result = []
+    for cand in self.stems:
+      # Don't check the seed spot itself
+      if cand['spot_id'] == seed['spot_id']:
+        continue
+
+      # Skip spots at a very similar clock angle, which probably belong to the
+      # same line of indices from the origin
+      angle_diff = cand['clock_angle'] - seed['clock_angle']
+      angle_diff = abs(((angle_diff + pi) % TWO_PI) - pi)
+      if angle_diff < FIVE_DEG:
+        continue
+
+      # Compare expected reciprocal space distance with observed distance
+      cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
+      obs_dist = (cand_rlp - seed_rlp).length()
+      exp_dist = (self.Bmat * seed['miller_index'] -
+                  self.Bmat * cand['miller_index']).length()
+      r_dist = abs(obs_dist - exp_dist)
+
+      # If the distance difference is larger than the sum of the tolerated
+      # d* bands then reject the candidate
+      band1 = (self.spots[seed['spot_id']]['dstar_outer'] -
+               self.spots[seed['spot_id']]['dstar_inner'])
+      band2 = (self.spots[cand['spot_id']]['dstar_outer'] -
+               self.spots[cand['spot_id']]['dstar_inner'])
+      assert band1 > 0 # FIXME can remove after algorithm finished
+      assert band2 > 0 # FIXME can remove after algorithm finished
+      if r_dist > band1 + band2:
+        continue
+
+      # copy cand to a new dictionary, include the reciprocal space residual
+      # distance and add to result.
+      stem = cand.copy()
+      stem['residual_rlp_dist'] = r_dist
+
+      result.append(stem)
+
+    result.sort(key=operator.itemgetter('residual_rlp_dist'))
     return result
 
-  def _pairs_with_seed(self, seed, candidates):
-    pass
+  def _triplets_with_seed_and_stem(self, seed, stem):
+
+    seed_rlp = matrix.col(self.spots[seed['spot_id']]['rlp'])
+    stem_rlp = matrix.col(self.spots[stem['spot_id']]['rlp'])
+
+    result = []
+    for cand in self.stems:
+      # Don't check the seed or first stem spot themselves
+      if cand['spot_id'] == seed['spot_id'] or cand['spot_id'] == stem['spot_id']:
+        continue
+
+      # Compare expected reciprocal space distances with observed distances
+      cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
+      obs_dist1 = (cand_rlp - seed_rlp).length()
+      exp_dist1 = (self.Bmat * seed['miller_index'] -
+                   self.Bmat * cand['miller_index']).length()
+      r_dist1 = abs(obs_dist1 - exp_dist1)
+
+      obs_dist2 = (cand_rlp - stem_rlp).length()
+      exp_dist2 = (self.Bmat * stem['miller_index'] -
+                   self.Bmat * cand['miller_index']).length()
+      r_dist2 = abs(obs_dist2 - exp_dist2)
+
+      # If either of the distance differences is larger than the sum of the
+      # tolerated d* bands then reject the candidate
+      band1 = (self.spots[seed['spot_id']]['dstar_outer'] -
+               self.spots[seed['spot_id']]['dstar_inner'])
+      band2 = (self.spots[stem['spot_id']]['dstar_outer'] -
+               self.spots[stem['spot_id']]['dstar_inner'])
+      band3 = (self.spots[cand['spot_id']]['dstar_outer'] -
+               self.spots[cand['spot_id']]['dstar_inner'])
+      assert band1 > 0 # FIXME can remove after algorithm finished
+      assert band2 > 0 # FIXME can remove after algorithm finished
+      assert band3 > 0 # FIXME can remove after algorithm finished
+      if r_dist1 > band1 + band3 or r_dist2 > band2 + band3:
+        continue
+
+      # copy cand to a new dictionary, include the total reciprocal space
+      # residual distance as a measure of the how well this candidate matches
+      # and add to result.
+      branch = cand.copy()
+      branch['residual_rlp_dist_total'] = r_dist1 + r_dist2
+
+      result.append(branch)
+
+    #result.sort(key=operator.itemgetter('residual_rlp_dist_total'))
+    return result
 
 def run(args):
   import libtbx.load_env
