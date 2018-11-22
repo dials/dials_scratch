@@ -1,12 +1,7 @@
 #
 # integration_report.py
+# Based on code written by James Parkhurst for use in dials.integrate
 #
-#  Copyright (C) 2013 Diamond Light Source
-#
-#  Author: James Parkhurst
-#
-#  This code is distributed under the BSD license, a copy of which is
-#  included in the root directory of this package.
 from __future__ import absolute_import, division
 
 from dials.array_family import flex
@@ -15,7 +10,8 @@ from dials.util.report import Array, Report, Table
 
 help_message = '''
 
-FOo
+Print a table and plot intensity and background vs resolution for integrated
+data.
 
 '''
 
@@ -25,6 +21,12 @@ import libtbx.phil
 phil_scope = libtbx.phil.parse('''
   n_resolution_bins=60
     .type=int
+
+  d_max=None
+    .type=float
+
+  d_min=None
+    .type=float
 ''')
 
 def flex_ios(val, var):
@@ -42,7 +44,8 @@ def flex_ios(val, var):
   return result
 
 
-def generate_integration_report(experiment, reflections, n_resolution_bins=20):
+def generate_integration_report(experiment, reflections, n_resolution_bins=20,
+  d_max=None, d_min=None):
   '''
   Generate the integration report
 
@@ -180,7 +183,7 @@ def generate_integration_report(experiment, reflections, n_resolution_bins=20):
     # Return the binned report
     return report
 
-  def resolution_bins(experiment, hkl, nbins):
+  def resolution_bins(experiment, hkl, nbins, d_max=None, d_min=None):
 
     # Create the crystal symmetry object
     cs = crystal.symmetry(
@@ -189,7 +192,9 @@ def generate_integration_report(experiment, reflections, n_resolution_bins=20):
 
     # Create the resolution binner object
     ms = miller.set(cs, hkl)
-    ms.setup_binner(n_bins=nbins)
+    if d_max is None: d_max = 0
+    if d_min is None: d_min = 0
+    ms.setup_binner(n_bins=nbins, d_max=d_max, d_min=d_min)
     binner = ms.binner()
     brange = list(binner.range_used())
     bins = [binner.bin_d_range(brange[0])[0]]
@@ -276,7 +281,9 @@ def generate_integration_report(experiment, reflections, n_resolution_bins=20):
     resolution_bins(
       experiment,
       data['miller_index'],
-      n_resolution_bins))
+      n_resolution_bins,
+      d_max,
+      d_min))
 
   # Create the frame binner object
   try:
@@ -694,7 +701,8 @@ class Script(object):
 
     assert len(experiments) == 1
     report = generate_integration_report(experiments[0], reflections,
-        n_resolution_bins=params.n_resolution_bins)
+        n_resolution_bins=params.n_resolution_bins, d_max=params.d_max,
+        d_min=params.d_min)
 
     # Construct the per resolution table
     from dials.util.report import Table
@@ -771,12 +779,15 @@ class Script(object):
     ax.set_ylabel(r'$\langle Intensity \rangle$')
     d_mid = flex.double(report['d_mid'])
     I_bg = flex.double(report['mean_background'][:-1])
-    I_tot = I_bg + flex.double(report['i_sum'][:-1])
+    I_sum = flex.double(report['i_sum'][:-1])
     dm2 = 1/flex.pow2(d_mid)
-    ax.semilogy(dm2, I_bg, label='Background')
-    ax.semilogy(dm2, I_tot, label='Peak total')
+    ax.plot(dm2, I_bg, label='Background')
+    ax.plot(dm2, I_sum, label='Peak')
     ax.legend(loc='upper right')
     ax.set_title(title)
+    ax.set_ylim(-2, 100)
+    pyplot.minorticks_on()
+    ax.grid(True,which='both')
     xticks = ax.get_xticks()
     from math import sqrt
     x_tick_labs = ["" if e <= 0.0 else "{:.2f}".format(sqrt(1./e))
