@@ -7,15 +7,15 @@ import cPickle as pickle
 
 phil_scope = phil.parse('''
 
-  tolerance = 1e-3
+  tolerance = 1
     .type = float
-    .help = "Tolerance to test for convergence"
+    .help = "Tolerance to test for convergence (difference in log(L))"
   
   max_iter = 10000
     .type = int
     .help = "Maximum number of iterations"
 
-  grid_size = 20,20
+  grid_size = 50,20
     .type = ints(size=2)
     .help = "The grid of partiality priors"
 
@@ -121,8 +121,6 @@ class Scaler(object):
     M = self.grid_size[0]
     abs_epsilon = flex.abs(reflections['epsilon'])
     sorted_index = flex.size_t(sorted(range(len(abs_epsilon)), key=lambda x: abs_epsilon[x]))
-   
-    # Add to the epsilon bins
     eps_index = flex.size_t(len(reflections))
     lookup_epsilon = []
     step = int(ceil(len(sorted_index) / M))
@@ -218,6 +216,7 @@ class Scaler(object):
           m_new.append(mm)
           s_new.append(ss)
         m_new /= m_new[0]
+        s_new = s_old
 
         # Compute the new values for the intensities
         c_new = flex.double()
@@ -277,7 +276,10 @@ class Scaler(object):
     # Set some reflection data
     self.reflections['E_p'] = E_p
     self.reflections['E_p2'] = E_p2
-    self.reflections['Imean'] = Imean
+    self.reflections['image_scale'] = g
+    self.reflections['epsilon_mean'] = m
+    self.reflections['epsilon_variance'] = s
+    self.reflections['Imean'] = c
 
 
 def scale_and_merge(experiments, reflections, params):
