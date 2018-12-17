@@ -35,6 +35,16 @@ This script does profile modelling for stills
 phil_scope = parse(
 '''
 
+  output {
+    experiments = "integrated_experiments.json"
+      .type = str
+      .help = "The output experiments"
+
+    reflections = "integrated.pickle"
+      .type = str
+      .help = "The output reflections"
+  }
+
   include scope dials_scratch.jmp.potato.potato.phil_scope
 
 ''', process_includes=True)
@@ -115,10 +125,10 @@ class Script(object):
     experiments = integrator.experiments
 
     # Save the reflections
-    reflections.as_pickle("integrated.pickle")
+    reflections.as_pickle(params.output.reflections)
 
     dump = ExperimentListDumper(experiments)
-    with open("integrated_experiments.json", "w") as outfile:
+    with open(params.output.experiments, "w") as outfile:
       outfile.write(dump.as_json())
 
 
