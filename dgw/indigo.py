@@ -408,11 +408,19 @@ class indexer_low_res_spot_match(indexer_base):
       if angle_diff < FIVE_DEG:
         continue
 
+      # Calculate the plane normal for the plane containing the seed and stem.
+      # Skip pairs of Miller indices that belong to the same line
+      seed_vec = self.Bmat * seed['miller_index']
+      cand_vec = self.Bmat * cand['miller_index']
+      try:
+        seed_vec.cross(cand_vec).normalize()
+      except ZeroDivisionError:
+        continue
+
       # Compare expected reciprocal space distance with observed distance
       cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
       obs_dist = (cand_rlp - seed_rlp).length()
-      exp_dist = (self.Bmat * seed['miller_index'] -
-                  self.Bmat * cand['miller_index']).length()
+      exp_dist = (seed_vec - cand_vec).length()
       r_dist = abs(obs_dist - exp_dist)
 
       # If the distance difference is larger than the sum of the tolerated
@@ -427,10 +435,10 @@ class indexer_low_res_spot_match(indexer_base):
         continue
 
       # copy cand to a new dictionary, include the reciprocal space residual
-      # distance and add to result.
+      # distance and plane normal, then add to result.
       stem = cand.copy()
       stem['residual_rlp_dist'] = r_dist
-
+      stem['plane_normal'] = seed_vec.cross(cand_vec).normalize()
       result.append(stem)
 
     result.sort(key=operator.itemgetter('residual_rlp_dist'))
@@ -450,13 +458,14 @@ class indexer_low_res_spot_match(indexer_base):
       # Compare expected reciprocal space distances with observed distances
       cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
       obs_dist1 = (cand_rlp - seed_rlp).length()
-      exp_dist1 = (self.Bmat * seed['miller_index'] -
-                   self.Bmat * cand['miller_index']).length()
+      seed_vec = self.Bmat * seed['miller_index']
+      cand_vec = self.Bmat * cand['miller_index']
+      exp_dist1 = (seed_vec - cand_vec).length()
       r_dist1 = abs(obs_dist1 - exp_dist1)
 
       obs_dist2 = (cand_rlp - stem_rlp).length()
-      exp_dist2 = (self.Bmat * stem['miller_index'] -
-                   self.Bmat * cand['miller_index']).length()
+      stem_vec = self.Bmat * stem['miller_index']
+      exp_dist2 = (stem_vec - cand_vec).length()
       r_dist2 = abs(obs_dist2 - exp_dist2)
 
       # If either of the distance differences is larger than the sum of the
@@ -473,11 +482,20 @@ class indexer_low_res_spot_match(indexer_base):
       if r_dist1 > band1 + band3 or r_dist2 > band2 + band3:
         continue
 
+      # Calculate co-planarity of the candidate. If plane_score is too high
+      # (corresponding to the relp being more than two degrees off the plane)
+      # then reject the candidate
+      plane_score = abs(cand_vec.normalize().dot(stem['plane_normal']))
+      if plane_score > 0.035:
+        continue
+
       # copy cand to a new dictionary, include the total reciprocal space
       # residual distance as a measure of the how well this candidate matches
-      # and add to result.
+      # and add to result. Keep plane_score as well in case this is useful for
+      # ranking potential solutions later.
       branch = cand.copy()
       branch['residual_rlp_dist_total'] = r_dist1 + r_dist2
+      branch['plane_score'] = plane_score
 
       result.append(branch)
 
