@@ -494,7 +494,8 @@ class indexer_low_res_spot_match(indexer_base):
       # and add to result. Keep plane_score as well in case this is useful for
       # ranking potential solutions later.
       branch = cand.copy()
-      branch['residual_rlp_dist_total'] = r_dist1 + r_dist2
+      branch['residual_rlp_dist_total'] = (r_dist1 + r_dist2 +
+          stem['residual_rlp_dist'])
       branch['plane_score'] = plane_score
 
       result.append(branch)
