@@ -176,7 +176,7 @@ class Script(object):
 
       indexed = rt.select(rt.get_flags(rt.flags.indexed))
       num_indexed.append(len(indexed))
-      panel_id, (x,y) = beam_centre_mm(exp.detector, exp.beam)
+      panel_id, (x,y) = beam_centre_mm(exp.detector, exp.beam.get_s0())
       bc = exp.detector[panel_id].millimeter_to_pixel((x, y))
       indexed_rmsds = self._rmsds(indexed)
       cell = exp.crystal.get_unit_cell().parameters()
