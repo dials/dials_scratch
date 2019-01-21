@@ -224,6 +224,9 @@ class Script(object):
   def _rmsds(self, reflections):
     """calculate unweighted RMSDs for the specified reflections"""
 
+    # Only calculate RMSDs on the reflections used in refinement
+    reflections = reflections.select(reflections.get_flags(
+        reflections.flags.used_in_refinement))
     x_calc, y_calc, z_calc = reflections['xyzcal.px'].parts()
     x_obs, y_obs, z_obs = reflections['xyzobs.px.value'].parts()
 
