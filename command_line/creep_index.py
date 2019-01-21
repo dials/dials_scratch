@@ -50,6 +50,9 @@ Example::
 phil_scope = phil.parse('''
   images_per_block=5
     .type=int
+
+  fix_unstable_detector_parameters=True
+    .type=bool
 ''')
 
 
@@ -95,6 +98,7 @@ class Script(object):
     print "{0} strong spots read from {1}".format(self._num_strong, self._strong_path)
 
     self._images_per_block = params.images_per_block
+    self._constrain_detector = params.fix_unstable_detector_parameters
 
     self._all_indexed = None
     return
@@ -112,6 +116,8 @@ class Script(object):
            'output.experiments=latest_experiments.json '
            'output.reflections=indexed_{job_id:03d}.pickle '
            'output.log=None output.debug_log=None').format(**fmt_dic)
+    if self._constrain_detector:
+      cmd += ' detector.fix_list=Dist,Tau2,Tau3'
     result = easy_run.fully_buffered(command=cmd)
 
     # check if indexing worked
