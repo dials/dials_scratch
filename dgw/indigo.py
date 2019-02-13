@@ -24,6 +24,9 @@ import cctbx.miller
 from dials.array_family import flex
 import operator
 from scitbx import matrix
+from scitbx.math import superpose
+from dxtbx.model import Crystal
+from dxtbx.model.experiment_list import Experiment, ExperimentList
 
 TWO_PI = 2.0 * pi
 FIVE_DEG = TWO_PI * 5./360.
@@ -188,7 +191,12 @@ class indexer_low_res_spot_match(indexer_base):
     self.Bmat = matrix.sqr(uc.fractionalization_matrix()).transpose()
 
     self._low_res_spot_match()
-    crystal_models = self.candidate_crystal_models
+    crystal_model, n_indexed = self.choose_best_orientation_matrix(
+      self.candidate_crystal_models)
+    if crystal_model is not None:
+      crystal_models = [crystal_model]
+    else:
+      crystal_models = []
     experiments = ExperimentList()
     for cm in crystal_models:
       for imageset in self.imagesets:
@@ -245,8 +253,18 @@ class indexer_low_res_spot_match(indexer_base):
       miller3 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[2][0], *res[2][1])
       print("{0:03d} {1} {2} {3}".format(i, miller1, miller2, miller3))
 
-    self.candidate_crystal_models = None
-    raise NotImplementedError("Nothing to see here")
+    candidate_crystal_models = []
+    for triplet in triplets:
+      model = self._fit_crystal_model(triplet)
+      if model:
+        candidate_crystal_models.append(model)
+      if len(candidate_crystal_models) == self.params.basis_vector_combinations.max_refine:
+        break
+
+    # At this point, either extract basis vectors from the candidate_crystal_models
+    # and pass to indexer_base.find_candidate_orientation_matrices, or just
+    # use the candidate_crystal_models as it is. Currently, try the latter
+    self.candidate_crystal_models = candidate_crystal_models
 
   def _calc_candidate_hkls(self):
     # 1 ASU
@@ -502,6 +520,24 @@ class indexer_low_res_spot_match(indexer_base):
 
     #result.sort(key=operator.itemgetter('residual_rlp_dist_total'))
     return result
+
+  def _fit_crystal_model(self, triplet):
+
+    # Reciprocal lattice points of the observations
+    sel=flex.size_t([e['spot_id'] for e in triplet])
+    reference = self.spots['rlp'].select(sel)
+
+    # Ideal relps from the known cell
+    other = flex.vec3_double([self.Bmat * e['miller_index'] for e in triplet])
+
+    # Find U matrix that takes ideal relps to the reference
+    fit = superpose.least_squares_fit(reference, other)
+
+    # Construct a crystal model
+    UB = fit.r * self.Bmat
+    xl = Crystal(A=UB, space_group_symbol="P1")
+
+    return xl
 
 def run(args):
   import libtbx.load_env
