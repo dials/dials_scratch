@@ -96,17 +96,6 @@ master_params = working_phil.extract()
 from dials.algorithms.indexing.indexer import indexer_base
 class indexer_low_res_spot_match(indexer_base):
 
-  #DEBUG - remove after algorithm development
-  def debug(self):
-    # load up known indices
-    from dials.array_family import flex
-    indexed = flex.reflection_table.from_pickle("indexed.pickle")
-    idx_dstar = indexed['rlp'].norms()
-    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
-    sel = idx_dstar <= dstar_max
-    indexed = indexed.select(sel)
-    return indexed
-
   def __init__(self, reflections, imagesets, params):
     super(indexer_low_res_spot_match, self).__init__(reflections, imagesets, params)
 
@@ -232,26 +221,6 @@ class indexer_low_res_spot_match(indexer_base):
 
         for branch in branches:
           triplets.append((seed, stem, branch))
-
-    # DEBUG - check through these results to see which are correct
-    idx = self.debug()
-    triplets.sort(key=lambda x: x[2]['residual_rlp_dist_total'])
-
-    correct = {0:set((4, 3, 0)), 1:set((1,1,1)), 2:set((1,1,1)), 3:set((4,3,0))}
-    print("soln    seed    stem    branch")
-    for i, t in enumerate(triplets):
-      res = [(e['spot_id'], e['miller_index']) for e in t]
-      res.sort(key=operator.itemgetter(0))
-      nwrong=0
-      for r in res:
-        spot = r[0]
-        pos_hkl = set([abs(e) for e in r[1]])
-        if pos_hkl != correct[spot]: nwrong +=1
-      if nwrong > 0: continue
-      miller1 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[0][0], *res[0][1])
-      miller2 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[1][0], *res[1][1])
-      miller3 = "{}: ({: 2d}, {: 2d}, {: 2d})".format(res[2][0], *res[2][1])
-      print("{0:03d} {1} {2} {3}".format(i, miller1, miller2, miller3))
 
     candidate_crystal_models = []
     for triplet in triplets:
