@@ -93,6 +93,36 @@ refinement
 working_phil = phil_scope.fetch(sources=[phil_overrides])
 master_params = working_phil.extract()
 
+class CompleteGraph(object):
+
+  def __init__(self, seed_vertex):
+
+    self.vertices = [seed_vertex]
+    self.weight = [{0:0.0}]
+    self.total_weight = 0.0
+
+  def add_vertex(self, vertex, weights_to_other):
+
+    current_len = len(self.vertices)
+    assert len(weights_to_other) == current_len
+    self.vertices.append(vertex)
+    node = current_len
+
+    # Update distances from other nodes to the new one
+    for i, w in enumerate(weights_to_other):
+      self.weight[i][node] = w
+
+    # Add distances to other nodes from this one
+    weights_to_other.append(0.0)
+    to_other = {}
+    for i, w in enumerate(weights_to_other):
+      to_other[i] = w
+    self.weight.append(to_other)
+
+    # Update the total weight
+    self.total_weight += sum(weights_to_other)
+
+
 from dials.algorithms.indexing.indexer import indexer_base
 class indexer_low_res_spot_match(indexer_base):
 
@@ -217,11 +247,12 @@ class indexer_low_res_spot_match(indexer_base):
       stems = self._pairs_with_seed(seed)
 
       for stem in stems:
-        branches = self._triplets_with_seed_and_stem(seed, stem)
+        branches = self._triplets_with_seed_and_stem(stem)
 
         for branch in branches:
-          triplets.append((seed, stem, branch))
-    triplets.sort(key=lambda x: x[2]['residual_rlp_dist_total'])
+          triplets.append(branch)
+
+    triplets.sort(key=operator.attrgetter('total_weight'))
 
     candidate_crystal_models = []
     for triplet in triplets:
@@ -343,8 +374,8 @@ class indexer_low_res_spot_match(indexer_base):
 
   def _calc_seeds_and_stems(self):
     # As the first stage of search, determine a list of seed spots for further
-    # stages. Order these by distance of observation d* from the candidate
-    # reflection d*
+    # stages. Order these by distance of observed d* from the candidate
+    # reflection's canonical d*
 
     # First the 'seeds' (in 1 ASU)
     result = []
@@ -362,7 +393,7 @@ class indexer_low_res_spot_match(indexer_base):
     result.sort(key=operator.itemgetter('residual_dstar'))
     self.seeds = result
 
-    # Now the 'stems' to use in second search level, using all indices
+    # Now the 'stems' to use in second search level, using all indices in P 1
     result = []
     for i, spot in enumerate(self.spots):
       sel = ((self.candidate_hkls_p1['dstar'] <= spot['dstar_outer']) &
@@ -422,83 +453,90 @@ class indexer_low_res_spot_match(indexer_base):
       if r_dist > band1 + band2:
         continue
 
-      # copy cand to a new dictionary, include the reciprocal space residual
-      # distance and plane normal, then add to result.
-      stem = cand.copy()
-      stem['residual_rlp_dist'] = r_dist
-      stem['plane_normal'] = seed_vec.cross(cand_vec).normalize()
-      result.append(stem)
+      # Store the seed-stem match as a 2-node graph
+      g = CompleteGraph({'spot_id':seed['spot_id'],
+                         'miller_index':seed['miller_index']})
+      g.add_vertex({'spot_id':cand['spot_id'],
+                    'miller_index':cand['miller_index']},
+                    weights_to_other=[r_dist])
 
-    result.sort(key=operator.itemgetter('residual_rlp_dist'))
+      # FIXME at the moment, monkey patching the graph object to contain extra
+      # data about the plane between relps. Later move to a co-planarity check
+      # within _triplets_with_seed_and_stem, in which planarity of all vertices
+      # in the graph is checked
+      g.plane_normal = seed_vec.cross(cand_vec).normalize()
+
+      result.append(g)
+
+    result.sort(key=operator.attrgetter('total_weight'))
     return result
 
-  def _triplets_with_seed_and_stem(self, seed, stem):
+  def _triplets_with_seed_and_stem(self, graph):
 
-    seed_rlp = matrix.col(self.spots[seed['spot_id']]['rlp'])
-    stem_rlp = matrix.col(self.spots[stem['spot_id']]['rlp'])
+    existing_ids = [e['spot_id'] for e in graph.vertices]
+    hkls = [e['miller_index'] for e in graph.vertices]
+    obs_relps = [matrix.col(self.spots[e]['rlp']) for e in existing_ids]
+    exp_relps = [self.Bmat * h for h in hkls]
 
     result = []
+
     for cand in self.stems:
-      # Don't check the seed or first stem spot themselves
-      if cand['spot_id'] == seed['spot_id'] or cand['spot_id'] == stem['spot_id']:
+      # Don't check spots already matched
+      if cand['spot_id'] in existing_ids:
         continue
 
       # Compare expected reciprocal space distances with observed distances
       cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
-      obs_dist1 = (cand_rlp - seed_rlp).length()
-      seed_vec = self.Bmat * seed['miller_index']
       cand_vec = self.Bmat * cand['miller_index']
-      exp_dist1 = (seed_vec - cand_vec).length()
-      r_dist1 = abs(obs_dist1 - exp_dist1)
 
-      obs_dist2 = (cand_rlp - stem_rlp).length()
-      stem_vec = self.Bmat * stem['miller_index']
-      exp_dist2 = (stem_vec - cand_vec).length()
-      r_dist2 = abs(obs_dist2 - exp_dist2)
+      obs_dists = [(cand_rlp - rlp).length() for rlp in obs_relps]
+      exp_dists = [(vec - cand_vec).length() for vec in exp_relps]
 
-      # If either of the distance differences is larger than the sum of the
+      residual_dist = [abs(a - b) for (a, b) in zip(obs_dists, exp_dists)]
+
+      # If any of the distance differences is larger than the sum of the
       # tolerated d* bands then reject the candidate
-      band1 = (self.spots[seed['spot_id']]['dstar_outer'] -
-               self.spots[seed['spot_id']]['dstar_inner'])
-      band2 = (self.spots[stem['spot_id']]['dstar_outer'] -
-               self.spots[stem['spot_id']]['dstar_inner'])
-      band3 = (self.spots[cand['spot_id']]['dstar_outer'] -
-               self.spots[cand['spot_id']]['dstar_inner'])
-      assert band1 > 0 # FIXME can remove after algorithm finished
-      assert band2 > 0 # FIXME can remove after algorithm finished
-      assert band3 > 0 # FIXME can remove after algorithm finished
-      if r_dist1 > band1 + band3 or r_dist2 > band2 + band3:
-        continue
+      candidate_band = (self.spots[cand['spot_id']]['dstar_outer'] -
+                        self.spots[cand['spot_id']]['dstar_inner'])
+      for r_dist, spot_id in zip(residual_dist, existing_ids):
+        relp_band = (self.spots[spot_id]['dstar_outer'] -
+                     self.spots[spot_id]['dstar_inner'])
+        if r_dist > relp_band + candidate_band:
+          continue
 
       # Calculate co-planarity of the candidate. If plane_score is too high
       # (corresponding to the relp being more than two degrees off the plane)
-      # then reject the candidate
-      plane_score = abs(cand_vec.normalize().dot(stem['plane_normal']))
+      # then reject the candidate.
+      # FIXME implement better plane score
+      plane_score = abs(cand_vec.normalize().dot(graph.plane_normal))
       if plane_score > 0.035:
         continue
 
-      # copy cand to a new dictionary, include the total reciprocal space
-      # residual distance as a measure of how well this candidate matches
-      # and add to result. Keep plane_score as well in case this is useful for
-      # ranking potential solutions later.
-      branch = cand.copy()
-      branch['residual_rlp_dist_total'] = (r_dist1 + r_dist2 +
-          stem['residual_rlp_dist'])
-      branch['plane_score'] = plane_score
+      # Add the candidate node to a copy of the graph
+      g = copy.deepcopy(graph)
+      g.add_vertex({'spot_id':cand['spot_id'],
+                    'miller_index':cand['miller_index']},
+                    weights_to_other=residual_dist)
 
-      result.append(branch)
+      # FIXME at the moment, monkey patching the graph object to contain extra
+      # data about the plane score. It may be better to calculate this
+      # externally once the requested number of search iterations are complete
+      g.plane_score = plane_score
 
-    #result.sort(key=operator.itemgetter('residual_rlp_dist_total'))
+      result.append(g)
+
     return result
 
-  def _fit_crystal_model(self, triplet):
+  def _fit_crystal_model(self, graph):
+
+    vertices = graph.vertices
 
     # Reciprocal lattice points of the observations
-    sel=flex.size_t([e['spot_id'] for e in triplet])
+    sel=flex.size_t([e['spot_id'] for e in vertices])
     reference = self.spots['rlp'].select(sel)
 
     # Ideal relps from the known cell
-    other = flex.vec3_double([self.Bmat * e['miller_index'] for e in triplet])
+    other = flex.vec3_double([self.Bmat * e['miller_index'] for e in vertices])
 
     # Add the origin to both sets of points
     origin = flex.vec3_double(1)
