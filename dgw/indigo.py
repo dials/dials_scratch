@@ -221,6 +221,7 @@ class indexer_low_res_spot_match(indexer_base):
 
         for branch in branches:
           triplets.append((seed, stem, branch))
+    triplets.sort(key=lambda x: x[2]['residual_rlp_dist_total'])
 
     candidate_crystal_models = []
     for triplet in triplets:
@@ -477,7 +478,7 @@ class indexer_low_res_spot_match(indexer_base):
         continue
 
       # copy cand to a new dictionary, include the total reciprocal space
-      # residual distance as a measure of the how well this candidate matches
+      # residual distance as a measure of how well this candidate matches
       # and add to result. Keep plane_score as well in case this is useful for
       # ranking potential solutions later.
       branch = cand.copy()
@@ -498,6 +499,11 @@ class indexer_low_res_spot_match(indexer_base):
 
     # Ideal relps from the known cell
     other = flex.vec3_double([self.Bmat * e['miller_index'] for e in triplet])
+
+    # Add the origin to both sets of points
+    origin = flex.vec3_double(1)
+    reference.extend(origin)
+    other.extend(origin)
 
     # Find U matrix that takes ideal relps to the reference
     fit = superpose.least_squares_fit(reference, other)
