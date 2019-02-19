@@ -237,26 +237,27 @@ class indexer_low_res_spot_match(indexer_base):
     self._calc_obs_data()
 
     # First search: match each observation with candidate indices within the
-    # resolution band
+    # acceptable resolution band
     self._calc_seeds_and_stems()
 
-    # Further search will try to index 3 spots within resolution bands and
-    # tolerated reciprocal space distance from one another
-    triplets = []
+    # Second search: match seed spots with another spot from a different
+    # reciprocal lattice row, such that the observed reciprocal space distances
+    # are within tolerances
+    stems = []
     for seed in self.seeds:
-      stems = self._pairs_with_seed(seed)
+      stems.extend(self._pairs_with_seed(seed))
 
-      for stem in stems:
-        branches = self._triplets_with_seed_and_stem(stem)
+    # Further search iterations: extend to more spots within tolerated distances
+    branches = []
+    for stem in stems:
+      branches.extend(self._extend_by_candidates(stem))
 
-        for branch in branches:
-          triplets.append(branch)
-
-    triplets.sort(key=operator.attrgetter('total_weight'))
+    # Sort by total deviation of observed distances from expected
+    branches.sort(key=operator.attrgetter('total_weight'))
 
     candidate_crystal_models = []
-    for triplet in triplets:
-      model = self._fit_crystal_model(triplet)
+    for branch in branches:
+      model = self._fit_crystal_model(branch)
       if model:
         candidate_crystal_models.append(model)
       if len(candidate_crystal_models) == self.params.basis_vector_combinations.max_refine:
@@ -448,8 +449,6 @@ class indexer_low_res_spot_match(indexer_base):
                self.spots[seed['spot_id']]['dstar_inner'])
       band2 = (self.spots[cand['spot_id']]['dstar_outer'] -
                self.spots[cand['spot_id']]['dstar_inner'])
-      assert band1 > 0 # FIXME can remove after algorithm finished
-      assert band2 > 0 # FIXME can remove after algorithm finished
       if r_dist > band1 + band2:
         continue
 
@@ -462,7 +461,7 @@ class indexer_low_res_spot_match(indexer_base):
 
       # FIXME at the moment, monkey patching the graph object to contain extra
       # data about the plane between relps. Later move to a co-planarity check
-      # within _triplets_with_seed_and_stem, in which planarity of all vertices
+      # within _extend_by_candidates, in which planarity of all vertices
       # in the graph is checked
       g.plane_normal = seed_vec.cross(cand_vec).normalize()
 
@@ -471,7 +470,7 @@ class indexer_low_res_spot_match(indexer_base):
     result.sort(key=operator.attrgetter('total_weight'))
     return result
 
-  def _triplets_with_seed_and_stem(self, graph):
+  def _extend_by_candidates(self, graph):
 
     existing_ids = [e['spot_id'] for e in graph.vertices]
     hkls = [e['miller_index'] for e in graph.vertices]
