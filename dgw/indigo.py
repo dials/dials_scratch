@@ -59,6 +59,8 @@ indexing{
                 "calculate d* bands"
         .type = float
     }
+    debug_reflections = None
+      .type = path
   }
 }
 
@@ -128,6 +130,17 @@ class indexer_low_res_spot_match(indexer_base):
 
   def __init__(self, reflections, imagesets, params):
     super(indexer_low_res_spot_match, self).__init__(reflections, imagesets, params)
+
+  def debug(self):
+    # load up known indices
+    from dials.array_family import flex
+    indexed = flex.reflection_table.from_pickle(
+        self.params.low_res_spot_match.debug_reflections)
+    idx_dstar = indexed['rlp'].norms()
+    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
+    sel = idx_dstar <= dstar_max
+    indexed = indexed.select(sel)
+    return indexed
 
   @staticmethod
   def from_parameters(reflections, imagesets,
@@ -252,8 +265,16 @@ class indexer_low_res_spot_match(indexer_base):
     for stem in stems:
       branches.extend(self._extend_by_candidates(stem))
 
-    # Sort by total deviation of observed distances from expected
+    quads = []
+    for branch in branches:
+      quads.extend(self._extend_by_candidates(branch))
+
+    # Sort both branches and quads by total deviation of observed distances from expected
     branches.sort(key=operator.attrgetter('total_weight'))
+    quads.sort(key=operator.attrgetter('total_weight'))
+
+    if self.params.low_res_spot_match.debug_reflections:
+      idx = self.debug()
 
     candidate_crystal_models = []
     for branch in branches:
@@ -262,6 +283,9 @@ class indexer_low_res_spot_match(indexer_base):
         candidate_crystal_models.append(model)
       if len(candidate_crystal_models) == self.params.basis_vector_combinations.max_refine:
         break
+
+    # sort models by rmsd
+    #candidate_crystal_models.sort(key=operator.attrgetter('rms'))
 
     # At this point, either extract basis vectors from the candidate_crystal_models
     # and pass to indexer_base.find_candidate_orientation_matrices, or just
@@ -388,6 +412,7 @@ class indexer_low_res_spot_match(indexer_base):
         r_dst = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
+                       'rlp_datum': self.Bmat * c['miller_index'],
                        'residual_dstar':r_dst,
                        'clock_angle':spot['clock_angle']})
 
@@ -404,6 +429,7 @@ class indexer_low_res_spot_match(indexer_base):
         r_dst = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
+                       'rlp_datum': self.Bmat * c['miller_index'],
                        'residual_dstar':r_dst,
                        'clock_angle':spot['clock_angle']})
 
@@ -430,8 +456,8 @@ class indexer_low_res_spot_match(indexer_base):
 
       # Calculate the plane normal for the plane containing the seed and stem.
       # Skip pairs of Miller indices that belong to the same line
-      seed_vec = self.Bmat * seed['miller_index']
-      cand_vec = self.Bmat * cand['miller_index']
+      seed_vec = seed['rlp_datum']
+      cand_vec = cand['rlp_datum']
       try:
         seed_vec.cross(cand_vec).normalize()
       except ZeroDivisionError:
@@ -454,9 +480,11 @@ class indexer_low_res_spot_match(indexer_base):
 
       # Store the seed-stem match as a 2-node graph
       g = CompleteGraph({'spot_id':seed['spot_id'],
-                         'miller_index':seed['miller_index']})
+                         'miller_index':seed['miller_index'],
+                         'rlp_datum':seed['rlp_datum']})
       g.add_vertex({'spot_id':cand['spot_id'],
-                    'miller_index':cand['miller_index']},
+                    'miller_index':cand['miller_index'],
+                    'rlp_datum':cand['rlp_datum']},
                     weights_to_other=[r_dist])
 
       # FIXME at the moment, monkey patching the graph object to contain extra
@@ -473,9 +501,8 @@ class indexer_low_res_spot_match(indexer_base):
   def _extend_by_candidates(self, graph):
 
     existing_ids = [e['spot_id'] for e in graph.vertices]
-    hkls = [e['miller_index'] for e in graph.vertices]
     obs_relps = [matrix.col(self.spots[e]['rlp']) for e in existing_ids]
-    exp_relps = [self.Bmat * h for h in hkls]
+    exp_relps = [e['rlp_datum'] for e in graph.vertices]
 
     result = []
 
@@ -486,7 +513,7 @@ class indexer_low_res_spot_match(indexer_base):
 
       # Compare expected reciprocal space distances with observed distances
       cand_rlp = matrix.col(self.spots[cand['spot_id']]['rlp'])
-      cand_vec = self.Bmat * cand['miller_index']
+      cand_vec = cand['rlp_datum']
 
       obs_dists = [(cand_rlp - rlp).length() for rlp in obs_relps]
       exp_dists = [(vec - cand_vec).length() for vec in exp_relps]
@@ -514,7 +541,8 @@ class indexer_low_res_spot_match(indexer_base):
       # Add the candidate node to a copy of the graph
       g = copy.deepcopy(graph)
       g.add_vertex({'spot_id':cand['spot_id'],
-                    'miller_index':cand['miller_index']},
+                    'miller_index':cand['miller_index'],
+                    'rlp_datum':cand['rlp_datum']},
                     weights_to_other=residual_dist)
 
       # FIXME at the moment, monkey patching the graph object to contain extra
@@ -535,7 +563,7 @@ class indexer_low_res_spot_match(indexer_base):
     reference = self.spots['rlp'].select(sel)
 
     # Ideal relps from the known cell
-    other = flex.vec3_double([self.Bmat * e['miller_index'] for e in vertices])
+    other = flex.vec3_double([e['rlp_datum'] for e in vertices])
 
     # Add the origin to both sets of points
     origin = flex.vec3_double(1)
@@ -545,9 +573,15 @@ class indexer_low_res_spot_match(indexer_base):
     # Find U matrix that takes ideal relps to the reference
     fit = superpose.least_squares_fit(reference, other)
 
+    # Calculate RMSD of the fit
+    other_rotated = fit.r.elems * other
+    rms = reference.rms_difference(other_rotated)
+
     # Construct a crystal model
     UB = fit.r * self.Bmat
     xl = Crystal(A=UB, space_group_symbol="P1")
+
+    xl.rms = rms
 
     return xl
 
