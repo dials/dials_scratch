@@ -140,7 +140,7 @@ class indexer_low_res_spot_match(indexer_base):
     indexed = flex.reflection_table.from_pickle(
         self.params.low_res_spot_match.debug_reflections)
     idx_dstar = indexed['rlp'].norms()
-    dstar_max = 1./self.params.low_res_spot_match.candidate_spots.d_min
+    dstar_max = 1./(self.params.low_res_spot_match.candidate_spots.d_min - 0.5)
     sel = idx_dstar <= dstar_max
     indexed = indexed.select(sel)
     return indexed
@@ -282,6 +282,13 @@ class indexer_low_res_spot_match(indexer_base):
 
     if self.params.low_res_spot_match.debug_reflections:
       idx = self.debug()
+      # add known indices to the correct spots
+      hkl = flex.miller_index(len(self.spots))
+      for ref in idx:
+        for ispot, spot in enumerate(self.spots):
+          if ref['xyzobs.mm.value'] == spot['xyzobs.mm.value']:
+            hkl[ispot] = ref['miller_index']
+      self.spots['known_hkl'] = hkl
 
     candidate_crystal_models = []
     for branch in branches:
