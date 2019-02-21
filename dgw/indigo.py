@@ -538,11 +538,15 @@ class indexer_low_res_spot_match(indexer_base):
       # tolerated d* bands then reject the candidate
       candidate_band = (self.spots[cand['spot_id']]['dstar_outer'] -
                         self.spots[cand['spot_id']]['dstar_inner'])
+      bad_candidate = False
       for r_dist, spot_id in zip(residual_dist, existing_ids):
         relp_band = (self.spots[spot_id]['dstar_outer'] -
                      self.spots[spot_id]['dstar_inner'])
         if r_dist > relp_band + candidate_band:
-          continue
+          bad_candidate = True
+          break
+      if bad_candidate:
+        continue
 
       # Calculate co-planarity of the candidate. If plane_score is too high
       # (corresponding to the relp being more than two degrees off the plane)
