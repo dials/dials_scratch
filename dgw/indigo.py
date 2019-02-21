@@ -61,6 +61,9 @@ indexing{
     }
     debug_reflections = None
       .type = path
+
+    use_P1_indices_as_seeds = False
+      .type = bool
   }
 }
 
@@ -257,7 +260,11 @@ class indexer_low_res_spot_match(indexer_base):
     # reciprocal lattice row, such that the observed reciprocal space distances
     # are within tolerances
     stems = []
-    for seed in self.seeds:
+    if self.params.low_res_spot_match.use_P1_indices_as_seeds:
+      seeds = self.stems
+    else:
+      seeds = self.seeds
+    for seed in seeds:
       stems.extend(self._pairs_with_seed(seed))
 
     # Further search iterations: extend to more spots within tolerated distances
