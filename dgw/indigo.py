@@ -64,6 +64,9 @@ indexing{
 
     use_P1_indices_as_seeds = False
       .type = bool
+
+    search_depth = *triplets quads
+      .type = choice
   }
 }
 
@@ -268,17 +271,9 @@ class indexer_low_res_spot_match(indexer_base):
       stems.extend(self._pairs_with_seed(seed))
 
     # Further search iterations: extend to more spots within tolerated distances
-    branches = []
+    triplets = []
     for stem in stems:
-      branches.extend(self._extend_by_candidates(stem))
-
-    quads = []
-    for branch in branches:
-      quads.extend(self._extend_by_candidates(branch))
-
-    # Sort both branches and quads by total deviation of observed distances from expected
-    branches.sort(key=operator.attrgetter('total_weight'))
-    quads.sort(key=operator.attrgetter('total_weight'))
+      triplets.extend(self._extend_by_candidates(stem))
 
     if self.params.low_res_spot_match.debug_reflections:
       idx = self.debug()
@@ -289,6 +284,18 @@ class indexer_low_res_spot_match(indexer_base):
           if ref['xyzobs.mm.value'] == spot['xyzobs.mm.value']:
             hkl[ispot] = ref['miller_index']
       self.spots['known_hkl'] = hkl
+
+    branches = triplets
+    if self.params.low_res_spot_match.search_depth == 'quads':
+      quads = []
+      for triplet in triplets:
+        #quads.extend(self._extend_by_candidates(triplet, debug=True))
+        quads.extend(self._extend_by_candidates(triplet))
+        quads.sort(key=operator.attrgetter('total_weight'))
+        branches = quads
+
+    # Sort branches by total deviation of observed distances from expected
+    branches.sort(key=operator.attrgetter('total_weight'))
 
     candidate_crystal_models = []
     for branch in branches:
