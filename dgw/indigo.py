@@ -109,27 +109,54 @@ class CompleteGraph(object):
     self.weight = [{0:0.0}]
     self.total_weight = 0.0
 
-  def add_vertex(self, vertex, weights_to_other):
+  def factory_add_vertex(self, vertex, weights_to_other):
+    # Return a new graph as a copy of this with an extra vertex added. This
+    # is a factory rather than a change in-place because CompleteGraph ought
+    # to be immutable to implement __hash__
+    g = copy.deepcopy(self)
 
-    current_len = len(self.vertices)
+    current_len = len(g.vertices)
     assert len(weights_to_other) == current_len
-    self.vertices.append(vertex)
+    g.vertices.append(vertex)
     node = current_len
 
     # Update distances from other nodes to the new one
     for i, w in enumerate(weights_to_other):
-      self.weight[i][node] = w
+      g.weight[i][node] = w
 
     # Add distances to other nodes from this one
     weights_to_other.append(0.0)
     to_other = {}
     for i, w in enumerate(weights_to_other):
       to_other[i] = w
-    self.weight.append(to_other)
+    g.weight.append(to_other)
 
     # Update the total weight
-    self.total_weight += sum(weights_to_other)
+    g.total_weight += sum(weights_to_other)
 
+    # Sort the vertices and weights by spot_id
+    l = zip(g.vertices, g.weight)
+    l.sort(key=lambda v_w: v_w[0]['spot_id'])
+    v, w = zip(*l)
+    g.vertices = [e for e in v]
+    g.weight = [e for e in w]
+
+    return g
+
+  def __hash__(self):
+    h = tuple((e['spot_id'], e['miller_index']) for e in self.vertices)
+    return hash(h)
+
+  def __eq__(self, other):
+    for a, b in zip(self.vertices, other.vertices):
+      if a['spot_id'] != b['spot_id']:
+        return False
+      if a['miller_index'] != b['miller_index']:
+        return False
+    return True
+
+  def __ne__(self, other):
+    return not self == other
 
 from dials.algorithms.indexing.indexer import indexer_base
 class indexer_low_res_spot_match(indexer_base):
@@ -269,11 +296,13 @@ class indexer_low_res_spot_match(indexer_base):
       seeds = self.seeds
     for seed in seeds:
       stems.extend(self._pairs_with_seed(seed))
+    stems = list(set(stems)) # filter duplicates
 
     # Further search iterations: extend to more spots within tolerated distances
     triplets = []
     for stem in stems:
       triplets.extend(self._extend_by_candidates(stem))
+    triplets = list(set(triplets)) # filter duplicates
 
     if self.params.low_res_spot_match.debug_reflections:
       idx = self.debug()
@@ -291,8 +320,8 @@ class indexer_low_res_spot_match(indexer_base):
       for triplet in triplets:
         #quads.extend(self._extend_by_candidates(triplet, debug=True))
         quads.extend(self._extend_by_candidates(triplet))
-        quads.sort(key=operator.attrgetter('total_weight'))
-        branches = quads
+      quads = list(set(quads)) # filter duplicates
+      branches = quads
 
     # Sort branches by total deviation of observed distances from expected
     branches.sort(key=operator.attrgetter('total_weight'))
@@ -503,10 +532,10 @@ class indexer_low_res_spot_match(indexer_base):
       g = CompleteGraph({'spot_id':seed['spot_id'],
                          'miller_index':seed['miller_index'],
                          'rlp_datum':seed['rlp_datum']})
-      g.add_vertex({'spot_id':cand['spot_id'],
-                    'miller_index':cand['miller_index'],
-                    'rlp_datum':cand['rlp_datum']},
-                    weights_to_other=[r_dist])
+      g = g.factory_add_vertex({'spot_id':cand['spot_id'],
+                                'miller_index':cand['miller_index'],
+                                'rlp_datum':cand['rlp_datum']},
+                                weights_to_other=[r_dist])
 
       # FIXME at the moment, monkey patching the graph object to contain extra
       # data about the plane between relps. Later move to a co-planarity check
@@ -563,12 +592,11 @@ class indexer_low_res_spot_match(indexer_base):
       if plane_score > 0.035:
         continue
 
-      # Add the candidate node to a copy of the graph
-      g = copy.deepcopy(graph)
-      g.add_vertex({'spot_id':cand['spot_id'],
-                    'miller_index':cand['miller_index'],
-                    'rlp_datum':cand['rlp_datum']},
-                    weights_to_other=residual_dist)
+      # Construct a graph including the candidate node
+      g = graph.factory_add_vertex({'spot_id':cand['spot_id'],
+                                    'miller_index':cand['miller_index'],
+                                    'rlp_datum':cand['rlp_datum']},
+                                    weights_to_other=residual_dist)
 
       # FIXME at the moment, monkey patching the graph object to contain extra
       # data about the plane score. It may be better to calculate this
