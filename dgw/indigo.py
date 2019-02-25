@@ -51,8 +51,14 @@ indexing{
   {
     candidate_spots
     {
+      limit_resolution_by = *n_spots d_min
+        .type = choice
+
       d_min = 15.0
         .type = float(value_min=0)
+
+      n_spots = 10
+        .type = int
 
       dstar_tolerance = 4.0
         .help = "Number of sigmas from the centroid position for which to"
@@ -275,12 +281,12 @@ class indexer_low_res_spot_match(indexer_base):
 
   def _low_res_spot_match(self):
 
-    # Construct a library of candidate low res indices with their d* values
-    self._calc_candidate_hkls()
-
     # Take a subset of the observations at the same resolution and calculate
     # some values that will be needed for the search
     self._calc_obs_data()
+
+    # Construct a library of candidate low res indices with their d* values
+    self._calc_candidate_hkls()
 
     # First search: match each observation with candidate indices within the
     # acceptable resolution band
@@ -367,6 +373,13 @@ class indexer_low_res_spot_match(indexer_base):
     """Calculates a set of low resolution observations to try to match to
     indices. Each observation will record its d* value as well as
     tolerated d* bands and a 'clock angle'"""
+
+    spot_dstar = self.reflections['rlp'].norms()
+    if self.params.low_res_spot_match.candidate_spots.limit_resolution_by == "n_spots":
+      n_spots = self.params.low_res_spot_match.candidate_spots.n_spots
+      n_spots = min(n_spots, len(self.reflections) - 1)
+      dstar_max = flex.sorted(spot_dstar)[n_spots - 1]
+      self.params.low_res_spot_match.candidate_spots.d_min = 1./dstar_max
 
     # First select low resolution spots only
     spot_dstar = self.reflections['rlp'].norms()
