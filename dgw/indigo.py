@@ -12,7 +12,7 @@ logger = logging.getLogger('indigo')
 #  pass
 
 import copy
-from math import pi
+from math import pi, sqrt
 import libtbx
 from libtbx.utils import Sorry
 import iotbx.phil
@@ -460,7 +460,8 @@ class indexer_low_res_spot_match(indexer_base):
     s1_inner = inner_spot_lab.each_normalize() * inv_lambda
     self.spots['dstar_outer'] = (s1_outer - beam.get_s0()).norms()
     self.spots['dstar_inner'] = (s1_inner - beam.get_s0()).norms()
-    self.spots['dstar_band'] = self.spots['dstar_outer'] - self.spots['dstar_inner']
+    self.spots['dstar_band2'] = flex.pow2(self.spots['dstar_outer'] -
+                                          self.spots['dstar_inner'])
 
     return
 
@@ -536,11 +537,11 @@ class indexer_low_res_spot_match(indexer_base):
       exp_dist = (seed_vec - cand_vec).length()
       r_dist = abs(obs_dist - exp_dist)
 
-      # If the distance difference is larger than the sum of the tolerated
-      # d* bands then reject the candidate
-      band1 = self.spots[seed['spot_id']]['dstar_band']
-      band2 = self.spots[cand['spot_id']]['dstar_band']
-      if r_dist > band1 + band2:
+      # If the distance difference is larger than the sum in quadrature of the
+      # tolerated d* bands then reject the candidate
+      sq_band1 = self.spots[seed['spot_id']]['dstar_band2']
+      sq_band2 = self.spots[cand['spot_id']]['dstar_band2']
+      if r_dist > sqrt(sq_band1 + sq_band2):
         continue
 
       # Store the seed-stem match as a 2-node graph
@@ -585,13 +586,13 @@ class indexer_low_res_spot_match(indexer_base):
 
       residual_dist = [abs(a - b) for (a, b) in zip(obs_dists, exp_dists)]
 
-      # If any of the distance differences is larger than the sum of the
-      # tolerated d* bands then reject the candidate
-      candidate_band = self.spots[cand['spot_id']]['dstar_band']
+      # If any of the distance differences is larger than the sum in quadrature
+      # of the tolerated d* bands then reject the candidate
+      sq_candidate_band = self.spots[cand['spot_id']]['dstar_band2']
       bad_candidate = False
       for r_dist, spot_id in zip(residual_dist, existing_ids):
-        relp_band = self.spots[spot_id]['dstar_band']
-        if r_dist > relp_band + candidate_band:
+        sq_relp_band = self.spots[spot_id]['dstar_band2']
+        if r_dist > sqrt(sq_relp_band + sq_candidate_band):
           bad_candidate = True
           break
       if bad_candidate:
