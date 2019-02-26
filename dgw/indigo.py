@@ -460,6 +460,7 @@ class indexer_low_res_spot_match(indexer_base):
     s1_inner = inner_spot_lab.each_normalize() * inv_lambda
     self.spots['dstar_outer'] = (s1_outer - beam.get_s0()).norms()
     self.spots['dstar_inner'] = (s1_inner - beam.get_s0()).norms()
+    self.spots['dstar_band'] = self.spots['dstar_outer'] - self.spots['dstar_inner']
 
     return
 
@@ -537,10 +538,8 @@ class indexer_low_res_spot_match(indexer_base):
 
       # If the distance difference is larger than the sum of the tolerated
       # d* bands then reject the candidate
-      band1 = (self.spots[seed['spot_id']]['dstar_outer'] -
-               self.spots[seed['spot_id']]['dstar_inner'])
-      band2 = (self.spots[cand['spot_id']]['dstar_outer'] -
-               self.spots[cand['spot_id']]['dstar_inner'])
+      band1 = self.spots[seed['spot_id']]['dstar_band']
+      band2 = self.spots[cand['spot_id']]['dstar_band']
       if r_dist > band1 + band2:
         continue
 
@@ -588,12 +587,10 @@ class indexer_low_res_spot_match(indexer_base):
 
       # If any of the distance differences is larger than the sum of the
       # tolerated d* bands then reject the candidate
-      candidate_band = (self.spots[cand['spot_id']]['dstar_outer'] -
-                        self.spots[cand['spot_id']]['dstar_inner'])
+      candidate_band = self.spots[cand['spot_id']]['dstar_band']
       bad_candidate = False
       for r_dist, spot_id in zip(residual_dist, existing_ids):
-        relp_band = (self.spots[spot_id]['dstar_outer'] -
-                     self.spots[spot_id]['dstar_inner'])
+        relp_band = self.spots[spot_id]['dstar_band']
         if r_dist > relp_band + candidate_band:
           bad_candidate = True
           break
