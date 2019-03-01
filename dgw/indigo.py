@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division
 
 import logging
-logger = logging.getLogger('indigo')
+logger = logging.getLogger('dials.indigo')
 
 #try:
 #  # try importing scipy.linalg before any cctbx modules, otherwise we
@@ -294,24 +294,29 @@ class indexer_low_res_spot_match(indexer_base):
     # First search: match each observation with candidate indices within the
     # acceptable resolution band
     self._calc_seeds_and_stems()
-
-    # Second search: match seed spots with another spot from a different
-    # reciprocal lattice row, such that the observed reciprocal space distances
-    # are within tolerances
-    stems = []
     if self.params.low_res_spot_match.use_P1_indices_as_seeds:
       seeds = self.stems
     else:
       seeds = self.seeds
+    logger.debug("{0} seeds".format(len(seeds)))
+
+    # Second search: match seed spots with another spot from a different
+    # reciprocal lattice row, such that the observed reciprocal space distances
+    # are within tolerances
+    pairs = []
     for seed in seeds:
-      stems.extend(self._pairs_with_seed(seed))
-    stems = list(set(stems)) # filter duplicates
+      pairs.extend(self._pairs_with_seed(seed))
+    logger.debug("{0} pairs".format(len(pairs)))
+    pairs = list(set(pairs)) # filter duplicates
+    logger.debug("{0} filtered pairs".format(len(pairs)))
 
     # Further search iterations: extend to more spots within tolerated distances
     triplets = []
-    for stem in stems:
-      triplets.extend(self._extend_by_candidates(stem))
+    for pair in pairs:
+      triplets.extend(self._extend_by_candidates(pair))
+    logger.debug("{0} triplets".format(len(triplets)))
     triplets = list(set(triplets)) # filter duplicates
+    logger.debug("{0} filtered triplets".format(len(triplets)))
 
     if self.params.low_res_spot_match.debug_reflections:
       idx = self.debug()
@@ -329,7 +334,9 @@ class indexer_low_res_spot_match(indexer_base):
       for triplet in triplets:
         #quads.extend(self._extend_by_candidates(triplet, debug=True))
         quads.extend(self._extend_by_candidates(triplet))
+      logger.debug("{0} quads".format(len(quads)))
       quads = list(set(quads)) # filter duplicates
+      logger.debug("{0} filtered quads".format(len(quads)))
       branches = quads
 
     # Sort branches by total deviation of observed distances from expected
