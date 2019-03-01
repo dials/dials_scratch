@@ -618,6 +618,18 @@ class indexer_low_res_spot_match(indexer_base):
 
     return result
 
+  @staticmethod
+  def _fit_U_from_superposed_points(reference, other):
+
+    # Add the origin to both sets of points
+    origin = flex.vec3_double(1)
+    reference.extend(origin)
+    other.extend(origin)
+
+    # Find U matrix that takes ideal relps to the reference
+    fit = superpose.least_squares_fit(reference, other)
+    return fit.r
+
   def _fit_crystal_model(self, graph):
 
     vertices = graph.vertices
@@ -629,51 +641,34 @@ class indexer_low_res_spot_match(indexer_base):
     # Ideal relps from the known cell
     other = flex.vec3_double([e['rlp_datum'] for e in vertices])
 
-    # Add the origin to both sets of points
-    origin = flex.vec3_double(1)
-    reference.extend(origin)
-    other.extend(origin)
-
-    # Find U matrix that takes ideal relps to the reference
-    fit = superpose.least_squares_fit(reference, other)
-
-    # Calculate RMSD of the fit
-    other_rotated = fit.r.elems * other
-    rms = reference.rms_difference(other_rotated)
-
-    # Construct a crystal model
-    UB = fit.r * self.Bmat
-    xl = Crystal(A=UB, space_group_symbol="P1")
+    U = self._fit_U_from_superposed_points(reference, other)
+    UB = U * self.Bmat
 
     if self.params.low_res_spot_match.bootstrap_crystal:
 
-      # attempt to index the low resolution spots
+      # Attempt to index the low resolution spots
       from dials_algorithms_indexing_ext import AssignIndices
       phi = self.spots['xyzobs.mm.value'].parts()[2]
-      UB_matrices = flex.mat3_double([xl.get_A(),])
+      UB_matrices = flex.mat3_double([UB,])
       result = AssignIndices(self.spots['rlp'], phi, UB_matrices, tolerance=0.3)
       hkl = result.miller_indices()
       sel = hkl != (0,0,0)
       hkl_vec = hkl.as_vec3_double().select(sel)
 
+      # Use the result to get a new UB matrix
       reference = self.spots['rlp'].select(sel)
       other = self.Bmat.elems * hkl_vec
+      U = self._fit_U_from_superposed_points(reference, other)
+      UB = U * self.Bmat
 
-      # Add origin
-      reference.extend(origin)
-      other.extend(origin)
+    # Calculate RMSD of the fit
+    other_rotated = U.elems * other
+    rms = reference.rms_difference(other_rotated)
 
-      # Find U matrix that takes ideal relps to the reference
-      fit = superpose.least_squares_fit(reference, other)
+    # Construct a crystal model
+    xl = Crystal(A=UB, space_group_symbol="P1")
 
-      # Calculate RMSD of the fit
-      other_rotated = fit.r.elems * other
-      rms = reference.rms_difference(other_rotated)
-
-      # Construct a crystal model
-      UB = fit.r * self.Bmat
-      xl = Crystal(A=UB, space_group_symbol="P1")
-
+    # Monkey-patch crystal to return rms of the fit (useful? Dunno)
     xl.rms = rms
 
     return xl
