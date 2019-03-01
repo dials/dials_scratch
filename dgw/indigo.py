@@ -24,7 +24,7 @@ import cctbx.miller
 from dials.array_family import flex
 import operator
 from scitbx import matrix
-from scitbx.math import superpose
+from scitbx.math import superpose, least_squares_plane
 from dxtbx.model import Crystal
 from dxtbx.model.experiment_list import Experiment, ExperimentList
 
@@ -561,16 +561,7 @@ class indexer_low_res_spot_match(indexer_base):
                                 'miller_index':cand['miller_index'],
                                 'rlp_datum':cand['rlp_datum']},
                                 weights_to_other=[r_dist])
-
-      # FIXME at the moment, monkey patching the graph object to contain extra
-      # data about the plane between relps. Later move to a co-planarity check
-      # within _extend_by_candidates, in which planarity of all vertices
-      # in the graph is checked
-      g.plane_normal = seed_vec.cross(cand_vec).normalize()
-
       result.append(g)
-
-    result.sort(key=operator.attrgetter('total_weight'))
     return result
 
   def _extend_by_candidates(self, graph):
@@ -607,24 +598,21 @@ class indexer_low_res_spot_match(indexer_base):
       if bad_candidate:
         continue
 
-      # Calculate co-planarity of the candidate. If plane_score is too high
-      # (corresponding to the relp being more than two degrees off the plane)
-      # then reject the candidate.
-      # FIXME implement better plane score
-      plane_score = abs(cand_vec.normalize().dot(graph.plane_normal))
-      if plane_score > 0.035:
+      # Calculate co-planarity of the relps, including the origin
+      points = flex.vec3_double(exp_relps + [cand_vec, (0.,0.,0.)])
+      plane = least_squares_plane(points)
+      plane_score = flex.sum_sq(points.dot(plane.normal) - plane.distance_to_origin)
+
+      # Reject if the group of relps are too far from lying in a single plane.
+      # This cut-off was determined by trial and error using simulated images.
+      if plane_score > 1e-6:
         continue
 
-      # Construct a graph including the candidate node
+      # Construct a graph including the accepted candidate node
       g = graph.factory_add_vertex({'spot_id':cand['spot_id'],
                                     'miller_index':cand['miller_index'],
                                     'rlp_datum':cand['rlp_datum']},
                                     weights_to_other=residual_dist)
-
-      # FIXME at the moment, monkey patching the graph object to contain extra
-      # data about the plane score. It may be better to calculate this
-      # externally once the requested number of search iterations are complete
-      g.plane_score = plane_score
 
       result.append(g)
 
