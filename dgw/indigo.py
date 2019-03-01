@@ -366,6 +366,7 @@ class indexer_low_res_spot_match(indexer_base):
     rt = flex.reflection_table()
     rt['miller_index'] = hkl_list.indices()
     rt['dstar'] = 1. / hkl_list.d_spacings().data()
+    rt['rlp_datum'] = self.Bmat.elems * rt['miller_index'].as_vec3_double()
     self.candidate_hkls = rt
 
     # P1 indices with separate Friedel pairs
@@ -376,6 +377,7 @@ class indexer_low_res_spot_match(indexer_base):
     rt = flex.reflection_table()
     rt['miller_index'] = hkl_list_p1.indices()
     rt['dstar'] = 1. / hkl_list_p1.d_spacings().data()
+    rt['rlp_datum'] = self.Bmat.elems * rt['miller_index'].as_vec3_double()
     self.candidate_hkls_p1 = rt
     return
 
@@ -487,7 +489,7 @@ class indexer_low_res_spot_match(indexer_base):
         r_dst = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
-                       'rlp_datum': self.Bmat * c['miller_index'],
+                       'rlp_datum': matrix.col(c['rlp_datum']),
                        'residual_dstar':r_dst,
                        'clock_angle':spot['clock_angle']})
 
@@ -504,7 +506,7 @@ class indexer_low_res_spot_match(indexer_base):
         r_dst = abs(c['dstar'] - spot['dstar'])
         result.append({'spot_id':i,
                        'miller_index':c['miller_index'],
-                       'rlp_datum': self.Bmat * c['miller_index'],
+                       'rlp_datum': matrix.col(c['rlp_datum']),
                        'residual_dstar':r_dst,
                        'clock_angle':spot['clock_angle']})
 
