@@ -605,7 +605,7 @@ class indexer_low_res_spot_match(indexer_base):
 
       # Reject if the group of relps are too far from lying in a single plane.
       # This cut-off was determined by trial and error using simulated images.
-      if plane_score > 1e-6:
+      if plane_score > 6e-7:
         continue
 
       # Construct a graph including the accepted candidate node
