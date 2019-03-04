@@ -1,3 +1,4 @@
+from __future__ import print_function
 import iotbx.cif
 
 def get_B(cif_file):
@@ -42,4 +43,4 @@ if __name__ == '__main__':
     bs[filename] = get_B(filename)
 
   for filename in sorted(bs):
-    print filename, '%.4f %.4f' % bs[filename]
+    print(filename, '%.4f %.4f' % bs[filename])

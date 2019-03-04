@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.algorithms.shoebox import build_mask
 from scitbx.array_family import flex
 
@@ -14,8 +15,8 @@ img_slice_2d = flex.double(flex.grid(23, 17), 0)
 #tmp_2d_mask = build_mask(nx[i], ny[i], nrx[i], nry[i], nc[i], img_slice_2d.as_double())
 x = build_mask(23   , 17   , 3     , 2     , 8    , img_slice_2d)
 #import numpy
-print "mask ="
-print x.as_numpy_array()
+print("mask =")
+print(x.as_numpy_array())
 
 '''
 show_mask = x.as_numpy_array()

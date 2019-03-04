@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx import matrix
 from math import log, pi
 from random import uniform, randint
@@ -144,7 +145,7 @@ def test_first_derivatives(experiment, models, s0, h, ctot, mobs, Sobs):
 
   assert all(abs(n-c) < 1e-3 for n, c in zip(dL_num,dL_cal))
 
-  print 'OK'
+  print('OK')
 
 
 def test_reflection_model(experiment, models, s0, h):
@@ -206,7 +207,7 @@ def test_reflection_model(experiment, models, s0, h):
   for n, c in zip(ds_num, dS_dp):
     assert all(abs(nn-cc) < 1e-7 for nn, cc in zip(n,c))
 
-  print "OK"
+  print("OK")
 
 def read_experiments():
   experiments = ExperimentListFactory.from_json_file("experiments.json")

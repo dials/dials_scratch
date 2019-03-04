@@ -8,6 +8,7 @@
 #  This code is distributed under the BSD license, a copy of which is
 #  included in the root directory of this package.
 from __future__ import division
+from __future__ import print_function
 
 class SpotMatcher(object):
   '''Match the observed with predicted spots.'''
@@ -453,7 +454,7 @@ class BeamDivergenceAndMosaicity(object):
 
     # Setup the output
     Command.indent = 4
-    print '\nCalculating e.s.d of beam divergence and mosaicity...'
+    print('\nCalculating e.s.d of beam divergence and mosaicity...')
 
     # Map observed to predicted reflections
     Command.start('Matching observed and predicted reflections.')

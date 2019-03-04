@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def pmf(mu, k):
   from scipy.stats import poisson
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     e = expectation(mu / 1000.0, c)
     e1.append(e[0])
     e2.append(e[1])
-  print e1[:10]
+  print(e1[:10])
   from matplotlib import pylab
   pylab.plot(m, e1)
   pylab.show()

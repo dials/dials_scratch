@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer
 #
@@ -79,10 +80,10 @@ class TestFrame(wx.Frame):
         self.Refresh()
 
     def DisplayNext_slice(self, event = None):
-        print "test 02"
+        print("test 02")
 
     def DisplayPrev_slice(self, event = None):
-        print "test 03"
+        print("test 03")
 
     def OnCloseWindow(self, event):
         self.Destroy()

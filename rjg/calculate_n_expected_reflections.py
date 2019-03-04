@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 master_phil_scope = iotbx.phil.parse("""
@@ -31,7 +32,7 @@ def run(args):
 
   from dials.util.command_line import Importer
   from dials.array_family import flex
-  print args
+  print(args)
   importer = Importer(args, check_format=False)
   assert len(importer.datablocks) == 1
   sweeps = importer.datablocks[0].extract_imagesets()
@@ -99,17 +100,17 @@ def run(args):
     preserve_exception_message=True)
   n_predicted = flex.double(results)
 
-  print "Basic statistics:"
+  print("Basic statistics:")
   from scitbx.math import basic_statistics
   stats = basic_statistics(n_predicted)
   stats.show()
 
-  print "Histogram:"
+  print("Histogram:")
   hist = flex.histogram(n_predicted, n_slots=20)
   hist.show()
 
-  print "Raw spot counts:"
-  print list(n_predicted)
+  print("Raw spot counts:")
+  print(list(n_predicted))
 
   if params.plot:
     from matplotlib import pyplot

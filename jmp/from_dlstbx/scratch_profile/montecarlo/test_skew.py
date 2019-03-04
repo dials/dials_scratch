@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 from math import exp, sqrt
 
@@ -44,7 +45,7 @@ for j in range(100):
     f = exp(-0.5 * md)
     data2[j,i] = f
 
-print flex.max(flex.abs(data1 - data2))
+print(flex.max(flex.abs(data1 - data2)))
 
 pylab.imshow(data2.as_numpy_array(), origin='bottom')
 pylab.show()

@@ -14,6 +14,7 @@ Various deprecated classes that I still want to keep a visible record of
 """
 
 from __future__ import division
+from __future__ import print_function
 
 raise RuntimeError("This module is out of date. Do not use it. It captures "
   "some useful knowledge though, so please do not delete either!")
@@ -200,7 +201,7 @@ class ScanVaryingReflectionPredictorDebug(ScanVaryingReflectionPredictor):
       xs.add_scatterer(xray.scatterer("C", site=site))
     xs.sites_mod_short()
     with open(file_name, 'wb') as f:
-      print >> f, xs.as_pdb_file()
+      print(xs.as_pdb_file(), file=f)
 
 class ScanVaryingReflectionListGenerator(object):
   """

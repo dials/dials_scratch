@@ -1,3 +1,4 @@
+from __future__ import print_function
 def main():
   from dials.util.options import OptionParser
   from dials.util.options import flatten_datablocks
@@ -37,7 +38,7 @@ def main():
 
   for indx in images[1:]:
     next = signal(imageset, indx)
-    print indx, (next & previous).count(True), next.count(True)
+    print(indx, (next & previous).count(True), next.count(True))
     previous = next
 
 def signal(imageset, indx):

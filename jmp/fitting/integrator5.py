@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -66,7 +67,7 @@ def integrate(experiments, reflections, reference, params):
     reflections,
     reference,
     params)
-  print integrator_manager.summary()
+  print(integrator_manager.summary())
 
   for task in integrator_manager.tasks():
     result = task()
@@ -101,9 +102,9 @@ if __name__ == '__main__':
 
   reference = construct_reference(experiments, reference[0])
 
-  print "Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask()
+  print("Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask())
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
   detector_space = True
   deconvolution = False
@@ -124,9 +125,9 @@ if __name__ == '__main__':
   reflections["intensity.prf.variance"] = flex.double(len(reflections))
 
   reflections = integrate(experiments, reflections, reference, params)
-  print "Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True)
-  print "Time taken: ", time() - st
+  print("Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True))
+  print("Time taken: ", time() - st)
 
-  print list(reflections.keys())
+  print(list(reflections.keys()))
 
   reflections.as_pickle("integrated.pickle")

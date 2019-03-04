@@ -5,6 +5,7 @@ This module takes input coordinate arrays and draws a 3D image of
 the experimental geometry. This is done using wxPython and an OpenGL
 GLCanvas.
 """
+from __future__ import print_function
 
 import sys
 from copy import deepcopy
@@ -591,8 +592,8 @@ class DetectorDialog(wx.Dialog):
                                           blank = blanksetting)[1]
 
         if shadowsetting is True:
-            print 'At these goniometer angles, the shadow affects', pixels, \
-                  'pixels.'
+            print('At these goniometer angles, the shadow affects', pixels, \
+                  'pixels.')
 
         self.Destroy()
         app.MainLoop()
@@ -685,9 +686,9 @@ class SampleDialog(wx.Dialog):
             d_r_f[i] = (newDet[i].get_coords(new_origin, fast_axis[i],
                         slow_axis[i]))
 
-        print 'The new alpha, beta, and gamma angles are, respectively, ', \
+        print('The new alpha, beta, and gamma angles are, respectively, ', \
                np.rad2deg(alpha), ', ', np.rad2deg(beta), 'and ', \
-               np.rad2deg(gamma), 'degrees'
+               np.rad2deg(gamma), 'degrees')
 
         newshadow = shadowmapper.Shadow(shadowmapper.day2_coords, filename,
         DET_ANGLE, d, detector_origin, fast_axis, slow_axis)
@@ -698,8 +699,8 @@ class SampleDialog(wx.Dialog):
         pixels = newshadow.affected_pixels(kappa = kappa, omega = omega, blank = blanksetting)[1]
 
         if shadowsetting is True:
-            print 'At these goniometer angles, the shadow affects', pixels, \
-                  'pixels.'
+            print('At these goniometer angles, the shadow affects', pixels, \
+                  'pixels.')
 
         self.Destroy()
         app.MainLoop()
@@ -782,8 +783,8 @@ class GonioDialog(wx.Dialog):
         shadowsetting = self.shadowcheck.GetValue()
 
         if shadowsetting is True:
-            print 'At these goniometer angles, the shadow affects', pixels, \
-                  'pixels.'
+            print('At these goniometer angles, the shadow affects', pixels, \
+                  'pixels.')
 
         self.Destroy()
         app.MainLoop()

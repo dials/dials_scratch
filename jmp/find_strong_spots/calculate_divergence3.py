@@ -1,4 +1,6 @@
 from __future__ import division
+from __future__ import print_function
+from functools import reduce
 
 def calculate_threshold(image, trusted_range):
   from scipy.ndimage.measurements import histogram
@@ -211,8 +213,8 @@ if __name__ == '__main__':
 
   try:
     dials_regression = libtbx.env.dist_path('dials_regression')
-  except KeyError, e:
-    print 'FAIL: dials_regression not configured'
+  except KeyError as e:
+    print('FAIL: dials_regression not configured')
     raise
 
   # The XDS values
@@ -226,9 +228,9 @@ if __name__ == '__main__':
   handle = NexusFile(filename, 'r')
 
   # Get the reflection list
-  print 'Reading reflections.'
+  print('Reading reflections.')
   reflections = handle.get_reflections()
-  print 'Read {0} reflections.'.format(len(reflections))
+  print('Read {0} reflections.'.format(len(reflections)))
 
   # Read images
   template = os.path.join(dials_regression,
@@ -237,39 +239,39 @@ if __name__ == '__main__':
   filenames = glob(template)
 
   # Load the sweep
-  print 'Loading sweep'
+  print('Loading sweep')
   sweep = SweepFactory.sweep(filenames)
-  print 'Loaded sweep of {0} images.'.format(len(sweep))
+  print('Loaded sweep of {0} images.'.format(len(sweep)))
 
   # Select the strong pixels to use in the divergence calculation
-  print 'Select the strong pixels from the images.'
+  print('Select the strong pixels from the images.')
   trusted_range = (0, 20000)
   coordinate, intensity = select_strong_pixels(sweep, trusted_range)
-  print 'Selected {0} pixels'.format(len(coordinate))
+  print('Selected {0} pixels'.format(len(coordinate)))
 
-  print 'Finding pixel nearest neighbours.'
+  print('Finding pixel nearest neighbours.')
   owner = find_pixel_nearest_neighbour(coordinate, reflections)
-  print 'Found {0} nearest neighbours.'.format(len(owner))
+  print('Found {0} nearest neighbours.'.format(len(owner)))
 
-  print 'Grouping pixels by reflection.'
+  print('Grouping pixels by reflection.')
   index = range(len(owner))
   index = sorted(index, key=lambda x: owner[x])
-  print 'Sorted {0} pixels.'.format(len(index))
+  print('Sorted {0} pixels.'.format(len(index)))
 
-  print 'Finding bounding boxes.'
+  print('Finding bounding boxes.')
   bbox = find_bounding_boxes(index, owner, coordinate)
-  print 'Found {0} bounding boxes'.format(len(bbox))
+  print('Found {0} bounding boxes'.format(len(bbox)))
 
-  print 'Find centroid and variance'
+  print('Find centroid and variance')
   index, centroid, variance = find_centroid_and_variance(index, owner, coordinate,
       intensity, sweep.get_detector())
 
-  print 'Filter objects by distance from nearest reflection.'
+  print('Filter objects by distance from nearest reflection.')
   max_distance = 2
   indices = filter_objects_by_distance(index, centroid, reflections, max_distance)
-  print '{0} remaining objects'.format(len(indices))
+  print('{0} remaining objects'.format(len(indices)))
 
-  print 'Calculate the e.s.d of the beam divergence'
+  print('Calculate the e.s.d of the beam divergence')
   sigma_d = calculate_sigma_beam_divergence(variance[indices])
-  print 'Sigma_d = {0} deg'.format(sigma_d * 180.0 / pi)
-  print 'XDS Sigma_d = {0} deg'.format(xds_sigma_d)
+  print('Sigma_d = {0} deg'.format(sigma_d * 180.0 / pi))
+  print('XDS Sigma_d = {0} deg'.format(xds_sigma_d))

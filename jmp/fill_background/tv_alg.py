@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def ice_background(j,i, height, width):
   from numpy.random import poisson
@@ -116,7 +117,7 @@ def tv_alg(image, mask, tolerance=1e-3, max_iter=10):
     # Break if reached convergence
     from math import sqrt
     l2norm = sqrt(sum([u**2 for u in (UCURR - UPREV)]))
-    print l2norm
+    print(l2norm)
     if l2norm < tolerance:
       break
 

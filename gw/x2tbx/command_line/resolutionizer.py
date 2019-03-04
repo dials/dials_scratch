@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def resolutionizer(mtz_file, n_shells = 30):
   import x2tbx
@@ -41,11 +42,11 @@ def resolutionizer(mtz_file, n_shells = 30):
   isigmas = r.i_sigma_shells()
   tisigmas = r.total_i_sigma_shells()
 
-  print 'High   Low    Nref  Rmerge Mn(I/s) I/s'
+  print('High   Low    Nref  Rmerge Mn(I/s) I/s')
   for j in range(n_shells):
     shell = r.get_shell(j)
-    print '%.3f %6.3f %5d %.3f %6.2f %6.2f' % (
-        high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j])
+    print('%.3f %6.3f %5d %.3f %6.2f %6.2f' % (
+        high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j]))
 
   return
 

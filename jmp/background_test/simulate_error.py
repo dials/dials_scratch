@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def generate_distribution(mean, sigma, npixels):
   from random import randint
@@ -44,7 +45,7 @@ if __name__ == '__main__':
   csdev = sqrt(cvar)
   cerr = csdev / sqrt(len(values))
 
-  print "Mean: %f, Error: %f" % (cmean, cerr)
+  print("Mean: %f, Error: %f" % (cmean, cerr))
 
 
 #  iod = []

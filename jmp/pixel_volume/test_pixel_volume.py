@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def monte_carlo_pixel_volume(experiment, i, j):
 
@@ -412,7 +413,7 @@ def monte_carlo_pixel_volume_all_pixels(experiment):
     V = monte_carlo_pixel_volume2(experiment, i, j)
     V1 = pixel_polygon_area(experiment, i, j)
     V2 = pixel_volume(experiment, i, j)
-    print i, j, V, V1, V2, time() - st
+    print(i, j, V, V1, V2, time() - st)
     # exit(0)
     volume[j,i] = V
 
@@ -427,7 +428,7 @@ def pixel_volume_all_pixels(experiment):
   volume = flex.double(flex.grid(ysize, xsize))
 
   for j in range(ysize):
-    print j
+    print(j)
     for i in range(xsize):
 
       volume[j,i] = pixel_volume(experiment, i, j)
@@ -442,7 +443,7 @@ def display(data):
         self.im = im
     def __call__(self, x, y):
         z = self.im.get_array()[int(y), int(x)]
-        print z
+        print(z)
         return 'x={:.01f}, y={:.01f}, z={:f}'.format(x, y, z)
 
   from matplotlib import pylab

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -16,4 +17,4 @@ g.add_panel(d[0])
 g.add_panel(d[1])
 root.add_panel(d[2])
 root.add_panel(d[3])
-print d.to_dict()
+print(d.to_dict())

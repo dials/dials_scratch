@@ -1,12 +1,13 @@
 
 from __future__ import division
+from __future__ import print_function
 from numpy.random import poisson
 
 def run(mean, n1, n2):
 
   D = []
   for i in range(n2):
-    print i
+    print(i)
     y = list(poisson(mean, n1))
     m = sum(y) / len(y)
     v = sum(yy*yy for yy in y) / len(y) - m*m
@@ -15,7 +16,7 @@ def run(mean, n1, n2):
     if m > 0:
       D.append(v / m)
 
-  print len(D)
+  print(len(D))
   from matplotlib import pylab
   pylab.hist(D, bins=50)
   pylab.show()

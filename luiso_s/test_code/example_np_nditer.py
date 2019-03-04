@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import time
 
@@ -85,7 +86,7 @@ if(__name__ == "__main__"):
 
 
 
-  print
+  print()
   print ("after applying")
   print ("b[:,:,0] = a[:,:]")
   print ("b[:,:,1] = a[:,:]")
@@ -134,10 +135,10 @@ if(__name__ == "__main__"):
   time2 = time.time()
   time_dif = time2 - time1
 
-  print
-  print ("<<<< after"), (time_dif), ("time >>>>")
+  print()
+  print(("<<<< after"), (time_dif), ("time >>>>"))
   print ("a =")
   print (a)
   print ("b =")
   print (b)
-  print ("<<<< after"), (time_dif), ("time >>>>")
+  print(("<<<< after"), (time_dif), ("time >>>>"))

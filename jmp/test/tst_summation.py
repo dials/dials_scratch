@@ -1,6 +1,7 @@
 
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 class Test(object):
 
@@ -10,7 +11,7 @@ class Test(object):
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
     except KeyError:
-      print 'SKIP: dials_regression not configured'
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -45,10 +46,10 @@ class Test(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/integration_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/integration_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
   def run(self):
@@ -103,11 +104,11 @@ class Test(object):
     mv = flex.mean_and_variance(Z)
     Z_mean = mv.mean()
     Z_var = mv.unweighted_sample_variance()
-    print "Z: mean: %f, var: %f" % (Z_mean, Z_var)
+    print("Z: mean: %f, var: %f" % (Z_mean, Z_var))
 
     # Do the kolmogorov smirnov test
     D, p  = kolmogorov_smirnov_test_standard_normal(Z)
-    print "KS: D: %f, p-value: %f" % (D, p)
+    print("KS: D: %f, p-value: %f" % (D, p))
 
     # FIXME Z score should be a standard normal distribution. When background is
     # the main component, we do indeed see that the z score is in a standard
@@ -129,7 +130,7 @@ class Test(object):
     #edf = [float(i+1) / len(Z_I) for i in range(len(Z_I))]
     #cdf = [0.5 * (1.0 + erf(z / sqrt(2.0))) for z in Z_I]
 
-    print 'OK'
+    print('OK')
 
 if __name__ == '__main__':
 

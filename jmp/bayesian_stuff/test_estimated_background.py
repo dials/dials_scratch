@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from numpy.random import seed
 seed(100)
@@ -143,7 +144,7 @@ for i in range(len(data)):
   else:
     Cb += data[i]
 
-print Cb, Cf, Nb, Nf
+print(Cb, Cf, Nb, Nf)
 
 X = []
 Y1 = []
@@ -156,7 +157,7 @@ Y2 = []
 X = []
 Y1 = []
 
-print Cf, Cb, (Cf - Cb) / Nb
+print(Cf, Cb, (Cf - Cb) / Nb)
 
 from math import log
 for i in range(100):
@@ -166,7 +167,7 @@ for i in range(100):
   Y1.append(p1)
 
 
-print estimate(data, background, mk) * mk.count(True)
+print(estimate(data, background, mk) * mk.count(True))
 
 from matplotlib import pylab
 pylab.plot(X, Y1)

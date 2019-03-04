@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -13,7 +14,7 @@ def read_reflections(filename):
   from dials.array_family import flex
   reflections = []
   for f in filename:
-    print "Reading %s" % f
+    print("Reading %s" % f)
     r = flex.reflection_table.from_pickle(f)
     reflections.append(r)
     del r['shoebox']
@@ -87,7 +88,7 @@ class IntensityCalculatorFactory(object):
       reference = ReferenceProfileData()
       for d, m in temp:
         reference.append(d, m)
-      print detector_space, deconvolution
+      print(detector_space, deconvolution)
 
 
       spec = GaussianRSReferenceProfileData(reference, sampler, spec)
@@ -342,7 +343,7 @@ def integrate(experiments, reflections, reference, grid_size=5,
   while start < len(experiments[0].imageset) - block_size // 2:
     blocks.append((start, start+block_size))
     start += block_size // 2
-  print blocks
+  print(blocks)
   assert len(blocks) == len(reflections)
 
   result = flex.reflection_table()
@@ -384,11 +385,11 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
   reference = read_reference(reference_filename)
 
-  print "Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask()
+  print("Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask())
 
   #experiments[0].profile._sigma_b *= 2
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
   detector_space = True
   deconvolution = False
@@ -397,9 +398,9 @@ if __name__ == '__main__':
   reflections = integrate(experiments, reflections, reference[0],
                           grid_size=grid_size, detector_space=detector_space,
                           deconvolution=deconvolution)
-  print "Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True)
-  print "Time taken: ", time() - st
+  print("Num profile fitted", reflections.get_flags(reflections.flags.integrated_prf).count(True))
+  print("Time taken: ", time() - st)
 
-  print list(reflections.keys())
+  print(list(reflections.keys()))
 
   reflections.as_pickle("integrated.pickle")

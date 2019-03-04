@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 import math
@@ -58,7 +59,7 @@ class Blueberry(object):
     # make a pie
 
     data = pickle.load(open(reflection_file, 'rb'))
-    print '%d reflections' % data.size()
+    print('%d reflections' % data.size())
 
     self.data = data.select(data['intensity.sum.variance'] > 0)
 
@@ -90,9 +91,9 @@ class Blueberry(object):
     initial_score = self.target(values)
     doohicky = simple_simplex(values, offset, self, 2000)
     best = doohicky.get_solution()
-    print 'Initial cell:', initial
-    print 'Final cell:  ', crystal.get_unit_cell()
-    print 'Score change', initial_score, self.target(best, do_print=False)
+    print('Initial cell:', initial)
+    print('Final cell:  ', crystal.get_unit_cell())
+    print('Score change', initial_score, self.target(best, do_print=False))
     self.best = best
 
   def target(self, vector, do_print=False):
@@ -109,9 +110,9 @@ class Blueberry(object):
     from scitbx import matrix
 
     if do_print:
-      print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
-        tuple(self.crystal.get_unit_cell().parameters())
-      print 'Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation)
+      print('Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
+        tuple(self.crystal.get_unit_cell().parameters()))
+      print('Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation))
 
     UB = matrix.sqr(self.crystal.get_A())
 
@@ -153,7 +154,7 @@ class Blueberry(object):
     for j in range(data.size()):
       hkl = data['miller_index'][j]
       q = UB * hkl
-      print (q + self.s0).length() - matrix.col(data['s1'][j]).length(), self.i_s[j]
+      print((q + self.s0).length() - matrix.col(data['s1'][j]).length(), self.i_s[j])
 
     return
 

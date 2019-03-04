@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 def compute_profile(experiments, reflection, reference, N):
@@ -60,11 +61,11 @@ def compute_profile(experiments, reflection, reference, N):
   # from dials_scratch.jmp.viewer import show_image_stack_multi_view
   # show_image_stack_multi_view(profile.as_numpy_array(), vmax=max(profile))
   sum_p = flex.sum(profile)
-  print "Partiality: %f" % sum_p
+  print("Partiality: %f" % sum_p)
   try:
     assert sum_p > 0, "sum_p == 0"
-  except Exception, e:
-    print e
+  except Exception as e:
+    print(e)
     return None
 
   return profile
@@ -81,7 +82,7 @@ def write_profiles(experiments, reflections, reference, N, filename):
     int_flag = refl['flags'] & reflections.flags.integrated_prf
 
     if int_flag:
-      print "Computing profile for %d / %d" % (i, len(reflections))
+      print("Computing profile for %d / %d" % (i, len(reflections)))
       s = compute_profile(experiments, refl, reference, N)
     else:
       s = None

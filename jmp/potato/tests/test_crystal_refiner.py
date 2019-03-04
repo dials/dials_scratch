@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 from math import sqrt, exp, pi, acos
 from random import sample, seed
@@ -87,7 +88,7 @@ def test_simplex():
     parameters[3], parameters[4], parameters[5]))
   sigma = M*M.transpose()
 
-  print sigma
+  print(sigma)
 
   # Generate observed positions
   s1_obs, s2_obs = generate_observations(experiments, reflections, sigma)
@@ -96,7 +97,7 @@ def test_simplex():
   for s1, s2 in zip(s1_obs, s2_obs):
     a = matrix.col(s1).angle(matrix.col(s2), deg=True)
     angles.append(a)
-  print "Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles))
+  print("Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles)))
 
   # Do the ray intersection
   reflections['s1_obs'] = s1_obs
@@ -116,7 +117,7 @@ def test_simplex():
   # Offset the crystal orientation matrix
   U = matrix.sqr(experiments[0].crystal.get_U())
 
-  print 'Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+  print('Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U))
 
   m2 = matrix.col(experiments[0].goniometer.get_rotation_axis())
   R = m2.axis_and_angle_as_r3_rotation_matrix(angle=0.5, deg=True)
@@ -132,11 +133,11 @@ def test_simplex():
   U_old = U
   U = crystal.get_U()
 
-  print 'Refined orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+  print('Refined orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U))
 
   assert(all(abs(u1-u2) < 1e-7 for u1, u2 in zip(U_old, U)))
 
-  print "OK"
+  print("OK")
 
 if __name__ == '__main__':
   test_simplex()

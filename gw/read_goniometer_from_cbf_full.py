@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pycbf
 from scitbx import matrix
 import libtbx.load_env
@@ -69,12 +70,12 @@ for j in sorted(axis_table):
   else:
     total_r_before *= v.axis_and_angle_as_r3_rotation_matrix(s)
 
-print 'Before'
-print total_r_before
-print 'Scan'
-print total_r_scan
-print 'After'
-print total_r_after
+print('Before')
+print(total_r_before)
+print('Scan')
+print(total_r_scan)
+print('After')
+print(total_r_after)
 
 R_gw = total_r_before * total_r_scan * total_r_after
 
@@ -84,6 +85,6 @@ z = gonio.rotate_vector(0.0, 0, 0, 1)
 
 R_cbf = matrix.sqr(x + y + z).transpose()
 
-print 'Comparison'
-print '%8.5f %8.5f %8.5f\n%8.5f %8.5f %8.5f\n%8.5f %8.5f %8.5f' % tuple(
-  (R_gw * R_cbf.inverse()).elems)
+print('Comparison')
+print('%8.5f %8.5f %8.5f\n%8.5f %8.5f %8.5f\n%8.5f %8.5f %8.5f' % tuple(
+  (R_gw * R_cbf.inverse()).elems))

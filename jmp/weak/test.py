@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -122,12 +123,12 @@ def ml_poisson2_step(c, b, s, B, S):
   DS = step * dlds
   B1 = B + DB
   S1 = S + DS
-  print B1, S1
+  print(B1, S1)
   if B1 < 0:
     B1 = B / 2
   if S1 < 0:
     S1 = S / 2
-  print B1, S1
+  print(B1, S1)
   return B1, S1
 
 
@@ -154,7 +155,7 @@ def iteration(c, b, s, B, S):
   DS = eps * dlds
   B1 = B + DB
   S1 = S + DS
-  print B1, S1
+  print(B1, S1)
   # print ":", dldb, dlds
   # exit(0)
   # if B1 < 0:
@@ -179,7 +180,7 @@ def value(counts, background_shape, signal_shape):
   S = 1
   B = 1
   EPS = 1e-10
-  print "Start"
+  print("Start")
   SSS = [S]
   BBB = [B]
   n = 0
@@ -198,13 +199,13 @@ def value(counts, background_shape, signal_shape):
   from matplotlib import pylab
   pylab.plot(SSS, BBB)
   pylab.show()
-  print counts
-  print background_shape
-  print signal_shape
+  print(counts)
+  print(background_shape)
+  print(signal_shape)
   DB, DS = evaluate(counts, background_shape, signal_shape, 0.5236486486486487, 2.920795795795796)
-  print "Derivatives: ", DB, DS
+  print("Derivatives: ", DB, DS)
   DB, DS = evaluate(counts, background_shape, signal_shape, B1, S1)
-  print "Derivatives: ", DB, DS
+  print("Derivatives: ", DB, DS)
 
   return S1, B1
 
@@ -219,10 +220,10 @@ def test(counts, background_shape, signal_shape):
   B = 1
   for i in range(20):
     S, B = iteration(counts, background_shape, signal_shape, B, S)
-    print S, B
+    print(S, B)
 
   sigma_b, sigma_s = sigmas(counts, background_shape, signal_shape, B, S)
-  print sigma_b, sigma_s
+  print(sigma_b, sigma_s)
   from dials.array_family import flex
   Fs = sum(signal_shape)
   Fb = sum(background_shape)
@@ -264,7 +265,7 @@ def plot_prob_for_zero(c, b, s):
   j = index // 100
   B = 0 + j / 10000.0
   S = 0 + i / 40.0
-  print flex.max(L), B, S
+  print(flex.max(L), B, S)
   from matplotlib import pylab
   import numpy
   im = numpy.ma.masked_array(flex.exp(L).as_numpy_array(), mask=MASK.as_numpy_array())
@@ -391,9 +392,9 @@ def paper_test(B, S):
   max_ind = flex.max_index(L)
   j = max_ind // 100
   i = max_ind % 100
-  print "Approx: ", (j+1) / 20.0, (i+1) / 20.0
-  print "Min/Max DB: ", flex.min(DB), flex.max(DB)
-  print "Min/Max DS: ", flex.min(DS), flex.max(DS)
+  print("Approx: ", (j+1) / 20.0, (i+1) / 20.0)
+  print("Min/Max DB: ", flex.min(DB), flex.max(DB))
+  print("Min/Max DS: ", flex.min(DS), flex.max(DS))
   from matplotlib import pylab
   # pylab.imshow(flex.log(V).as_numpy_array(), extent=[0.05, 5.05, 5.05, 0.05])
   # pylab.plot(SV, V)
@@ -419,10 +420,10 @@ def paper_test(B, S):
   exit(0)
   try:
     S1, B1 = value(total, background_shape, signal_shape)
-    print "Result:"
-    print S1, B1
+    print("Result:")
+    print(S1, B1)
     exit(0)
-  except Exception, e:
+  except Exception as e:
     raise e
     import sys
     import traceback
@@ -431,14 +432,14 @@ def paper_test(B, S):
     Fs = sum(signal_shape)
     Fb = sum(background_shape)
     Rs = flex.double(flex.grid(100, 100))
-    print "-----"
-    print B, S
+    print("-----")
+    print(B, S)
     # from matplotlib import pylab
     # pylab.plot(total)
     # pylab.show()
-    print background_shape
-    print signal_shape
-    print total
+    print(background_shape)
+    print(signal_shape)
+    print(total)
     from math import exp, factorial, log
     minx = -1
     miny = -1
@@ -524,7 +525,7 @@ if __name__ == '__main__':
     Bcnt.append(Btot)
     Sest.append(Scal)
     Best.append(Bcal)
-    print S, B, Stot, Btot, Scal, Bcal
+    print(S, B, Stot, Btot, Scal, Bcal)
   from matplotlib import pylab
   pylab.scatter(Best, Sest)
 

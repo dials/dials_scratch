@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import libtbx.load_env
 import logging
@@ -9,7 +10,7 @@ try:
   # sometimes get a segmentation fault/core dump if it is imported after
   # scipy.linalg is a dependency of sklearn.cluster.DBSCAN
   import scipy.linalg # import dependency
-except ImportError, e:
+except ImportError as e:
   pass
 
 import copy
@@ -128,7 +129,7 @@ def run(args):
     filter_overlaps=params.max_cell_estimation.filter_overlaps,
     overlaps_border=params.max_cell_estimation.overlaps_border)
   max_cell = result.max_cell
-  print "Found max_cell: %.1f Angstrom" %max_cell
+  print("Found max_cell: %.1f Angstrom" %max_cell)
   result.plot_histogram(figsize=params.figsize)
   plot_d_spacings(reflections, figsize=params.figsize)
   plot_direct_space_distances(result.direct, result.d_spacings, figsize=params.figsize)

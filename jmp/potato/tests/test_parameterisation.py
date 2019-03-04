@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials_scratch.jmp.potato.parameterisation import ModelState
 from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.array_family import flex
@@ -82,7 +83,7 @@ def test_model_state_with_fixed(
   new_params = params
   state.set_active_parameters(new_params)
 
-  print 'OK'
+  print('OK')
 
 
 def test_model_state(experiments):

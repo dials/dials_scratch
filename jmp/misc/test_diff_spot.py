@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import cPickle as pickle
 #v1, c1, l1 = pickle.load(open('/home/upc86896/Data/TRP_M1S3_2_/temp.p', 'rb'))
@@ -47,4 +48,4 @@ v2, c2, l2 = pickle.load(open('/home/upc86896/Data/TRP_M1S3_2_/temp.p', 'rb'))
 
 from dials.model.data import PixelList
 pl = PixelList((2527, 2463), (0, 500), v2, c2)
-print max(pl.labels_3d())
+print(max(pl.labels_3d()))

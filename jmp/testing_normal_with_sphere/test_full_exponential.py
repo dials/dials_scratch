@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx import matrix
 from math import pi, cos, sin, exp, sqrt, atan2, log, tan
@@ -231,7 +232,7 @@ def compute_peak_g2_it(mu, sigma):
     d2f = E + F + G + H
 
     theta = theta0 - df / d2f
-    print theta
+    print(theta)
     # print theta, theta0, df, func(theta, mu, sigma), func(theta0, mu, sigma)
     if abs(theta - theta0) < 1e-7:
       break
@@ -327,7 +328,7 @@ def compute_peak_f_it(mu, sigma):
     d2f = E + F + G
 
     theta = theta0 - df / d2f
-    print "P: ", theta
+    print("P: ", theta)
     # print theta, theta0, df, func(theta, mu, sigma), func(theta0, mu, sigma)
     if abs(theta - theta0) < 1e-7:
       break
@@ -389,8 +390,8 @@ def compute_mean_estimate(peak_f, peak_fx, peak_fy, mu, sigma):
   C = (2*pi) * (1/sqrt((-H_g2).determinant())) * peak_fy[1] * exp(
     -0.5*((peak_fy-mu).transpose() * sigma_inv * (peak_fy-mu))[0])
 
-  print A, B, C
-  print tuple(peak_f)
+  print(A, B, C)
+  print(tuple(peak_f))
   xc = B / A
   yc = C / A
 
@@ -423,10 +424,10 @@ x_g1_search = matrix.col((peak_x, sqrt(1 - peak_x**2)))
 x_g2_search = matrix.col((sqrt(1 - peak_y**2), peak_y))
 
 
-print "---"
-print peak_x, peak_g1_it
-print peak_y, peak_g2_it
-print "---"
+print("---")
+print(peak_x, peak_g1_it)
+print(peak_y, peak_g2_it)
+print("---")
 
 x_f = peak_f_it
 x_g1 = peak_g1_it
@@ -438,14 +439,14 @@ x_search2 = compute_mean_estimate(x_f_search, x_g1_search, x_g2_search, mu, sigm
 x = compute_mean_estimate(x_f, x_g1, x_g2, mu, sigma)
 
 
-print "Mean: ", tuple(mean)
-print "Peak f(search): ", tuple(x_f_search), mean.angle(x_f_search)
-print "Peak g1(search): ", tuple(x_g1_search), mean.angle(x_g1_search)
-print "Peak g2(search): ", tuple(x_g2_search), mean.angle(x_g2_search)
-print "Peak f: ", tuple(x_f), mean.angle(x_f)
-print "Peak g1: ", tuple(x_g1), mean.angle(x_g1)
-print "Peak g2: ", tuple(x_g2), mean.angle(x_g2)
-print "Estimate (search 1): ", tuple(x_search1), mean.angle(x_search1)
-print "Estimate (search 2): ", tuple(x_search2), mean.angle(x_search2)
-print "Esimate: ", tuple(x), mean.angle(x)
-print "Mu: ", tuple(mu), mean.angle(mu)
+print("Mean: ", tuple(mean))
+print("Peak f(search): ", tuple(x_f_search), mean.angle(x_f_search))
+print("Peak g1(search): ", tuple(x_g1_search), mean.angle(x_g1_search))
+print("Peak g2(search): ", tuple(x_g2_search), mean.angle(x_g2_search))
+print("Peak f: ", tuple(x_f), mean.angle(x_f))
+print("Peak g1: ", tuple(x_g1), mean.angle(x_g1))
+print("Peak g2: ", tuple(x_g2), mean.angle(x_g2))
+print("Estimate (search 1): ", tuple(x_search1), mean.angle(x_search1))
+print("Estimate (search 2): ", tuple(x_search2), mean.angle(x_search2))
+print("Esimate: ", tuple(x), mean.angle(x))
+print("Mu: ", tuple(mu), mean.angle(mu))

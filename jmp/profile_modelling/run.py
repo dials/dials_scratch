@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 class History(object):
@@ -171,7 +172,7 @@ class ProfileModeller(object):
 
         self.count += 1
 
-        print self.count, list(parameters), logL
+        print(self.count, list(parameters), logL)
 
         self.history.append(parameters, logL)
 
@@ -211,9 +212,9 @@ class ProfileModeller(object):
 
       '''
       selection = reflections.get_flags(reflections.flags.used_in_refinement)
-      print 'Selecting %d/%d strong reflections' % (
-        len(reflections), selection.count(True))
-      print ""
+      print('Selecting %d/%d strong reflections' % (
+        len(reflections), selection.count(True)))
+      print("")
       return reflections.select(selection)
 
     def sort_by_intensity(reflections):
@@ -229,7 +230,7 @@ class ProfileModeller(object):
       Select most intense reflections
 
       '''
-      print 'Selecting %d/%d reflections' % (num, len(reflections))
+      print('Selecting %d/%d reflections' % (num, len(reflections)))
       return reflections[0:num]
 
     # Select the strong reflections
@@ -276,8 +277,8 @@ if __name__ == '__main__':
 
     '''
     from dxtbx.model.experiment_list import ExperimentListFactory
-    print "Reading experiments from %s" % filename
-    print ""
+    print("Reading experiments from %s" % filename)
+    print("")
     return ExperimentListFactory.from_json_file(filename)
 
   def read_reflections(filename):
@@ -286,8 +287,8 @@ if __name__ == '__main__':
 
     '''
     from dials.array_family import flex
-    print "Reading reflections from %s" % filename
-    print ""
+    print("Reading reflections from %s" % filename)
+    print("")
     return flex.reflection_table.from_pickle(filename)
 
   def model_profiles(experiments, reflections):
@@ -315,7 +316,7 @@ if __name__ == '__main__':
     modeller.display(5)
   parameters = modeller.parameters
 
-  print "Generated final model:"
-  print ""
-  print list(parameters)
-  print ""
+  print("Generated final model:")
+  print("")
+  print(list(parameters))
+  print("")

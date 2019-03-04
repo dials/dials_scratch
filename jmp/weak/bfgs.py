@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx import matrix
 
 
@@ -193,8 +194,8 @@ def linesearch2(c, b, s, x0, p):
   K = sum([b[i]*p[0]+s[i]*p[1] for i in range(len(c))])
   A = (K - fp) / fpp - 0
   C = (K - fp)**2 / fpp
-  print A, C, K
-  print C / K - A
+  print(A, C, K)
+  print(C / K - A)
 
   F1 = []
   F2 = []
@@ -251,7 +252,7 @@ def linesearch3(c, b, s, x0, p):
     d0 = d1
     f0 = f1
     alpha1 *= 1.6128
-    print alpha0, alpha1
+    print(alpha0, alpha1)
 
   assert(sign(d0) != sign(d1))
   i = 0
@@ -268,7 +269,7 @@ def linesearch3(c, b, s, x0, p):
       d1 = d
       f1 = f
     bound = f00 + c1*alpha*d00
-    print alpha, alpha0, alpha1, d, bound, d00
+    print(alpha, alpha0, alpha1, d, bound, d00)
     if (f <= f00 + c1*alpha*d00 and abs(d) <= c2*abs(d00)):
       break
 
@@ -320,7 +321,7 @@ def linesearch4(c, b, s, x0, p):
   f00 = psi(alpha0)
   f0 = f00
   d0 = d00
-  print d00
+  print(d00)
   assert(d00 < 0)
   for i in range(max_iter):
     f1 = psi(alpha1)
@@ -379,7 +380,7 @@ try:
   for i in range(5):
     DFX0 = df(c,b,s,x0)
     p = -B0*df(c, b, s, x0)
-    print "P: ", tuple(p)
+    print("P: ", tuple(p))
     d = x0 + p
 
     #alpha = 0.5#1.0
@@ -388,10 +389,10 @@ try:
     den2 = (K2*p[0]+p[1])
     alpha_max1 = -(x0[0] + x0[1]*K1) / den1
     alpha_max2 = -(K2*x0[0] + x0[1]) / den2
-    print "Alpha Max: ", tuple(p), alpha_max1, alpha_max2
+    print("Alpha Max: ", tuple(p), alpha_max1, alpha_max2)
 
     alpha = linesearch4(c, b, s, x0, p)
-    print alpha
+    print(alpha)
     # if alpha > 0.45:
     #   print i, tuple(B0), tuple(p), den1, den2, alpha1, alpha2, alpha
 
@@ -423,16 +424,16 @@ try:
     # B1 = B0 + B11 - B12
     x0 = x1
     B0 = B1
-    print S*YT
-    print Y*ST
-    print S*ST
-    print B0
+    print(S*YT)
+    print(Y*ST)
+    print(S*ST)
+    print(B0)
 
     # print tuple(x0), alpha, alpha1, alpha2, tuple(p), tuple(DFX0)
     XX.append(x0[0])
     YY.append(x0[1])
-    print tuple(x0)
-except Exception, e:
+    print(tuple(x0))
+except Exception as e:
   # raise
   pass
 

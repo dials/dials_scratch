@@ -9,11 +9,12 @@
 #  included in the root directory of this package."
 
 from __future__ import division
+from __future__ import print_function
 
 def show_reflection(reflection, orient = "landscape"):
   ''' Display a single reflection. '''
   import wx
-  print "Show Reflection"
+  print("Show Reflection")
 
   class RefViewApp(wx.App):
     def OnInit(self):

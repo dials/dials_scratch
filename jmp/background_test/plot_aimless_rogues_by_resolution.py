@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -21,7 +22,7 @@ if __name__ == '__main__':
           L.append(int(tokens[2]))
           I.append(int(tokens[7]))
           S.append(int(tokens[8]))
-        except Exception, e:
+        except Exception as e:
           pass
     assert len(H) == len(K)
     assert len(H) == len(L)
@@ -29,8 +30,8 @@ if __name__ == '__main__':
     assert len(H) == len(S)
 
     with open("rogues.txt", "w") as outfile:
-      print "Writing to file: rogues.txt"
-      print "Columns: H K L I SigI"
+      print("Writing to file: rogues.txt")
+      print("Columns: H K L I SigI")
       for h, k, l, i, s in zip(H, K, L, I, S):
         outfile.write("%d %d %d %f %f\n" % (h,k,l,i,s))
 

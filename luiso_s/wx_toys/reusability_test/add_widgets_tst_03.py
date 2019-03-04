@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer_frame test
 #
@@ -24,7 +25,7 @@ from bitmap_from_numpy \
 class multi_img_scrollable(scroll_pan.ScrolledPanel):
 
     def __init__(self, outer_panel):
-        print "__init__ 01"
+        print("__init__ 01")
         super(multi_img_scrollable, self).__init__(outer_panel)
 
 
@@ -50,7 +51,7 @@ class multi_img_scrollable(scroll_pan.ScrolledPanel):
 
 
         self.SetupScrolling()
-        print "__init__ 02"
+        print("__init__ 02")
 
 
     def onAddWidget(self, event):
@@ -77,7 +78,7 @@ class multi_img_scrollable(scroll_pan.ScrolledPanel):
             self.frame.fSizer.Layout()
             #self.frame.Fit()
             #self.Refresh()
-            print "number_of_img =", self.number_of_img
+            print("number_of_img =", self.number_of_img)
 
 class MyFrame(wx.Frame):
     def __init__(self):

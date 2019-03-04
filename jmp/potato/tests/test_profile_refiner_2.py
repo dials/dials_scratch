@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy.random
 from scitbx import matrix
 from math import sqrt, pi, sin, cos, log, exp, ceil
@@ -63,7 +64,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list, test=0)
     except Exception:
       lnL += -1e15
 
-  print tuple(sigma), lnL
+  print(tuple(sigma), lnL)
   return lnL
 
 
@@ -130,7 +131,7 @@ def tst_ideal():
 
   # The predicted reflections
   reflections = flex.reflection_table.from_predictions_multi(experiments, padding=4)
-  print len(reflections)
+  print(len(reflections))
 
 
   sigma = matrix.sqr((1e-6, 0, 0,
@@ -151,7 +152,7 @@ def tst_ideal():
   xbar_list = select_sample(xbar_list, index)
   Sobs_list = select_sample(Sobs_list, index)
 
-  print "Using %d reflections: " % len(s2_list)
+  print("Using %d reflections: " % len(s2_list))
 
   values = flex.double((
     sqrt(1.1e-6),
@@ -190,7 +191,7 @@ def tst_ideal():
     params[3], params[4], params[5]))
 
   sigma = M*M.transpose()
-  print sigma
+  print(sigma)
 
   expected = matrix.sqr((
     1.0030467686e-06, -1.98473936999e-09, -8.60673302905e-10,
@@ -199,7 +200,7 @@ def tst_ideal():
 
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 
 def tst_binned():
@@ -215,7 +216,7 @@ def tst_binned():
 
   # The predicted reflections
   reflections = flex.reflection_table.from_predictions_multi(experiments, padding=4)
-  print len(reflections)
+  print(len(reflections))
 
 
   sigma = matrix.sqr((1e-6, 0, 0,
@@ -236,7 +237,7 @@ def tst_binned():
   xbar_list = select_sample(xbar_list, index)
   Sobs_list = select_sample(Sobs_list, index)
 
-  print "Using %d reflections: " % len(s2_list)
+  print("Using %d reflections: " % len(s2_list))
 
   values = flex.double((
     sqrt(1e-6),
@@ -275,7 +276,7 @@ def tst_binned():
     params[3], params[4], params[5]))
 
   sigma = M*M.transpose()
-  print sigma
+  print(sigma)
 
   expected = matrix.sqr((
    1.07025484551e-06, 1.30518861783e-09, -1.72635922351e-09,
@@ -283,7 +284,7 @@ def tst_binned():
    -1.72635922351e-09, -1.64646310672e-08, 3.12149393966e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 if __name__ == '__main__':
   tst_ideal()

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d
 
@@ -36,7 +37,7 @@ np_data2d[:, :] += numpy.float64(data2d_tmp)
 
 
 #tmp='''
-print "adding noise ...."
+print("adding noise ....")
 import random
 for x_loc in range(950):
   for y_loc in range(550):
@@ -46,7 +47,7 @@ for x_loc in range(950):
     noise_scale = noise_scale * 0.0025
     np_data2d[y_loc, x_loc] += roll_the_dice * noise_scale * np_data2d[y_loc, x_loc]
 
-print "adding noise .... done"
+print("adding noise .... done")
 
 data2d = flex.int(flex.grid(550, 950))
 for x_loc in range(950):
@@ -74,20 +75,20 @@ col_to = 950
 row_from = 0
 row_to = 550
 
-print "Plotting data2d"
+print("Plotting data2d")
 data2d = data2d.as_numpy_array()
 data2d = data2d[row_from:row_to,col_from:col_to]
 plt.imshow(data2d, interpolation = "nearest")
 plt.show()
 
 
-print "Plotting data2dsmoth"
+print("Plotting data2dsmoth")
 np_data2dsmoth = data2dsmoth.as_numpy_array()
 np_data2dsmoth = np_data2dsmoth[row_from:row_to,col_from:col_to]
 plt.imshow(np_data2dsmoth, interpolation = "nearest")#, cmap = pylab.gray())
 plt.show()
 
-print "Plotting data2d mask"
+print("Plotting data2d mask")
 np_data2dmask = mask2d.as_numpy_array()
 np_data2dmask = np_data2dmask[row_from:row_to,col_from:col_to]
 plt.imshow(np_data2dmask, interpolation = "nearest", cmap = pylab.gray())#, cmap = pylab.gray())

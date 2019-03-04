@@ -10,6 +10,7 @@
 #  included in the root directory of this package.
 #
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from libtbx.phil import parse
 from libtbx import easy_pickle
@@ -69,7 +70,7 @@ class Script(object):
                       experiments, params.d_min,
                       tolerance=0.3)
     indexed_reflections = reflections.select(reflections['miller_index'] != (0,0,0))
-    print "Indexed %d reflections out of %d"%(len(indexed_reflections), len(reflections))
+    print("Indexed %d reflections out of %d"%(len(indexed_reflections), len(reflections)))
     easy_pickle.dump("indexedstrong.pickle", indexed_reflections)
 
 if __name__ == '__main__':

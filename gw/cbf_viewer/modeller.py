@@ -3,6 +3,7 @@
 """This module accepts the data read from diffraction image headers and
 computes the coordinates of the crystal and detector using numpy.
 """
+from __future__ import print_function
 
 import numpy as np
 from numpy.linalg import norm
@@ -172,7 +173,7 @@ if __name__ == "__main__":
 
     NaCl = Sample()
     r_f = NaCl.rotate(crystal_i, crystal_j, crystal_k)
-    print NaCl.r_f, NaCl.r_f[1][2, 0], NaCl.f
+    print(NaCl.r_f, NaCl.r_f[1][2, 0], NaCl.f)
 
     # This is a sample normal from the same data.
     detector_normal = np.array([0.0, -0.4226182617406947, -0.9063077870366522])

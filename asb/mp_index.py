@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import sys, os
 from libtbx import easy_mp, easy_run
 from libtbx.phil import parse
@@ -47,7 +48,7 @@ for arg in sys.argv[1:]:
 
 params = phil_scope.fetch(sources = user_phil).extract()
 
-print "Finding files"
+print("Finding files")
 
 images = []
 strongs = []
@@ -62,7 +63,7 @@ for root in root_dirs:
     images.append(filepath)
     strongs.append(strong_filepath)
 
-print "Found %d images to index"%len(images)
+print("Found %d images to index"%len(images))
 
 def index(item):
   image, strong = item
@@ -89,4 +90,4 @@ easy_mp.parallel_map(
   preserve_order=False,
   preserve_exception_message=True)
 
-print "All done"
+print("All done")

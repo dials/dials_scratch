@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 class MyApp(wx.App):
@@ -27,10 +28,10 @@ class MyFrame(wx.Frame):
     self.SetSizerAndFit(h_box)
 
   def read_num_from_txt(self, event = None):
-    print "clicked"
+    print("clicked")
     a = int(self.text01.GetValue())
-    print "a =", a
-    print "a * 2 =", a * 2
+    print("a =", a)
+    print("a * 2 =", a * 2)
 if(__name__ == "__main__"):
   app = MyApp(False)
   app.MainLoop()

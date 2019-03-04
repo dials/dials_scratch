@@ -8,6 +8,7 @@
 #  This code is distributed under the BSD license, a copy of which is
 #  included in the root directory of this package.
 from __future__ import division
+from __future__ import print_function
 
 class SpotFinder(object):
   '''A class to perform spot finding operations on a sweep of images.'''
@@ -39,7 +40,7 @@ class SpotFinder(object):
 
     # Set a command indent to 4
     Command.indent = 4
-    print '\nFinding spot in {0} images...'.format(len(sweep))
+    print('\nFinding spot in {0} images...'.format(len(sweep)))
 
     # Extract the image pixels from the sweep
     Command.start('Extracting pixels from sweep')

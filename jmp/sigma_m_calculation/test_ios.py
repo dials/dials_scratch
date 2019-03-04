@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def get_reflections(experiments):
 
@@ -23,7 +24,7 @@ def get_reflections(experiments):
   mask = flex.bool(image.accessor())
 
   for j in range(ysize):
-    print j
+    print(j)
     for i in range(xsize):
       h = transform.h(0, i+0.5, j+0.5, z0+0.5)
 
@@ -106,7 +107,7 @@ def get_reflections(experiments):
     V.append(I_sum + B * I_count * (1 + I_count / B_count))
     T.append(dphi * 180 / pi)
 
-  print min(T), max(T)
+  print(min(T), max(T))
 
   IOS = []
   TN = []

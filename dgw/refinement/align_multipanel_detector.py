@@ -24,6 +24,7 @@ here. See dials_regression/refinement_test_data/i04_weak_data for the multi-
 panel refinement test."""
 
 from __future__ import division
+from __future__ import print_function
 import sys
 
 if __name__ == '__main__':
@@ -51,7 +52,7 @@ if __name__ == '__main__':
   from dials.model.serialize import load, dump
 
   # Try to load the models
-  print 'Loading detector from {0}'.format(args[0])
+  print('Loading detector from {0}'.format(args[0]))
 
   with open(args[0], 'r') as f: sweep = load.sweep(f)
   detector = sweep.get_detector()
@@ -84,8 +85,8 @@ if __name__ == '__main__':
     panel.set_frame(ref_fast, ref_slow, new_origin)
 
   # Save the refined geometry to file
-  print "detector aligned"
+  print("detector aligned")
   if options.output_file:
-    print 'Saving aligned detector geometry to {0}'.format(
-        options.output_file)
+    print('Saving aligned detector geometry to {0}'.format(
+        options.output_file))
     dump.sweep(sweep, open(options.output_file, 'w'))

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 from math import sqrt, exp, pi
 
@@ -93,7 +94,7 @@ def simulate(experiment,
     experiment.crystal)
 
   for j in range(ysize):
-    print j
+    print(j)
     for i in range(xsize):
       model[j,i] = simulate_pixel(i, j, pixel_to_miller_index, simulator)
       image[j,i] = poisson(model[j,i]*intensity)
@@ -111,7 +112,7 @@ def display():
 
   from matplotlib import pylab, cm
   data = image
-  print flex.max(data)
+  print(flex.max(data))
   pylab.imshow(data.as_numpy_array(), cmap=cm.Greys_r, vmax=1)
   pylab.show()
 

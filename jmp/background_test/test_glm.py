@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 def median(x):
   import numpy
   return numpy.median(x)
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 
     beta = list(result.parameters())
 
-    print beta
+    print(beta)
 
     Y2 = [exp(beta[0]*x[0] + beta[1]*x[1]) for x in X]
 
@@ -61,7 +62,7 @@ if __name__ == '__main__':
 
     beta = list(result.parameters())
 
-    print beta
+    print(beta)
 
     Y3 = [exp(beta[0]*x[0] + beta[1]*x[1]) for x in X]
 
@@ -79,4 +80,4 @@ if __name__ == '__main__':
     # pylab.legend()
     # pylab.show()
 
-  print "Time: ", time() - st
+  print("Time: ", time() - st)

@@ -25,6 +25,7 @@ and so on.
 """
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 from dxtbx.model.experiment_list import ExperimentListFactory
 from dxtbx.model.experiment_list import ExperimentListDumper
 from dials.util.options import flatten_reflections
@@ -95,7 +96,7 @@ class Script(object):
 
     self._strong_path = params.input.reflections[0].filename
     self._num_strong = len(params.input.reflections[0].data)
-    print "{0} strong spots read from {1}".format(self._num_strong, self._strong_path)
+    print("{0} strong spots read from {1}".format(self._num_strong, self._strong_path))
 
     self._images_per_block = params.images_per_block
     self._constrain_detector = params.fix_unstable_detector_parameters
@@ -166,7 +167,7 @@ class Script(object):
 
       # it worked, so update the pointer to the current model
       self._current_exp_path = new_exp_path
-      print "Job {0} completed: scan range ({1},{2})".format(job_id, start, stop)
+      print("Job {0} completed: scan range ({1},{2})".format(job_id, start, stop))
 
       # load the indexed results
       el = ExperimentListFactory.from_json_file(self._current_exp_path,
@@ -212,19 +213,19 @@ class Script(object):
 
     # print results
     st = simple_table(rows, header)
-    print st.format()
+    print(st.format())
     total_num_indexed = sum(num_indexed)
-    print "{0} indexed reflections out of {1} strong spots ({2:.1f}%)".format(
-      total_num_indexed, self._num_strong, 100.*total_num_indexed/self._num_strong)
+    print("{0} indexed reflections out of {1} strong spots ({2:.1f}%)".format(
+      total_num_indexed, self._num_strong, 100.*total_num_indexed/self._num_strong))
 
     # write out the list of files
-    print "writing out list of experiments and indexed reflections to filelist.txt"
+    print("writing out list of experiments and indexed reflections to filelist.txt")
     with open("filelist.txt", "w") as f:
       f.write("\n".join(filelist_lines))
       f.write("\n")
 
     # write out the full reflection table of indexed reflections
-    print "writing out all indexed reflections to all_indexed.pickle"
+    print("writing out all indexed reflections to all_indexed.pickle")
     self._all_indexed.as_pickle('all_indexed.pickle')
 
   def _rmsds(self, reflections):

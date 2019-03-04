@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 
@@ -52,7 +53,7 @@ def run(args):
         params.input.reference, check_format=False)
       assert len(reference_experiments.detectors()) == 1
       reference_detector = reference_experiments.detectors()[0]
-    except Exception, e:
+    except Exception as e:
       reference_datablocks = load.datablock(params.input.reference)
       assert len(reference_datablocks) == 1
       imageset = reference_datablocks[0].extract_imagesets()[0]
@@ -76,7 +77,7 @@ def run(args):
       panel_ref.get_local_origin()
     )
 
-  print 'Writing metrology-corrected datablock to %s' %params.output.datablock
+  print('Writing metrology-corrected datablock to %s' %params.output.datablock)
   from dxtbx.serialize import dump
   dump.datablock(datablocks, params.output.datablock)
 

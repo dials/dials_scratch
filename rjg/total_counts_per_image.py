@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def run(args):
   from dials.array_family import flex
@@ -13,7 +14,7 @@ def run(args):
 
   with open("total_counts_per_image.txt", "wb") as f:
     for i, count in enumerate(total_counts):
-      print >> f, "%i %i" %(i, count)
+      print("%i %i" %(i, count), file=f)
 
   from matplotlib import pyplot
   pyplot.plot(range(total_counts.size()), total_counts)

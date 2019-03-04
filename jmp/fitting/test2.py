@@ -1,20 +1,21 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
   from dxtbx.model.experiment_list import ExperimentListFactory
-  print "Reading %s" % filename
+  print("Reading %s" % filename)
   return ExperimentListFactory.from_json_file(filename)
 
 def read_reference(filename):
   import cPickle as pickle
-  print "Reading %s" % filename
+  print("Reading %s" % filename)
   return pickle.load(open(filename))
 
 def predict_reflections(experiments):
   from dials.array_family import flex
 
-  print "Predicting reflections"
+  print("Predicting reflections")
 
   # Predict
   reflections = flex.reflection_table.from_predictions_multi(experiments)
@@ -29,8 +30,8 @@ def predict_reflections(experiments):
   num_ignore = mask.count(True)
   reflections.set_flags(mask, reflections.flags.dont_integrate)
 
-  print "Predicted %d reflections" % len(reflections)
-  print "Ignoring %d reflections" % num_ignore
+  print("Predicted %d reflections" % len(reflections))
+  print("Ignoring %d reflections" % num_ignore)
 
   return reflections
 
@@ -47,7 +48,7 @@ def read_images(experiments):
   iset = experiments[0].imageset
 
   for i in range(len(iset)):
-    print "Reading image %d" % i
+    print("Reading image %d" % i)
     d = iset.get_raw_data(i)[0].as_double()
     m = iset.get_mask(i)[0].as_1d().as_int()
     m.reshape(flex.grid(ysize, xsize))
@@ -280,7 +281,7 @@ def integrate(experiments, reflections, reference):
   # Read all the image data
   data, mask = read_images(experiments)
 
-  print "Computing pixel lookup"
+  print("Computing pixel lookup")
   from time import time
   st = time()
   pixel_list = PixelList(
@@ -291,27 +292,27 @@ def integrate(experiments, reflections, reference):
     experiments[0].scan,
     experiments[0].profile.sigma_b(deg=False),
     experiments[0].profile.sigma_m(deg=False))
-  print "Time taken: ", time() - st
+  print("Time taken: ", time() - st)
 
-  print "Updating mask"
+  print("Updating mask")
   st = time()
   pixel_list.update_mask(mask)
-  print "Time taken: ", time() - st
+  print("Time taken: ", time() - st)
 
-  print "Computing background"
+  print("Computing background")
   st = time()
   success = pixel_list.compute_background(data, mask, reflections)
-  print "Time taken: ", time() - st
+  print("Time taken: ", time() - st)
 
   background = reflections['background']
-  print "Mean background %f" % flex.mean(background)
-  print "%d failed during background modelling" % (success.count(False))
+  print("Mean background %f" % flex.mean(background))
+  print("%d failed during background modelling" % (success.count(False)))
 
-  print "Computing intensity"
+  print("Computing intensity")
   st = time()
   success = pixel_list.compute_intensity(data, mask, reflections, reference[0], sampler)
-  print "Time taken: ", time() - st
-  print "%d reflection failed to integrate" % success.count(False)
+  print("Time taken: ", time() - st)
+  print("%d reflection failed to integrate" % success.count(False))
 
   return reflections
   exit(0)

@@ -12,6 +12,7 @@
 #  included in the root directory of this package.
 
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 
 import boost.python
@@ -29,11 +30,11 @@ if(__name__ == "__main__"):
     arr_1d[i] = float(i)
 
 
-  print "arr_1d.as_numpy_array() = \n", arr_1d.as_numpy_array()
+  print("arr_1d.as_numpy_array() = \n", arr_1d.as_numpy_array())
 
   block_3d = gen_font_img(arr_1d).as_numpy_array()
 
   for i in range(depth):
     tmp_2d_arr = block_3d[:,:,i]
-    print "arr 2d (", i, ") =\n", tmp_2d_arr
+    print("arr 2d (", i, ") =\n", tmp_2d_arr)
 

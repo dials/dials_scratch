@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from dials.scratch.luiso_s import model_2d
 #from dials.model.data import Reflection, ReflectionList
@@ -98,7 +99,7 @@ for ypos in range(n_y):
       #rlist.append(new_r)
 
 
-print "t_row =", t_row
+print("t_row =", t_row)
 ref_table['shoebox'] = t_shoebox
 ref_table['intensity.sum.value'] = t_intensity
 ref_table['intensity.sum.variance'] = t_intensity_var
@@ -116,7 +117,7 @@ data2d[:, :] += numpy.float64(data2d_tmp)
 #print "created ", len(rlist), "reflections"
 
 from matplotlib import pyplot as plt
-print "Plotting data2d"
+print("Plotting data2d")
 plt.imshow(data2d, interpolation = "nearest")
 plt.show()
 
@@ -130,16 +131,16 @@ from dials.algorithms.integration import flex_2d_layering_n_integrating
 flex_2d_layering_n_integrating(ref_table)
 
 
-print "_____________________________________________________ here"
+print("_____________________________________________________ here")
 
 t_intensity = ref_table['intensity.sum.value']
 
 old_i_table = t_intensity[:]
 
 for tmp_i in (t_intensity):
-  print "tmp_i = ", tmp_i
+  print("tmp_i = ", tmp_i)
 #tmp='''
-print "adding noise ...."
+print("adding noise ....")
 t_row = 0
 #for r in rlist:
 for count in range(num_ref):
@@ -158,7 +159,7 @@ for count in range(num_ref):
           t_shoebox[t_row].data[0, y_loc, x_loc] += random.randint(0,10)
 
     t_row += 1
-print "adding noise .... done"
+print("adding noise .... done")
 #'''
 
 

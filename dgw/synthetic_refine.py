@@ -17,6 +17,7 @@ input experiments.json
 
 # Python and cctbx imports
 from __future__ import division
+from __future__ import print_function
 import sys
 from math import pi, sqrt
 from libtbx.phil import parse
@@ -49,6 +50,7 @@ from dials.algorithms.refinement.prediction import ScansRayPredictor, \
   ExperimentsPredictor
 from dials.algorithms.spot_prediction import ray_intersection
 from cctbx.sgtbx import space_group, space_group_symbols
+from functools import reduce
 
 class ExperimentsPerturber(object):
   '''Perturb the models in an experiment list. For simplicity create a complete
@@ -364,14 +366,14 @@ if __name__ == "__main__":
   old_origin = matrix.col(old_detector[0].get_origin())
   new_origin = matrix.col(new_detector[0].get_origin())
   dorigin = new_origin - old_origin
-  print "origin offset is", dorigin.length(), "mm"
+  print("origin offset is", dorigin.length(), "mm")
 
   old_fast = matrix.col(old_detector[0].get_fast_axis())
   old_slow = matrix.col(old_detector[0].get_slow_axis())
   new_fast = matrix.col(new_detector[0].get_fast_axis())
   new_slow = matrix.col(new_detector[0].get_slow_axis())
 
-  print "offset angle between fast axes is", old_fast.accute_angle(
-    new_fast, deg=True), "degrees"
-  print "offset angle between slow axes is", old_slow.accute_angle(
-    new_slow, deg=True), "degrees"
+  print("offset angle between fast axes is", old_fast.accute_angle(
+    new_fast, deg=True), "degrees")
+  print("offset angle between slow axes is", old_slow.accute_angle(
+    new_slow, deg=True), "degrees")

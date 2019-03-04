@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from scitbx import matrix
 from scitbx import linalg
@@ -569,6 +570,6 @@ if __name__ == '__main__':
 
   p = MosaicityParameterisation((1, 0.1, 2, 0.2, 0.3, 3))
 
-  print p.sigma()
-  print list(p.first_derivatives())
-  print list(p.second_derivatives())
+  print(p.sigma())
+  print(list(p.first_derivatives()))
+  print(list(p.second_derivatives()))

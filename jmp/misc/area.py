@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 INSIDE = 0
@@ -120,7 +121,7 @@ quad = ((3, 3), (5, 3), (5, 5), (3, 5))
 
 from dials.algorithms.polygon import simple_area
 from scitbx.array_family import flex
-print quad_with_aabb_area(quad, aabb), simple_area(flex.vec2_double(quad))
+print(quad_with_aabb_area(quad, aabb), simple_area(flex.vec2_double(quad)))
 
 #p0, p1, p2, p3 = quad
 

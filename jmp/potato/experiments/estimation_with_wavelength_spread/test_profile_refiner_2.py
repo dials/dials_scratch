@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import numpy.random
 from scitbx import matrix
@@ -322,7 +323,7 @@ def plot_function(func):
 
     x = param#(0.05*atan(param) / (pi / 2))**2
     y = func(values)
-    print i, x, y
+    print(i, x, y)
 
     X.append(x)
     Y.append(y)
@@ -352,7 +353,7 @@ def tst_ideal():
   d1 = (q0 - q1).length()
   d2 = (q0 - q2).length()
   d3 = (q0 - q3).length()
-  print min((d1/3.0)**2, (d2/3.0)**2, (d3/3.0)**2)
+  print(min((d1/3.0)**2, (d2/3.0)**2, (d3/3.0)**2))
 
   origin = matrix.col((-217.87240000000003, 227.8312, 305.0))
   fast_axis = matrix.col((1, 0, 0))
@@ -414,7 +415,7 @@ def tst_ideal():
     spot_covariance = matrix_from_params(x)
     wavelength_variance = x[6]**2#(0.05*atan(x[6]) / (pi / 2))**2
     lnL = -target(x)
-    print wavelength_variance, ("%.2e " * 9) % tuple(spot_covariance), lnL
+    print(wavelength_variance, ("%.2e " * 9) % tuple(spot_covariance), lnL)
 
   # Do the simplex optimization
   result = minimize(
@@ -439,19 +440,19 @@ def tst_ideal():
   # Create the covariance matrix
   spot_covariance = matrix_from_params(params)
 
-  print spot_covariance
+  print(spot_covariance)
 
   wavelength_variance = params[6]**2#(0.05*atan(params[6]) / (pi / 2))**2
-  print wavelength_variance
+  print(wavelength_variance)
 
   # expected = matrix.sqr((
   #   9.91047018199e-07, -1.98078253593e-09, 2.27093231797e-09,
   #   -1.98078253593e-09, 1.98335548957e-06, 1.88051940862e-08,
   #   2.27093231797e-09, 1.88051940862e-08, 2.99885951955e-06))
   # assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
-  print tuple(params)
+  print(tuple(params))
 
-  print 'OK'
+  print('OK')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 import numpy
 #path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))      # start copy-pasted from example
@@ -68,7 +69,7 @@ def single_spot_integrate_2d(data2d):
     col_cm = x_num_sum / den_sum
     row_cm = y_num_sum / den_sum
   else:
-    print 'den_sum =', den_sum
+    print('den_sum =', den_sum)
     col_cm = -1
     row_cm = -1
 
@@ -85,7 +86,7 @@ def single_spot_integrate_2d(data2d):
     col_sig = numpy.sqrt(x_num_sum / den_sum)
     row_sig = numpy.sqrt(y_num_sum / den_sum)
   else:
-    print 'den_sum =', den_sum
+    print('den_sum =', den_sum)
     col_sig = -1
     row_sig = -1
   return row_cm, col_cm, row_sig, col_sig, den_sum

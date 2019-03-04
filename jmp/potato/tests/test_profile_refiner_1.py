@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import numpy.random
 from scitbx import matrix
@@ -149,7 +150,7 @@ def tst_ideal():
     params[3], params[4], params[5]))
   sigma = M*M.transpose()
 
-  print sigma
+  print(sigma)
 
   expected = matrix.sqr((
     9.91047018199e-07, -1.98078253593e-09, 2.27093231797e-09,
@@ -157,7 +158,7 @@ def tst_ideal():
     2.27093231797e-09, 1.88051940862e-08, 2.99885951955e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 def tst_binned():
 
@@ -215,7 +216,7 @@ def tst_binned():
 
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 
 def tst_ml_target_class():
@@ -306,7 +307,7 @@ def tst_ml_target_class():
     2.27093231797e-09, 1.88051940862e-08, 2.99885951955e-06))
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 def tst_ml_target_class_2():
 
@@ -360,7 +361,7 @@ def tst_ml_target_class_2():
 
   assert all(1e6*abs(a-b) < 1e-7 for a, b in zip(sigma, expected))
 
-  print 'OK'
+  print('OK')
 
 if __name__ == '__main__':
   tst_ideal()

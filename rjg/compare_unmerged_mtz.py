@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from libtbx.phil import command_line
 from libtbx.utils import Sorry
@@ -42,7 +43,7 @@ def run(args):
     lp = None
     arrays = any_reflection_file(f).as_miller_arrays(merge_equivalents=False)
     for ma in arrays:
-      print ma.info().labels
+      print(ma.info().labels)
       if ma.info().labels[0] == 'XDET':
         xdet = ma
       elif ma.info().labels[0] == 'YDET':

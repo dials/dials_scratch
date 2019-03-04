@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 
 
@@ -30,7 +31,7 @@ ref_table['shoebox'] = shoebox
 #efisient_way = '''
 its = ref_table['shoebox']
 for arr in its:
-  print arr.data.as_numpy_array()
+  print(arr.data.as_numpy_array())
 #'''
 
 example_from_other_code = '''

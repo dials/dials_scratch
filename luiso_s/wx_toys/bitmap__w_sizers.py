@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 class MyApp(wx.App):
@@ -59,14 +60,14 @@ class MyFrame(wx.Frame):
 
 
   def on_prev(self, event):
-    print 'on_prev handler'
+    print('on_prev handler')
     img_path = os.path.abspath("../../../../../../Pictures/dials_logo02.png")
     new_bitmap = wx.Bitmap(img_path, type=wx.BITMAP_TYPE_PNG)
     self.bitmap = wx.StaticBitmap(self.panel, bitmap=new_bitmap)
     self.resize()
 
   def on_next(self, event):
-    print "on_next handler"
+    print("on_next handler")
     img_path = os.path.abspath("../../../../../../Pictures/dials_logo03.png")
     new_bitmap = wx.Bitmap(img_path, type=wx.BITMAP_TYPE_PNG)
     self.bitmap = wx.StaticBitmap(self.panel, bitmap=new_bitmap)

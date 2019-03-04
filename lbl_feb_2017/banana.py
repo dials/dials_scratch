@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 import sys
@@ -19,10 +20,10 @@ def histogram():
   d = h.slots()
 
   for _c, _d in zip(c, d):
-    print _c, _d
+    print(_c, _d)
 
 def scatter():
   for j in range(i_s.size()):
-    print dq[j], i[j], i_s[j], cal[j][0], cal[j][1], obs[j][0], obs[j][1]
+    print(dq[j], i[j], i_s[j], cal[j][0], cal[j][1], obs[j][0], obs[j][1])
 
 scatter()

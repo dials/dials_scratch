@@ -1,14 +1,15 @@
+from __future__ import print_function
 def poisson_source(howmany, counts):
   from scitbx.random import variate, poisson_distribution
   g = variate(poisson_distribution(mean=counts))
-  return [g.next() for j in range(howmany)]
+  return [next(g) for j in range(howmany)]
 
 def measurement_process(counts, dqe):
   from scitbx.random import variate, uniform_distribution
   g = variate(uniform_distribution(min=0.0, max=1.0))
   result = 0
   for j in range(counts):
-    if g.next() < dqe:
+    if next(g) < dqe:
       result += 1
   return result
 
@@ -36,27 +37,27 @@ counts = 100
 exposures = poisson_source(cycles, counts)
 
 # The sample mean and variance should be close to 100
-print "Original signal mean: {0:.3f}, var: {1:.3f}".format(*meanvar(exposures))
+print("Original signal mean: {0:.3f}, var: {1:.3f}".format(*meanvar(exposures)))
 
 # The measurement process gives another Poisson distribution, now with mean and
 # variance close to 50
 measurements = [measurement_process(e, dqe) for e in exposures]
 mmean, mvar = meanvar(measurements)
-print "Measurements mean: {0:.3f}, var: {1:.3f}".format(mmean, mvar)
+print("Measurements mean: {0:.3f}, var: {1:.3f}".format(mmean, mvar))
 
 # The mean of the reconstructed signal is 1/dqe * mmean, but the variance is
 # said to be (1/dqe^2) * mvar
-print "Theoretical reconstructed signal mean: {0:.3f}, var: {1:.3f}".format(
-  1./dqe * mmean, (1./dqe**2) * mvar)
+print("Theoretical reconstructed signal mean: {0:.3f}, var: {1:.3f}".format(
+  1./dqe * mmean, (1./dqe**2) * mvar))
 
 # This is easy to check: just reconstruct the signal from the measurements
 # and look at the variance of the reconstructed signal
 inv_dqe = 1./dqe
 reconstructed = [inv_dqe * m for m in measurements]
 rmean, rvar = meanvar(reconstructed)
-print "Observed signal mean: {0:.3f}, var: {1:.3f}".format(rmean, rvar)
+print("Observed signal mean: {0:.3f}, var: {1:.3f}".format(rmean, rvar))
 
 # The theoretical and observed signal variances are identical.
 from libtbx.test_utils import approx_equal
 assert approx_equal((1./dqe**2) * mvar, rvar)
-print "OK"
+print("OK")

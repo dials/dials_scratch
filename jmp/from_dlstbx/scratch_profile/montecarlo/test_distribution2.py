@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 def run(experiment):
 
@@ -60,7 +61,7 @@ def run(experiment):
   AA = A*sss*A.transpose()
 
 
-  print sss
+  print(sss)
   h2 = A.inverse() * r
   sss =matrix.sqr((
     0.1*0.1*h2[0]*h2[0],0,0,
@@ -70,8 +71,8 @@ def run(experiment):
   BB = A*sss*A.transpose()
   # BB = BB*r
 
-  print AA
-  print BB
+  print(AA)
+  print(BB)
 
   rn = r.normalize()
   if abs(rn[0]) > abs(rn[2]):
@@ -117,7 +118,7 @@ def run(experiment):
   sigma2 = U * S * U.transpose()
 
   sigma = A*sigma*A.transpose() + sigma2
-  print "B:", tuple(U)
+  print("B:", tuple(U))
   sigmam1 = sigma.inverse()
   # A1 = A.inverse()
   SIG1 = sigmam1
@@ -204,9 +205,9 @@ def run(experiment):
 
         # data[j,i] = f
   # print flex.max(data1)
-  print "Max Diff: ", flex.max(flex.abs(data1 - data2))
+  print("Max Diff: ", flex.max(flex.abs(data1 - data2)))
   # data1 = data1 - data2
-  print flex.max(flex.abs(data2))
+  print(flex.max(flex.abs(data2)))
 
   vmax=flex.max(data1)
   from matplotlib import pylab, cm

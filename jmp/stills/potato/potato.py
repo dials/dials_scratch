@@ -10,6 +10,7 @@
 #  included in the root directory of this package.
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 from dials.algorithms.profile_model.gaussian_rs.calculator import ComputeEsdBeamDivergence
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
@@ -36,8 +37,8 @@ class Predictor(object):
 
   def __init__(self, experiment, parameters, dmin=None):
 
-    print ""
-    print "Predicting reflections"
+    print("")
+    print("Predicting reflections")
 
     # Set a resolution range
     if dmin is None:
@@ -52,7 +53,7 @@ class Predictor(object):
 
     # Get an array of miller indices
     miller_indices_to_test = index_generator.to_array()
-    print "Generated %d miller indices" % len(miller_indices_to_test)
+    print("Generated %d miller indices" % len(miller_indices_to_test))
 
     # Get the covariance matrix
     sigma = MosaicityParameterisation(parameters).sigma()
@@ -66,8 +67,8 @@ class Predictor(object):
     s0 = matrix.col(experiment.beam.get_s0())
 
     # Loop through miller indices and check each is in range
-    print "Checking reflections against MVN quantile %f with Mahalabonis distance %f" % (
-      0.997, sqrt(quantile))
+    print("Checking reflections against MVN quantile %f with Mahalabonis distance %f" % (
+      0.997, sqrt(quantile)))
     panel = experiment.detector[0]
     miller_indices = flex.miller_index()
     entering = flex.bool()
@@ -130,7 +131,7 @@ class Predictor(object):
     self._reflections['xyzcal.mm'] = xyzcalmm
     self._reflections['panel'] = panel_list
     self._reflections['id'] = flex.int(len(self._reflections), 0)
-    print "Predicted %d reflections" % len(self._reflections)
+    print("Predicted %d reflections" % len(self._reflections))
 
 
   def reflections(self):
@@ -145,13 +146,13 @@ class BBoxCalculatorNew(object):
 
   def compute(self, reflections):
 
-    print "Computing bbox for %d reflections" % len(reflections)
+    print("Computing bbox for %d reflections" % len(reflections))
 
     # Compute quantile
     quantile = chisq_quantile(2, 0.997)
     D = sqrt(quantile) * 2
     bbox = flex.int6()
-    print "ML: %f" % D
+    print("ML: %f" % D)
     for i in range(len(reflections)):
       s1 = matrix.col(reflections[i]['s1'])
       s2 = matrix.col(reflections[i]['s2'])
@@ -224,8 +225,8 @@ class BBoxCalculatorNew(object):
     selection = (x1 > 0) & (y1 > 0) & (x0 < xsize) & (y0 < ysize)
 
     reflections = reflections.select(selection)
-    print "Filtered reflecions with bbox outside image range"
-    print "Kept %d reflections" % len(reflections)
+    print("Filtered reflecions with bbox outside image range")
+    print("Kept %d reflections" % len(reflections))
     return reflections
 
 class MaskCalculatorNew(object):
@@ -235,13 +236,13 @@ class MaskCalculatorNew(object):
     self.parameters = parameters
 
   def compute(self, reflections):
-    print "Computing mask for %d reflections" % len(reflections)
+    print("Computing mask for %d reflections" % len(reflections))
 
     # Compute quantile
     quantile = chisq_quantile(2, 0.997)
     D = quantile
     panel = self.experiment.detector[0]
-    print "ML: %f" % sqrt(D)
+    print("ML: %f" % sqrt(D))
     for k in range(len(reflections)):
       s1 = matrix.col(reflections[k]['s1'])
       s2 = matrix.col(reflections[k]['s2'])
@@ -352,8 +353,8 @@ class Integrator(object):
     # Do the macro cycles of refinement between refining the profile parameters
     # and refining the crystal orientation and unit cell
     for cycle in range(self.n_macro_cycles):
-      print ""
-      print "Macro cycle %d" % (cycle+1)
+      print("")
+      print("Macro cycle %d" % (cycle+1))
       self._refine_profile()
       self._refine_crystal()
 
@@ -411,13 +412,13 @@ class Integrator(object):
 
     '''
 
-    print "Computing initial sigma d estimate for %d reflections" % len(self.reflections)
+    print("Computing initial sigma d estimate for %d reflections" % len(self.reflections))
     compute_sigma_d = ComputeEsdBeamDivergence(
       self.experiments[0].detector,
       self.reflections)
     self.sigma_d = compute_sigma_d.sigma()
-    print "Sigma D: %.5f degrees" % (self.sigma_d * 180 / pi)
-    print ""
+    print("Sigma D: %.5f degrees" % (self.sigma_d * 180 / pi))
+    print("")
 
   def _compute_bbox(self):
     '''
@@ -425,7 +426,7 @@ class Integrator(object):
 
     '''
 
-    print "Computing the bounding box for %d reflections" % len(self.reflections)
+    print("Computing the bounding box for %d reflections" % len(self.reflections))
     compute_bbox = BBoxCalculator(
       self.experiments[0].crystal,
       self.experiments[0].beam,
@@ -457,7 +458,7 @@ class Integrator(object):
     Compute the spot mask
 
     '''
-    print "Creating the foreground mask for %d reflections" % len(self.reflections)
+    print("Creating the foreground mask for %d reflections" % len(self.reflections))
     mask_foreground = MaskCalculator(
       self.experiments[0].crystal,
       self.experiments[0].beam,
@@ -477,14 +478,14 @@ class Integrator(object):
     Extract the shoebox
 
     '''
-    print "Extracting shoebox from image for %d reflections" % len(self.reflections)
+    print("Extracting shoebox from image for %d reflections" % len(self.reflections))
     self.reflections.extract_shoeboxes(self.experiments[0].imageset)
     if False:
       for r in self.reflections:
-        print r['shoebox'].data.as_numpy_array()
+        print(r['shoebox'].data.as_numpy_array())
 
   def _compute_background(self):
-    print "Computing background for %d reflections" % len(self.reflections)
+    print("Computing background for %d reflections" % len(self.reflections))
     self.reflections.compute_background(self.experiments)
     if False:
       for r in self.reflections:
@@ -495,13 +496,13 @@ class Integrator(object):
         mask = (diff > 0).as_1d().as_int()
         mask.reshape(diff.accessor())
         diff = diff*mask.as_double().as_float()
-        print (flex.floor(diff)).as_numpy_array()
+        print((flex.floor(diff)).as_numpy_array())
 
   def _compute_intensity(self):
-    print "Computing intensity for %d reflections" % len(self.reflections)
+    print("Computing intensity for %d reflections" % len(self.reflections))
     self.reflections.compute_summed_intensity()
-    print "%d reflections integrated" % self.reflections.get_flags(
-      self.reflections.flags.integrated_sum).count(True)
+    print("%d reflections integrated" % self.reflections.get_flags(
+      self.reflections.flags.integrated_sum).count(True))
 
   def _preprocess(self):
     '''
@@ -522,7 +523,7 @@ class Integrator(object):
     Make sure we have the correct reciprocal lattice vector
 
     '''
-    print "Updating predictions for %d reflections" % len(self.reflections)
+    print("Updating predictions for %d reflections" % len(self.reflections))
 
     # Get stuff from experiment
     A = matrix.sqr(self.experiments[0].crystal.get_A())
@@ -542,8 +543,8 @@ class Integrator(object):
     Do the profile refinement
 
     '''
-    print ""
-    print "Refining profile parmameters"
+    print("")
+    print("Refining profile parmameters")
     if self._profile_parameters is None:
       self._profile_parameters = matrix.col((
         self.sigma_d,
@@ -563,8 +564,8 @@ class Integrator(object):
     Do the crystal parameter refinement
 
     '''
-    print ""
-    print "Refining crystal unit cell and orientation parameters"
+    print("")
+    print("Refining crystal unit cell and orientation parameters")
     refiner = CrystalRefiner(
       self.experiments[0],
       self.reflections,

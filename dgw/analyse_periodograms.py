@@ -25,6 +25,7 @@ where filelist consists of paths to indexed.pickles. Associated
 experiments.jsons will be determined by matching expected filenames."""
 
 from __future__ import division
+from __future__ import print_function
 import os, shutil
 import datetime
 import glob
@@ -98,7 +99,7 @@ class Script(object):
     # Create output directory if it does not already exist
     self._directory = os.path.abspath(self.params.output.directory)
     ensure_directory(self._directory)
-    print "Analysis will be performed in {0}".format(self._directory)
+    print("Analysis will be performed in {0}".format(self._directory))
 
     # locate centroid_analysis script
     dials_dir = libtbx.env.find_in_repositories('dials')
@@ -110,10 +111,10 @@ class Script(object):
       # strip newline from the filenames
       s = '{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now())
       s += 'Processing file {0}: '.format(i) + f
-      print s
+      print(s)
       status = self.process(f, i)
       if status:
-        print "Incomplete:", status
+        print("Incomplete:", status)
 
     return
 

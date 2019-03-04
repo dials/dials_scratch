@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import glob
 
@@ -65,12 +66,12 @@ def run(args):
 
   for file_name in files:
     file_name = os.path.abspath(file_name)
-    print file_name
+    print(file_name)
     wedge_number_ = None
     for s in file_name.split(os.path.sep):
       if s.startswith('sweep_'):
         wedge_number_ = int(os.path.splitext(s)[0][-3:])
-        print "wedge_number:", wedge_number_
+        print("wedge_number:", wedge_number_)
         break
     if wedge_number_ is not None:
       wedge_number = wedge_number_
@@ -80,11 +81,11 @@ def run(args):
     for s in file_name.split(os.path.sep):
       if s.startswith('lattice_'):
         lattice_id = int(os.path.splitext(s)[0].split('_')[-1])
-        print "lattice_id:", lattice_id
+        print("lattice_id:", lattice_id)
         break
     wedge_id += 1
-    print "wedge_id: %i, wedge_number: %i, lattice_id: %i" %(
-      wedge_id, wedge_number, lattice_id)
+    print("wedge_id: %i, wedge_number: %i, lattice_id: %i" %(
+      wedge_id, wedge_number, lattice_id))
     wedge_number_to_wedge_id.setdefault(wedge_number, [])
     wedge_number_to_wedge_id[wedge_number].append(wedge_id)
 
@@ -103,14 +104,14 @@ def run(args):
       wedge_n, wedge_ids = args
       result_dict = {}
 
-      print "Wedge", wedge_n
+      print("Wedge", wedge_n)
       if len(wedge_ids) > 1:
         for wedge_id in wedge_ids:
           args = ["dials.import_xds",
                   os.path.split(file_name_dict[wedge_id])[0],
                   "--output='experiments_%i.json'" %wedge_id]
           cmd = " ".join(args)
-          print cmd
+          print(cmd)
           result = easy_run.fully_buffered(cmd).raise_if_errors()
           result.show_stdout()
           result.show_stderr()
@@ -121,7 +122,7 @@ def run(args):
                   "--input=reflections",
                   "--output='integrate_hkl_%i.pickle'" %wedge_id]
           cmd = " ".join(args)
-          print cmd
+          print(cmd)
           result = easy_run.fully_buffered(cmd).raise_if_errors()
           result.show_stdout()
           result.show_stderr()
@@ -165,7 +166,7 @@ SPACEGROUP %s
 EOF
 """ %(file_name_dict[wedge], wedge, space_group.type().lookup_symbol())
       log = open('pointless_%03.f.log' %wedge, 'wb')
-      print >> log, cmd
+      print(cmd, file=log)
       result = easy_run.fully_buffered(command=cmd)
       result.show_stdout(out=log)
       result.show_stderr(out=log)
@@ -179,11 +180,11 @@ EOF
         if overlaps is not None and len(overlaps) > 0:
           matches = miller.match_multi_indices(overlaps, orig_indices)
           before = m.n_reflections()
-          print "before: %i reflections" %m.n_reflections()
+          print("before: %i reflections" %m.n_reflections())
           for i_ref in sorted(matches.pair_selection(1).iselection(), reverse=True):
             m.delete_reflection(i_ref)
           after = m.n_reflections()
-          print "after: %i reflections" %m.n_reflections()
+          print("after: %i reflections" %m.n_reflections())
           m.add_history("Removed %i overlapping reflections" %len(overlaps))
           m.write("integrate_hkl_%03.f.mtz" %wedge)
 
@@ -224,7 +225,7 @@ EOF
 """ %(" ".join(g), space_group.type().lookup_symbol())
 
   log = open('pointless_all.log', 'wb')
-  print >> log, cmd
+  print(cmd, file=log)
   result = easy_run.fully_buffered(command=cmd)
   result.show_stdout(out=log)
   result.show_stderr(out=log)
@@ -237,7 +238,7 @@ EOF
 """ %("\n".join(params.aimless.command))
 
   log = open('aimless.log', 'wb')
-  print >> log, cmd
+  print(cmd, file=log)
   result = easy_run.fully_buffered(command=cmd)
   result.show_stdout(out=log)
   result.show_stderr(out=log)

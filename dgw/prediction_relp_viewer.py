@@ -2,6 +2,7 @@
 # LIBTBX_PRE_DISPATCHER_INCLUDE_SH export BOOST_ADAPTBX_FPE_DEFAULT=1
 
 from __future__ import division
+from __future__ import print_function
 from dials.command_line.reciprocal_lattice_viewer import *
 
 class PredRelpViewer(ReciprocalLatticeViewer):
@@ -151,8 +152,8 @@ def run(args):
   # first set
   mask, _ = reflections2.match_with_reference(reflections)
   reflections2 = reflections2.select(~mask)
-  print "{0} reflections from the second set do not match the first". \
-    format(len(reflections2))
+  print("{0} reflections from the second set do not match the first". \
+    format(len(reflections2)))
   #reflections2 = reflections2.select(reflections2["miller_index"] == (-7,2,-25))
 
   if len(datablocks) == 0:

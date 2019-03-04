@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 import numpy as np
 import time
@@ -9,12 +10,12 @@ def GetBitmap_from_np_array(data2d):
   height = np.size( data2d[:, 0:1] )
 
 
-  print "data2d.max =", data2d.max()
+  print("data2d.max =", data2d.max())
 
   div_scale = 764.0 / data2d.max()
   data2d_scale = np.multiply(data2d, div_scale)
-  print "div_scale =", div_scale
-  print "data2d_scale.max = ", data2d_scale.max()
+  print("div_scale =", div_scale)
+  print("data2d_scale.max = ", data2d_scale.max())
 
   img_array = np.empty( (height ,width, 3),'uint8')
 
@@ -24,9 +25,9 @@ def GetBitmap_from_np_array(data2d):
   img_array[:,:,:] = img_array_tmp[:,:,:]
 
   time2 = time.time()
-  print ("dif(time) =", time2 - time1 )
+  print(("dif(time) =", time2 - time1 ))
 
-  print "img_array.max =", img_array.max()
+  print("img_array.max =", img_array.max())
   image = wx.EmptyImage(width,height)
   image.SetData( img_array.tostring())
   wxBitmap = image.ConvertToBitmap()       # OR:  wx.BitmapFromImage(image)
@@ -35,7 +36,7 @@ def GetBitmap_from_np_array(data2d):
 
 def build_np_img(width=64, height=64):
   data2d = np.zeros( (width, height),'float')
-  print "width, height =", width, height
+  print("width, height =", width, height)
   for x in range(0, width):
     for y in range(0, height):
       data2d[x,y] = np.sqrt(x*x + y*y)

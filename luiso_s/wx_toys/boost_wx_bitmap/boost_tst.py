@@ -12,6 +12,7 @@
 #  included in the root directory of this package.
 
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 
 import boost.python
@@ -32,6 +33,6 @@ if(__name__ == "__main__"):
       tot += arr_2d[row, col]
 
 
-print "arr_2d.as_numpy_array() = \n", arr_2d.as_numpy_array()
-print "gen_font_img(arr_2d).as_numpy_array() = \n", gen_font_img(arr_2d).as_numpy_array()
+print("arr_2d.as_numpy_array() = \n", arr_2d.as_numpy_array())
+print("gen_font_img(arr_2d).as_numpy_array() = \n", gen_font_img(arr_2d).as_numpy_array())
 

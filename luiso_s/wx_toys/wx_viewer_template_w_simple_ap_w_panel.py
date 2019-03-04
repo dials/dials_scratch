@@ -1,6 +1,8 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #from dials.viewer.viewer_utilities import GetBitmap_from_np_array, build_np_img
 
-from bitmap_from_numpy import GetBitmap_from_np_array
+from .bitmap_from_numpy import GetBitmap_from_np_array
 
 import wx
 
@@ -70,22 +72,22 @@ class RandomPanel(wx.Panel):
   def OnSize(self, event = None):
     if( self.sizing_counter > 5 ):
       siz_data = self.GetSize()
-      print "New size of window =", siz_data
+      print("New size of window =", siz_data)
       optm_aspec_ratio = 3.81
-      print "siz_data = ", siz_data[0], siz_data[1]
-      print "aspect ratio = ", float(siz_data[0])/ float(siz_data[1])
+      print("siz_data = ", siz_data[0], siz_data[1])
+      print("aspect ratio = ", float(siz_data[0])/ float(siz_data[1]))
       aspec_ratio = float(siz_data[0])/ float(siz_data[1])
 
       if(aspec_ratio > optm_aspec_ratio):
-        print "use float(siz_data[1] (Height) to calculate new size"
+        print("use float(siz_data[1] (Height) to calculate new size")
         self.frame_scale = float(siz_data[1]) * 0.5 / 291.0
         #(1100, 291)
       else:
-        print "use float(siz_data[0] (with) to calculate new size"
+        print("use float(siz_data[0] (with) to calculate new size")
         self.frame_scale = float(siz_data[0]) * 0.5 / 1100.0
         #(1100, 291)
       self.My_Update(request_new_size = False)
-      print "resizing"
+      print("resizing")
     else:
       self.sizing_counter += 1
 

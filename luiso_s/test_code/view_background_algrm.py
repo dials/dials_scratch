@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d
 
@@ -28,7 +29,7 @@ for x_loc in range(ncol):
       , x_loc - ext_siz : x_loc + ext_siz] = 5
 
 mask2d = flex.int(mask2d)
-print "adding noise ...."
+print("adding noise ....")
 import random
 for x_loc in range(ncol):
   for y_loc in range(nrow):
@@ -42,7 +43,7 @@ for x_loc in range(ncol):
     data2d[y_loc, x_loc] += parabl
     data2d[y_loc, x_loc] += roll_the_dice * noise_scale
 
-print "adding noise .... done"
+print("adding noise .... done")
 
 from dials.algorithms.background import curved_background_flex_2d
 background2d = curved_background_flex_2d(data2d, mask2d)

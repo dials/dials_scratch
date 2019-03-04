@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 def bisection(func, x0, x1, eps, max_iter=50):
@@ -290,7 +291,7 @@ def time_func(func):
   st = time()
   for i in range(10000):
     v = func()
-  print v, time() - st
+  print(v, time() - st)
 
 time_func(lambda: bisection(func, 0, 200, 1e-10))
 time_func(lambda: secant(func, 0, 200, 1e-10))

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import wx
 import numpy as np
 # set backend before importing pyplot
@@ -23,8 +24,8 @@ def GetBitmap_from_np_array(data2d):
   lc_fig.add_axes(ax)
   plt.imshow(np.transpose(data2d), interpolation = "nearest", cmap = 'hot')
 
-  print "xmax =", xmax
-  print "ymax =", ymax
+  print("xmax =", xmax)
+  print("ymax =", ymax)
   for xpos in range(xmax):
     for ypos in range(ymax):
       f_num = data2d[xpos,ypos]
@@ -55,7 +56,7 @@ def GetBitmap_from_np_array(data2d):
 
 def build_np_img(width=64, height=64):
   data2d = np.zeros( (width, height),'float')
-  print "width, height =", width, height
+  print("width, height =", width, height)
   tot_lng = np.sqrt(width**2. + height**2.)
   for x in range(0, width):
     for y in range(0, height):
@@ -63,7 +64,7 @@ def build_np_img(width=64, height=64):
       dy = float(height - y)
       data2d[x,y] = tot_lng - np.sqrt(dx**2. + dy**2.)
 
-  print "data2d.max =", data2d.max()
+  print("data2d.max =", data2d.max())
   return data2d
 
 class MyApp(wx.App):
@@ -84,7 +85,7 @@ class MyFrame(wx.Frame):
     self.panel = wx.Panel(self)
 
     data2d = build_np_img(width=8, height=4)
-    print data2d
+    print(data2d)
     bitmap = GetBitmap_from_np_array(data2d)
 
     self.bitmap = wx.StaticBitmap(self.panel, bitmap=bitmap)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx.array_family import flex
 from scitbx.random import variate, uniform_distribution, poisson_distribution
 import math
@@ -20,4 +21,4 @@ h = flex.histogram(d, data_min=0, data_max=2*rate, n_slots=100)
 total = 0
 for c, s in zip(h.slot_centers(), h.slots()):
   total += s
-  print c, s, total / nn
+  print(c, s, total / nn)

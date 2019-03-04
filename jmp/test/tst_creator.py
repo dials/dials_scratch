@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 # FIXME
 # Currently looking at % difference between predicted background in foreground
@@ -13,7 +14,7 @@ class TestConstant2d(object):
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
     except KeyError:
-      print 'SKIP: dials_regression not configured'
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -40,10 +41,10 @@ class TestConstant2d(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/background_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/background_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
   def run(self):
@@ -68,12 +69,12 @@ class TestConstant2d(object):
   def tst(self, creator):
     for filename in self.refl_filenames:
       self.tst_for_dataset(creator, filename)
-    print 'OK'
+    print('OK')
 
   def tst_for_dataset(self, creator, filename):
     from dials.array_family import flex
     from dials.algorithms.shoebox import MaskCode
-    print filename
+    print(filename)
     rlist = flex.reflection_table.from_pickle(filename)
     shoebox = rlist['shoebox']
     background = [sb.background.deep_copy() for sb in shoebox]
@@ -93,7 +94,7 @@ class TestConstant2d(object):
     try:
       assert(abs(mean) < 0.01)
     except Exception:
-      print "Mean: %f, Sdev: %f", mean, sdev
+      print("Mean: %f, Sdev: %f", mean, sdev)
       from matplotlib import pylab
       pylab.hist(diff)
       pylab.show()
@@ -107,7 +108,7 @@ class TestConstant3d(object):
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
     except KeyError:
-      print 'SKIP: dials_regression not configured'
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -134,10 +135,10 @@ class TestConstant3d(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/background_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/background_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
   def run(self):
@@ -162,12 +163,12 @@ class TestConstant3d(object):
   def tst(self, creator):
     for filename in self.refl_filenames:
       self.tst_for_dataset(creator, filename)
-    print 'OK'
+    print('OK')
 
   def tst_for_dataset(self, creator, filename):
     from dials.array_family import flex
     from dials.algorithms.shoebox import MaskCode
-    print filename
+    print(filename)
     rlist = flex.reflection_table.from_pickle(filename)
     shoebox = rlist['shoebox']
     background = [sb.background.deep_copy() for sb in shoebox]
@@ -187,7 +188,7 @@ class TestConstant3d(object):
     try:
       assert(abs(mean) < 0.01)
     except Exception:
-      print "Mean: %f, Sdev: %f", mean, sdev
+      print("Mean: %f, Sdev: %f", mean, sdev)
       #from matplotlib import pylab
       #pylab.hist(diff)
       #pylab.show()
@@ -202,7 +203,7 @@ class TestLinear2d(object):
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
     except KeyError:
-      print 'SKIP: dials_regression not configured'
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -229,10 +230,10 @@ class TestLinear2d(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/background_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/background_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
   def run(self):
@@ -257,12 +258,12 @@ class TestLinear2d(object):
   def tst(self, creator):
     for filename in self.refl_filenames:
       self.tst_for_dataset(creator, filename)
-    print 'OK'
+    print('OK')
 
   def tst_for_dataset(self, creator, filename):
     from dials.array_family import flex
     from dials.algorithms.shoebox import MaskCode
-    print filename
+    print(filename)
     rlist = flex.reflection_table.from_pickle(filename)
     shoebox = rlist['shoebox']
     background = [sb.background.deep_copy() for sb in shoebox]
@@ -282,7 +283,7 @@ class TestLinear2d(object):
     try:
       assert(abs(mean) < 0.01)
     except Exception:
-      print "Mean: %f, Sdev: %f", mean, sdev
+      print("Mean: %f, Sdev: %f", mean, sdev)
       #from matplotlib import pylab
       #pylab.hist(diff)
       #pylab.show()
@@ -297,7 +298,7 @@ class TestLinear3d(object):
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
     except KeyError:
-      print 'SKIP: dials_regression not configured'
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -324,10 +325,10 @@ class TestLinear3d(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/background_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/background_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
   def run(self):
@@ -352,12 +353,12 @@ class TestLinear3d(object):
   def tst(self, creator):
     for filename in self.refl_filenames:
       self.tst_for_dataset(creator, filename)
-    print 'OK'
+    print('OK')
 
   def tst_for_dataset(self, creator, filename):
     from dials.array_family import flex
     from dials.algorithms.shoebox import MaskCode
-    print filename
+    print(filename)
     rlist = flex.reflection_table.from_pickle(filename)
     shoebox = rlist['shoebox']
 
@@ -383,7 +384,7 @@ class TestLinear3d(object):
     try:
       assert(abs(mean) < 0.01)
     except Exception:
-      print "Mean: %f, Sdev: %f", mean, sdev
+      print("Mean: %f, Sdev: %f", mean, sdev)
       #from matplotlib import pylab
       #pylab.hist(diff)
       #pylab.show()

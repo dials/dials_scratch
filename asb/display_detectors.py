@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.util.options import OptionParser
 from dials.util.options import flatten_datablocks
 from dials.util.options import flatten_experiments
@@ -47,7 +48,7 @@ def display_detectors(detectors, save=False, reflections=None):
       if os.path.exists(filename):
         i += 1
       else:
-        print "Saving detector image as", filename
+        print("Saving detector image as", filename)
         fig.savefig(filename)
         break
   else:

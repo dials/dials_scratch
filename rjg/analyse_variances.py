@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import os
 
@@ -47,7 +48,7 @@ def run(args):
     show_diff_phil=True, return_unhandled=True)
 
   for mtz in args:
-    print mtz
+    print(mtz)
     assert os.path.isfile(mtz), mtz
     import iotbx.merging_statistics
     i_obs = iotbx.merging_statistics.select_data(mtz, data_labels=params.labels)

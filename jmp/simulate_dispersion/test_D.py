@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 from numpy.random import poisson
@@ -29,14 +30,14 @@ for i in range(ntrials):
 DN1_list = [d*(N-1) for d in D_list]
 mean, var = mean_and_variance(DN1_list)
 
-print "Mean Chi(N-1) = ", N-1
-print "Var Chi(N-1) = ", 2*(N-1)
-print "Mean D(N-1) = ", mean
-print "Var D(N-1) = ", var
+print("Mean Chi(N-1) = ", N-1)
+print("Var Chi(N-1) = ", 2*(N-1))
+print("Mean D(N-1) = ", mean)
+print("Var D(N-1) = ", var)
 
 mean, var = mean_and_variance(D_list)
 
-print "Mean = ", 1
-print "Var = ", 2/(N-1)
-print "Mean D(N-1) = ", mean
-print "Var D(N-1) = ", var
+print("Mean = ", 1)
+print("Var = ", 2/(N-1))
+print("Mean D(N-1) = ", mean)
+print("Var D(N-1) = ", var)

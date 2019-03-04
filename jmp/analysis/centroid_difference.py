@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 class Script(object):
 
@@ -13,14 +14,14 @@ class Script(object):
     import numpy
 
     rlist = pickle.load(open(filename, "rb"))
-    print "read file"
+    print("read file")
 
     r_to_use = [r for r in rlist
                     if r.is_valid() and
                        r.bounding_box[1] - r.bounding_box[0] >= 5 and
                        r.bounding_box[3] - r.bounding_box[2] >= 5 and
                        r.intensity / sqrt(r.intensity_variance) > 10]
-    print "Filtered list", len(r_to_use)
+    print("Filtered list", len(r_to_use))
 
 
     px_prd = [r.image_coord_px for r in r_to_use]
@@ -68,24 +69,24 @@ def scipy_stuff():
   from scipy.interpolate import griddata
   from matplotlib import pylab
   import cPickle as pickle
-  print "loading points"
+  print("loading points")
   points, x_diff, y_diff = pickle.load(open("temp_data.pickle", "rb"))
 
   y_pts, x_pts = zip(*points)
 
-  print "Creating grid points"
+  print("Creating grid points")
   grid_points = []
   for j in range(2500):
     for i in range(2500):
       grid_points.append((j, i))
 
-  print "Gridding data"
+  print("Gridding data")
   x_grid = griddata(points, x_diff, grid_points)
   y_grid = griddata(points, y_diff, grid_points)
   x_grid.shape = (2500, 2500)
   y_grid.shape = (2500, 2500)
 
-  print "Plotting"
+  print("Plotting")
   pylab.subplot(3, 1, 1)
   pylab.imshow(x_grid)
   pylab.subplot(3, 1, 2)

@@ -2,6 +2,7 @@
 # LIBTBX_PRE_DISPATCHER_INCLUDE_SH export BOOST_ADAPTBX_FPE_DEFAULT=1
 
 from __future__ import division
+from __future__ import print_function
 
 import libtbx.load_env
 import logging
@@ -121,7 +122,7 @@ def run(args):
   f = ReciprocalLatticeJson(settings=params)
   f.load_models(imagesets, reflections)
   f.as_json(filename=params.output.json, compact=params.output.compact)
-  print
+  print()
 
 
 if __name__ == '__main__':

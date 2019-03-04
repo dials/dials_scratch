@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 #  DIALS viewer
 #
@@ -13,7 +14,7 @@
 # or dials.python new_viewer_tst.py PATH/TO/MY/pickle/file
 #
 import wx
-from viewer_frame import ReflectionFrame
+from .viewer_frame import ReflectionFrame
 
 class viewer_App(wx.App):
   def OnInit(self):

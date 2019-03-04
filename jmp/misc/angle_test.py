@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 def lorentz(m2, s0, s1):
   return abs(m2.dot(s1.cross(s0))) / (s1.length() * s0.length())
 
@@ -29,7 +30,7 @@ phi =  0
 n = 5
 c3 = -n * 0.157 * pi / 180.0
 cs = CoordinateSystem(m2, s0, s1, phi)
-print cs.zeta()
+print(cs.zeta())
 #e1 = matrix.col(cs.e1_axis())
 #e3 = matrix.col(cs.e3_axis())
 #ps = matrix.col(cs.p_star())
@@ -64,7 +65,7 @@ phi_list = []
 e3_list = []
 for t in range(-10, 10):
   p = phi - 0.1 * t * pi / 180
-  print p, from_angle(p)
+  print(p, from_angle(p))
   phi_list.append(p * 180 / pi)
   e3_list.append(from_angle(p))
 

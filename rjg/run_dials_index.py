@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import glob
 import shutil
@@ -51,16 +52,16 @@ def run(args):
     assert os.path.isfile(params.index_phil)
 
   templates = params.template
-  print templates
+  print(templates)
 
   args = []
 
   filenames = []
 
   for t in templates:
-    print t
+    print(t)
     filenames.extend(glob.glob(t))
-  print filenames
+  print(filenames)
   from dxtbx.imageset import ImageSetFactory, ImageSweep
   from dxtbx.datablock import DataBlockFactory
   datablocks = DataBlockFactory.from_args(filenames, verbose=True)
@@ -71,8 +72,8 @@ def run(args):
     for imageset in sweeps:
       if isinstance(imageset, ImageSweep) and len(imageset) >= params.min_sweep_length:
         i += 1
-        print imageset
-        print imageset.get_template()
+        print(imageset)
+        print(imageset.get_template())
         args.append((imageset.paths(), i, params))
 
   # sort based on the first filename of each imageset
@@ -97,16 +98,16 @@ def run_once(args):
   orig_dir = os.path.abspath(os.curdir)
 
   sweep_dir = os.path.join(orig_dir, "sweep_%03i" %sweep_id)
-  print sweep_dir
+  print(sweep_dir)
   if not os.path.exists(sweep_dir):
     os.mkdir(sweep_dir)
   os.chdir(sweep_dir)
 
   log = open('%s/sweep_%03i.log' %(sweep_dir, sweep_id), 'wb')
-  print >> log, filenames
+  print(filenames, file=log)
 
   cmd = "dials.import -i"
-  print >> log, cmd
+  print(cmd, file=log)
   result = easy_run.fully_buffered(
     command=cmd, stdin_lines=sorted(filenames))
   result.show_stdout(out=log)
@@ -118,7 +119,7 @@ def run_once(args):
   if params.find_spots_phil is not None:
     args.append(params.find_spots_phil)
   cmd = " ".join(args)
-  print >> log, cmd
+  print(cmd, file=log)
   result = easy_run.fully_buffered(command=cmd)
   result.show_stdout(out=log)
   result.show_stderr(out=log)
@@ -131,7 +132,7 @@ def run_once(args):
   if params.index_phil is not None:
     args.append(params.index_phil)
   cmd = " ".join(args)
-  print >> log, cmd
+  print(cmd, file=log)
   result = easy_run.fully_buffered(command=cmd)
   result.show_stdout(out=log)
   result.show_stderr(out=log)
@@ -143,7 +144,7 @@ def run_once(args):
       return
 
     cmd = " ".join(["dials.export_xds", "experiments.json"])
-    print >> log, cmd
+    print(cmd, file=log)
     result = easy_run.fully_buffered(command=cmd)
     result.show_stdout(out=log)
     result.show_stderr(out=log)
@@ -171,10 +172,10 @@ def run_once(args):
       # beam and rotation axis parameters much more accurately from the
       # reference dataset
       with open("XDS.INP", "ab") as f:
-        print >> f, "REFINE(INTEGRATE)= %s" %" ".join(params.xds.refine_integrate)
-        print >> f, "REFINE(CORRECT)=  %s" %" ".join(params.xds.refine_correct)
-        print >> f, "INCLUDE_RESOLUTION_RANGE= %.1f %.1f" %tuple(
-          params.xds.include_resolution_range)
+        print("REFINE(INTEGRATE)= %s" %" ".join(params.xds.refine_integrate), file=f)
+        print("REFINE(CORRECT)=  %s" %" ".join(params.xds.refine_correct), file=f)
+        print("INCLUDE_RESOLUTION_RANGE= %.1f %.1f" %tuple(
+          params.xds.include_resolution_range), file=f)
 
         #if no_scale:
           #print >> f, "MINIMUM_I/SIGMA=50"
@@ -210,17 +211,17 @@ def run_once(args):
 
         # don't refine anything more the second time
         with open("XDS.INP", "ab") as f:
-          print >> f, "REFINE(INTEGRATE)="
-          print >> f, "REFINE(CORRECT)="
-          print >> f, "INCLUDE_RESOLUTION_RANGE= %.1f %.1f" %tuple(
-          params.xds.include_resolution_range)
+          print("REFINE(INTEGRATE)=", file=f)
+          print("REFINE(CORRECT)=", file=f)
+          print("INCLUDE_RESOLUTION_RANGE= %.1f %.1f" %tuple(
+          params.xds.include_resolution_range), file=f)
 
           if no_scale:
-            print >> f, "MINIMUM_I/SIGMA=50"
-            print >> f, "CORRECTIONS="
-            print >> f, "NBATCH=1"
+            print("MINIMUM_I/SIGMA=50", file=f)
+            print("CORRECTIONS=", file=f)
+            print("NBATCH=1", file=f)
           for extra in xds_inp_extra:
-            print >> f, extra
+            print(extra, file=f)
 
         result = easy_run.fully_buffered(command=params.xds.executable)
         with open("xds.log", "wb") as xds_log:
@@ -234,7 +235,7 @@ def run_once(args):
       return
 
     cmd = " ".join(["dials.export_mosflm", "experiments.json"])
-    print >> log, cmd
+    print(cmd, file=log)
     result = easy_run.fully_buffered(command=cmd)
     result.show_stdout(out=log)
     result.show_stderr(out=log)
@@ -251,7 +252,7 @@ def run_once(args):
       os.chdir(mosflm_dir)
 
       with open("mosflm.in", "ab") as mosflm_in:
-        print >> mosflm_in, """\
+        print("""\
 MOSAIC 0.2
 refinement residual 15.0
 refinement include partials
@@ -260,11 +261,11 @@ postref fix all
 postref nosegment
 process 1 1
 go
-  """ %(i, i)
+  """ %(i, i), file=mosflm_in)
 
       os.chdir("mosflm")
       cmd = "ipmosflm < mosflm.in"
-      print >> log, cmd
+      print(cmd, file=log)
       result = easy_run.fully_buffered(cmd)
       result.show_stdout(out=log)
       result.show_stderr(out=log)

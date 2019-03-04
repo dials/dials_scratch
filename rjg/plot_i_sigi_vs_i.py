@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 from dials.util.options import OptionParser
@@ -32,7 +33,7 @@ def run(args):
 
   arrays = any_reflection_file(f).as_miller_arrays(merge_equivalents=False)
   for ma in arrays:
-    print ma.info().labels
+    print(ma.info().labels)
     if ma.info().labels == ['I', 'SIGI']:
       intensities = ma
     elif ma.info().labels == ['IMEAN', 'SIGIMEAN']:

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from dials.viewer.reflection_view import paint_refl
 
@@ -11,7 +12,7 @@ if __name__ == '__main__':
   ## or
   #table = flex.reflection_table.from_pickle(
 
-  print "num of ref =", len(table)
+  print("num of ref =", len(table))
   tmp_not_needed = '''
   for i in range(len(table)):
     row = table[i]

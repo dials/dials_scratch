@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def ice_background(j,i, height, width):
   from numpy.random import poisson
@@ -62,7 +63,7 @@ def update(image, x0, x1, y0, y1):
       del_C[j,i] = del_X + del_Y
 
   difference = del_C * del_I + C * delta_I
-  print flex.max(difference), flex.min(difference)
+  print(flex.max(difference), flex.min(difference))
 
   image = image + difference
   #image[y0:y1,x0:x1] = image[y0:y1,x0:x1] + difference[y0:y1,x0:x1]

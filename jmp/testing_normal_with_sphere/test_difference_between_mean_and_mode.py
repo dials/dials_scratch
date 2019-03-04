@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx.linalg import eigensystem
 from scitbx import matrix
@@ -165,8 +166,8 @@ def compute_plane_average(mu, sigma):
   z = compute_z()
   z2 = compute_z2()
 
-  print z, mu2
-  print z2
+  print(z, mu2)
+  print(z2)
 
   mu_new_1 = mu1 + sigma_12 * (1/sigma_22) * (z - mu2)
   v = matrix.col((
@@ -317,15 +318,15 @@ if __name__ == '__main__':
 
   peak, mean = compute_peak_and_mean(mu, sigma)
 
-  print "Mode: ", tuple(mode), mode.length()
-  print "Peak: ", tuple(peak), peak.length()
-  print "Mean: ", tuple(mean), mean.length()
-  print "Mest: ", tuple(mest), mest.length()
-  print "Vect: ", tuple(mu.normalize())
+  print("Mode: ", tuple(mode), mode.length())
+  print("Peak: ", tuple(peak), peak.length())
+  print("Mean: ", tuple(mean), mean.length())
+  print("Mest: ", tuple(mest), mest.length())
+  print("Vect: ", tuple(mu.normalize()))
 
-  print "Mode - Mean angle", mean.angle(mode) * 180.0 / pi
-  print "Mest - Mean angle", mean.angle(mest) * 180.0 / pi
-  print "Vect - Mean angle", mean.angle(mu) * 180.0 / pi
+  print("Mode - Mean angle", mean.angle(mode) * 180.0 / pi)
+  print("Mest - Mean angle", mean.angle(mest) * 180.0 / pi)
+  print("Vect - Mean angle", mean.angle(mu) * 180.0 / pi)
 
 
   plot(mu, sigma)

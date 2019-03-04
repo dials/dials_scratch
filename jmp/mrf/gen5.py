@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def glm33(X, Y, B, P):
   from math import exp , sqrt, log, factorial, lgamma
@@ -55,9 +56,9 @@ if __name__ == '__main__':
   B = flex.double([0, 0])
   P = flex.double([1] * nobs)
   B1 = glm33(X,Y,B,P)
-  print list(B1)
+  print(list(B1))
   result = glm(X,Y,B,P, max_iter=1000)
-  print list(result.parameters())
+  print(list(result.parameters()))
 
   exit(0)
   # for k in range(10):

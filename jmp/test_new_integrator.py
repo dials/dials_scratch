@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
   else:
     nproc = 1
 
-  print "Reading Experiments"
+  print("Reading Experiments")
   from math import pi
   experiments = ExperimentListFactory.from_json_file(experiment_list_filename)
 
@@ -31,15 +32,15 @@ if __name__ == '__main__':
     sigma_m=0.044*pi/180))
 
 
-  print "Predicting Reflections"
+  print("Predicting Reflections")
   rlist = flex.reflection_table.from_predictions(experiments[0])
   rlist['id'] = flex.int(len(rlist), 0)
   rlist.compute_bbox(experiments, profile_model)
   rlist.compute_zeta_multi(experiments)
   rlist.compute_d(experiments)
-  print ""
+  print("")
 
-  print "Creating params"
+  print("Creating params")
   from dials.algorithms.integration.integrator import IntegratorFactory
   from dials.algorithms.integration.integrator import phil_scope
   from libtbx import phil
@@ -56,7 +57,7 @@ if __name__ == '__main__':
   working_phil = phil_scope.fetch(source=user_phil)
   params = working_phil.extract()
 
-  print "Integrating"
+  print("Integrating")
   integrator = IntegratorFactory.create(params, experiments, profile_model, rlist)
   result = integrator.integrate()
 

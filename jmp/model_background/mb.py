@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 
 # def online_variance(data):
@@ -83,7 +84,7 @@ if __name__ == '__main__':
   count = flex.int(flex.grid(height, width), 0)
 
   # Loop through all images
-  print "START"
+  print("START")
   for frame in range(len(imageset)):
 
     # Get the subset of reflections on this image and compute the mask
@@ -124,10 +125,10 @@ if __name__ == '__main__':
 
     average = flex.sum(sum_background) / flex.sum(count)
 
-    print "Image %d: selected %d reflections, avr=%f" % (
+    print("Image %d: selected %d reflections, avr=%f" % (
       frame,
       len(subset),
-      average)
+      average))
 
     # from matplotlib import pylab
     # pylab.imshow((count > 0).as_numpy_array())
@@ -151,7 +152,7 @@ if __name__ == '__main__':
   variance.set_selected(indices, varb)
   variance.reshape(count_mask.accessor())
 
-  print "Saving to model.pickle"
+  print("Saving to model.pickle")
   with open("model.pickle", "w") as outfile:
     import cPickle as pickle
     pickle.dump((average, count_mask, flex.sqrt(variance)), outfile)

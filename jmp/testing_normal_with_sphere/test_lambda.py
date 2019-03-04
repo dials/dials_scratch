@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from math import sqrt, sin, cos, pi, exp
 
@@ -36,7 +37,7 @@ def find_maximum(mu1, mu2, s1, s2):
   x = cos(peak_theta)
   y = sin(peak_theta)
 
-  print x, y
+  print(x, y)
 
 
 mu1 = 1.1*1 / sqrt(2)
@@ -69,7 +70,7 @@ for t in range(10):
   x1 = mu1 / (1 - l0*s1**2)
   x2 = mu2 / (1 - l0*s2**2)
 
-  print l0, x1, x2, x1**2 + x2**2
+  print(l0, x1, x2, x1**2 + x2**2)
 
 find_maximum(mu1, mu2, s1, s2)
 

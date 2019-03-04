@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import math
 import glob
@@ -13,7 +14,7 @@ from cctbx import crystal
 def run_once(directory):
   from dxtbx.serialize import load
   sweep_dir = os.path.basename(directory)
-  print sweep_dir
+  print(sweep_dir)
 
   datablock_name = os.path.join(directory, "datablock.json")
   if not os.path.exists(datablock_name):
@@ -29,7 +30,7 @@ def run_once(directory):
   datablock = load.datablock(datablock_name)
   assert len(datablock) == 1
   if len(datablock[0].extract_sweeps()) == 0:
-    print "Skipping %s" %directory
+    print("Skipping %s" %directory)
     return
   sweep = datablock[0].extract_sweeps()[0]
   template = sweep.get_template()
@@ -120,8 +121,8 @@ def run_once(directory):
         d_min_indexed.append(d_spacings[perm[-1]])
       try:
         rmsds.append(get_rmsds_obs_pred(spots_mm, experiment))
-      except Exception, e:
-        print e
+      except Exception as e:
+        print(e)
         rmsds.append((-1,-1,-1))
         continue
 
@@ -231,8 +232,8 @@ def run(args):
                        ))
 
   with open('results.txt', 'wb') as f:
-    print >> f, table_utils.format(
-      table_data, has_header=True, justify='right')
+    print(table_utils.format(
+      table_data, has_header=True, justify='right'), file=f)
 
   table_data = [('sweep_dir', 'cell_a', 'cell_b', 'cell_c', 'alpha', 'beta', 'gamma',
                  '#indexed_reflections', 'd_min_indexed',
@@ -253,8 +254,8 @@ def run(args):
                        ))
 
   with open('results_indexed.txt', 'wb') as f:
-    print >> f, table_utils.format(
-      table_data, has_header=True, justify='right')
+    print(table_utils.format(
+      table_data, has_header=True, justify='right'), file=f)
 
   cell_a = flex.double([params[0] for params in cell_params])
   cell_b = flex.double([params[1] for params in cell_params])
@@ -323,7 +324,7 @@ def run(args):
     (cell_a, cell_b, cell_c, cell_alpha, cell_beta, cell_gamma)):
     ax = axes.flat[i]
     flex.min_max_mean_double(cell_param).show()
-    print flex.median(cell_param)
+    print(flex.median(cell_param))
     hist = flex.histogram(cell_param, n_slots=20)
     hist.show()
     ax.bar(hist.slot_centers(), hist.slots(), width=0.75*hist.slot_width(),

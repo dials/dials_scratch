@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.scratch.luiso_s import  write_2d
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d
@@ -36,7 +37,7 @@ data2d[:, :] += numpy.float64(data2d_tmp)
 
 
 from matplotlib import pyplot as plt
-print "Plotting data2d"
+print("Plotting data2d")
 plt.imshow(data2d, interpolation = "nearest")
 plt.show()
 
@@ -54,7 +55,7 @@ data2dsmoth_2t = numpy.float64(data2dsmoth_2t_tmp)
 
 #n = write_2d(flex.double(data2dsmoth))
 
-print "Plotting data2dsmoth"
+print("Plotting data2dsmoth")
 plt.imshow(data2dsmoth, interpolation = "nearest", cmap = pylab.gray())
 plt.show()
 

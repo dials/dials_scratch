@@ -1,12 +1,13 @@
+from __future__ import print_function
 import wx
 import subprocess
 
 class MyApp(wx.App):
   def OnInit(self):
 
-    print "Hi"
+    print("Hi")
     subprocess.call("dials.python", shell=True)
-    print "bye"
+    print("bye")
 
     wx.MessageBox("Hi         wx               ", "wxApp")
 

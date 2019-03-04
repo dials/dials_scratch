@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.util.options import OptionParser
 from dials.util.options import flatten_datablocks
 from dials.util.options import flatten_experiments
@@ -45,13 +46,13 @@ class Script(object):
 
     while True:
       # starting at the top of the hierarchy, show diffs in local origins at each level
-      print "Level", level
+      print("Level", level)
       oa = col(pga.get_local_origin())
       ob = col(pgb.get_local_origin())
 
-      print "  Detector a", oa.elems
-      print "  Detector b", ob.elems
-      print "  Diffs", (ob-oa).elems
+      print("  Detector a", oa.elems)
+      print("  Detector b", ob.elems)
+      print("  Diffs", (ob-oa).elems)
 
       if hasattr(pga, 'children'):
         pga = pga[0]

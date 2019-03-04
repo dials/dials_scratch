@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from matplotlib import pylab
 
@@ -13,7 +14,7 @@ if __name__ == '__main__':
       X.append(int(t[0]))
       Y.append(float(t[1]))
 
-  print min(Y), min(X)
+  print(min(Y), min(X))
 
   ax = pylab.scatter(X, Y)
   pylab.xlim((1,1500))

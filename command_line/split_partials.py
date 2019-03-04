@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 import sys
@@ -23,5 +24,5 @@ edge_refl = refl.select(edge)
 
 pickle.dump(edge_refl, open(refl_out, 'w'))
 
-print 'Wrote %d reflections with partiality < %.3f to %s' % \
-  (len(edge_refl), part_lim, refl_out)
+print('Wrote %d reflections with partiality < %.3f to %s' % \
+  (len(edge_refl), part_lim, refl_out))

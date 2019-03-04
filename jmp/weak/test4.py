@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 from math import log, exp, factorial
 
 def dt1(c, b, s, t1, t2, mu0, mu1, mu2):
@@ -12,12 +13,12 @@ def dt1(c, b, s, t1, t2, mu0, mu1, mu2):
     den = exp(t1)*(b[i]*mu0-s[i]*mu2) + exp(t2)*(s[i]*mu0-b[i]*mu1)
     try:
       assert(den > 0)
-    except Exception, e:
-      print "Den:"
-      print den
-      print t1, t2
-      print exp(t1), b[i]*mu0, s[i]*mu2
-      print exp(t2), s[i]*mu0, b[i]*mu1
+    except Exception as e:
+      print("Den:")
+      print(den)
+      print(t1, t2)
+      print(exp(t1), b[i]*mu0, s[i]*mu2)
+      print(exp(t2), s[i]*mu0, b[i]*mu1)
       raise e
     sum2 += c[i]*(b[i]*mu0-s[i]*mu2) / den
   return exp(t1) * (sum2 - sumb + sums)
@@ -32,11 +33,11 @@ def dt2(c, b, s, t1, t2, mu0, mu1, mu2):
     den = exp(t1)*(b[i]*mu0-s[i]*mu2) + exp(t2)*(s[i]*mu0-b[i]*mu1)
     try:
       assert(den > 0)
-    except Exception, e:
-      print "Den:"
-      print den
-      print exp(t1), b[i]*mu0, s[i]*mu2
-      print exp(t2), s[i]*mu0, b[i]*mu1
+    except Exception as e:
+      print("Den:")
+      print(den)
+      print(exp(t1), b[i]*mu0, s[i]*mu2)
+      print(exp(t2), s[i]*mu0, b[i]*mu1)
       raise e
     sum2 += c[i]*(s[i]*mu0-b[i]*mu1) / den
   return exp(t2) * (sum2 - sums + sumb)
@@ -45,7 +46,7 @@ def dt2(c, b, s, t1, t2, mu0, mu1, mu2):
 def iterate(c, b, s, t1, t2, mu0, mu1, mu2):
   d1 = dt1(c, b, s, t1, t2, mu0, mu1, mu2)
   d2 = dt2(c, b, s, t1, t2, mu0, mu1, mu2)
-  print d1, d2
+  print(d1, d2)
   return t1 + d1, t2 + d2
 
 def solve(c, b, s, t1, t2, mu0, mu1, mu2):
@@ -56,7 +57,7 @@ def solve(c, b, s, t1, t2, mu0, mu1, mu2):
 
     x = mu0*exp(t1) - mu1*exp(t2)
     y = mu0*exp(t2) - mu2*exp(t1)
-    print t1, t2, x, y
+    print(t1, t2, x, y)
 
 
 c = [0, 1, 0, 0, 0, 0, 3, 1, 3, 3, 6, 6, 4, 1, 4, 0, 2, 0, 1, 1]
@@ -107,8 +108,8 @@ for j in range(100):
     im1[j,i] = d1
     im2[j,i] = d2
 
-print flex.min(im1), flex.max(im1)
-print flex.min(im2), flex.max(im2)
+print(flex.min(im1), flex.max(im1))
+print(flex.min(im2), flex.max(im2))
 
 from matplotlib import pylab
 pylab.imshow(im1.as_numpy_array())

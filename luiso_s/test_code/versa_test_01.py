@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d, write_2d
@@ -22,7 +23,7 @@ descr[0, 2] = 1
 ref2d = model_2d(5, 5, 2, 1, 0.2, 55, 0.5)
 write_2d(ref2d)
 write_2d(sumation)
-print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 sumation01 = add_2d(descr, ref2d, sumation)
 
 write_2d(ref2d)

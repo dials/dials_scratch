@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 from dlstbx.util.colorstreamhandler import ColorStreamHandler
 import json
 import logging
@@ -41,7 +42,7 @@ class Worker(object):
       pass
 
   def send(self, message):
-    print "Sending"
+    print("Sending")
     self.transport.send(
       'inbound',
       message

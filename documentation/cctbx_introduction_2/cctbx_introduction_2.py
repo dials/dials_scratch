@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 #!/usr/bin/env cctbx.python
 # cctbx_introduction_2.py
 #
@@ -171,7 +172,7 @@ def strategy(a_matrix, dmin, symmetry):
     observed = select_reflections(phi0, phi0 + dphi, observable)
     n_unique_wedge = len(set(reduce_reflections_to_asu(symmetry,
                                                        observed)))
-    print '%6.2f %6.4f' % (phi0, float(n_unique_wedge) / float(n_unique))
+    print('%6.2f %6.4f' % (phi0, float(n_unique_wedge) / float(n_unique)))
 
   return
 

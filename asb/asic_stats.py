@@ -10,6 +10,7 @@
 #  included in the root directory of this package.
 #
 from __future__ import division
+from __future__ import print_function
 from scitbx.matrix import col
 from scitbx.array_family import flex
 
@@ -61,19 +62,19 @@ class Script(object):
 
     # Verify inputs
     if len(experiments) == 0 and len(datablocks) == 0:
-      print "No experiments found"
+      print("No experiments found")
       return
 
     if len(experiments) > 0 and len(datablocks) > 0:
-      print "Please analyze only one datablock or experiment list"
+      print("Please analyze only one datablock or experiment list")
       return
 
     # Find the detector of interest
     if len(experiments) > 0:
-      print "Found %d experiments, doing analysis on experiment 0"%len(experiments)
+      print("Found %d experiments, doing analysis on experiment 0"%len(experiments))
       detector = experiments[0].detector
     else:
-      print "Found %d datablocks, doing analysis on datablock 0"%len(datablocks)
+      print("Found %d datablocks, doing analysis on datablock 0"%len(datablocks))
       detector = datablocks[0].unique_detectors()[0]
 
     # Build a list of all 2x1 sensors in the detector
@@ -90,7 +91,7 @@ class Script(object):
 
     recursive_find_sensors(detector.hierarchy())
 
-    print "Found %d 2x1 sensors"%len(sensors)
+    print("Found %d 2x1 sensors"%len(sensors))
 
     pixel_gaps = flex.double()
     bottom_gaps = flex.double()
@@ -139,14 +140,14 @@ class Script(object):
     an_stats = flex.mean_and_variance(angles)
     sa_stats = flex.mean_and_variance(sensor_angles)
     for x in xrange(len(pixel_gaps)):
-      print "%2d. Px gap: %5.3f  vertical: %6.3f  asic_angle: %6.3f  sensor_angle: %6.3f"%(x,pixel_gaps[x],bottom_gaps[x],angles[x],sensor_angles[x])
+      print("%2d. Px gap: %5.3f  vertical: %6.3f  asic_angle: %6.3f  sensor_angle: %6.3f"%(x,pixel_gaps[x],bottom_gaps[x],angles[x],sensor_angles[x]))
 
 
-    print "Sensor stats (means and standard deviations)"
-    print "3 pixel gap                        : %f, %f"%(pg_stats.mean(), pg_stats.unweighted_sample_standard_deviation())
-    print "Vertical offset                    : %f, %f"%(bg_stats.mean(), bg_stats.unweighted_sample_standard_deviation())
-    print "Angular deviations (between asics) : %f, %f"%(an_stats.mean(), an_stats.unweighted_sample_standard_deviation())
-    print "Angular deviations (sensor)        : %f, %f"%(sa_stats.mean(), sa_stats.unweighted_sample_standard_deviation())
+    print("Sensor stats (means and standard deviations)")
+    print("3 pixel gap                        : %f, %f"%(pg_stats.mean(), pg_stats.unweighted_sample_standard_deviation()))
+    print("Vertical offset                    : %f, %f"%(bg_stats.mean(), bg_stats.unweighted_sample_standard_deviation()))
+    print("Angular deviations (between asics) : %f, %f"%(an_stats.mean(), an_stats.unweighted_sample_standard_deviation()))
+    print("Angular deviations (sensor)        : %f, %f"%(sa_stats.mean(), sa_stats.unweighted_sample_standard_deviation()))
 
 
 if __name__ == '__main__':

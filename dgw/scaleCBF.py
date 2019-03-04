@@ -1,6 +1,7 @@
 #!/usr/bin/env cctbx.python
 
 """Load a miniCBF, multiply the counts, then write out again"""
+from __future__ import print_function
 
 import binascii
 import copy
@@ -71,7 +72,7 @@ if __name__ == '__main__':
   if len(sys.argv) < 3:
     sys.exit(usage)
   multiplier = int(sys.argv[2])
-  print "set multiplier to {0}".format(multiplier)
+  print("set multiplier to {0}".format(multiplier))
 
   with open(sys.argv[1], 'rb') as cbf:
     out_name = 'mod_' + os.path.split(sys.argv[1])[1]

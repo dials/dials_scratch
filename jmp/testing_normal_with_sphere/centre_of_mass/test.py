@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx import matrix
 from math import pi, cos, sin, exp, sqrt, atan2, log, tan, acos
@@ -351,7 +352,7 @@ if __name__ == '__main__':
       a3 = x.angle(x3)
       angle_peak.append(a3)
 
-    print i, a2, a3
+    print(i, a2, a3)
 
   from matplotlib import pylab
   pylab.hist(angle_plane, bins=50)

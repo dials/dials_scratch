@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 example = '''
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  from Graeme
 
@@ -73,7 +74,7 @@ for xpos in range(3):
     a[ypos, xpos] = random.random()
 #        b[ypos, xpos] = 1.0
 
-print "a ="
+print("a =")
 write_2d(a)
 
 #print "b ="
@@ -81,8 +82,8 @@ write_2d(a)
 
 a_mat = a.as_scitbx_matrix()
 
-print a_mat.inverse()
+print(a_mat.inverse())
 x_mat = a_mat.inverse()
-print "inverse(a)= "
+print("inverse(a)= ")
 x = x_mat.as_flex_double_matrix()
 write_2d(x)

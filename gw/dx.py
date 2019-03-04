@@ -6,6 +6,7 @@
 #
 # Details including sage script in dx.tex
 
+from __future__ import print_function
 def skew_symm(v):
   '''Make matrix [v]_x from v. Essentially multiply vector by SO(3) basis
   set Lx, Ly, Lz. Equation (2) from Gallego & Yezzi paper.'''
@@ -173,7 +174,7 @@ def work():
 def dx():
   for j in range(100):
     work()
-  print 'OK'
+  print('OK')
 
 # dx()
 
@@ -205,37 +206,37 @@ def work():
   dkdr = dk_dr(r, s)
   dkds = dk_ds(r, s)
 
-  print 'dR/dr'
-  print 'FD'
-  print ndRr
-  print 'Analytical (G&Y 7)'
+  print('dR/dr')
+  print('FD')
+  print(ndRr)
+  print('Analytical (G&Y 7)')
   m = matrix.sqr((0, 0, 0, 0, 0, 0, 0, 0, 0))
   for i in range(3):
     m += dkdr[i] * dRk[i]
-  print m
-  print 'Analytical (G&Y 9)'
+  print(m)
+  print('Analytical (G&Y 9)')
   m = matrix.sqr((0, 0, 0, 0, 0, 0, 0, 0, 0))
   for i in range(3):
     m += dkdr[i] * dRk2[i]
-  print m
-  print 'Analytical (old)'
-  print dRr
+  print(m)
+  print('Analytical (old)')
+  print(dRr)
 
-  print 'dR/ds'
-  print 'FD'
-  print ndRs
-  print 'Analytical (G&Y 7)'
+  print('dR/ds')
+  print('FD')
+  print(ndRs)
+  print('Analytical (G&Y 7)')
   m = matrix.sqr((0, 0, 0, 0, 0, 0, 0, 0, 0))
   for i in range(3):
     m += dkds[i] * dRk[i]
-  print m
-  print 'Analytical (G&Y 9)'
+  print(m)
+  print('Analytical (G&Y 9)')
   m = matrix.sqr((0, 0, 0, 0, 0, 0, 0, 0, 0))
   for i in range(3):
     m += dkds[i] * dRk2[i]
-  print m
-  print 'Analytical (old)'
-  print dRs
+  print(m)
+  print('Analytical (old)')
+  print(dRs)
 
   # Finally test the direct derivative of a rotated vector wrt the axis elements
   # versus finite differences
@@ -250,15 +251,15 @@ def work():
   from dials_refinement_helpers_ext import dRq_de
   from scitbx.array_family import flex
   dr_de = dRq_de(flex.double([t]), flex.vec3_double([k]), flex.vec3_double([u]))
-  print
-  print "d[r]/d[e], where [r] = [R][u] is a rotation about [e] (G&Y 8)"
-  print matrix.sqr(dr_de[0])
+  print()
+  print("d[r]/d[e], where [r] = [R][u] is a rotation about [e] (G&Y 8)")
+  print(matrix.sqr(dr_de[0]))
 
-  print "Compare with FD calculation"
+  print("Compare with FD calculation")
   dr_de_FD = [dR_ki * u for dR_ki in dRk]
   dr_de_FD = [elt for vec in dr_de_FD for elt in vec] # flatten list
   dr_de_FD = matrix.sqr(dr_de_FD).transpose() # make a matrix
-  print dr_de_FD
+  print(dr_de_FD)
 
 
 work()
@@ -271,9 +272,9 @@ def tst_use_in_stills_parameterisation_for_beam(beam_param=0):
   from math import pi
   import random
 
-  print
-  print "Test use of analytical expressions in stills prediction " + \
-        "parameterisation for beam parameters"
+  print()
+  print("Test use of analytical expressions in stills prediction " + \
+        "parameterisation for beam parameters")
 
   # beam model
   from dxtbx.model.experiment import beam_factory
@@ -321,7 +322,7 @@ def tst_use_in_stills_parameterisation_for_beam(beam_param=0):
   de1_dp = c0.cross(ds0u_dp)
 
   # unlike the previous definition this *is* orthogonal to e1, as expected.
-  print "[e1].(d[e1]/dp) = {0} (should be 0.0)".format(e1.dot(de1_dp))
+  print("[e1].(d[e1]/dp) = {0} (should be 0.0)".format(e1.dot(de1_dp)))
 
   # calculate (d[r]/d[e1])(d[e1]/dp) analytically
   from scitbx.array_family import flex
@@ -329,8 +330,8 @@ def tst_use_in_stills_parameterisation_for_beam(beam_param=0):
   dr_de1 = matrix.sqr(dRq_de(flex.double([DeltaPsi]),
                   flex.vec3_double([e1]),
                   flex.vec3_double([q]))[0])
-  print "Analytical calculation for (d[r]/d[e1])(d[e1]/dp):"
-  print dr_de1 * de1_dp
+  print("Analytical calculation for (d[r]/d[e1])(d[e1]/dp):")
+  print(dr_de1 * de1_dp)
 
   # now calculate using finite differences.
   dp = 1.e-8
@@ -340,10 +341,10 @@ def tst_use_in_stills_parameterisation_for_beam(beam_param=0):
   e1r = e1 - del_e1 * 0.5
   rrev = q.rotate_around_origin(e1r, DeltaPsi)
 
-  print "Finite difference estimate for (d[r]/d[e1])(d[e1]/dp):"
-  print (rfwd - rrev) * (1 / dp)
+  print("Finite difference estimate for (d[r]/d[e1])(d[e1]/dp):")
+  print((rfwd - rrev) * (1 / dp))
 
-  print "These are now the same :-)"
+  print("These are now the same :-)")
 
 tst_use_in_stills_parameterisation_for_beam(0)
 tst_use_in_stills_parameterisation_for_beam(1)
@@ -358,9 +359,9 @@ def tst_use_in_stills_parameterisation_for_crystal(crystal_param=0):
   from math import pi, sqrt, atan2
   import random
 
-  print
-  print "Test use of analytical expressions in stills prediction " + \
-        "parameterisation for crystal parameters"
+  print()
+  print("Test use of analytical expressions in stills prediction " + \
+        "parameterisation for crystal parameters")
 
   # crystal model
   from dxtbx.model.crystal import crystal_model
@@ -437,14 +438,14 @@ def tst_use_in_stills_parameterisation_for_crystal(crystal_param=0):
   dq_scalar = dqq / q_scalar
   dq0_dp = (q_scalar * dq - (q_dot_dq * q0)) / qq
   # orthogonal to q0, as expected.
-  print "NKS [q0].(d[q0]/dp) = {0} (should be 0.0)".format(q0.dot(dq0_dp))
+  print("NKS [q0].(d[q0]/dp) = {0} (should be 0.0)".format(q0.dot(dq0_dp)))
 
   # intuitive method of calculating d[q0]/dp, based on the fact that
   # it must be orthogonal to q0, i.e. in the plane containing q1 and e1
   scaled = dq / q.length()
   dq0_dp = scaled.dot(q1) * q1 + scaled.dot(e1) * e1
   # orthogonal to q0, as expected.
-  print "DGW [q0].(d[q0]/dp) = {0} (should be 0.0)".format(q0.dot(dq0_dp))
+  print("DGW [q0].(d[q0]/dp) = {0} (should be 0.0)".format(q0.dot(dq0_dp)))
 
   # So it doesn't matter which method I use to calculate d[q0]/dp, as
   # both methods give the same results
@@ -454,7 +455,7 @@ def tst_use_in_stills_parameterisation_for_crystal(crystal_param=0):
   de1_dp = -1.0 * dq0_dp.cross(q1)
 
   # this *is* orthogonal to e1, as expected.
-  print "[e1].(d[e1]/dp) = {0} (should be 0.0)".format(e1.dot(de1_dp))
+  print("[e1].(d[e1]/dp) = {0} (should be 0.0)".format(e1.dot(de1_dp)))
 
   # calculate (d[r]/d[e1])(d[e1]/dp) analytically
   from scitbx.array_family import flex
@@ -462,8 +463,8 @@ def tst_use_in_stills_parameterisation_for_crystal(crystal_param=0):
   dr_de1 = matrix.sqr(dRq_de(flex.double([DeltaPsi]),
                   flex.vec3_double([e1]),
                   flex.vec3_double([q]))[0])
-  print "Analytical calculation for (d[r]/d[e1])(d[e1]/dp):"
-  print dr_de1 * de1_dp
+  print("Analytical calculation for (d[r]/d[e1])(d[e1]/dp):")
+  print(dr_de1 * de1_dp)
 
   # now calculate using finite differences.
   dp = 1.e-8
@@ -473,10 +474,10 @@ def tst_use_in_stills_parameterisation_for_crystal(crystal_param=0):
   e1r = e1 - del_e1 * 0.5
   rrev = q.rotate_around_origin(e1r, DeltaPsi)
 
-  print "Finite difference estimate for (d[r]/d[e1])(d[e1]/dp):"
-  print (rfwd - rrev) * (1 / dp)
+  print("Finite difference estimate for (d[r]/d[e1])(d[e1]/dp):")
+  print((rfwd - rrev) * (1 / dp))
 
-  print "These are essentially the same :-)"
+  print("These are essentially the same :-)")
 
 tst_use_in_stills_parameterisation_for_crystal(0)
 tst_use_in_stills_parameterisation_for_crystal(1)

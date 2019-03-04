@@ -1,3 +1,4 @@
+from __future__ import print_function
 from numpy.random import normal, poisson, seed, uniform, multivariate_normal
 from math import exp, pi, sqrt, log, sin, cos
 from dials.array_family import flex
@@ -160,7 +161,7 @@ def generate_from_reflections(s0, sigma, reflections):
 
     P = exp(-0.5*(z-mu2)**2 / sigma22)
     R = uniform(0, 1.0)
-    print k, P, R
+    print(k, P, R)
     if P < R:
       continue
 

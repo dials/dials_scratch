@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 class PixelLabeller(object):
   '''
@@ -140,7 +141,7 @@ class ImageModeller(object):
     self._mask = simulation.mask()
     self._labels = simulation.labels()
     self._indices = simulation.indices()
-    print len(self._indices)
+    print(len(self._indices))
 
     from matplotlib import pylab
     pylab.imshow(self._distance.as_numpy_array(), interpolation='none')

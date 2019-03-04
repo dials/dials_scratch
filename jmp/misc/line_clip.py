@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 INSIDE = 0
 LEFT = (1 << 0)
@@ -460,7 +461,7 @@ class Test(object):
     assert(len(poly) == 0)
 
     # Test passed
-    print 'OK'
+    print('OK')
 
   def tst_outside_spanning(self):
 
@@ -478,7 +479,7 @@ class Test(object):
     assert(len(poly) == 2)
 
     # Test passed
-    print 'OK'
+    print('OK')
 
 test = Test()
 test.run()

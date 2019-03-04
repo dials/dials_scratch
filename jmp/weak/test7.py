@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy as np
 from scipy import optimize
 import pylab as pl
@@ -43,7 +44,7 @@ def func(B, S):
   return -(suml - sumc - B*sumb - S*sums)
 
 def objective(x0):
-  print 1, x0
+  print(1, x0)
   return func(x0[0], x0[1])
 
 def db(B, S):
@@ -63,7 +64,7 @@ def ds(B, S):
   return sumc - sums
 
 def jacobian(x0):
-  print 2, x0
+  print(2, x0)
   import numpy
   return numpy.array((
     -db(x0[0], x0[1]),
@@ -77,7 +78,7 @@ def jacobian(x0):
 
 def constraints(x):
   CC = np.dot(A,x) - C
-  print "C: ", x, CC
+  print("C: ", x, CC)
   return CC
 
 cons = (
@@ -95,8 +96,8 @@ def solve():
       method='SLSQP',
       options={'disp':False})
 
-    print '\nConstrained:'
-    print res_cons
+    print('\nConstrained:')
+    print(res_cons)
 
     # print '\nUnconstrained:'
     # print res_uncons

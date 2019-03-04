@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -55,7 +56,7 @@ def compute_reference(experiments, reflections, params):
     experiments,
     reflections,
     params)
-  print reference_manager.summary()
+  print(reference_manager.summary())
 
   for task in reference_manager.tasks():
     result = task()
@@ -106,17 +107,17 @@ if __name__ == '__main__':
 
   predicted.compute_bbox(experiments)
 
-  print "Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask()
+  print("Dynamic Mask: ", experiments[0].imageset.has_dynamic_mask())
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
 
   from time import time
   st = time()
 
   reflections, reference = compute_reference(experiments, predicted, params)
-  print "Num used in modelling", reflections.get_flags(reflections.flags.used_in_modelling).count(True)
-  print "Time taken: ", time() - st
+  print("Num used in modelling", reflections.get_flags(reflections.flags.used_in_modelling).count(True))
+  print("Time taken: ", time() - st)
 
   import pickle
   pickle.dump(reference, open("reference_profiles.pickle", "w"))

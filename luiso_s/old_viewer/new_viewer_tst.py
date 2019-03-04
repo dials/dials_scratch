@@ -10,6 +10,7 @@
 #
 #
 from __future__ import division
+from __future__ import absolute_import
 import wx
 
 
@@ -33,7 +34,7 @@ if __name__ == "__main__":
 
   import sys
   from dials.array_family import flex
-  from reflection_view import viewer_App
+  from .reflection_view import viewer_App
 
   table = flex.reflection_table.from_pickle(sys.argv[1])
 

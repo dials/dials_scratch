@@ -2,6 +2,7 @@
 
 """Examples of using and abusing scitbx::array_family types when writing
 C++ extension functions and classes for use in Python"""
+from __future__ import print_function
 
 import textwrap
 
@@ -9,17 +10,17 @@ run_number = 1
 def runner(fn):
   global run_number
   title = 'Example {0}'.format(run_number)
-  print title
-  print '-' * len(title)
+  print(title)
+  print('-' * len(title))
   try:
     desc = textwrap.fill(' '.join(fn.__doc__.split()), width=50,
                             initial_indent='  ', subsequent_indent='  ')
   except AttributeError:
     desc = 'No description'
-  print desc
-  print
+  print(desc)
+  print()
   fn()
-  print
+  print()
   run_number += 1
 
 def demo_no_converter_for_const_ref():
@@ -29,22 +30,22 @@ def demo_no_converter_for_const_ref():
   from dials_scratch_cctbx_cpp_examples_ext import BadBucket
   from cctbx.array_family import flex
 
-  print 'Create a C++ class that contains an array of Miller indices.'
+  print('Create a C++ class that contains an array of Miller indices.')
   hkl = flex.miller_index([(0,0,i) for i in range(10)])
   bb = BadBucket(hkl)
 
   # cannot return an af::const_ref to Python
-  print 'Attempt to access the contained array as an af::const_ref.'
+  print('Attempt to access the contained array as an af::const_ref.')
   try:
     bb.get_const_ref_hkl()
   except TypeError as e:
-    print "This fails with a TypeError and this message:"
-    print e.message
+    print("This fails with a TypeError and this message:")
+    print(e.message)
 
   # however, can return an af::shared copy of the stored data
-  print 'Now access the contained array as an af::shared.'
+  print('Now access the contained array as an af::shared.')
   hkl2 = bb.get_shared_hkl()
-  print 'This works, and the result is a {0}'.format(type(hkl2))
+  print('This works, and the result is a {0}'.format(type(hkl2)))
 
   # check the initial and returned arrays are the same
   assert (hkl == hkl2).all_eq(True)
@@ -57,20 +58,20 @@ def demo_data_loss_with_const_ref_storage():
   from dials_scratch_cctbx_cpp_examples_ext import BadBucket
   from cctbx.array_family import flex
 
-  print 'Create a C++ class that contains an array of Miller indices.'
+  print('Create a C++ class that contains an array of Miller indices.')
   hkl = flex.miller_index([(0,0,i) for i in range(10)])
   bb = BadBucket(hkl)
 
-  print 'Access the data from this object.'
+  print('Access the data from this object.')
   hkl2 = bb.get_shared_hkl()
 
-  print 'Check all values are as expected. So far, so good.'
+  print('Check all values are as expected. So far, so good.')
   assert (hkl2 == hkl).all_eq(True)
 
-  print 'Now alter the original data.'
+  print('Now alter the original data.')
   hkl.fill((0,0,0))
 
-  print 'Access data from the object again.'
+  print('Access data from the object again.')
   hkl3 = bb.get_shared_hkl()
 
   print ("See that altering the original array of Miller indices affects "
@@ -90,7 +91,7 @@ def demo_cannot_pass_versa_from_python():
   from dials_scratch_cctbx_cpp_examples_ext import TwoDimensionalArrayFixed
   from scitbx.array_family import flex
 
-  print 'Create a 2D flex.double array'
+  print('Create a 2D flex.double array')
   nrow = 10
   ncol = 2
   array = flex.double(range(nrow * ncol))
@@ -100,22 +101,22 @@ def demo_cannot_pass_versa_from_python():
   fixed = TwoDimensionalArrayFixed()
 
   # Cannot pass array from Python as versa
-  print 'Attempt to pass the array to a C++ extension as an af::versa.'
+  print('Attempt to pass the array to a C++ extension as an af::versa.')
   try:
     broken.set_array_data(array)
   except TypeError as e:
-    print "This fails with a Boost.Python.ArgumentError and this message:"
-    print e.message
+    print("This fails with a Boost.Python.ArgumentError and this message:")
+    print(e.message)
 
   # Can pass the array from Python as const_ref
-  print 'Now attempt to pass the array to a C++ extension as an af::const_ref.'
+  print('Now attempt to pass the array to a C++ extension as an af::const_ref.')
   fixed.set_array_data(array)
 
   # Getter as versa works fine
   array2 = fixed.get_array_data()
 
   assert (array2 == array).all_eq(True)
-  print 'This works, and the data can be passed back to Python via af::versa'
+  print('This works, and the data can be passed back to Python via af::versa')
 
 
 if __name__ == '__main__':

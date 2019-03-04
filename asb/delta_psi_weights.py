@@ -11,6 +11,7 @@
 #  included in the root directory of this package.
 #
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from matplotlib import pyplot as plt
 from libtbx.phil import parse
@@ -126,13 +127,13 @@ class Script(object):
         plt.hist(reflections['delpsical.weights'].select(sel))
 
     # Show unit cell distribution and mean I
-    print "Average uc +/- std. deviation"
+    print("Average uc +/- std. deviation")
     labels = ["% 6s"% l for l in ["a","b","c","alpha","beta","gamma"]]
     for label, data in zip(labels, all_uc):
       stats = flex.mean_and_variance(data)
-      print "%s % 6.1f +/- %6.1f"%(label, stats.mean(), stats.unweighted_sample_standard_deviation())
+      print("%s % 6.1f +/- %6.1f"%(label, stats.mean(), stats.unweighted_sample_standard_deviation()))
 
-    print "Mean I over all data"
+    print("Mean I over all data")
     binner.show_data(mean_i, data_fmt = "%.1f", show_unused=False)
 
     easy_pickle.dump(params.output.reflections, reflections)

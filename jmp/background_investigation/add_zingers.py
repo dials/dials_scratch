@@ -8,6 +8,7 @@
 #
 
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 
@@ -87,7 +88,7 @@ def add_zingers(imageset, params):
 
     with open(out_image, 'wb') as f:
       f.write(''.join(new_header) + start_tag + compressed + tailer)
-      print '%s written with %d zingers' % (out_image, num)
+      print('%s written with %d zingers' % (out_image, num))
 
   return
 

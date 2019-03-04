@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from libtbx.phil import command_line
 from libtbx.utils import Sorry
@@ -41,7 +42,7 @@ def run(args):
   unit_cell = params.unit_cell
   if unit_cell is None:
     unit_cell = space_group.info().any_compatible_unit_cell(volume=100000)
-    print unit_cell
+    print(unit_cell)
 
   assert len(args) == 2
   from cctbx import crystal, miller
@@ -80,8 +81,8 @@ def run(args):
   pyplot.savefig('hist_isigi.png')
   pyplot.clf()
 
-  print ma1.d_max_min()
-  print ma2.d_max_min()
+  print(ma1.d_max_min())
+  print(ma2.d_max_min())
   ma1.setup_binner(n_bins=20)
   ma2.setup_binner(n_bins=20)
 
@@ -128,7 +129,7 @@ def run(args):
       best_cb_op = cb_op
       best_count = ma1.size()
 
-  print "Best cb_op: %s (%i matches)" %(best_cb_op, best_count)
+  print("Best cb_op: %s (%i matches)" %(best_cb_op, best_count))
   ma1, ma2 = intensities
   ma1, ma2 = ma1.common_sets(ma2.change_basis(best_cb_op))
 

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -37,21 +38,21 @@ def integrate(experiments, reflections, reference, grid_size=5,
 
   iset = experiments[0].imageset
   for i in range(len(iset)):
-    print "Reading image %d" % i
+    print("Reading image %d" % i)
     data = iset.get_raw_data(i)
     mask = iset.get_mask(i)
     extractor.next(make_image(data, mask))
 
-  print "Computing mask"
+  print("Computing mask")
   reflections.compute_mask(experiments)
 
-  print "Computing background"
+  print("Computing background")
   reflections.compute_background(experiments)
 
-  print "Computing centroid"
+  print("Computing centroid")
   reflections.compute_centroid(experiments)
 
-  print "Computing summed intensity"
+  print("Computing summed intensity")
   reflections.compute_summed_intensity()
 
 
@@ -150,12 +151,12 @@ def integrate(experiments, reflections, reference, grid_size=5,
         Cprf[i] = fit.correlation()
         Fprf[i] = True
         # if r['intensity.sum.value'] > 10 and abs(fit.intensity()) < 1e-3:
-        print r['miller_index'], i, fit.intensity(),  r['intensity.sum.value'],  r['intensity.prf_old.value'], Part[i], fit.niter()
+        print(r['miller_index'], i, fit.intensity(),  r['intensity.sum.value'],  r['intensity.prf_old.value'], Part[i], fit.niter())
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
-      except Exception, e:
-        print e
+      except Exception as e:
+        print(e)
         pass
 
     else:
@@ -189,11 +190,11 @@ def integrate(experiments, reflections, reference, grid_size=5,
         Vprf[i] = fit.variance()[0]
         Cprf[i] = fit.correlation()
         Fprf[i] = True
-        print r['miller_index'], i, fit.intensity(), r['intensity.prf_old.value']
+        print(r['miller_index'], i, fit.intensity(), r['intensity.prf_old.value'])
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
-      except Exception, e:
+      except Exception as e:
         pass
 
 
@@ -224,7 +225,7 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
   reference = read_reference(reference_filename)
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
   reflections = integrate(experiments, reflections, reference[0],
                           grid_size=grid_size, detector_space=detector_space)

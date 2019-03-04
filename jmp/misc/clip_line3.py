@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 #def is_inside(p, e1, e2):
 #    return (e2[0] - e1[0]) * (p[1] - e1[1]) > (e2[1] - e1[1]) * (p[0] - e1[0])
@@ -126,16 +127,16 @@ rect = aabb
 st = time()
 for i in range(10000):
   result1 = clip.simple_with_convex(poly1, poly2)
-print time() - st
+print(time() - st)
 
 st = time()
 for i in range(10000):
 #    result2 = sutherland_hodgman(quad, aabb)
   result2 = clip.simple_with_rect(poly1, rect)
-print time() - st
+print(time() - st)
 
-print list(result1)
-print list(result2)
+print(list(result1))
+print(list(result2))
 
 #poly = sutherland_hodgman(quad, aabb)
 #print poly

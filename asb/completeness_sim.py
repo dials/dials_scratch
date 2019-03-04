@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 #from iotbx import reflection_file_reader
 from cctbx.crystal import symmetry
 from cctbx.array_family import flex
@@ -123,15 +124,15 @@ while True:
   unique_set.setup_binner(n_bins=10)
   binned_data = unique_set.completeness(use_binning=True,multiplier=100)
 
-  print "Crystals:", number_xtals
-  print "Multiplicity"
+  print("Crystals:", number_xtals)
+  print("Multiplicity")
   binner.show_data(data, data_fmt="%.3f")
-  print "Completeness"
+  print("Completeness")
   binned_data.show()
   n_obs = len(miller_set.indices())
-  print "N obs:", n_obs, "N unique:", len(unique_set.indices())
+  print("N obs:", n_obs, "N unique:", len(unique_set.indices()))
   n_sites = 1; f = 2; ccano = 0.36
-  print "Estimated Sanom assuming CCano %.2f, %d site and f=%.2f: %.3f"%(ccano, n_sites, f, 0.36*sqrt(n_obs)/(sqrt(1)*sqrt(2)))
+  print("Estimated Sanom assuming CCano %.2f, %d site and f=%.2f: %.3f"%(ccano, n_sites, f, 0.36*sqrt(n_obs)/(sqrt(1)*sqrt(2))))
 
   # Thresholding
   if [binned_data.data[i] < 95 for i in binned_data.binner.range_used()].count(False) != 10:
@@ -140,4 +141,4 @@ while True:
   if [binner.counts()[i] / binner.counts_complete()[i] < 4 for i in binner.range_used()].count(False) == 10:
     break
 
-print "Took", number_xtals, "crystals to 95% completeness, 4 fold redundancy"
+print("Took", number_xtals, "crystals to 95% completeness, 4 fold redundancy")

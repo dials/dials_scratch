@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 if __name__ == '__main__':
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
   # Loop through all the images and sum the pixels
   counts = []
   for i, image in enumerate(imageset):
-    print 'Processing image %d' % i
+    print('Processing image %d' % i)
     counts.append(flex.sum(image.select(mask.as_1d())))
 
   # Write the counts to file

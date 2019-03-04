@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def db(c, b, s, B, S):
   sumb = sum(b)
@@ -66,7 +67,7 @@ from scipy.optimize import minimize
 
 def f(x, c, b, s):
   from math import log, factorial
-  print x
+  print(x)
   sum_c = sum([log(factorial(cc)) for cc in c])
   sum_b = sum(b)
   sum_s = sum(s)
@@ -105,7 +106,7 @@ con = [{
 }]
 
 x0 = [1, 1]
-print minimize(f, x0, args=(c, b, s), method="SLSQP", constraints=con, jac=J)
+print(minimize(f, x0, args=(c, b, s), method="SLSQP", constraints=con, jac=J))
 # from scitbx import matrix
 
 # B = 1

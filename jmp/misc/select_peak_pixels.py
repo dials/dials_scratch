@@ -1,4 +1,6 @@
 from __future__ import division
+from __future__ import print_function
+from functools import reduce
 
 def select_contigious(index, shape, conn):
   """ Filter the indices to only contain contigious pixels
@@ -92,4 +94,4 @@ if __name__ == '__main__':
   index = select_foreground_pixels(data, n_sigma=2)
 
   for i in index:
-    print i
+    print(i)

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import libtbx.phil
 
 help_message = '''
@@ -43,10 +44,10 @@ def run(args):
 
   # only want fully-recorded reflections in full dataset
   #reflections[0] = reflections[0].select(reflections[0]['partiality'] > 0.99)
-  print reflections[0].size()
+  print(reflections[0].size())
   # only want partial reflections in sliced dataset
   #reflections[1] = reflections[1].select(reflections[1]['partiality'] < 0.99)
-  print reflections[1].size()
+  print(reflections[1].size())
 
   for refl in reflections:
     #sel = refl.get_flags(refl.flags.integrated_sum)
@@ -79,7 +80,7 @@ def run(args):
   i0 = intensities[0].select(isel0)
   i1 = intensities[1].select(isel1)
 
-  print (p0 > p1).count(True), (p0 < p1).count(True)
+  print((p0 > p1).count(True), (p0 < p1).count(True))
 
   h0 = flex.histogram(p0, data_min=0, data_max=1, n_slots=20)
   h1 = flex.histogram(p1, data_min=0, data_max=1, n_slots=20)

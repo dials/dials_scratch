@@ -2,6 +2,7 @@
 
 
 from __future__ import division
+from __future__ import print_function
 import h5py
 
 
@@ -269,7 +270,7 @@ def test_writing():
 def test_export_dials():
 
   from dials.array_family import flex
-  print 'Creating dummy reflection table...'
+  print('Creating dummy reflection table...')
   table = flex.reflection_table()
   table['miller_index'] = flex.miller_index(100)
   table['id'] = flex.int(100)
@@ -301,7 +302,7 @@ def test_export_dials():
   # Get the entry
   entry = outfile.entry
 
-  print 'Writing reflection table stuff...'
+  print('Writing reflection table stuff...')
   # Save some processed data
   diffraction = entry.diffraction
 

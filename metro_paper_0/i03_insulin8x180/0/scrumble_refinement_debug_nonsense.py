@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 def scrape_parameters(refinement_debug_log):
@@ -66,5 +67,5 @@ for k in detector_parameters:
         diffs = [mr2d * (v - mean) for v in values]
     else:
         diffs = [(v - mean) for v in values]
-    print '%14s' % k,
-    print ' '.join(['%6.3f' % d for d in diffs])
+    print('%14s' % k, end=' ')
+    print(' '.join(['%6.3f' % d for d in diffs]))

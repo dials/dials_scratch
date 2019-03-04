@@ -1,5 +1,6 @@
 #!/usr/bin/env dials.python
 from __future__ import division
+from __future__ import print_function
 import sys
 from libtbx.phil import command_line, parse
 
@@ -22,7 +23,7 @@ working_phil = cmd_line.process_and_fetch(args=(phil,))
 working_params = working_phil.extract()
 
 for input in working_params.input:
-  print input.experiments, input.reflections
+  print(input.experiments, input.reflections)
 
 from dials.model.serialize import load as load_dials
 from dxtbx.serialize import load as load_dxtbx
@@ -47,10 +48,10 @@ class ExperimentFromCrystal(object):
                       crystal=crystal)
 
 assert len(working_params.input) > 1
-print len(working_params.input), "datasets specified as input"
+print(len(working_params.input), "datasets specified as input")
 
 e = enumerate(working_params.input)
-i, line = e.next()
+i, line = next(e)
 reflections, exp = load_input(line.experiments, line.reflections)
 assert reflections['id'].all_eq(0)
 experiment_from_crystal=ExperimentFromCrystal(exp.beam, exp.detector)
@@ -98,11 +99,11 @@ experiments = refiner.get_experiments()
 dump = ExperimentListDumper(experiments)
 experiments_filename = "refined_experiments.json"
 dump.as_json(experiments_filename)
-print "refined geometry written to {0}".format(experiments_filename)
+print("refined geometry written to {0}".format(experiments_filename))
 
 # save reflections used in refinement
 matches = refiner.get_matches()
 reflections_filename = "refined_reflections.json"
 matches.as_pickle(reflections_filename)
-print "reflections used in refinement written to {0}".format(reflections_filename)
+print("reflections used in refinement written to {0}".format(reflections_filename))
 

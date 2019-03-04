@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer_frame
 #
@@ -82,10 +83,10 @@ class MyPanel(wx.Panel):
             self.number_of_img -= 1
             self.frame.fSizer.Layout()
             self.frame.Fit()
-            print "number_of_img =", self.number_of_img
+            print("number_of_img =", self.number_of_img)
 
     def on_V_add(self, event):
-        print "from on_V_add"
+        print("from on_V_add")
         self.widgetSizer.append(wx.BoxSizer(wx.HORIZONTAL))
         self.mainSizer.Add(self.widgetSizer[self.number_of_floors], 0, wx.CENTER|wx.ALL, 10)
 
@@ -110,7 +111,7 @@ class MyPanel(wx.Panel):
 
         for n_siz in range(self.number_of_img -1, -1, -1):
 
-            print "n_siz =", n_siz
+            print("n_siz =", n_siz)
             self.widgetSizer[floor].Hide(n_siz)
             self.widgetSizer[floor].Remove(n_siz)
 
@@ -120,7 +121,7 @@ class MyPanel(wx.Panel):
 
         self.number_of_floors = floor
 
-        print "from V_rmButton"
+        print("from V_rmButton")
 
         self.frame.fSizer.Layout()
         self.frame.Fit()
@@ -144,7 +145,7 @@ class MyPanel(wx.Panel):
                 self.on_V_rm(event)
             self.tst_update()
 
-        print "test Done"
+        print("test Done")
 
     def tst_update(self):
         import time

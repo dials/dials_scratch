@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx import matrix
 from math import pi, cos, sin, exp, sqrt, atan2, log, tan, acos
 from random import uniform
@@ -69,7 +70,7 @@ def simulate(num_spots,
     x = compute_integrate(mu, sigma, num_integral, num_integral)
     ft = time()
 
-    print i, mu.length(), tuple(sigma)[::4], x.angle(mu), int(ft-st)
+    print(i, mu.length(), tuple(sigma)[::4], x.angle(mu), int(ft-st))
 
     data['mu'].append(tuple(mu))
     data['sigma'].append(tuple(sigma))

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 def create_phil_string(n, cts, bg):
   template = """
     nrefl = %d
@@ -118,7 +119,7 @@ def generate_reflections(num, min_cts, max_cts, bg):
     background = flex.bool([bool(m & MaskCode.Background) for m in mask])
     foreground = flex.bool([bool(m & MaskCode.Foreground) for m in mask])
     pixels = r.shoebox.select(foreground)
-    print e, r.intensity, flex.sum(pixels) - len(pixels) * 0, e / r.intensity
+    print(e, r.intensity, flex.sum(pixels) - len(pixels) * 0, e / r.intensity)
 
 
   from math import sqrt
@@ -127,7 +128,7 @@ def generate_reflections(num, min_cts, max_cts, bg):
   Z = [(i - e) / s for i, e, s in zip(I, expected, S)]
   meanz =sum(Z) / len(Z)
   sdevz =sqrt(sum((z - meanz)**2 for z in Z) / len(Z))
-  print "MeanZ: %f, SDevZ: %f" % (meanz, sdevz)
+  print("MeanZ: %f, SDevZ: %f" % (meanz, sdevz))
 
   from matplotlib import pylab
   #pylab.ylim(0, 2)

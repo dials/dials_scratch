@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 from dials.util.options import OptionParser
@@ -34,7 +35,7 @@ def run(args):
 
   arrays = any_reflection_file(f).as_miller_arrays(merge_equivalents=False)
   for ma in arrays:
-    print ma.info().labels
+    print(ma.info().labels)
     if ma.info().labels == ['I', 'SIGI']:
       intensities = ma
     elif ma.info().labels == ['IMEAN', 'SIGIMEAN']:
@@ -90,7 +91,7 @@ def run(args):
   linreg = flex.linear_regression(x, y)
   linreg.show_summary()
   import math
-  print 1/math.sqrt(linreg.slope() * linreg.y_intercept())
+  print(1/math.sqrt(linreg.slope() * linreg.y_intercept()))
 
   #x = -flex.log10(x)
   #y = -flex.log10(y)

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import workflows
 from workflows.transport.stomp_transport import StompTransport
 from threading import Thread, Event
@@ -66,7 +67,7 @@ class Master(object):
     try:
       from time import sleep
       while len(self.receiver.message_list) != self.num_messages:
-        print len(self.receiver.message_list)
+        print(len(self.receiver.message_list))
         sleep(1)
       self.heartbeat.stop()
     except KeyboardInterrupt:
@@ -123,7 +124,7 @@ if __name__ == '__main__':
   master.send(message)
   master.send(message)
   master.send(message)
-  print master.receive()
+  print(master.receive())
 
 
-  print "\nSubmitted."
+  print("\nSubmitted.")

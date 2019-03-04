@@ -1,2 +1,3 @@
 from __future__ import division
-from source import *
+from __future__ import absolute_import
+from .source import *

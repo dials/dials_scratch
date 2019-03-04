@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def fit(data, mask, model_data, model_mask, kernel):
 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
   reflections = reflections[0]
   imageset = experiments[0].imageset
 
-  print list(reflections.keys())
+  print(list(reflections.keys()))
   reflections.unset_flags(flex.size_t(range(len(reflections))), reflections.flags.integrated_sum)
   reflections.unset_flags(flex.size_t(range(len(reflections))), reflections.flags.integrated_prf)
   del reflections['intensity.sum.value']
@@ -105,7 +106,7 @@ if __name__ == '__main__':
   width, height = experiments[0].detector[0].get_image_size()
 
   # Loop through all images
-  print "START"
+  print("START")
   for frame in range(0, len(imageset)):
 
     # Get the subset of reflections on this image and compute the mask
@@ -150,7 +151,7 @@ if __name__ == '__main__':
     #pylab.show()
 
     indices4 = flex.size_t(range(len(scale_data))).select(~fill_mask.as_1d())
-    print len(indices4)
+    print(len(indices4))
     if len(indices4) > 0:
       if indices4[0] == 0:
         indices4 = indices4[1:]
@@ -197,7 +198,7 @@ if __name__ == '__main__':
       shoebox[i].deallocate()
     num_integrated = subset.get_flags(subset.flags.integrated_sum).count(True)
 
-    print "Image %d: integrated %d reflections" % (frame, num_integrated)
+    print("Image %d: integrated %d reflections" % (frame, num_integrated))
     # print "Image %d: selected %d reflections, scale(min,max_avr)=%f, %f, %f" % (
     #   frame,
     #   len(subset),

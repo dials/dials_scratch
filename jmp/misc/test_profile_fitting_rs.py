@@ -1,6 +1,7 @@
 
 
 from __future__ import division
+from __future__ import print_function
 
 class Test(object):
 
@@ -9,8 +10,8 @@ class Test(object):
     import libtbx.load_env
     try:
       dials_regression = libtbx.env.dist_path('dials_regression')
-    except KeyError, e:
-      print 'SKIP: dials_regression not configured'
+    except KeyError as e:
+      print('SKIP: dials_regression not configured')
       exit(0)
 
     # The base path
@@ -50,10 +51,10 @@ class Test(object):
     # Check the files exist
     for filename in self.refl_filenames:
       if not isfile(filename):
-        print 'SKIP: simulated test data does not exist'
-        print 'Generate by running the following commands:'
-        print ' cd dials_regression/integration_test_data/simulated'
-        print ' ./simulate'
+        print('SKIP: simulated test data does not exist')
+        print('Generate by running the following commands:')
+        print(' cd dials_regression/integration_test_data/simulated')
+        print(' ./simulate')
         exit(0)
 
     # Load the experiments
@@ -116,7 +117,7 @@ class Test(object):
 
     cor = locator.correlations()
     for j in range(cor.all()[0]):
-      print ' '.join([str(cor[j,i]) for i in range(cor.all()[1])])
+      print(' '.join([str(cor[j,i]) for i in range(cor.all()[1])]))
     #exit(0)
     #from matplotlib import pylab
     #pylab.imshow(cor.as_numpy_array(), interpolation='none', vmin=-1, vmax=1)
@@ -164,7 +165,7 @@ class Test(object):
     eps = 1e-7
     for p in profiles:
       assert(abs(flex.sum(p.background) - 0) < eps)
-    print 'OK'
+    print('OK')
 
     # Only select variances greater than zero
     mask = self.reference.get_flags(self.reference.flags.integrated)
@@ -230,11 +231,11 @@ class Test(object):
     ref_P = locator.profile(ref_ind)
     ref_C = locator.coord(ref_ind)
 
-    print "Max Index: ", max_ind, max_I, flex.sum(max_P), flex.sum(max_S)
-    print "Coord: ", max_C, "Ref Coord: ", ref_C
+    print("Max Index: ", max_ind, max_I, flex.sum(max_P), flex.sum(max_S))
+    print("Coord: ", max_C, "Ref Coord: ", ref_C)
 
-    print "Min Index: ", min_ind, min_I, flex.sum(min_P), flex.sum(min_S)
-    print "Coord: ", min_C, "Ref Coord: ", ref_C
+    print("Min Index: ", min_ind, min_I, flex.sum(min_P), flex.sum(min_S))
+    print("Coord: ", min_C, "Ref Coord: ", ref_C)
 
     #vmax = flex.max(max_P)
     #print sum(max_S)
@@ -262,7 +263,7 @@ class Test(object):
       #for j in range(max_S.all()[1]):
         #print ' '.join(["%-4d" % int(max_S[k,j,i]) for i in range(max_S.all()[2])])
 
-    print "Testing"
+    print("Testing")
 
     def f(I):
       mask = flex.bool(flex.grid(9,9,9), False)
@@ -327,14 +328,14 @@ class Test(object):
       I = I - df(I) / d2f(I)
       #v = I*p
       #I = flex.sum(c * p / v) / flex.sum(p*p / v)
-      print I
+      print(I)
 
 
     from math import log
     ff = []
     for I in range(9500, 11500):
       ff.append(f(I))
-    print sorted(range(len(ff)), key=lambda x: ff[x])[0] + 9500
+    print(sorted(range(len(ff)), key=lambda x: ff[x])[0] + 9500)
     from matplotlib import pylab
     pylab.plot(range(9500,11500), ff)
     pylab.show()
@@ -349,8 +350,8 @@ class Test(object):
     #exit(0)
 
 
-    print flex.sum(self.reference[0]['rs_shoebox'].data)
-    print I_cal[0]
+    print(flex.sum(self.reference[0]['rs_shoebox'].data))
+    print(I_cal[0])
 
     # Calculate the z score
     perc = self.mv3n_tolerance_interval(3*3)
@@ -358,9 +359,9 @@ class Test(object):
     mv = flex.mean_and_variance(Z)
     Z_mean = mv.mean()
     Z_var = mv.unweighted_sample_variance()
-    print "Z: mean: %f, var: %f, sig: %f" % (Z_mean, Z_var, sqrt(Z_var))
+    print("Z: mean: %f, var: %f, sig: %f" % (Z_mean, Z_var, sqrt(Z_var)))
 
-    print len(I_cal)
+    print(len(I_cal))
 
     from matplotlib import pylab
     from mpl_toolkits.mplot3d import Axes3D
@@ -444,7 +445,7 @@ class Test(object):
     from copy import deepcopy
     from dials.algorithms.simulation.reciprocal_space import Simulator
     from os.path import basename
-    print basename(filename)
+    print(basename(filename))
 
     #refl = self.reference
 
@@ -509,11 +510,11 @@ class Test(object):
     mv = flex.mean_and_variance(Z)
     Z_mean = mv.mean()
     Z_var = mv.unweighted_sample_variance()
-    print "Z: mean: %f, var: %f" % (Z_mean, Z_var)
+    print("Z: mean: %f, var: %f" % (Z_mean, Z_var))
 
     # Do the kolmogorov smirnov test
     D, p  = kolmogorov_smirnov_test_standard_normal(Z)
-    print "KS: D: %f, p-value: %f" % (D, p)
+    print("KS: D: %f, p-value: %f" % (D, p))
 
     # FIXME Z score should be a standard normal distribution. When background is
     # the main component, we do indeed see that the z score is in a standard
@@ -535,7 +536,7 @@ class Test(object):
     #edf = [float(i+1) / len(Z_I) for i in range(len(Z_I))]
     #cdf = [0.5 * (1.0 + erf(z / sqrt(2.0))) for z in Z_I]
 
-    print 'OK'
+    print('OK')
 
   def check_profiles(self, learner):
     ''' Check the reference profiles. '''
@@ -576,7 +577,7 @@ class Test(object):
       assert(all(abs(ss2 - 1.0) < 0.25 for ss2 in s2))
 
     # Test passed
-    print 'OK'
+    print('OK')
 
   def check_reference(self, reference):
     ''' Check the reference spots. '''
@@ -604,7 +605,7 @@ class Test(object):
       #p = data.as_numpy_array()
       #p = p.astype(numpy.int)
       #print p
-      print flex.sum(data), I_exp[i], I_cal[i]
+      print(flex.sum(data), I_exp[i], I_cal[i])
       #assert(abs(flex.sum(data) - I_exp[i]) < eps)
       centroid = centroid_image(data)
       m = centroid.mean()
@@ -619,7 +620,7 @@ class Test(object):
     mv = flex.mean_and_variance(Z)
     Z_mean = mv.mean()
     Z_var = mv.unweighted_sample_variance()
-    print "Z: mean: %f, var: %f" % (Z_mean, Z_var)
+    print("Z: mean: %f, var: %f" % (Z_mean, Z_var))
 
     from matplotlib import pylab
     pylab.hist((I_cal - I_exp) / I_exp)

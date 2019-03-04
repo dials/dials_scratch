@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from scitbx import matrix
 from scitbx import linalg
@@ -97,7 +98,7 @@ class FisherScoringMaximumLikelihoodBase(object):
       if delta > 0:
         x = x0 + delta*p
       else:
-        print "NOO"
+        print("NOO")
         x = self.gradient_search(x0)
 
       # Call an update
@@ -250,7 +251,7 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     sigma = parameterisation.sigma()
     lnL = self.log_likelihood(x)
     format_string = "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g ): L = %f"
-    print format_string % (tuple(sigma) + (lnL,))
+    print(format_string % (tuple(sigma) + (lnL,)))
     self.history.append(x)
 
 
@@ -337,7 +338,7 @@ class ProfileRefinerData(object):
     ctot_list = flex.double(len(s2_list))
     Sobs_list = flex.double(flex.grid(len(s2_list), 4))
 
-    print "Computing observed covariance for %d reflections" % len(reflections)
+    print("Computing observed covariance for %d reflections" % len(reflections))
     s0_length = s0.length()
     assert len(experiment.detector) == 1
     panel = experiment.detector[0]
@@ -394,16 +395,16 @@ class ProfileRefinerData(object):
       Sobs_list[r,3] = Sobs[3]
 
     # Print some information
-    print "I_min = %.2f, I_max = %.2f" % (flex.min(ctot_list),
-                                          flex.max(ctot_list))
+    print("I_min = %.2f, I_max = %.2f" % (flex.min(ctot_list),
+                                          flex.max(ctot_list)))
 
     # Print the mean covariance
     Smean = matrix.sqr((0,0,0,0))
     for r in range(Sobs_list.all()[0]):
       Smean += matrix.sqr(tuple(Sobs_list[r:r+1,:]))
     Smean /= Sobs_list.all()[0]
-    print ""
-    print "Mean observed covariance:"
+    print("")
+    print("Mean observed covariance:")
     print_matrix(Smean)
 
     # Return the profile refiner data
@@ -422,21 +423,21 @@ def print_eigen_values_and_vectors(A):
   L = matrix.diag(eigen_decomposition.values())
 
   # Print the matrix eigen values
-  print ""
-  print "Eigen Values:"
-  print ""
+  print("")
+  print("Eigen Values:")
+  print("")
   print_matrix(L, indent=2)
-  print ""
+  print("")
 
-  print "Eigen Vectors:"
-  print ""
+  print("Eigen Vectors:")
+  print("")
   print_matrix(Q, indent=2)
-  print ""
+  print("")
 
-  print "Mosaicity in degrees equivalent units"
-  print "M1: %.5f degrees" % (sqrt(L[0])*180.0/pi)
-  print "M2: %.5f degrees" % (sqrt(L[4])*180.0/pi)
-  print "M3: %.5f degrees" % (sqrt(L[8])*180.0/pi)
+  print("Mosaicity in degrees equivalent units")
+  print("M1: %.5f degrees" % (sqrt(L[0])*180.0/pi))
+  print("M2: %.5f degrees" % (sqrt(L[4])*180.0/pi))
+  print("M3: %.5f degrees" % (sqrt(L[8])*180.0/pi))
 
 def print_matrix(A, fmt='%.3g', indent=0):
   '''
@@ -454,4 +455,4 @@ def print_matrix(A, fmt='%.3g', indent=0):
     for i in range(A.n[1]):
       line += fmt % t[i+j*A.n[1]]
     lines.append("%s|%s|" % (prefix, line))
-  print '\n'.join(lines)
+  print('\n'.join(lines))

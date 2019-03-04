@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def calculate_threshold(sweep, trusted_range):
   from scipy.ndimage.measurements import histogram
@@ -35,12 +36,12 @@ def select_strong_pixels(sweep, trusted_range):
   import numpy
 
   # Calculate the threshold
-  print "Calculating a threshold."
+  print("Calculating a threshold.")
   threshold = calculate_threshold(sweep, trusted_range)
-  print "Threshold Value: {0}".format(threshold)
+  print("Threshold Value: {0}".format(threshold))
 
   # Select only those pixels with counts > threshold
-  print "Selecting pixels"
+  print("Selecting pixels")
   image = sweep.to_array().as_numpy_array()
   mask = image >= threshold
   return image, mask
@@ -106,7 +107,7 @@ def filter_objects(mask, objects, ref_index, min_pixels):
   for obj, rind in zip(objects, ref_index):
     ind = numpy.where(mask[obj] != 0)[0]
     if len(ind) >= min_pixels:
-      print len(ind)
+      print(len(ind))
       new_obj.append(obj)
       new_ind.append(rind)
     else:
@@ -196,7 +197,7 @@ def filter_objects_by_distance(ref_index, reflections, cent, max_distance):
     rx, ry = reflections[ref_index[i]].image_coord_px
     rz = reflections[ref_index[i]].frame_number
     cx, cy, cz = cent[i]
-    print rx, ry, rz, cx, cy, cz
+    print(rx, ry, rz, cx, cy, cz)
     if sqrt((cx - rx)**2 + (cy - ry)**2 + (cz - rz)**2) > max_distance:
       continue
     else:
@@ -217,8 +218,8 @@ if __name__ == '__main__':
 
   try:
     dials_regression = libtbx.env.dist_path('dials_regression')
-  except KeyError, e:
-    print 'FAIL: dials_regression not configured'
+  except KeyError as e:
+    print('FAIL: dials_regression not configured')
     raise
 
   # The XDS values
@@ -231,9 +232,9 @@ if __name__ == '__main__':
   handle = NexusFile(filename, 'r')
 
   # Get the reflection list
-  print 'Reading reflections.'
+  print('Reading reflections.')
   reflections = handle.get_reflections()
-  print 'Read {0} reflections.'.format(len(reflections))
+  print('Read {0} reflections.'.format(len(reflections)))
 
   # Read images
   template = os.path.join(dials_regression,
@@ -241,32 +242,32 @@ if __name__ == '__main__':
   filenames = glob(template)
 
   # Load the sweep
-  print 'Loading sweep'
+  print('Loading sweep')
   sweep = SweepFactory.sweep(filenames)
-  print 'Loaded sweep of {0} images.'.format(len(sweep))
+  print('Loaded sweep of {0} images.'.format(len(sweep)))
 
   # Select the strong pixels to use in the divergence calculation
-  print 'Select the strong pixels from the images.'
+  print('Select the strong pixels from the images.')
   trusted_range = (0, 20000)
   image, mask = select_strong_pixels(sweep, trusted_range)
 
-  print 'Find pixel nearest predicted reflection'
+  print('Find pixel nearest predicted reflection')
   owner = find_nearest_neighbour(image, mask, reflections)
 
   # Putting pixels into groups
-  print 'Putting pixels into groups'
+  print('Putting pixels into groups')
   objects, ref_index = group_pixels(owner)
-  print 'Found {0} objects'.format(len(objects))
+  print('Found {0} objects'.format(len(objects)))
 
-  print 'Filtering objects'
+  print('Filtering objects')
   min_pixels = 6
   objects, ref_index = filter_objects(mask, objects, ref_index, min_pixels)
-  print '{0} remaining objects'.format(len(objects))
+  print('{0} remaining objects'.format(len(objects)))
 
-  print 'Calculating centroid and variance.'
+  print('Calculating centroid and variance.')
   cent, var = centroid(objects, image, mask, sweep.get_detector())
 
-  print 'Filter objects by distance from nearest reflection.'
+  print('Filter objects by distance from nearest reflection.')
   max_distance = 2
   indices = filter_objects_by_distance(ref_index, reflections, cent, max_distance)
-  print '{0} remaining objects'.format(len(indices))
+  print('{0} remaining objects'.format(len(indices)))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import h5py
 import numpy
 
@@ -6,14 +7,14 @@ def print_dataset_info(dataset):
   shape = dataset.shape
 
   if ndim == 0:
-    print 'scalar set; value:', dataset[()]
+    print('scalar set; value:', dataset[()])
   elif ndim == 1:
     if shape[0] < 4:
-      print '1D data set; values;', dataset[()]
+      print('1D data set; values;', dataset[()])
     else:
-      print '1D data set length %d' % shape[0]
+      print('1D data set length %d' % shape[0])
   else:
-    print '%dD data set shape %s' % (ndim, str(shape))
+    print('%dD data set shape %s' % (ndim, str(shape)))
 
 def extract(filename, dataset_list):
 
@@ -26,10 +27,10 @@ def extract(filename, dataset_list):
 
   datasets = [data[d] for d in dataset_list]
 
-  print ' '.join(dataset_list)
+  print(' '.join(dataset_list))
 
   for j, record in enumerate(zip(*datasets)):
-    print '%d %s' % (j, ' '.join(map(str, record)))
+    print('%d %s' % (j, ' '.join(map(str, record))))
 
 def main(filename):
 
@@ -40,21 +41,21 @@ def main(filename):
   def visitor(name, obj):
     if isinstance(obj, h5py.Dataset):
       datasets.append(name)
-      print 'dataset:', name
+      print('dataset:', name)
       print_dataset_info(obj)
       for k in obj.attrs:
-        print k, obj.attrs[k]
+        print(k, obj.attrs[k])
     elif isinstance(obj, h5py.Group):
-      print 'group:  ', name
+      print('group:  ', name)
 
-    print
+    print()
 
   f.visititems(visitor)
 
   for d in datasets:
-    print d
-    print f[d]
-    print
+    print(d)
+    print(f[d])
+    print()
 
 if __name__ == '__main__':
   import sys

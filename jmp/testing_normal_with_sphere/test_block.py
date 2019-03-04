@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from math import ceil, floor
 
@@ -13,5 +14,5 @@ for j in range(1,20):
       r -= 1
       k += 1
 
-    print "#blocks = %d, #jobs = %d => %s" % (j, i, jobs), sum(jobs) == j
+    print("#blocks = %d, #jobs = %d => %s" % (j, i, jobs), sum(jobs) == j)
     #print "#blocks = %d, #jobs = %d, B/J = %d, R = %d" % (j, i, d, r)

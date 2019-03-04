@@ -1,3 +1,4 @@
+from __future__ import print_function
 import cPickle as pickle
 from dials.array_family import flex
 import math
@@ -16,13 +17,13 @@ print "______________________________________________________________"
 print "table.cols() =", table.cols()
 print "table.rows() =", table.rows()
 '''
-print "table.keys() =", table.keys()
+print("table.keys() =", table.keys())
 # Try iterating through table rows
 for i in range(5):
   row = table[i]
-  print row
+  print(row)
 
-  print "_______________________________"
+  print("_______________________________")
 
 example_from_test = '''
 # Append some rows to the table

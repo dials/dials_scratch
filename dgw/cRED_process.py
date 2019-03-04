@@ -15,6 +15,7 @@ directories) of datasets, in which images consist of files with the extension
 """
 
 from __future__ import division
+from __future__ import print_function
 import os
 import glob
 from libtbx.utils import Sorry
@@ -135,12 +136,12 @@ class Script(object):
     return
 
   def _run_one_job(self, command, keywords=None):
-    print '> ' + command
+    print('> ' + command)
     try:
       result = easy_run.fully_buffered(command=command,
             stdin_lines=keywords).raise_if_errors()
     except RuntimeError:
-      print "Failed job"
+      print("Failed job")
       return None
     return result
 
@@ -160,7 +161,7 @@ class Script(object):
   def process(self, job):
     '''Perform processing tasks for one dataset'''
 
-    print "Processing job {0}".format(job)
+    print("Processing job {0}".format(job))
 
     # Import
     path = os.path.join(job, "*.img")
@@ -176,7 +177,7 @@ class Script(object):
         line = log.readline()
         if line.startswith('Histogram'): break
       for i in range(14):
-        print log.readline(),
+        print(log.readline(), end=' ')
 
     # Attempt indexing in P1
     n_indexed = 0
@@ -191,8 +192,8 @@ class Script(object):
       el = ExperimentListFactory.from_json_file('P1_experiments.json')
       cell = el[0].crystal.get_unit_cell().parameters()
       cell_s = ', '.join(['{:.3f}'.format(e) for e in cell])
-      print "{0} reflections indexed in P1 with unit cell ({1})".format(
-        n_indexed, cell_s)
+      print("{0} reflections indexed in P1 with unit cell ({1})".format(
+        n_indexed, cell_s))
 
     # Attempt indexing in P222
     cmd = ('dials.index datablock.json strong.pickle '
@@ -208,12 +209,12 @@ class Script(object):
       el = ExperimentListFactory.from_json_file('P222_experiments.json')
       cell = el[0].crystal.get_unit_cell().parameters()
       cell_s = ', '.join(['{:.3f}'.format(e) for e in cell])
-      print "{0} reflections indexed in P222 with unit cell ({1})".format(
-        n_indexed2, cell_s)
+      print("{0} reflections indexed in P222 with unit cell ({1})".format(
+        n_indexed2, cell_s))
 
     if best_indexing is None: return
-    print "Selecting {0} and {1} for further processing".format(
-      *best_indexing)
+    print("Selecting {0} and {1} for further processing".format(
+      *best_indexing))
 
     # Convert best indexing solution to P1 and P222 versions
     cmd = ('dials.reindex {0} {1} space_group={2} '
@@ -230,8 +231,8 @@ class Script(object):
         with cd(sub_job):
           experiments = 'best_experiments_conv_to_{0}.json'.format(sub_job)
           reflections = 'best_reflections_conv_to_{0}.pickle'.format(sub_job)
-          print "Processing best indexing solution converted to {0}".format(
-              sub_job)
+          print("Processing best indexing solution converted to {0}".format(
+              sub_job))
           self._refine_onwards(experiments, reflections)
       except OSError:
         raise Sorry("Failed to create sub job directory {0}".format(sub_job))
@@ -248,7 +249,7 @@ class Script(object):
       with open('aimless-diff.html', 'w') as f:
         f.writelines(diff)
 
-    print
+    print()
     return
 
   @staticmethod
@@ -288,12 +289,12 @@ class Script(object):
     el = ExperimentListFactory.from_json_file('static_02_refined_experiments.json')
     cell = el[0].crystal.get_unit_cell().parameters()
     cell_s = ', '.join(['{:.3f}'.format(e) for e in cell])
-    print "Refined unit cell: ({0})".format(cell_s)
+    print("Refined unit cell: ({0})".format(cell_s))
     d = self._get_detector_geometry(el[0].detector)
-    print "Detector origin:  ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['origin'].elems)
-    print "Detector fast ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['fast'].elems)
-    print "Detector slow ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['slow'].elems)
-    print "Detector distance: {0}".format(d['distance'])
+    print("Detector origin:  ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['origin'].elems))
+    print("Detector fast ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['fast'].elems))
+    print("Detector slow ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['slow'].elems))
+    print("Detector distance: {0}".format(d['distance']))
 
     # Scan-varying refinement
     cmd = ('dials.refine static_02_refined_experiments.json '
@@ -321,12 +322,12 @@ class Script(object):
     a, b, c = abc.mean()
     alpha, beta, gamma = angles.mean()
     cell_s = ', '.join(['{:.3f}'.format(e) for e in [a, b, c, alpha, beta, gamma]])
-    print "Average refined unit cell: ({0})".format(cell_s)
+    print("Average refined unit cell: ({0})".format(cell_s))
     d = self._get_detector_geometry(el[0].detector)
-    print "Detector origin:  ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['origin'].elems)
-    print "Detector fast ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['fast'].elems)
-    print "Detector slow ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['slow'].elems)
-    print "Detector distance: {0}".format(d['distance'])
+    print("Detector origin:  ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['origin'].elems))
+    print("Detector fast ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['fast'].elems))
+    print("Detector slow ax: ({0:.5f}, {1:.5f}, {2:.5f})".format(*d['slow'].elems))
+    print("Detector distance: {0}".format(d['distance']))
 
     # integrate
     cmd = ('dials.integrate sv_refined_experiments.json '
@@ -352,7 +353,7 @@ class Script(object):
     if self._run_one_job(cmd, keywords=keywords) is None: return
 
 
-    print "DONE"
+    print("DONE")
 
     return
 

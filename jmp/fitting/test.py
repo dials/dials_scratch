@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -9,7 +10,7 @@ def read_reflections(filename):
   from dials.array_family import flex
   r = flex.reflection_table()
   for f in filename:
-    print "Reading %s" % f
+    print("Reading %s" % f)
     r.extend(flex.reflection_table.from_pickle(f))
   return r
 
@@ -30,7 +31,7 @@ def compute_reference(experiments, reflections):
   from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem
 
   reflections = select_strong(reflections)
-  print "Selected %d strong spots" % len(reflections)
+  print("Selected %d strong spots" % len(reflections))
 
   sampler = CircleSampler(
     experiments[0].detector[0].get_image_size(),
@@ -93,7 +94,7 @@ def compute_reference(experiments, reflections):
   for i in range(len(reference)):
     r = reference[i]
     if flex.sum(r) > 0:
-      print flex.max(r)
+      print(flex.max(r))
       g = r.accessor()
       r = r.as_1d()
       s = r > 0.02 * flex.max(r)
@@ -104,7 +105,7 @@ def compute_reference(experiments, reflections):
 
   for i in range(len(reference)):
     from matplotlib import pylab
-    print count[i]
+    print(count[i])
     r = reference[i]
     d = r.as_numpy_array()[11,:,:]
     pylab.imshow(d, interpolation='None')
@@ -124,7 +125,7 @@ def integrate(experiments, reflections, reference):
 
   selection = reflections.get_flags(reflections.flags.integrated_sum)
   reflections = reflections.select(selection)
-  print "Selected %d reflections to integrate" % len(reflections)
+  print("Selected %d reflections to integrate" % len(reflections))
 
   sampler = CircleSampler(
     experiments[0].detector[0].get_image_size(),
@@ -208,7 +209,7 @@ def integrate(experiments, reflections, reference):
         Vprf[i] = fit.variance()
         Cprf[i] = fit.correlation()
         Fprf[i] = True
-        print i, fit.intensity(), flex.sum(p1)
+        print(i, fit.intensity(), flex.sum(p1))
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
@@ -243,7 +244,7 @@ def integrate(experiments, reflections, reference):
         Vprf[i] = fit.variance()
         Cprf[i] = fit.correlation()
         Fprf[i] = True
-        print i, fit.intensity(), flex.sum(p)
+        print(i, fit.intensity(), flex.sum(p))
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
@@ -269,7 +270,7 @@ if __name__ == '__main__':
   experiments = read_experiments(experiments_filename)
   reflections = read_reflections(reflections_filename)
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
   #reference = compute_reference(experiments, reflections)
 

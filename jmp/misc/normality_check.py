@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 def Simple(data, n_sigma=3):
@@ -22,4 +23,4 @@ def Simple(data, n_sigma=3):
 
 if __name__ == '__main__':
   data = [10, 10, 10, 10, 10, 10, 10, 10, 10, 100]
-  print Simple(data)
+  print(Simple(data))

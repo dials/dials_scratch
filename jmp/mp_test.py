@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -18,8 +19,8 @@ def test_function2():
   experiment = params.input.experiments[0].data[0]
   reflections = params.input.reflections[0].data
 
-  print "N Threads: ", omp_get_max_threads()
-  print "N Refl: ", len(reflections)
+  print("N Threads: ", omp_get_max_threads())
+  print("N Refl: ", len(reflections))
 
   from dials.algorithms.integration.fitrs import test_function
 
@@ -33,7 +34,7 @@ def test_function2():
     0.390601,
     5,
     reflections)
-  print "Time: ", time() - st
+  print("Time: ", time() - st)
 
 if __name__ == '__main__':
 

@@ -8,6 +8,7 @@
 #  This code is distributed under the BSD license, a copy of which is
 #  included in the root directory of this package."
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 
 class table_s_navigator(object):
@@ -21,7 +22,7 @@ class table_s_navigator(object):
       #print "ERROR 0 reflections"
       pass
     self.z = 0
-    print "Num of Refls = ", self.num_ref
+    print("Num of Refls = ", self.num_ref)
 
   def __call__(self, opt = 0):
     self.get_dat_bkg_msk()

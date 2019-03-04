@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy
 t_size = 5
 f_size = t_size
@@ -20,7 +21,7 @@ for f in range(f_size):
       data.append((f, r, c, cont ** 2))
       cont += 1
 
-print 'data =', data
+print('data =', data)
 #f_tot = 0.0
 #r_tot = 0.0
 #c_tot = 0.0
@@ -28,9 +29,9 @@ print 'data =', data
 #
 cont = 0
 for f, r, c, d in data:
-  print cont
+  print(cont)
   #print 'data3d[', f, ',', r, ',', c, '] =', data[f, r, c]
-  print f, c, r, d
+  print(f, c, r, d)
   cont += 1
 #    f_tot += d * f
 #    r_tot += d * r

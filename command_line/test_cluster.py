@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def test_method(method, n):
   from dials.util.mp import parallel_map
@@ -23,4 +24,4 @@ if __name__ == '__main__':
   #for m in [10, 50, 100, 500, 1000]:
   #  print "EASY_MP: %d jobs -> %f seconds" % (m, test_method_n_times("sge", m, 1))
   for m in [10, 50, 100, 500, 1000]:
-    print "DRMAA:   %d jobs -> %f seconds" % (m, test_method_n_times("drmaa", m, 1))
+    print("DRMAA:   %d jobs -> %f seconds" % (m, test_method_n_times("drmaa", m, 1)))

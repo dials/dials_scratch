@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 
 def normal(x, mu, sigma):
@@ -76,7 +77,7 @@ def integrate(angle=0):
 
 from math import pi, atan2
 y = integrate()
-print atan2(y.imag, y.real) * 180.0 / pi
+print(atan2(y.imag, y.real) * 180.0 / pi)
 
 exit(0)
 
@@ -86,7 +87,7 @@ Y = []
 for angle in range(0, 180):
   x = angle
   y = integrate(angle * pi / 180.0) * 180.0 / pi
-  print x, y
+  print(x, y)
   X.append(x)
   Y.append(y)
 

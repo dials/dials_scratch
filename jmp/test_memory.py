@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # def run_test_single(imageset, size):
 #   from dials.array_family import flex
@@ -41,7 +42,7 @@ if __name__ == '__main__':
   else:
     imageset = exlist[0].imageset
 
-  print len(imageset)
+  print(len(imageset))
 
   # run_test(imageset)
 
@@ -64,6 +65,6 @@ if __name__ == '__main__':
     image = imageset[i]
     sys.stdout.write('.')
     sys.stdout.flush()
-  print ''
+  print('')
   ft = time()
-  print ft - st
+  print(ft - st)

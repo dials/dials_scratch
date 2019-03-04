@@ -1,3 +1,4 @@
+from __future__ import print_function
 # exercise with grids copied from:
 # http://www.blog.pythonlibrary.org/2010/03/18/wxpython-an-introduction-to-grids/
 # then evolved to our needs and to our coding style
@@ -39,62 +40,62 @@ class MyGrid(gridlib.Grid):
 
 
   def OnCellLeftClick(self, evt):
-    print "OnCellLeftClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnCellLeftClick: (%d,%d) %s\n" % (evt.GetRow(),
                          evt.GetCol(),
-                         evt.GetPosition())
+                         evt.GetPosition()))
     evt.Skip()
 
 
   def OnCellRightClick(self, evt):
-    print "OnCellRightClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnCellRightClick: (%d,%d) %s\n" % (evt.GetRow(),
                           evt.GetCol(),
-                          evt.GetPosition())
+                          evt.GetPosition()))
     evt.Skip()
 
   def OnCellLeftDClick(self, evt):
-    print "OnCellLeftDClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnCellLeftDClick: (%d,%d) %s\n" % (evt.GetRow(),
                           evt.GetCol(),
-                          evt.GetPosition())
+                          evt.GetPosition()))
     evt.Skip()
 
   def OnCellRightDClick(self, evt):
-    print "OnCellRightDClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnCellRightDClick: (%d,%d) %s\n" % (evt.GetRow(),
                            evt.GetCol(),
-                           evt.GetPosition())
+                           evt.GetPosition()))
     evt.Skip()
 
   def OnLabelLeftClick(self, evt):
-    print "OnLabelLeftClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnLabelLeftClick: (%d,%d) %s\n" % (evt.GetRow(),
                           evt.GetCol(),
-                          evt.GetPosition())
+                          evt.GetPosition()))
     evt.Skip()
 
   def OnLabelRightClick(self, evt):
-    print "OnLabelRightClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnLabelRightClick: (%d,%d) %s\n" % (evt.GetRow(),
                            evt.GetCol(),
-                           evt.GetPosition())
+                           evt.GetPosition()))
     evt.Skip()
 
   def OnLabelLeftDClick(self, evt):
-    print "OnLabelLeftDClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnLabelLeftDClick: (%d,%d) %s\n" % (evt.GetRow(),
                            evt.GetCol(),
-                           evt.GetPosition())
+                           evt.GetPosition()))
     evt.Skip()
 
   def OnLabelRightDClick(self, evt):
-    print "OnLabelRightDClick: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnLabelRightDClick: (%d,%d) %s\n" % (evt.GetRow(),
                           evt.GetCol(),
-                          evt.GetPosition())
+                          evt.GetPosition()))
     evt.Skip()
 
   def OnRowSize(self, evt):
-    print "OnRowSize: row %d, %s\n" % (evt.GetRowOrCol(),
-                       evt.GetPosition())
+    print("OnRowSize: row %d, %s\n" % (evt.GetRowOrCol(),
+                       evt.GetPosition()))
     evt.Skip()
 
   def OnColSize(self, evt):
-    print "OnColSize: col %d, %s\n" % (evt.GetRowOrCol(),
-                       evt.GetPosition())
+    print("OnColSize: col %d, %s\n" % (evt.GetRowOrCol(),
+                       evt.GetPosition()))
     evt.Skip()
 
   def OnRangeSelect(self, evt):
@@ -102,13 +103,13 @@ class MyGrid(gridlib.Grid):
       msg = 'Selected'
     else:
       msg = 'Deselected'
-    print "OnRangeSelect: %s  top-left %s, bottom-right %s\n" % (msg, evt.GetTopLeftCoords(),
-                                   evt.GetBottomRightCoords())
+    print("OnRangeSelect: %s  top-left %s, bottom-right %s\n" % (msg, evt.GetTopLeftCoords(),
+                                   evt.GetBottomRightCoords()))
     evt.Skip()
 
 
   def OnCellChange(self, evt):
-    print "OnCellChange: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition())
+    print("OnCellChange: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
 
     # Show how to stay in a cell that has bad data.  We can't just
     # call SetGridCursor here since we are nested inside one so it
@@ -124,8 +125,8 @@ class MyGrid(gridlib.Grid):
       msg = 'Selected'
     else:
       msg = 'Deselected'
-    print "OnSelectCell: %s (%d,%d) %s\n" % (msg, evt.GetRow(),
-                         evt.GetCol(), evt.GetPosition())
+    print("OnSelectCell: %s (%d,%d) %s\n" % (msg, evt.GetRow(),
+                         evt.GetCol(), evt.GetPosition()))
 
     # Another way to stay in a cell that has a bad value...
     row = self.GetGridCursorRow()
@@ -150,8 +151,8 @@ class MyGrid(gridlib.Grid):
       evt.Veto()
       return
 
-    print "OnEditorShown: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(),
-                         evt.GetPosition())
+    print("OnEditorShown: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(),
+                         evt.GetPosition()))
     evt.Skip()
 
 
@@ -162,16 +163,16 @@ class MyGrid(gridlib.Grid):
       evt.Veto()
       return
 
-    print "OnEditorHidden: (%d,%d) %s\n" % (evt.GetRow(),
+    print("OnEditorHidden: (%d,%d) %s\n" % (evt.GetRow(),
                         evt.GetCol(),
-                        evt.GetPosition())
+                        evt.GetPosition()))
     evt.Skip()
 
 
   def OnEditorCreated(self, evt):
-    print "OnEditorCreated: (%d, %d) %s\n" % (evt.GetRow(),
+    print("OnEditorCreated: (%d, %d) %s\n" % (evt.GetRow(),
                           evt.GetCol(),
-                          evt.GetControl())
+                          evt.GetControl()))
 
 
 

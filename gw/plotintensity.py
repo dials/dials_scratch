@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -9,7 +10,7 @@ if __name__ == '__main__':
   rlist = load.reflections(sys.argv[1])
   I = [r.intensity for r in rlist]
   for r in rlist:
-    print "Background: %f, Intensity: %f" % (
-      flex.mean(r.shoebox_background), r.intensity)
+    print("Background: %f, Intensity: %f" % (
+      flex.mean(r.shoebox_background), r.intensity))
   pylab.plot(I)
   pylab.show()

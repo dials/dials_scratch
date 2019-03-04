@@ -1,2 +1,3 @@
 from __future__ import division
-from gonio import *
+from __future__ import absolute_import
+from .gonio import *

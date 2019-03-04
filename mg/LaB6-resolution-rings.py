@@ -1,10 +1,11 @@
+from __future__ import print_function
 from cctbx import uctbx
 
 a = 4.15695 # Angstrom
 wavelength = 0.68890
 
 unit_cell = uctbx.unit_cell((a, a, a, 90, 90, 90))
-print unit_cell
+print(unit_cell)
 from cctbx.array_family import flex
 
 millers = flex.miller_index()
@@ -24,4 +25,4 @@ resolution.reverse()
 
 for i, n in enumerate(resolution):
   if n > 0:
-    print "Ring %2d: %7.4f A" % (i + 1, n)
+    print("Ring %2d: %7.4f A" % (i + 1, n))

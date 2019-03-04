@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 import numpy
 from matplotlib import pyplot as plt
@@ -6,8 +7,8 @@ def start( data2d, xcoord, ycoord , cntrd_xcoord, cntrd_ycoord, x_sigma, y_sigma
   data2d = numpy.transpose( data2d )
   n_x = numpy.size( data2d[:, 0:1] )
   n_y = numpy.size( data2d[0:1, :] )
-  print 'n_x =', n_x
-  print 'n_y =', n_y
+  print('n_x =', n_x)
+  print('n_y =', n_y)
   data2dtmp = data2d
 
   data2dsmoth = numpy.zeros( n_x * n_y, dtype = float ).reshape( n_x, n_y )
@@ -22,8 +23,8 @@ def start( data2d, xcoord, ycoord , cntrd_xcoord, cntrd_ycoord, x_sigma, y_sigma
     data2dtmp = data2dsmoth
 
   data2dsmoth = data2dsmoth + 15.0
-  print "max(data2dsmoth) =", numpy.max( data2dsmoth )
-  print "min(data2dsmoth) =", numpy.min( data2dsmoth )
+  print("max(data2dsmoth) =", numpy.max( data2dsmoth ))
+  print("min(data2dsmoth) =", numpy.min( data2dsmoth ))
 
   for x in range( 1, n_x - 1 ):
     for y in range( 1, n_y - 1 ):
@@ -50,7 +51,7 @@ def start( data2d, xcoord, ycoord , cntrd_xcoord, cntrd_ycoord, x_sigma, y_sigma
       cntrd_xcoord[pos] = x_num_sum / den_sum
       cntrd_ycoord[pos] = y_num_sum / den_sum
     else:
-      print 'den_sum =', den_sum
+      print('den_sum =', den_sum)
       cntrd_xcoord[pos] = -1
       cntrd_ycoord[pos] = -1
 
@@ -68,7 +69,7 @@ def start( data2d, xcoord, ycoord , cntrd_xcoord, cntrd_ycoord, x_sigma, y_sigma
       x_sigma[pos] = numpy.sqrt( x_num_sum / den_sum )
       y_sigma[pos] = numpy.sqrt( y_num_sum / den_sum )
     else:
-      print 'den_sum =', den_sum
+      print('den_sum =', den_sum)
       x_sigma[pos] = -1
       y_sigma[pos] = -1
 
@@ -84,11 +85,11 @@ def start( data2d, xcoord, ycoord , cntrd_xcoord, cntrd_ycoord, x_sigma, y_sigma
     paintmask[nint_xcoord, nint_ycoord ] = paintmask[nint_xcoord, nint_ycoord] + 1
   for pos in range( len( xcoord ) ):
     paintmask[int( cntrd_xcoord[pos] + 0.5 ), int( cntrd_ycoord[pos] + 0.5 )] = 5
-  print "Plotting paintmask"
+  print("Plotting paintmask")
   plt.imshow( numpy.transpose( paintmask ), interpolation = "nearest", origin = 'lower' )
   plt.show()
 
-  print "Plotting diffdata2d"
+  print("Plotting diffdata2d")
   plt.imshow( numpy.transpose( diffdata2d ), interpolation = "nearest", origin = 'lower' )
   plt.show()
 #

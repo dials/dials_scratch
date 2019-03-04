@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 class MyApp(wx.App):
@@ -5,7 +6,7 @@ class MyApp(wx.App):
         self.frame = MyFrame(None, title="Bitmaps", b_var = a_var)
         self.SetTopWindow(self.frame)
         self.frame.Show()
-        print "a_var =", a_var
+        print("a_var =", a_var)
         return True
 class MyFrame(wx.Frame):
     def __init__(self, parent, id=wx.ID_ANY, title="",
@@ -21,7 +22,7 @@ class MyFrame(wx.Frame):
         bitmap = wx.Bitmap(img_path, type=wx.BITMAP_TYPE_PNG)
         self.bitmap = wx.StaticBitmap(self.panel, bitmap=bitmap)
         # test var
-        print "b_var =", b_var
+        print("b_var =", b_var)
 if(__name__ == "__main__"):
 
     app = MyApp(False, 5)

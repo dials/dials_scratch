@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from mu_Si import derive_absorption_coefficient_Si
 from parallax_xds import generate_xds_corrections
@@ -75,17 +76,17 @@ def work(image_filename, sensor_thickness_mm, energy_ev=None):
   from parallax_xds import generate_xds_corrections
   xds_parallax_x, xds_parallax_y = generate_xds_corrections(
     image_filename, sensor_thickness_mm, energy_ev)
-  print min(xds_parallax_x), min(xds_parallax_y), \
-    max(xds_parallax_x), max(xds_parallax_y)
+  print(min(xds_parallax_x), min(xds_parallax_y), \
+    max(xds_parallax_x), max(xds_parallax_y))
   dials_parallax_x, dials_parallax_y = generate_dials_corrections(
     image_filename, sensor_thickness_mm, energy_ev,
     method=compute_absolute_offset)
-  print min(dials_parallax_x), min(dials_parallax_y), \
-    max(dials_parallax_x), max(dials_parallax_y)
+  print(min(dials_parallax_x), min(dials_parallax_y), \
+    max(dials_parallax_x), max(dials_parallax_y))
   dx = xds_parallax_x - dials_parallax_x
   dy = xds_parallax_y - dials_parallax_y
 
-  print min(dx), min(dy), max(dx), max(dy)
+  print(min(dx), min(dy), max(dx), max(dy))
 
   import matplotlib
   matplotlib.use('Agg')

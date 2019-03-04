@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 from math import sqrt, exp, pi, acos
 from scitbx import matrix
@@ -36,7 +37,7 @@ class simple_simplex(object):
     return self.x
 
   def target(self, vector):
-    print "SCORE"
+    print("SCORE")
     score = scorify(vector)
     return score
 
@@ -84,17 +85,17 @@ class CrystalRefiner(object):
 
     # Print some information
     fmt = "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
-    print 'Initial cell:', initial_cell
-    print 'Final cell:  ', self.crystal.get_unit_cell()
-    print 'Initial orientation: ', fmt % tuple(initial_orientation)
-    print 'Final orientation: ', fmt % tuple(self.crystal.get_U())
+    print('Initial cell:', initial_cell)
+    print('Final cell:  ', self.crystal.get_unit_cell())
+    print('Initial orientation: ', fmt % tuple(initial_orientation))
+    print('Final orientation: ', fmt % tuple(self.crystal.get_U()))
 
     # Print RMSD
     Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
     Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
     rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
     rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+    print('RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y))
 
   def target(self, vector):
     '''
@@ -136,10 +137,10 @@ class CrystalRefiner(object):
     self.history.append((tst_cell, tst_orientation, score))
 
     # Print some info
-    print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
+    print('Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
       tuple(self.crystal.get_unit_cell().parameters()) +
       tuple(tst_orientation) +
-      tuple((sqrt(score / len(Xobs)),)))
+      tuple((sqrt(score / len(Xobs)),))))
     return score
 
   def generate_predictions(self, experiment, reflections, parameters):

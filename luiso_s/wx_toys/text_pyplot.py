@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib.pyplot as plt
 #import matplotlib as mpl
 import numpy as np
@@ -17,7 +18,7 @@ print "get_majorticklabels =", ax.yaxis.get_majorticklabels()
 print "get_label_text() =", ax.yaxis.get_label_text()
 print "get_major_formatter() =", ax.yaxis.get_major_formatter()
 '''
-print "get_majorticklocs() =", ax.yaxis.get_majorticklocs()
+print("get_majorticklocs() =", ax.yaxis.get_majorticklocs())
 '''
 print "get_minor_ticks(numticks=None) =", ax.yaxis.get_minor_ticks(numticks=None)
 print "get_minorticklocs() =", ax.yaxis.get_minorticklocs()

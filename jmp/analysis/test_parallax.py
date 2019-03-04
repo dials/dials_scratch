@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import sys
 from dxtbx.serialize import load
@@ -23,7 +24,7 @@ for j in range(image_size[0]):
     image[j,i] = j - px2[1]
 
 
-print flex.max(image), flex.min(image)
+print(flex.max(image), flex.min(image))
 
 pylab.imshow(image.as_numpy_array())
 pylab.show()

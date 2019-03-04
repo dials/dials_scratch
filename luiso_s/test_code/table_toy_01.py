@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 num_ref = 3
 ref_table = flex.reflection_table()
@@ -27,7 +28,7 @@ for arr in iterate:
   msk[1, 1, 1] = 5
   tmp_i = n * n * n * 3
   img[1, 1, 1] += tmp_i
-  print "intensity must be =", tmp_i
+  print("intensity must be =", tmp_i)
   arr.data = img[:, :, :]
   arr.background = bkg[:, :, :]
   arr.mask = msk[:, :, :]
@@ -39,28 +40,28 @@ for i in range(num_ref):
   its[i] = (i + 1) * 11
   i_var[i] = (i + 1) * 12
 
-print ">>>>>>>>>>>>>>>>>>>>>>>>>    printing before integrating         <<<<<<<<"
+print(">>>>>>>>>>>>>>>>>>>>>>>>>    printing before integrating         <<<<<<<<")
 
 iterate = ref_table['shoebox']
 for arr in iterate:
   np_img = arr.data.as_numpy_array()
-  print np_img
+  print(np_img)
 # <<<<<<< Updated upstream
 # <<<<<<< Updated upstream
   np_img = arr.background.as_numpy_array()
-  print np_img
+  print(np_img)
   np_img = arr.mask.as_numpy_array()
-  print np_img
+  print(np_img)
 
-  print ">>"
+  print(">>")
 
 iterate = ref_table['intensity.sum.value']
 for n_its in iterate:
-  print n_its
-print ">>>"
+  print(n_its)
+print(">>>")
 iterate = ref_table['intensity.sum.variance']
 for n_i_v in iterate:
-  print n_i_v
+  print(n_i_v)
 
 
 '''
@@ -79,25 +80,25 @@ from dials.algorithms.background.flat_background_subtractor \
 layering_and_background_avg(ref_table)
 
 
-print ">>>>>>>>>>>>>>>>>>>>>>>>>    printing during integrating         <<<<<<<<"
-print ">>>>>>>>>>>>>>>>>>>>>>>>>      printing with background           <<<<<<<<"
+print(">>>>>>>>>>>>>>>>>>>>>>>>>    printing during integrating         <<<<<<<<")
+print(">>>>>>>>>>>>>>>>>>>>>>>>>      printing with background           <<<<<<<<")
 iterate = ref_table['shoebox']
 for arr in iterate:
   np_img = arr.data.as_numpy_array()
-  print np_img
+  print(np_img)
   np_img = arr.background.as_numpy_array()
-  print np_img
+  print(np_img)
   np_img = arr.mask.as_numpy_array()
-  print np_img
-  print ">>"
+  print(np_img)
+  print(">>")
 
 iterate = ref_table['intensity.sum.value']
 for n_its in iterate:
-  print n_its
-print ">>>"
+  print(n_its)
+print(">>>")
 iterate = ref_table['intensity.sum.variance']
 for n_i_v in iterate:
-  print n_i_v
+  print(n_i_v)
 # =======
 # >>>>>>> Stashed changes
 # =======

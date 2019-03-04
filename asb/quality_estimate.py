@@ -3,6 +3,7 @@
 # LIBTBX_SET_DISPATCHER_NAME dev.dials.resolution_quality_estimate
 
 from __future__ import division
+from __future__ import print_function
 
 help_message = '''
 Script to estimate diffraction limit given a directory filled with integration results.
@@ -77,8 +78,8 @@ class Script(object):
         tag = "%s, %s"%(exp_path, refl_path)
 
       for exp_id, experiment in enumerate(experiments):
-        print "*"*80
-        print "Data table for", tag
+        print("*"*80)
+        print("Data table for", tag)
         table_data = []
         table_data.append(table_header)
         table_data.append(table_header2)
@@ -125,8 +126,8 @@ class Script(object):
         for b, row in zip(acceptable_resolution_bins, table_data[2:]):
           if b:
             row.append("X")
-        print table_utils.format(table_data,has_header=2,justify='center',delim=" ")
-        print tag, "unit cell:", ", ".join(["%.2f"%p for p in crystal.get_unit_cell().parameters()]), crystal.get_space_group().info()
+        print(table_utils.format(table_data,has_header=2,justify='center',delim=" "))
+        print(tag, "unit cell:", ", ".join(["%.2f"%p for p in crystal.get_unit_cell().parameters()]), crystal.get_space_group().info())
 
         if any(acceptable_resolution_bins):
           best_index = acceptable_resolution_bins.count(True)-1
@@ -142,14 +143,14 @@ class Script(object):
                 best_data[t] = d_min, best_row
                 best_limits[flex.first_index(best_limits, worst_d_min)] = d_min
                 break
-          print tag, "best row:", " ".join(best_row)
+          print(tag, "best row:", " ".join(best_row))
         else:
-          print "Data didn't pass cutoff"
+          print("Data didn't pass cutoff")
     if len(best_limits) > 0:
-      print "*"*80
-      print "Top", len(best_limits)
+      print("*"*80)
+      print("Top", len(best_limits))
       for tag, data in best_data.iteritems():
-        print tag, " ".join(data[1])
+        print(tag, " ".join(data[1]))
 
 if __name__ == '__main__':
   from dials.util import halraiser

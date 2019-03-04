@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #
 #  DIALS viewer_frame
 #
@@ -19,7 +21,7 @@ from dials.scratch.luiso_s.wx_toys.bitmap_from_numpy_w_matplotlib_well_done \
      import build_np_img
 
 #from dials.viewer.img_utilities import GetBitmap_from_np_array
-from bitmap_from_numpy import GetBitmap_from_np_array
+from .bitmap_from_numpy import GetBitmap_from_np_array
 
 class ImageListCtrl(scrolledpanel.ScrolledPanel):
     """Simple control to display a list of images"""
@@ -94,13 +96,13 @@ class MyPanel(wx.Panel):
         self.SetSizer(self.sizer)
 
     def OnNew_data(self, event):
-        print "from OnNew_data"
+        print("from OnNew_data")
         self.il = ImageListCtrl(self)
 
-        print "here 01"
+        print("here 01")
         self.mid_sizer.Hide(0)
         self.mid_sizer.Remove(0)
-        print "here 02"
+        print("here 02")
 
 
         for times in range(5):
@@ -111,9 +113,9 @@ class MyPanel(wx.Panel):
         self.mid_sizer = wx.BoxSizer(wx.VERTICAL)
         self.mid_sizer.Add(self.il, 1, wx.EXPAND)
 
-        print "here 03"
+        print("here 03")
         self.sizer.Add(self.il, 1, wx.EXPAND)
-        print "here 04"
+        print("here 04")
 
         self.Refresh()
         self.Update()

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx import matrix
 from dxtbx.model.crystal import crystal_model
 
@@ -26,4 +27,4 @@ if __name__ == '__main__':
 
   xl = crystal_model(a, b, c, space_group_symbol="P 1")
 
-  print "OK"
+  print("OK")

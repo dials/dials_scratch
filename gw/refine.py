@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy
 from scipy.optimize import minimize
 
@@ -31,6 +32,6 @@ t2 = time.time()
 for j in range(1000): run_newton_cg()
 t3 = time.time()
 
-print 'Nelder-Mead: %2f' % (t1 - t0)
-print 'BFGS:        %2f' % (t2 - t1)
-print 'Newton-CG:   %2f' % (t3 - t2)
+print('Nelder-Mead: %2f' % (t1 - t0))
+print('BFGS:        %2f' % (t2 - t1))
+print('Newton-CG:   %2f' % (t3 - t2))

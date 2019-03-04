@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from cctbx.array_family import flex
 import math
 
@@ -16,7 +17,7 @@ def run(args):
     for i, line in enumerate(f.readlines()):
       tokens = line.split()
       if i == 0:
-        print tokens
+        print(tokens)
         assert tokens == [
           'H','K', 'L', 'Frame_obs', 'X_obs', 'Y_obs', 'Phi_obs', 'X_calc',
           'Y_calc', 'Phi_calc']

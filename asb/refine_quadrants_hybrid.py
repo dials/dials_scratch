@@ -7,6 +7,7 @@ detector, only the detector parameters are refined at first (using all data)
 then each crystal is refined individually. This forms one macrocycle."""
 
 from __future__ import division
+from __future__ import print_function
 import sys
 from math import sqrt
 
@@ -86,7 +87,7 @@ class CrystalRefiners(object):
 
     for iexp, exp in enumerate(experiments):
 
-      print "Refining crystal", iexp
+      print("Refining crystal", iexp)
       # reflection subset for a single experiment
       refs = reflections.select(reflections['id'] == iexp)
       refs['id'] = flex.size_t(len(refs),0)
@@ -136,7 +137,7 @@ def check_experiment(experiment, reflections):
            sqrt(r_z / n))
 
   # check positional RMSDs are within 5 pixels
-  print rmsds
+  print(rmsds)
   if rmsds[0] > 5: return False
   if rmsds[1] > 5: return False
 
@@ -165,13 +166,13 @@ if __name__ =="__main__":
   working_params = working_phil.extract()
 
   for input in working_params.input:
-    print input.experiments, input.reflections
+    print(input.experiments, input.reflections)
 
   assert len(working_params.input) > 1
-  print len(working_params.input), "datasets specified as input"
+  print(len(working_params.input), "datasets specified as input")
 
   e = enumerate(working_params.input)
-  i, line = e.next()
+  i, line = next(e)
   reflections, exp = load_input(line.experiments, line.reflections)
   assert reflections['id'].all_eq(0)
   from dials.algorithms.indexing.indexer import indexer_base
@@ -191,7 +192,7 @@ if __name__ =="__main__":
       reflections.extend(refs)
       experiments.append(experiment_from_crystal(exp.crystal))
     else:
-      print "skipping experiment", i, "due to poor RMSDs"
+      print("skipping experiment", i, "due to poor RMSDs")
       continue
 
   dr = DetectorRefiner()
@@ -199,8 +200,8 @@ if __name__ =="__main__":
 
   for cycle in range(working_params.n_macrocycles):
 
-    print "MACROCYCLE %02d" % (cycle + 1)
-    print "=============\n"
+    print("MACROCYCLE %02d" % (cycle + 1))
+    print("=============\n")
     # first run: multi experiment joint refinement of detector with fixed beam and
     # crystals
     experiments = dr(experiments, reflections)
@@ -213,4 +214,4 @@ if __name__ =="__main__":
   dump = ExperimentListDumper(experiments)
   experiments_filename = "refined_experiments.json"
   dump.as_json(experiments_filename)
-  print "refined geometry written to {0}".format(experiments_filename)
+  print("refined geometry written to {0}".format(experiments_filename))

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import sys
 
 arg_lst = sys.argv[1:]
@@ -9,7 +10,7 @@ times = 5
 shift = 10
 for arg in arg_lst:
   if '=' in arg:
-    print '= in argument'
+    print('= in argument')
     leng_01 = arg.find('=')
     if arg[:leng_01] == 'algr' or arg[:leng_01] == 'al':
       if arg[leng_01 + 1:] == 'lui':
@@ -22,7 +23,7 @@ for arg in arg_lst:
       shift = int(arg[leng_01 + 1:])
   else:
     filenames.append(arg)
-print 'filenames =', filenames
-print 'algrm =', algrm
-print 'times=', times
-print 'shift=', shift
+print('filenames =', filenames)
+print('algrm =', algrm)
+print('times=', times)
+print('shift=', shift)

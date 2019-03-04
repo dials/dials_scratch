@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def ice_background(j,i, height, width):
   from numpy.random import poisson
@@ -76,7 +77,7 @@ def tv_alg(image, mask, tolerance=1e-3, max_iter=10):
     Y = sum1 + sum2
 
     FP = fprime(U)
-    print Y
+    print(Y)
     return Y, FP
 
   def fprime(U):

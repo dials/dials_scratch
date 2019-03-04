@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 
 class RdButtonFrm(wx.Frame):
@@ -13,11 +14,11 @@ class RdButtonFrm(wx.Frame):
     self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio3, radio3)
 
   def OnRadio1(self, event = None):
-    print "clicked on Radio1"
+    print("clicked on Radio1")
   def OnRadio2(self, event = None):
-    print "clicked on Radio2"
+    print("clicked on Radio2")
   def OnRadio3(self, event = None):
-    print "clicked on Radio3"
+    print("clicked on Radio3")
 
 if __name__ == '__main__':
   app = wx.PySimpleApp()

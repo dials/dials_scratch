@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 c = [0, 1, 0, 0, 0, 0, 3, 1, 3, 3, 6, 6, 4, 1, 4, 0, 2, 0, 1, 1]
 c = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -13,7 +14,7 @@ bj = b[9]
 sj = s[9]
 mu = sum(s) / sum(b)
 lb = sum(c) / sum(b)
-print 1 - (sj-bj)/((sj - bj*mu) + bj*lb), 9.0 / 20.0, 9 / (20 - 9)
+print(1 - (sj-bj)/((sj - bj*mu) + bj*lb), 9.0 / 20.0, 9 / (20 - 9))
 exit(0)
 
 
@@ -22,7 +23,7 @@ D = []
 sumc = sum(c)
 mu = sum(s) / sum(b)
 lb = sum(c) / sum(b)
-print mu, lb
+print(mu, lb)
 for j in range(100):
   S = j*(sumc -0) / 100.0
   X.append(S)
@@ -37,7 +38,7 @@ for j in range(100):
   D.append(sum1)
 
 ind = sorted(range(len(D)), key=lambda x: abs(D[x]))[0]
-print "Min: ", D[ind], X[ind]
+print("Min: ", D[ind], X[ind])
 
 from matplotlib import pylab
 pylab.plot(X, D)

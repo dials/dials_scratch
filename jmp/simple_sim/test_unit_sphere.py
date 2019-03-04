@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 from math import sqrt, exp, pi, cos, sin
 from scitbx import matrix
 
@@ -89,5 +90,5 @@ sigma = matrix.sqr((
   0.5, 0,
   0, 0.5))
 
-print test_non_scaled(s0, r, sigma)
-print test_scaled(s0, r, sigma)
+print(test_non_scaled(s0, r, sigma))
+print(test_scaled(s0, r, sigma))

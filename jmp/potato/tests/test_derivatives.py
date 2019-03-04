@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx import matrix
 from math import log, pi
 from random import uniform, randint
@@ -570,7 +571,7 @@ def test():
     test_first_derivatives(reflection_model)
     test_second_derivatives(reflection_model)
 
-    print 'OK'
+    print('OK')
 
 if __name__ == '__main__':
   test()

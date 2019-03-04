@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 import sys
 import os
@@ -21,14 +22,14 @@ arg_lst = arg_lst = sys.argv[1:]
 
 for arg in arg_lst[1:]:
   if os.path.exists(arg):
-    print "here"
+    print("here")
     var1_phil = var1_phil.fetch(
         source = parse(open(arg).read()))
   else:
     arg_lst.append(arg)
-    print "here else"
+    print("here else")
 
-print arg_lst
+print(arg_lst)
 
 #for phil_arg in phil_args:
 #    interp = var1_phil.command_line_argument_interpreter(

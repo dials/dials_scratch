@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -27,9 +28,9 @@ if __name__ == '__main__':
   from dials.algorithms.spot_prediction import PixelLabeller
   labeller = PixelLabeller(beam, detector)
 
-  print 1
+  print(1)
   labels = labeller.label(A, 0)
-  print 2
+  print(2)
 
   H, K, L = labels.as_vec3_double().parts()
   H.reshape(flex.grid(height, width))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx import matrix
 from math import exp, sqrt, pi
@@ -19,5 +20,5 @@ c = mux*(mux*s11 + muy*s12) + muy*(mux*s21 + muy*s22)
 
 D = 0.5 * (a + b + 2*c)
 
-print D, normal_1d(D, 0, 1)
+print(D, normal_1d(D, 0, 1))
 

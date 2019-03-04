@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx.linalg import eigensystem
 from scitbx import matrix
 from dials.array_family import flex
@@ -101,7 +102,7 @@ def compute_mean(mu, sigma):
     XX.append(v[0] * g)
     YY.append(v[1] * g)
 
-  print peak_xx_coord, peak_yy_coord
+  print(peak_xx_coord, peak_yy_coord)
 
   peak = (0.7222307526374394, 0.6916521813344897)
   x0 = peak[0]
@@ -114,10 +115,10 @@ def compute_mean(mu, sigma):
   YY =  A / B
 
   peak = matrix.col((XX, YY)).normalize()
-  print tuple(peak)
+  print(tuple(peak))
 
   peak = matrix.col((peak_xx_coord, peak_yy_coord)).normalize()
-  print tuple(peak)
+  print(tuple(peak))
 
   pylab.plot(X, XX)
   pylab.plot(Y, YY)
@@ -138,5 +139,5 @@ if __name__ == '__main__':
   mode = compute_mode(mu, sigma)
 
 
-  print tuple(mean)
-  print tuple(mode)
+  print(tuple(mean))
+  print(tuple(mode))

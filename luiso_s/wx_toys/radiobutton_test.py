@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 
 class RdButtonFrm(wx.Frame):
@@ -25,8 +26,8 @@ class RdButtonFrm(wx.Frame):
     text.Enable(True)
     self.selectedText = text
   def tst(self, a):
-    print "from tst"
-    print a
+    print("from tst")
+    print(a)
     return 2*a
 
 if __name__ == '__main__':

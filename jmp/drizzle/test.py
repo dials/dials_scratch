@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def rs_coords(bbox, cs, beam, detector, scan):
   from dials.array_family import flex
@@ -110,9 +111,9 @@ if __name__ == "__main__":
   s1 = rlist['s1']
   phi = rlist['xyzcal.mm'].parts()[2]
 
-  print "Read pixels"
+  print("Read pixels")
   for i in range(len(sbox)):
-    print i
+    print(i)
     x0, x1, y0, y1, z0, z1 = sbox[i].bbox
     data = sweep.to_array((z0, z1, y0, y1, x0, x1))
     sbox[i].data = data.as_double()

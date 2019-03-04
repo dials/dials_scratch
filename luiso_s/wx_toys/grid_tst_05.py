@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 import wx.grid
 
@@ -54,7 +55,7 @@ class SimpleGrid(wx.grid.Grid):
 
 
     def OnCellLeftClick(self, event):
-        print "here left click"
+        print("here left click")
 
         data_01 =  (("H", "I"),
                     ("J", "K"),

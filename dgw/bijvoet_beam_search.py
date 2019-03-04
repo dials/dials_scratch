@@ -22,6 +22,7 @@ joining supposed symmetry-related pairs of reflections in detector space.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from dxtbx.model.experiment.experiment_list import Experiment
 from dials.util.options import flatten_reflections
@@ -190,15 +191,15 @@ class Script(object):
 
       detector = params.input.datablock[0].data[0].unique_detectors()
       if len(detector) > 1:
-        print warnmsg.format("datablock", "detector")
+        print(warnmsg.format("datablock", "detector"))
       detector = detector[0]
       beam = params.input.datablock[0].data[0].unique_beams()
       if len(beam) > 1:
-        print warnmsg.format("datablock", "beam")
+        print(warnmsg.format("datablock", "beam"))
       beam = beam[0]
       scan = params.input.datablock[0].data[0].unique_scans()
       if len(scan) > 1:
-        print warnmsg.format("datablock", "scan")
+        print(warnmsg.format("datablock", "scan"))
       scan = scan[0]
 
     else:
@@ -207,16 +208,16 @@ class Script(object):
 
       detector = params.input.experiments[0].data.detectors()
       if len(detector) > 1:
-        print warnmsg.format("experiment list", "detector")
+        print(warnmsg.format("experiment list", "detector"))
       detector = detector[0]
 
       beam = params.input.experiments[0].data.beams()
       if len(beam) > 1:
-        print warnmsg.format("experiment list", "beam")
+        print(warnmsg.format("experiment list", "beam"))
       beam = beam[0]
       scan = params.input.experiments[0].data.scans()
       if len(scan) > 1:
-        print warnmsg.format("experiment list", "scan")
+        print(warnmsg.format("experiment list", "scan"))
       scan = scan[0]
 
     self.detector = detector
@@ -228,7 +229,7 @@ class Script(object):
     if len(reflections) > 1:
       raise Sorry("Please provide a single reflection table as input")
     self.reflections = reflections[0]
-    if not self.reflections.has_key('intensity.sum.value'):
+    if 'intensity.sum.value' not in self.reflections:
       raise Sorry('The provided reflection table does not have a column '
                   'named "intensity.sum.value". Cannot continue.')
     self.reflections.sort(name='intensity.sum.value', reverse=True)

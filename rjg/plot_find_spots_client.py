@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from cctbx.array_family import flex
 import iotbx.phil
@@ -125,18 +126,18 @@ def run(args):
   if table:
     print_table(stats)
 
-  print "Number of indexed lattices: ", (n_indexed > 0).count(True)
+  print("Number of indexed lattices: ", (n_indexed > 0).count(True))
 
-  print "Number with valid d_min but failed indexing: ", (
+  print("Number with valid d_min but failed indexing: ", (
     (d_min_distl_method_1 > 0) &
     (d_min_distl_method_2 > 0) &
     (estimated_d_min > 0) &
-    (n_indexed == 0)).count(True)
+    (n_indexed == 0)).count(True))
 
   n_rows = 10
   n_rows = min(n_rows, len(n_spots_total))
   perm_n_spots_total = flex.sort_permutation(n_spots_total, reverse=True)
-  print 'Top %i images sorted by number of spots:' %n_rows
+  print('Top %i images sorted by number of spots:' %n_rows)
   print_table(stats, perm=perm_n_spots_total, n_rows=n_rows)
 
   n_bins = 20

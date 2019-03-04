@@ -2,6 +2,7 @@
 Usage:
   compare_aimless_scales integrated_scaled.pickle scaled_unmerged.mtz
 """
+from __future__ import print_function
 
 import sys
 import math
@@ -62,7 +63,7 @@ def R(calc, obs):
     assert(len(calc) == len(obs))
 
     scale = sum(obs) / sum(calc)
-    print "scale difference",scale
+    print("scale difference",scale)
 
     return sum([math.fabs(math.fabs(o) - math.fabs(scale * c)) \
                 for c, o in zip(calc, obs)]) / \
@@ -80,7 +81,7 @@ def read_aimless(unmerged_mtz):
   scales = None
 
   for ma in arrays:
-    print ma.info().labels
+    print(ma.info().labels)
     if ma.info().labels == ['I', 'SIGI']:
       intensities = ma
     elif ma.info().labels == ['SCALEUSED']:
@@ -131,12 +132,12 @@ def main(args):
 
   dials_hkl_xyz_isigi = read_dials_scaled(reflections)
 
-  print 'Read %d observations from %s' % (len(dials_hkl_xyz_isigi), args[0])
+  print('Read %d observations from %s' % (len(dials_hkl_xyz_isigi), args[0]))
 
   aimless_hkl_xyz_isigi = read_aimless(aimless_scaled_file)
 
-  print 'Read %d observations from %s' % \
-        (len(aimless_hkl_xyz_isigi), aimless_scaled_file)
+  print('Read %d observations from %s' % \
+        (len(aimless_hkl_xyz_isigi), aimless_scaled_file))
 
   # treat aimless as reference, dials as query
   reference = flex.double()
@@ -172,11 +173,11 @@ def main(args):
       #print aimless_hkl_xyz_isigi[c][0], dials_hkl_xyz_isigi[j][0]
 
   #calculate correlation between I's
-  print 'Matched %d observations' % len(i_s_dials)
+  print('Matched %d observations' % len(i_s_dials))
   correlation_coefficient = cc(i_s_dials, i_s_aimless)
   R_factor = R(i_s_dials, i_s_aimless)
-  print 'CC: %.6f' % correlation_coefficient
-  print 'R:  %.3f' % R_factor
+  print('CC: %.6f' % correlation_coefficient)
+  print('R:  %.3f' % R_factor)
   import matplotlib.pyplot as plt
   y_ideal = [x for x in i_s_dials]
 

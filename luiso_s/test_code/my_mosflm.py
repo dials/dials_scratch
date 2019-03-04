@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d, write_2d
@@ -18,7 +19,7 @@ descr = flex.double(flex.grid(1, 3))
 descr[0, 0] = .5
 descr[0, 1] = 5
 descr[0, 2] = 5
-print "____________________________________________________________________"
+print("____________________________________________________________________")
 
 
 for xpos in range(3):
@@ -36,11 +37,11 @@ for xpos in range(3):
     write_2d(sumation)
 
 
-print "Plotting data2d"
+print("Plotting data2d")
 plt.imshow(data2d, interpolation = "nearest")
 plt.show()
 
-print "Plotting reslt"
+print("Plotting reslt")
 img_suma = sumation.as_numpy_array()
 plt.imshow(img_suma, interpolation = "nearest")
 plt.show()

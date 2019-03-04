@@ -1,3 +1,4 @@
+from __future__ import print_function
 import imp
 import json
 import os
@@ -8,7 +9,7 @@ database_file = os.path.join(os.path.dirname(__file__) or '.', 'import.cache')
 module_db = {}
 
 if os.path.exists(database_file):
-  print "Database exists"
+  print("Database exists")
   with open(database_file, 'r') as fh:
     module_db = json.load(fh)
 
@@ -21,17 +22,17 @@ class CachingMetaImportFinder(object):
       solution = module_db[fullname]
       if not solution:
         # Previously seen module that can't be cached
-        print "Uncacheable", fullname
+        print("Uncacheable", fullname)
         return None
-      print "Cached solution for", fullname, ":", solution
+      print("Cached solution for", fullname, ":", solution)
       fh = open(solution[1], solution[2][1]) if solution[0] else None
       return pkgutil.ImpLoader(fullname, fh, solution[1], solution[2])
-    print "New module encountered:", fullname
+    print("New module encountered:", fullname)
     try:
       solution = imp.find_module(fullname)
     except:
       module_db[fullname] = None
-      print "Uncacheable"
+      print("Uncacheable")
       return None
     module_db[fullname] = (solution[0] is not None, ) + solution[1:]
     return pkgutil.ImpLoader(fullname, *solution)
@@ -39,7 +40,7 @@ class CachingMetaImportFinder(object):
 sys.meta_path.append(CachingMetaImportFinder())
 
 import dials.util.version
-print dials.util.version.dials_version()
+print(dials.util.version.dials_version())
 
 with open(database_file, 'w') as fh:
   json.dump(module_db, fh, indent=2)

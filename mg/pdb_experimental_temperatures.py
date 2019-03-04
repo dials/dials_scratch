@@ -1,4 +1,5 @@
 from __future__ import division, absolute_import
+from __future__ import print_function
 from dials.util import debug_console
 import Queue
 import iotbx.cif
@@ -84,7 +85,7 @@ temperatures = []
 
 def print_temperature_summary():
   total = len(temperatures)
-  print "-" * 31
+  print("-" * 31)
   line = "{range:17s}:{count:6d} ({percentage:4.1f}%)"
   filtered = filter(None, temperatures)
   tempgiven = len(filtered)
@@ -96,7 +97,7 @@ def print_temperature_summary():
       percentage = 100 * c / tempgiven
     else:
       percentage = 0
-    print line.format(range=rangestr, count=c, percentage=percentage)
+    print(line.format(range=rangestr, count=c, percentage=percentage))
   write_line("       T <=   0K", lambda t: t<= 0 and t is not False)
   write_line("  0K < T <=  70K", lambda t: 0<t<=70)
   write_line(" 70K < T <=  95K", lambda t: 70<t<=95)
@@ -105,10 +106,10 @@ def print_temperature_summary():
   write_line("160K < T <= 265K", lambda t: 160<t<=265)
   write_line("265K < T <= 295K", lambda t: 265<t<=295)
   write_line("295K < T        ", lambda t: 295<t)
-  print "{range:^17s}:{count:6d}".format(range='T not given', count=notemp)
-  print "{range:^17s}:{count:6d}".format(range='not xray', count=noxray)
-  print "{range:^17s}:{count:6d}".format(range='total', count=total)
-  print "-" * 31
+  print("{range:^17s}:{count:6d}".format(range='T not given', count=notemp))
+  print("{range:^17s}:{count:6d}".format(range='not xray', count=noxray))
+  print("{range:^17s}:{count:6d}".format(range='total', count=total))
+  print("-" * 31)
 
 class Worker(threading.Thread):
   """ Thread doing things in the background """
@@ -146,7 +147,7 @@ class FileParser(Worker):
         q_results.put(get_cached_temperature(filename))
       except Exception:
         # An exception happened in this thread
-        print "\n\nFailed to read temperature from", filename
+        print("\n\nFailed to read temperature from", filename)
         traceback.print_exc()
       finally:
         # Mark this task as done, whether an exception happened or not
@@ -181,7 +182,7 @@ class ResultParser(Worker):
             timestr = "{eta:1.0f} minutes".format(eta=eta/60)
           else:
             timestr = "{eta:1.0f} seconds".format(eta=eta)
-          print "{percentage:4.1f}% - ETA: {timestring} - {done} of {total} files parsed".format(done=resultcounter, total=filecounter, timestring=timestr, percentage=percentage)
+          print("{percentage:4.1f}% - ETA: {timestring} - {done} of {total} files parsed".format(done=resultcounter, total=filecounter, timestring=timestr, percentage=percentage))
 
       except Exception:
         # An exception happened in this thread
@@ -191,28 +192,28 @@ class ResultParser(Worker):
         q_results.task_done()
 
 try:
-  print "Starting DirectoryIndexer"
+  print("Starting DirectoryIndexer")
   for x in range(5):
     DirectoryIndexer()
-  print "Loading base directory"
+  print("Loading base directory")
   directories = filter(os.path.isdir, (os.path.join(pdb, f) for f in os.listdir(pdb)))
   for d in directories:
     q_directories.put(d)
   #q_directories.put(directories[180])
-  print "Starting CIF parsers"
+  print("Starting CIF parsers")
   for x in range(3):
     FileParser()
-  print "Starting result parser"
+  print("Starting result parser")
   ResultParser()
-  print "Running normally"
+  print("Running normally")
 
   q_directories.join()
-  print "All directories read"
+  print("All directories read")
   q_files.join()
-  print "All files parsed"
+  print("All files parsed")
   q_results.join()
-  print "All results aggregated"
+  print("All results aggregated")
   print_temperature_summary()
 except KeyboardInterrupt:
-  print "Killed by Ctrl+C"
+  print("Killed by Ctrl+C")
   sys.exit(1)

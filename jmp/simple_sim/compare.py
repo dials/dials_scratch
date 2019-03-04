@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import cPickle as pickle
 
@@ -6,8 +7,8 @@ im2 = pickle.load(open(sys.argv[2]))
 
 diff = im1 - im2
 
-print max(diff)
-print min(diff)
+print(max(diff))
+print(min(diff))
 
 from matplotlib import pylab
 pylab.imshow(diff.as_numpy_array())

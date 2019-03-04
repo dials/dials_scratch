@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import sys
 import math
@@ -122,7 +123,7 @@ def interpolate_value(x, y, t):
   '''Find the value of x: y(x) = t.'''
 
   if t > max(y) or t < min(y):
-    raise RuntimeError, 't outside of [%f, %f]' % (min(y), max(y))
+    raise RuntimeError('t outside of [%f, %f]' % (min(y), max(y)))
 
   for j in range(1, len(x)):
     x0 = x[j - 1]
@@ -292,20 +293,20 @@ class resolutionizer:
     self.calculate_resolution_ranges(nbins = self._params.nbins)
 
     if self._params.rmerge:
-      print 'Resolution rmerge:       %.2f' % \
-          self.resolution_rmerge()
+      print('Resolution rmerge:       %.2f' % \
+          self.resolution_rmerge())
 
     if self._params.completeness:
-      print 'Resolution completeness: %.2f' % \
-          self.resolution_completeness()
+      print('Resolution completeness: %.2f' % \
+          self.resolution_completeness())
 
     if self._params.isigma:
-      print 'Resolution I/sig:        %.2f' % \
-          self.resolution_unmerged_isigma()
+      print('Resolution I/sig:        %.2f' % \
+          self.resolution_unmerged_isigma())
 
     if self._params.misigma:
-      print 'Resolution Mn(I/sig):    %.2f' % \
-          self.resolution_merged_isigma()
+      print('Resolution Mn(I/sig):    %.2f' % \
+          self.resolution_merged_isigma())
 
     return
 

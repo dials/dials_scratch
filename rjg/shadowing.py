@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import matplotlib
 matplotlib.use("Agg")
@@ -128,11 +129,11 @@ def run(args):
     shadow_boundary = gonio_masker.project_extrema(detector, angle)
 
     with open('shadow.phil', 'wb') as f:
-      print >> f, 'untrusted {'
-      print >> f, '  polygon = \\'
+      print('untrusted {', file=f)
+      print('  polygon = \\', file=f)
       for c in shadow_boundary[0]:
-        print >> f, '    %0.f %.0f \\' %(max(c[0], 0), max(c[1], 0))
-      print >> f, '}'
+        print('    %0.f %.0f \\' %(max(c[0], 0), max(c[1], 0)), file=f)
+      print('}', file=f)
 
     import matplotlib.pyplot as plt
 

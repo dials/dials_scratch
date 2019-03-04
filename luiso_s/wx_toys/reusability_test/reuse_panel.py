@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 import numpy as np
@@ -8,7 +9,7 @@ class multi_img(scroll_pan.ScrolledPanel):
     def __init__(self, outer_frame):
         scroll_pan.ScrolledPanel.__init__(self, outer_frame)
 
-        print "Hi from scroll_pan"
+        print("Hi from scroll_pan")
 
         data2d = np.arange( 7 * 6, dtype = 'uintc').reshape( 7, 6 )
         bmp = GetBitmap_from_np_array(data2d)
@@ -43,10 +44,10 @@ class butoms_panel(wx.Panel):
         self.SetSizer(my_sizer)
 
     def OnShwIBut(self, event):
-        print "OnShwIBut"
+        print("OnShwIBut")
 
     def OnHidIBut(self, event):
-        print "OnHidIBut"
+        print("OnHidIBut")
 
 class My_new_Frame(wx.Frame):
     """ We simply derive a new class of Frame. """

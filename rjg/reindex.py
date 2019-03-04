@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import os
 import iotbx.phil
@@ -39,7 +40,7 @@ def run(args):
     cb_op = sgtbx.change_of_basis_op(params.change_of_basis_op)
     basename = os.path.basename(file_name)
     out_name = os.path.splitext(basename)[0] + params.output.suffix + '.mtz'
-    print "reindexing %s (%s)" %(file_name, cb_op.as_xyz())
+    print("reindexing %s (%s)" %(file_name, cb_op.as_xyz()))
     mtz_object.change_basis_in_place(cb_op)
     mtz_object.write(out_name)
 

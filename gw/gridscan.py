@@ -1,3 +1,4 @@
+from __future__ import print_function
 def analyse(reflections, detector, beam):
   from dials.array_family import flex
 
@@ -31,4 +32,4 @@ if __name__ == '__main__':
   import sys
   filename = sys.argv[1]
   params = sys.argv[2:]
-  print work(filename, params)
+  print(work(filename, params))

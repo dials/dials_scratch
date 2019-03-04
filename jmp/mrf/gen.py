@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def mean_and_variance(a):
   sum1 = sum(a)
@@ -89,7 +90,7 @@ def simple(x):
   from numpy import median
   m = median(x)
   mad = median([abs(xx - m) for xx in x])
-  print m, mad
+  print(m, mad)
   return m
 
 def glm3(x):
@@ -153,13 +154,13 @@ if __name__ == '__main__':
     P = flex.double([1] * len(a))
     v = glmc(X, Y, B, P, max_iter=100)
 
-    print k, mean_m, exp(v.parameters()[0])
+    print(k, mean_m, exp(v.parameters()[0]))
     means4.append(mean_m)
 
   from matplotlib import pylab
-  print "MOM1: ", sum(means1) / len(means1)
-  print "MOM3: ", sum(means3) / len(means3)
-  print "MOM4: ", sum(means4) / len(means4)
+  print("MOM1: ", sum(means1) / len(means1))
+  print("MOM3: ", sum(means3) / len(means3))
+  print("MOM4: ", sum(means4) / len(means4))
   pylab.plot(means1, color='black')
   pylab.plot(means4, color='blue')
   pylab.show()

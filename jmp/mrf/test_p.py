@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def P(mu, x):
   from math import exp, factorial
@@ -18,4 +19,4 @@ if __name__ == '__main__':
 
   p = [P(1,xx) for xx in x]
 
-  print p
+  print(p)

@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 
 def predict(experiments, bandpass=0.035):
@@ -13,7 +14,7 @@ def predict(experiments, bandpass=0.035):
   from scitbx import matrix
   from dials.array_family import flex
 
-  print "Predicting reflections"
+  print("Predicting reflections")
 
   assert len(experiments) == 1
   assert len(experiments[0].detector) == 1
@@ -46,7 +47,7 @@ def predict(experiments, bandpass=0.035):
   xyzcalmm = flex.vec3_double()
   panel = experiments[0].detector[0]
   xsize, ysize = panel.get_image_size()
-  print len(indices)
+  print(len(indices))
   for h in indices:
     p = A * matrix.col(h)
 
@@ -87,7 +88,7 @@ def predict(experiments, bandpass=0.035):
   pylab.show()
 
 
-  print "Predicted %d reflections" % len(reflections)
+  print("Predicted %d reflections" % len(reflections))
 
   # Return the reflections
   return reflections
@@ -148,7 +149,7 @@ def extract_shoeboxes(experiments, reflections, labels, mask):
   # Get the image data
   data = experiments[0].imageset.get_raw_data(0)[0]
 
-  print "Extracting shoeboxes"
+  print("Extracting shoeboxes")
   bbox = flex.int6()
   shoebox = flex.shoebox()
   selection = flex.size_t()
@@ -183,16 +184,16 @@ def extract_shoeboxes(experiments, reflections, labels, mask):
         sbox.mask[0,j,i] |= MaskCode.Background
 
     if n_foreground == 0:
-      print "No foreground in ", h
+      print("No foreground in ", h)
       continue
     selection.append(index)
     bbox.append((x0, x1, y0, y1, 0, 1))
     shoebox.append(sbox)
 
-  print "Selecting %d reflections in labels" % len(selection)
+  print("Selecting %d reflections in labels" % len(selection))
 
   reflections = reflections.select(selection)
-  print len(reflections)
+  print(len(reflections))
 
   reflections['bbox'] = bbox
   reflections['shoebox'] = shoebox
@@ -205,7 +206,7 @@ def integrate(experiments, reflections, mask_distance=0.3):
 
   '''
 
-  print "Labelling pixels"
+  print("Labelling pixels")
   labels, mask = label_pixels(experiments, mask_distance=mask_distance)
 
   reflections = extract_shoeboxes(experiments, reflections, labels, mask)
@@ -243,13 +244,13 @@ def refine(experiments, bandpass=0.035, isigi_threshold=5, mask_distance=0.3):
   # Select integrated
   selection = reflections.get_flags(reflections.flags.integrated_sum)
   subset = reflections.select(selection)
-  print "Integrated %d reflections" % len(subset)
+  print("Integrated %d reflections" % len(subset))
 
   # Select variance > 0
   variance = subset['intensity.sum.variance']
   selection = variance > 0
   subset = subset.select(selection)
-  print "Selecting %d reflections with variance > 0" % len(subset)
+  print("Selecting %d reflections with variance > 0" % len(subset))
 
   # Select I/Sig(I) > 5
   intensity = subset['intensity.sum.value']
@@ -260,7 +261,7 @@ def refine(experiments, bandpass=0.035, isigi_threshold=5, mask_distance=0.3):
   # pylab.show()
   selection = i_over_s > isigi_threshold
   subset = subset.select(selection)
-  print "Selecting %d strong reflections" % len(subset)
+  print("Selecting %d strong reflections" % len(subset))
 
 
   subset = compute_wavelength(experiments, subset)
@@ -287,7 +288,7 @@ def refine(experiments, bandpass=0.035, isigi_threshold=5, mask_distance=0.3):
   pylab.scatter(X,Y)
   pylab.show()
 
-  print "Saving reflections to refined.pickle"
+  print("Saving reflections to refined.pickle")
   reflections.as_pickle("refined.pickle")
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  viewer_utilities.py
 #
@@ -66,7 +67,7 @@ def build_np_img(width = 64, height = 64):
 class np_to_bmp(object):
 
   def __init__(self):
-    print "from init"
+    print("from init")
 
   def __call__(self, np_img_2d, Intst_max, ofst):
     self.fig = plt.figure()

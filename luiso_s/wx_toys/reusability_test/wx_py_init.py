@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 import numpy as np
@@ -5,7 +6,7 @@ from bitmap_from_numpy import GetBitmap_from_np_array
 
 class iner_panel(wx.Panel):
     def __init__(self, outer_frame):
-        print "Hi"
+        print("Hi")
 
         data2d = np.arange( 5 * 5, dtype = 'uintc').reshape( 5, 5 )
         bmp = GetBitmap_from_np_array(data2d)

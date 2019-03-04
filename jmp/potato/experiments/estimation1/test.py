@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from math import pi, cos, sin, log
 from dials.array_family import flex
 from scitbx import matrix
@@ -69,7 +70,7 @@ def run():
   results = defaultdict(list)
 
   # Generate a covariance matrix
-  print "Generating covariance matrix"
+  print("Generating covariance matrix")
   sigma = generate_sigma()
 
   # Repeat the experiment m times
@@ -80,11 +81,11 @@ def run():
     # sigma = matrix.sqr((2.7e-05, -2.33e-05, -1.26e-06,
     #                     -2.33e-05, 6.08e-05, -1.01e-05,
     #                     -1.26e-06, -1.01e-05, 4.41e-05))
-    print "Known Sigma"
-    print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma)
+    print("Known Sigma")
+    print("( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma))
 
     # Generate some samples
-    print "Generating samples"
+    print("Generating samples")
     samples = list(zip(*generate_simple(s0, sigma, 1000)))
 
     # Iterate over the number of samples to use (logarithmically between 10 and
@@ -102,11 +103,11 @@ def run():
     for n in N_list:
 
       # Select a sample
-      print "Selecting %d samples" % n
+      print("Selecting %d samples" % n)
       subsample = sample(samples, n)
 
       # Estimate the parameters
-      print "Estimating parameters"
+      print("Estimating parameters")
       s2_list, ctot_list, mobs_list, Sobs_list = zip(*subsample)
       Sobs_list = flex.double(Sobs_list)
       refiner = ProfileRefiner(
@@ -125,19 +126,19 @@ def run():
       # Compute the KL divergence
       kl = kl_divergence(sigma, sigma_cal)
 
-      print "Calculated Sigma"
-      print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma_cal)
-      print n, kl
-      print ""
+      print("Calculated Sigma")
+      print("( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma_cal))
+      print(n, kl)
+      print("")
 
       results[n].append(kl)
 
-    print "Known Sigma"
-    print "( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma)
+    print("Known Sigma")
+    print("( %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, %.3g, )" % tuple(sigma))
 
   with open("result.txt", "w") as outfile:
     for n in sorted(results.keys()):
-      print >>outfile, "%d %.6f" % (n, sum(results[n])/len(results[n]))
+      print("%d %.6f" % (n, sum(results[n])/len(results[n])), file=outfile)
 
 
 if __name__ == '__main__':

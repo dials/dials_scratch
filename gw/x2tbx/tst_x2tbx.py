@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def tst_x2tbx(mtz_file):
   import x2tbx
@@ -31,11 +32,11 @@ def tst_x2tbx(mtz_file):
   r.setup(mi, i_data, sigi_data)
   r.set_unit_cell(unit_cell.parameters())
   r.merge()
-  print r.i_sigma()
-  print r.rmerge()
+  print(r.i_sigma())
+  print(r.rmerge())
 
   indices = r.get_indices()
-  print len(indices), len(mi)
+  print(len(indices), len(mi))
 
   n_shells = 30
 
@@ -52,13 +53,13 @@ def tst_x2tbx(mtz_file):
 
   for j in range(n_shells):
     shell = r.get_shell(j)
-    print '%.3f %6.3f %4d %.3f %6.2f %6.2f' % (
-        high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j])
+    print('%.3f %6.3f %4d %.3f %6.2f %6.2f' % (
+        high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j]))
     n_tot += len(shell)
 
   assert(n_tot == len(indices))
 
-  print 'OK'
+  print('OK')
 
 if __name__ == '__main__':
   import sys

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import cPickle as pickle
 from dials.array_family import flex
 import math
@@ -6,13 +7,13 @@ table = pickle.load(open('../../../../../../xrd_2d_data/testing_detailed_tutoria
 #show_reflections(table)
 
 
-print "table.keys() =", table.keys()
+print("table.keys() =", table.keys())
 # Try iterating through table rows
 for i in range(5):
   row = table[i]
-  print row
+  print(row)
 
-  print "_______________________________"
+  print("_______________________________")
 
 
 from dials.viewer.slice_viewer import show_3d

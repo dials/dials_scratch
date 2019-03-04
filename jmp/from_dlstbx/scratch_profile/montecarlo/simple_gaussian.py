@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 from math import sqrt
 from random import normalvariate
@@ -24,7 +25,7 @@ sum1 = sum(xx)
 mean = sum1 / len(xx)
 sum2 = sum([(x - mean)**2 for x in xx])
 sdev = sqrt(sum2 / len(xx))
-print mean, sdev, sqrt(s1*s1+s2*s2)
+print(mean, sdev, sqrt(s1*s1+s2*s2))
 
 s1 = 3
 s2 = 6
@@ -44,4 +45,4 @@ sum1 = sum(xx)
 mean = sum1 / len(xx)
 sum2 = sum([(x - mean)**2 for x in xx])
 sdev = sqrt(sum2 / len(xx))
-print mean, sdev, sqrt(s1*s1+s2*s2)
+print(mean, sdev, sqrt(s1*s1+s2*s2))

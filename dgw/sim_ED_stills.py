@@ -2,6 +2,7 @@
 and a tetragonal lyzozyme cell"""
 
 from __future__ import division
+from __future__ import print_function
 from scitbx.array_family import flex
 from simtbx.nanoBragg import shapetype
 from simtbx.nanoBragg import nanoBragg
@@ -126,23 +127,23 @@ class Simulation(object):
     # Set the beam for this image
     beam = self.beam
 
-    print "Generating image {0}".format(image_no)
-    print "DIALS beam centre will be", self.detector[0].get_beam_centre(
-      beam.get_s0())
+    print("Generating image {0}".format(image_no))
+    print("DIALS beam centre will be", self.detector[0].get_beam_centre(
+      beam.get_s0()))
 
     # Construct simulation. Ugh, it prints a load of junk from C++ that is not
     # easy to suppress.
-    print "Ignore the following output from simtbx"
-    print "#######################################"
+    print("Ignore the following output from simtbx")
+    print("#######################################")
     SIM = nanoBragg(self.detector, beam, verbose=0)
-    print "#######################################"
+    print("#######################################")
 
     # Set Ncells to give approx 200nm cube
     a, b, c, aa, bb, cc = self._unit_cell.parameters()
     Na = int(round(2000 / a))
     Nb = int(round(2000 / b))
     Nc = int(round(2000 / c))
-    print "setting Ncells:", (Na,Nb,Nc)
+    print("setting Ncells:", (Na,Nb,Nc))
     SIM.Ncells_abc=(Na,Nb,Nc)
     # set different random number seed for noise generation for each image
     SIM.seed = image_no

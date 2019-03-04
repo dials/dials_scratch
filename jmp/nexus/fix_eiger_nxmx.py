@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 class EigerNXmxFixer(object):
   '''
@@ -11,20 +12,20 @@ class EigerNXmxFixer(object):
     from scitbx import matrix
 
     #
-    print "Copying %s to %s to fix NXmx file" % (
+    print("Copying %s to %s to fix NXmx file" % (
       input_filename,
-      output_filename)
+      output_filename))
     shutil.copy(input_filename, output_filename)
 
     #
-    print "Opening %s to perform fixes" % (
-      output_filename)
+    print("Opening %s to perform fixes" % (
+      output_filename))
     handle = h5py.File(output_filename, 'r+')
 
     # Add some simple datasets
     def create_scalar(handle, path, dtype, value):
-      print "Adding dataset %s with value %s" % (
-        join(handle.name, path), str(value))
+      print("Adding dataset %s with value %s" % (
+        join(handle.name, path), str(value)))
       dataset = handle.create_dataset(
         path, (), dtype=dtype)
       dataset[()] = value
@@ -51,14 +52,14 @@ class EigerNXmxFixer(object):
       "PIXEL")
 
     # Move the beam
-    print "Copying /entry/instrument/beam to /entry/sample/beam"
+    print("Copying /entry/instrument/beam to /entry/sample/beam")
     handle.copy(
       "/entry/instrument/beam",
       "/entry/sample/beam")
 
     # Create detector module
     module_path = '/entry/instrument/detector/module'
-    print "Creating detector module %s" % (module_path)
+    print("Creating detector module %s" % (module_path))
     group = handle.create_group(module_path)
     group.attrs['NX_class'] = "NXdetector_module"
 
@@ -66,19 +67,19 @@ class EigerNXmxFixer(object):
     create_scalar(group, "module_index", "int64", 0)
 
     # Create detector data origin
-    print "Adding dataset %s with value %s" % (join(group.name, "data_origin"), str((0,0)))
+    print("Adding dataset %s with value %s" % (join(group.name, "data_origin"), str((0,0))))
     dataset = group.create_dataset("data_origin", (2,), dtype="int32")
     dataset[0] = 0
     dataset[1] = 0
 
     # Create detector data size
-    print "Adding dataset %s with value %s" % (join(group.name, "data_size"), str((1030, 1065)))
+    print("Adding dataset %s with value %s" % (join(group.name, "data_size"), str((1030, 1065))))
     dataset = group.create_dataset("data_size", (2,), dtype="int32")
     dataset[0] = handle['/entry/data/data_000001'].shape[2]
     dataset[1] = handle['/entry/data/data_000001'].shape[1]
 
     # Add fast_pixel_size dataset
-    print "Using /entry/instrument/detector/geometry/orientation/value as fast/slow pixel directions"
+    print("Using /entry/instrument/detector/geometry/orientation/value as fast/slow pixel directions")
     fast_axis = handle['/entry/instrument/detector/geometry/orientation/value'][0:3]
     slow_axis = handle['/entry/instrument/detector/geometry/orientation/value'][3:6]
     create_scalar(
@@ -105,7 +106,7 @@ class EigerNXmxFixer(object):
     group['slow_pixel_direction'].attrs['depends_on'] = '/entry/instrument/detector/transformations/translation'
 
     # Add module offset dataset
-    print "Set module offset to be zero relative to detector"
+    print("Set module offset to be zero relative to detector")
     create_scalar(
       group,
       "module_offset",
@@ -125,7 +126,7 @@ class EigerNXmxFixer(object):
       '/entry/instrument/detector/transformations/translation')
 
     # Add detector position
-    print "Using /entry/instrument/detector/geometry/translation/distances as transformation"
+    print("Using /entry/instrument/detector/geometry/translation/distances as transformation")
     detector_offset_vector = matrix.col(handle['/entry/instrument/detector/geometry/translation/distances'][()])
     group = handle.create_group('/entry/instrument/detector/transformations')
     group.attrs['NX_class'] = 'NXtransformations'
@@ -141,14 +142,14 @@ class EigerNXmxFixer(object):
     group['translation'].attrs['depends_on'] = '.'
 
     # Create goniometer transformations
-    print "Creating group /entry/sample/transformation"
+    print("Creating group /entry/sample/transformation")
     group = handle.create_group('/entry/sample/transformations')
     group.attrs['NX_class'] = 'NXtransformations'
 
-    print "Creating omega transformation:"
-    print " - making up rotation axis to be (1, 0, 0)"
-    print " - making up starting angle to be 0"
-    print " - using /entry/sample/goniometer/omega_range_average as oscillation range"
+    print("Creating omega transformation:")
+    print(" - making up rotation axis to be (1, 0, 0)")
+    print(" - making up starting angle to be 0")
+    print(" - using /entry/sample/goniometer/omega_range_average as oscillation range")
 
     # Get the number of images
     num_images = 0
@@ -180,7 +181,7 @@ if __name__ == '__main__':
   import sys
 
   if len(sys.argv) != 2:
-    print "Usage: python fix_eiger_nxmx.py FILE.nxs"
+    print("Usage: python fix_eiger_nxmx.py FILE.nxs")
     exit(0)
 
   input_filename = sys.argv[1]

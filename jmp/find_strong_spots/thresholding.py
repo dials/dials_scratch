@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def bhthreshold(histo):
   import numpy
@@ -11,7 +12,7 @@ def bhthreshold(histo):
   wr = numpy.sum(histo[mid:end])
 
   while (start <= end):
-    print start, end
+    print(start, end)
     if wr > wl:
       end -= 1
       wr -= histo[end]

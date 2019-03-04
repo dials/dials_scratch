@@ -1,10 +1,11 @@
+from __future__ import print_function
 
 
 
 
 from dials.model.serialize import load
 spots2 = load.reflections('strong2.pickle')
-print spots2[52776]
+print(spots2[52776])
 #for i, s in enumerate(spots2):
 #    x, y, z = s.centroid_position
 #    if z >= 357 and z < 372:
@@ -76,7 +77,7 @@ def plot_centroid_weights_histograms(reflections, n_slots=50):
 
   idx2 = flex.max_index(wx)
   idx3 = flex.int(range(len(reflections))).select(idx)[idx2]
-  print reflections[idx3]
+  print(reflections[idx3])
   return
 
   #outliers = reflections.select(wx > 50)

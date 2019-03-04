@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 
@@ -49,7 +50,7 @@ def sph_harm_surf(l, m):
       X, Y, Z, rstride=1, cstride=1, facecolors=C,
       linewidth=0, antialiased=True, alpha=0.5)
 
-  print 'Saving %s...' % ('ylm%d%d.png' % (l, m))
+  print('Saving %s...' % ('ylm%d%d.png' % (l, m)))
   plt.savefig('ylm%d%d.png' % (l, m))
 
 import sys

@@ -1,8 +1,9 @@
 from __future__ import division
+from __future__ import print_function
 import numpy
 
 def funt():
-  print 'hola por aqui tst 01'
+  print('hola por aqui tst 01')
 
 
 def find_mask_2d(data2d):

@@ -14,6 +14,7 @@ with a detector. The reflections must have valid beam_vectors already set!
 Reflections whose beam_vectors are (0,0,0) are ignored."""
 
 from __future__ import division
+from __future__ import print_function
 
 class ScriptRunner(object):
   """Class to run script."""
@@ -34,11 +35,11 @@ class ScriptRunner(object):
     from dials.algorithms.spot_prediction import ray_intersection
 
     # Load the reflection list
-    print 'Loading reflections from {0}'.format(self.reflections_filename)
+    print('Loading reflections from {0}'.format(self.reflections_filename))
     rlist = pickle.load(open(self.reflections_filename, 'r'))
 
     # Try to load the models
-    print 'Loading models from {0}'.format(self.sweep_filename)
+    print('Loading models from {0}'.format(self.sweep_filename))
 
     sweep = load.sweep(open(self.sweep_filename, 'r'))
     beam = sweep.get_beam()
@@ -49,7 +50,7 @@ class ScriptRunner(object):
     observations = ray_intersection(detector, rlist)
 
     if len(observations) != len(rlist):
-      print "WARNING: not all reflections intersect the detector"
+      print("WARNING: not all reflections intersect the detector")
 
       # Why is this? Dump out the unique reflections to explore
       unique = ReflectionList()
@@ -60,8 +61,8 @@ class ScriptRunner(object):
           unique.append(r)
 
       unique_filename = "unique.pickle"
-      print 'Those reflections that do not intersect have been saved' \
-            ' to {0}'.format(unique_filename)
+      print('Those reflections that do not intersect have been saved' \
+            ' to {0}'.format(unique_filename))
       pickle.dump(observations, open(unique_filename, 'wb'),
           pickle.HIGHEST_PROTOCOL)
 
@@ -72,7 +73,7 @@ class ScriptRunner(object):
     # Write out reflections
     if self.output_filename is not None:
 
-      print 'Saving reflections to {0}'.format(self.output_filename)
+      print('Saving reflections to {0}'.format(self.output_filename))
       pickle.dump(observations, open(self.output_filename, 'wb'),
           pickle.HIGHEST_PROTOCOL)
 

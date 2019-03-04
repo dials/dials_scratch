@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 fullpath = '/home/upc86896/Data/TRP_M1S3_2_/reference.pickle'
@@ -14,5 +15,5 @@ profile2 = small_reference[0].profile(0)
 
 from scitbx.array_family import flex
 diff = flex.abs(profile1 - profile2)
-print list(diff)
+print(list(diff))
 assert(diff.all_lt(1e-5))

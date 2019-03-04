@@ -1,4 +1,6 @@
 from __future__ import division
+from __future__ import print_function
+from functools import reduce
 
 
 def calculate_sigma_beam_divergence(reflections):
@@ -133,7 +135,7 @@ def centroid(image, mask, detector):
     #print temp
     var.append(temp)
 
-  print "Mean len: ", numpy.mean(nel)
+  print("Mean len: ", numpy.mean(nel))
 
   from math import sqrt, pi
 
@@ -144,7 +146,7 @@ def centroid(image, mask, detector):
   sigma_d = sum_variance / count
   sigma_d = sqrt(sigma_d)
   sigma_d = sigma_d * 180 / pi
-  print sigma_d
+  print(sigma_d)
 
 if __name__ == '__main__':
   from dxtbx.sweep import SweepFactory
@@ -190,11 +192,11 @@ if __name__ == '__main__':
     threshold_list.append(threshold)
 
 
-    print "{0} - Mean: {1}, Sdev: {2}, Var: {3}, Thres: {4}".format(
-        i, mean, sdev, var, threshold)
+    print("{0} - Mean: {1}, Sdev: {2}, Var: {3}, Thres: {4}".format(
+        i, mean, sdev, var, threshold))
 
-  print "Threshold - Mean: {0}, Sdev: {1}".format(
-      numpy.mean(threshold_list), numpy.std(threshold_list))
+  print("Threshold - Mean: {0}, Sdev: {1}".format(
+      numpy.mean(threshold_list), numpy.std(threshold_list)))
 
   mean_thresh = numpy.mean(threshold_list)
 

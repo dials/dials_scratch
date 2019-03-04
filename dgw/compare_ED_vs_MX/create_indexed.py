@@ -1,9 +1,11 @@
 #!/usr/bin/env dials.python
 
+from __future__ import print_function
 from libtbx.phil import parse
 from libtbx.utils import Sorry
 from dials.array_family import flex
 from math import pi, sqrt, floor
+from functools import reduce
 
 phil_scope = parse('''
 
@@ -90,7 +92,7 @@ class Script(object):
     from dials.util.options import flatten_reflections
     self.original_reflections = flatten_reflections(self.params.input.reflections)[0]
 
-    print "Number of reflections loaded: {0}".format(len(self.original_reflections))
+    print("Number of reflections loaded: {0}".format(len(self.original_reflections)))
 
     # make errors to add to observed centroids
     self.set_random_error()
@@ -107,7 +109,7 @@ class Script(object):
     import os
     for refs, wrapper in zip(obs_sets, self.params.input.experiments):
       outname = os.path.splitext(wrapper.filename)[0] + '.pickle'
-      print "Saving reflections to {0}".format(outname)
+      print("Saving reflections to {0}".format(outname))
       refs.as_pickle(outname)
 
   def set_random_error(self):
@@ -125,7 +127,7 @@ class Script(object):
 
   def create_indexed(self, experiments, filename):
 
-    print "Simulating indexed observations for {0}".format(filename)
+    print("Simulating indexed observations for {0}".format(filename))
 
     # Extract the experiment
     exp=experiments[0]
@@ -199,7 +201,7 @@ class Script(object):
 
     pred_sets = [rt.get_flags(rt.flags.predicted) for rt in obs_sets]
     sel = reduce(lambda a, b: a & b, pred_sets)
-    print "Selecting {0} reflections common to each set".format(sel.count(True))
+    print("Selecting {0} reflections common to each set".format(sel.count(True)))
 
     return [rt.select(sel) for rt in obs_sets]
 

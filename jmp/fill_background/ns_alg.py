@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def ice_background(j,i, height, width):
   from numpy.random import poisson
@@ -60,7 +61,7 @@ if __name__ == '__main__':
   # image = image[0:25,0:25]
   # mask = mask[0:25,0:25]
 
-  print image.dtype
+  print(image.dtype)
 
   image = cv2.inpaint(image, mask, 3, cv2.INPAINT_NS)
 

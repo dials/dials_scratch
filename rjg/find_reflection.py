@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from libtbx.phil import command_line
 from libtbx.utils import Sorry
@@ -24,10 +25,10 @@ expand_to_p1 = False
 
 def show_predictions(predictions):
   for p in predictions:
-    print "Miller index: %8i %8i %8i" %p['miller_index']
-    print "  xyzcal.mm:  %8.2f %8.2f %8.2f" %p['xyzcal.mm']
-    print "  xyzcal.px:  %8.2f %8.2f %8.2f" %p['xyzcal.px']
-    print
+    print("Miller index: %8i %8i %8i" %p['miller_index'])
+    print("  xyzcal.mm:  %8.2f %8.2f %8.2f" %p['xyzcal.mm'])
+    print("  xyzcal.px:  %8.2f %8.2f %8.2f" %p['xyzcal.px'])
+    print()
 
 
 def run(args):

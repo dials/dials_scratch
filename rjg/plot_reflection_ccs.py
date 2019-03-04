@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import json
 import os
 
@@ -10,7 +11,7 @@ def run(args):
   labels = [arg for arg in args if not os.path.isfile(arg)]
   assert len(input_files) == len(labels)
   for f, l in zip(input_files, labels):
-    print l, f
+    print(l, f)
     d = json.load(open(f, 'rb'))
     reflection_ccs = d['reference']['reflection_cc_vs_resolution']
     data = reflection_ccs['data'][0]

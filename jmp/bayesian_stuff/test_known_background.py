@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def simple_summation(data, background):
   '''
@@ -79,7 +80,7 @@ for t in range(2000):
   S_mean = estimate_signal(data, background, estimator='mean')
   S_max = estimate_signal(data, background, estimator='max')
 
-  print S_sum, S_mean, S_max
+  print(S_sum, S_mean, S_max)
 
   Y1.append(S_sum)
   Y2.append(S_mean)

@@ -1,10 +1,11 @@
+from __future__ import print_function
 from dials_scratch.lbl_feb_2017.apple import Apple
 import sys
 
 apple = Apple(sys.argv[1], sys.argv[2])
 spots = apple.find_spots()
 indexed = apple.index(spots)
-print 'Spots found / indexed:', spots.size(), indexed.size()
+print('Spots found / indexed:', spots.size(), indexed.size())
 apple.refine(do_print=True)
 hklout = sys.argv[3]
 distance_map = apple.render_distance()
@@ -20,4 +21,4 @@ apple.plot_map(mask, 'mask.png')
 
 reflections = apple.integrate()
 reflections.as_pickle(hklout)
-print 'Spots integrated: ', reflections.size()
+print('Spots integrated: ', reflections.size())

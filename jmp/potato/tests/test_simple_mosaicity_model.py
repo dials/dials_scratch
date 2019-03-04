@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 from scitbx import matrix
 
 def tst_simple_mosaicity_model():
@@ -28,7 +29,7 @@ def tst_simple_mosaicity_model():
 
   assert all(abs(a-b) < 1e-7 for a, b in zip(sigma, sigma2))
 
-  print 'OK'
+  print('OK')
 
 if __name__ == '__main__':
   tst_simple_mosaicity_model()

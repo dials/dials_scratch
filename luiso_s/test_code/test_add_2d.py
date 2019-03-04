@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.algorithms.integration import add_2d
 from scitbx.array_family import flex
 from dials.scratch.luiso_s import model_2d
@@ -12,15 +13,15 @@ descr[0, 1] = 12.5
 descr[0, 2] = 2.5
 #tmp_ref01 = ref2d_01[:,:]
 #tmp_ref02 = ref2d_02[:,:]
-print id(ref2d_01)
-print id(ref2d_02)
-print
+print(id(ref2d_01))
+print(id(ref2d_02))
+print()
 sumation = add_2d(descr, ref2d_01, ref2d_02)
 #sumation = add_2d(descr, tmp_ref01, tmp_ref02)
-print
-print id(ref2d_01)
-print id(ref2d_02)
-print id(sumation)
+print()
+print(id(ref2d_01))
+print(id(ref2d_02))
+print(id(sumation))
 
 
 from matplotlib import pyplot as plt

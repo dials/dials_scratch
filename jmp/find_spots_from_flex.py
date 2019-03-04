@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from dials.array_family import flex
 
@@ -42,4 +43,4 @@ if __name__ == '__main__':
 
   reflections = find_spots(image, mask)
 
-  print len(reflections)
+  print(len(reflections))

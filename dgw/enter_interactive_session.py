@@ -17,6 +17,7 @@ testing things.
 
 # Python and cctbx imports
 from __future__ import division
+from __future__ import print_function
 import sys
 from math import pi
 from scitbx import matrix
@@ -164,14 +165,14 @@ xluc_param.set_param_vals(X)
 # Generate some reflections #
 #############################
 
-print "Reflections will be generated with the following geometry:"
-print mybeam
-print mydetector
-print mycrystal
-print "Target values of parameters are"
+print("Reflections will be generated with the following geometry:")
+print(mybeam)
+print(mydetector)
+print(mycrystal)
+print("Target values of parameters are")
 msg = "Parameters: " + "%.5f " * len(pred_param)
-print msg % tuple(pred_param.get_param_vals())
-print
+print(msg % tuple(pred_param.get_param_vals()))
+print()
 
 # All indices in a 2.0 Angstrom sphere
 resolution = 2.0
@@ -183,7 +184,7 @@ indices = index_generator.to_array()
 ray_predictor = ScansRayPredictor(experiments, sweep_range)
 obs_refs = ray_predictor(indices)
 
-print "Total number of reflections excited", len(obs_refs)
+print("Total number of reflections excited", len(obs_refs))
 
 # Take only those rays that intersect the detector
 intersects = ray_intersection(mydetector, obs_refs)
@@ -206,7 +207,7 @@ var_y = flex.double(len(obs_refs), (px_size[1] / 2.)**2)
 var_phi = flex.double(len(obs_refs), (im_width / 2.)**2)
 obs_refs['xyzobs.mm.variance'] = flex.vec3_double(var_x, var_y, var_phi)
 
-print "Total number of observations made", len(obs_refs)
+print("Total number of observations made", len(obs_refs))
 
 ###############################
 # Undo known parameter shifts #
@@ -217,10 +218,10 @@ det_param.set_param_vals(det_p_vals)
 xlo_param.set_param_vals(xlo_p_vals)
 xluc_param.set_param_vals(xluc_p_vals)
 
-print "Initial values of parameters are"
+print("Initial values of parameters are")
 msg = "Parameters: " + "%.5f " * len(pred_param)
-print msg % tuple(pred_param.get_param_vals())
-print
+print(msg % tuple(pred_param.get_param_vals()))
+print()
 
 #####################################
 # Select reflections for refinement #
@@ -247,10 +248,10 @@ refiner = setup_minimiser.Extract(master_phil,
                                   pred_param,
                                   cmdline_args = args).refiner
 
-print "Prior to refinement the experimental model is:"
-print mybeam
-print mydetector
-print mycrystal
+print("Prior to refinement the experimental model is:")
+print(mybeam)
+print(mydetector)
+print(mycrystal)
 
 # get a CS-PAD detector for testing
 import os
@@ -278,7 +279,7 @@ datablock = DataBlockFactory.from_serialized_format(datablock_path, check_format
 im_set = datablock[0].extract_imagesets()[0]
 from copy import deepcopy
 p6m = deepcopy(im_set.get_detector())
-print p6m[0]
+print(p6m[0])
 
 # get a P12M (cropped to middle 18 modules)
 data_dir = os.path.join(dials_regression, "indexing_test_data",
@@ -288,7 +289,7 @@ datablock = DataBlockFactory.from_serialized_format(datablock_path, check_format
 im_set = datablock[0].extract_imagesets()[0]
 from copy import deepcopy
 p12m = deepcopy(im_set.get_detector())
-print p12m[0]
+print(p12m[0])
 
 # hierarchical parameterisation
 from dials.algorithms.refinement.parameterisation.detector_parameters import \

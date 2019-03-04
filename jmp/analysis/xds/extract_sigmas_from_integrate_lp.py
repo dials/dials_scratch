@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 def parse_frame_data(filename):
@@ -98,5 +99,5 @@ if __name__ == '__main__':
   sigma_b_data = [d for e in sigma_b_data for d in e]
   sigma_m_data = zip(*sigma_m_rows)[1:]
   sigma_m_data = [d for e in sigma_m_data for d in e]
-  print "Mean Sigma B: ", sum(sigma_b_data) / len(sigma_b_data)
-  print "Mean Sigma M: ", sum(sigma_m_data) / len(sigma_m_data)
+  print("Mean Sigma B: ", sum(sigma_b_data) / len(sigma_b_data))
+  print("Mean Sigma M: ", sum(sigma_m_data) / len(sigma_m_data))

@@ -2,7 +2,7 @@ def find_number(words):
     for token in words.split():
         try:
             return float(token)
-        except ValueError, e:
+        except ValueError as e:
             pass
 
 def keep_numbers(words):

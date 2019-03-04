@@ -5,6 +5,7 @@ Contains the Image class. This class is used to extract all data
 necessary to model the experiment from the cbf header. This is done
 using dxtbx.
 """
+from __future__ import print_function
 
 import numpy as np
 from numpy.linalg import norm
@@ -87,4 +88,4 @@ class Image(object):
 if __name__ == "__main__":
     image = Image('cbf_image2.cbf')
     a, b, c, d = image.detector_parameters()
-    print a, b, c, d
+    print(a, b, c, d)

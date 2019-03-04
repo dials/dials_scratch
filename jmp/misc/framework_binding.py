@@ -1,10 +1,11 @@
+from __future__ import print_function
 
 
 
 class Method(object):
 
     def __call__(self, obj):
-        print "hello"
+        print("hello")
 
     def __get__(self, obj, objtype):
         import types

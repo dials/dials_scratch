@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.scratch.luiso_s import tst_ref_prod , write_2d
 from scitbx.array_family import flex
 a = flex.double(flex.grid(3, 3))
@@ -9,25 +10,25 @@ for xpos in range(3):
     a[ypos, xpos] = random.random()
     b[ypos, xpos] = 1.0
 
-print "a ="
+print("a =")
 write_2d(a)
 
-print "b ="
+print("b =")
 write_2d(b)
 
 c = tst_ref_prod(a, b)
 
-print "c ="
+print("c =")
 write_2d(c)
 
-print "______________________________________"
+print("______________________________________")
 
 
-print "a ="
+print("a =")
 write_2d(a)
 
-print "b ="
+print("b =")
 write_2d(b)
 
-print "c ="
+print("c =")
 write_2d(c)

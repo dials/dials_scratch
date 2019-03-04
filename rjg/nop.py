@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import libtbx.phil
 
@@ -35,11 +36,11 @@ def run(args):
       else:
         imgset.get_corrected_data(i)
       img_count += 1
-      print "Read %i images" %img_count
+      print("Read %i images" %img_count)
   t1 = time.time()
   t = t1 - t0
-  print "Read %i images in %.2fs (%.1f images/s)" %(
-    img_count, t, img_count/t)
+  print("Read %i images in %.2fs (%.1f images/s)" %(
+    img_count, t, img_count/t))
 
   return
 

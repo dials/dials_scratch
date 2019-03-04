@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 #refl[index[10000]].corrected_intensity
 #Out[15]: 1910.0948427154015
@@ -38,7 +39,7 @@ background = XdsSubtractor(min_data = 10, n_sigma = 3)
 background(sweep, crystal, ref_list)
 
 r = ref_list[0]
-print r.bounding_box
+print(r.bounding_box)
 
 shoebox = r.shoebox
 background = r.shoebox_background
@@ -70,16 +71,16 @@ bprof = ref_list[0].transformed_shoebox_background
 for k in range(9):
 #    pylab.imshow(bprof.as_numpy_array()[k], vmin=flex.min(bprof), vmax=flex.max(bprof))
 #    pylab.show()
-  print bprof.as_numpy_array()[k].astype(numpy.int32)
+  print(bprof.as_numpy_array()[k].astype(numpy.int32))
 
 
-print flex.sum(prof), flex.sum(shoebox)
-print flex.sum(bprof), flex.sum(background)
+print(flex.sum(prof), flex.sum(shoebox))
+print(flex.sum(bprof), flex.sum(background))
 
 r = ref_list[0]
 coord = r.image_coord_px + (r.frame_number,)
 rprof = reference.profile(coord)
-print flex.sum(rprof), flex.sum(prof), flex.sum(prof - bprof)
+print(flex.sum(rprof), flex.sum(prof), flex.sum(prof - bprof))
 
 #for k in range(9):
 #    #print prof.as_numpy_array()[k].astype(numpy.int32)
@@ -101,7 +102,7 @@ mv_b = flex.mean_and_variance(prof_b.as_1d())
 ma, sa = mv_a.mean(), mv_a.unweighted_sample_standard_deviation()
 mb, sb = mv_b.mean(), mv_b.unweighted_sample_standard_deviation()
 R = (1.0/(n-1.0)) * flex.sum((prof_a-ma) * (prof_b-mb) / (sa*sb))
-print "Correlation: ", R
+print("Correlation: ", R)
 
 from dials.algorithms.reflection_basis.transform import ideal_profile
 iprof = ideal_profile(4, 5)
@@ -114,14 +115,14 @@ mv_b = flex.mean_and_variance(prof_b.as_1d())
 ma, sa = mv_a.mean(), mv_a.unweighted_sample_standard_deviation()
 mb, sb = mv_b.mean(), mv_b.unweighted_sample_standard_deviation()
 R = (1.0/(n-1.0)) * flex.sum((prof_a-ma) * (prof_b-mb) / (sa*sb))
-print "Correlation: ", R
+print("Correlation: ", R)
 
 for k in range(9):
   pylab.subplot(3, 3, k+1)
   pylab.imshow(iprof.as_numpy_array()[k], vmin=flex.min(iprof), vmax=flex.max(iprof))
 pylab.show()
 
-print flex.sum(iprof)
+print(flex.sum(iprof))
 
 rprof = iprof
 
@@ -138,6 +139,6 @@ ref_list[0].variance = fit.variance()
 
 from dials.algorithms.integration.lp_correction import correct_intensity
 correct_intensity(sweep, crystal, ref_list)
-print "Intensity: ", ref_list[0].intensity
-print "Corrected Intensity: ", ref_list[0].corrected_intensity
-print "XDS Intensity: ", 2688.0
+print("Intensity: ", ref_list[0].intensity)
+print("Corrected Intensity: ", ref_list[0].corrected_intensity)
+print("XDS Intensity: ", 2688.0)

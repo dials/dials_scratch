@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 def run(experiment):
 
@@ -20,9 +21,9 @@ def run(experiment):
   rb = matrix.col((ub[1], ub[4], ub[7]))
   rc = matrix.col((ub[2], ub[5], ub[8]))
 
-  print ra.dot(rb)
-  print ra.dot(rc)
-  print rb.dot(rc)
+  print(ra.dot(rb))
+  print(ra.dot(rc))
+  print(rb.dot(rc))
 
   # Orthogonal vectors to create the profile on
   ea = ra.normalize()
@@ -44,7 +45,7 @@ def run(experiment):
   s1 = matrix.col(refl['s1'][0])
   rlp = s1 - s0
   xc, yc, zc = refl['xyzcal.mm'][0]
-  print xc, yc, zc
+  print(xc, yc, zc)
   data = flex.double(flex.grid(200, 200))
   for j in range(200):
     for i in range(200):
@@ -57,7 +58,7 @@ def run(experiment):
       d = -0.5 * (((s - sc).transpose() * sigmam1 * (s-sc))[0])
       f = c*exp(d)
       data[j,i] = f
-  print flex.max(data)
+  print(flex.max(data))
 
 
   from matplotlib import pylab, cm

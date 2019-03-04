@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.util.options import OptionParser
 from libtbx.phil import parse
 import dxtbx, os
@@ -78,7 +79,7 @@ def run():
 
   # create the spot finder
 
-  print "Spotfinder spots found:", len(reflections)
+  print("Spotfinder spots found:", len(reflections))
 
   if params.indexing.method == "fft3d":
     from dials.algorithms.indexing.fft3d import indexer_fft3d as indexer
@@ -90,7 +91,7 @@ def run():
   try:
     idxr = indexer(reflections, [imgset], params=params.indexing)
   except (RuntimeError, Sorry) as e:
-    print str(e)
+    print(str(e))
     return
 
   indexed = idxr.refined_reflections

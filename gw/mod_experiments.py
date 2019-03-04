@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx import matrix
 
 def read_expt(filename):
@@ -44,7 +45,7 @@ import math
 # however right enough for this...
 
 theta = math.asin(expt.beam.get_wavelength() / (2 * resolution))
-print 'Using two-theta: %.3f' % (2 * theta * 180.0 / math.pi)
+print('Using two-theta: %.3f' % (2 * theta * 180.0 / math.pi))
 
 epochs = scan.get_epochs()
 exposure_times = scan.get_exposure_times()
@@ -94,7 +95,7 @@ s = rotation_decomposition.solve_r3_rotation_for_angles_given_axes(
 
 # use solution
 
-print 'Using angles: %.3f %.3f' % (180 * s[1] / math.pi, 180 * s[2] / math.pi)
+print('Using angles: %.3f %.3f' % (180 * s[1] / math.pi, 180 * s[2] / math.pi))
 
 F = e2.axis_and_angle_as_r3_rotation_matrix(s[1]) * \
   e3.axis_and_angle_as_r3_rotation_matrix(s[2])

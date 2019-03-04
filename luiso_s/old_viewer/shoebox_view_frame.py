@@ -9,6 +9,7 @@
 #  included in the root directory of this package."
 #
 from __future__ import division
+from __future__ import print_function
 import wx
 
 from dials.viewer.img_utilities import GetBitmap_from_np_array, ImageListCtrl
@@ -52,7 +53,7 @@ class ShoeboxView(wx.Frame):
     self.SetSizer(self.bot_sizer)
 
   def OnTstBut(self, event):
-    print "OnTstBut"
+    print("OnTstBut")
 
   def OnTst_01_But(self, event):
-    print "OnTst_01_But"
+    print("OnTst_01_But")

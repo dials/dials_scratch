@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -9,12 +10,12 @@ if __name__ == '__main__':
   from dials.algorithms.shoebox import MaskCode
   from math import sqrt
 
-  print "Loading Reflections"
+  print("Loading Reflections")
   rlist = load.reflections(sys.argv[1])
   expected_intensity = float(sys.argv[2])
   expected_background = float(sys.argv[3])
 
-  print "Calculating Errors"
+  print("Calculating Errors")
 #  I = [r.intensity for r in rlist]
 #  E = []
 #  ios = []
@@ -69,7 +70,7 @@ if __name__ == '__main__':
 #      [bool(p & MaskCode.Foreground) for p in r.shoebox_mask]))
 #    subtracted = pixels - flex.mean(r.shoebox_background)
 #    print flex.mean(pixels)
-    print m, n, intensity, sqrt(variance), r.intensity, sqrt(r.intensity_variance)
+    print(m, n, intensity, sqrt(variance), r.intensity, sqrt(r.intensity_variance))
     I.append(intensity)
     V.append(variance)
 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
   varz = mv.unweighted_sample_variance()
   sdevz = sqrt(varz)
 
-  print "Z: (mean: %f), (var: %f), (sdev: %f)" % (meanz, varz, sdevz)
+  print("Z: (mean: %f), (var: %f), (sdev: %f)" % (meanz, varz, sdevz))
 
   pylab.hist(Z)
   pylab.show()

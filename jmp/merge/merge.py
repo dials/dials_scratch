@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx import phil
 from collections import Counter, defaultdict
 from dials.array_family import flex
@@ -144,21 +145,21 @@ class Scaler(object):
     multiplicity = flex.int(len(x) for x in lookup_index)
     obs_on_image = flex.int(len(x) for x in lookup_image)
     obs_on_epbin = flex.int(len(x) for x in lookup_epsilon)
-    print len(reflections), flex.sum(obs_on_epbin)
+    print(len(reflections), flex.sum(obs_on_epbin))
     assert flex.sum(multiplicity) == len(reflections)
     assert flex.sum(obs_on_image) == len(reflections)
     assert flex.sum(obs_on_epbin) == len(reflections)
 
     # Print some info
-    print "# Total reflections:  %d" % len(reflections)
-    print "# Unique reflections: %d" % len(self.h_unique)
-    print "# Images: %d" % len(self.lookup_image)
-    print "Min multiplicity: %d" % flex.min(multiplicity)
-    print "Max multiplicity: %d" % flex.max(multiplicity)
-    print "Min observations on image: %d" % flex.min(obs_on_image)
-    print "Max observations on image: %d" % flex.max(obs_on_image)
-    print "Min observations in epsilon bin: %d" % flex.min(obs_on_epbin)
-    print "Max observations in epsilon bin: %d" % flex.max(obs_on_epbin)
+    print("# Total reflections:  %d" % len(reflections))
+    print("# Unique reflections: %d" % len(self.h_unique))
+    print("# Images: %d" % len(self.lookup_image))
+    print("Min multiplicity: %d" % flex.min(multiplicity))
+    print("Max multiplicity: %d" % flex.max(multiplicity))
+    print("Min observations on image: %d" % flex.min(obs_on_image))
+    print("Max observations on image: %d" % flex.max(obs_on_image))
+    print("Min observations in epsilon bin: %d" % flex.min(obs_on_epbin))
+    print("Max observations in epsilon bin: %d" % flex.max(obs_on_epbin))
 
     # Return reflections
     return reflections
@@ -249,14 +250,13 @@ class Scaler(object):
 
         # assert logL > logL_old
         eps = abs(logL_new-logL_old)
-        print \
-          iteration, \
+        print(iteration, \
           eps, \
           flex.sum(c_new)/len(c_new), \
           flex.min(g_new), \
           flex.max(g_new), \
           " ".join("%.2f" % mm for mm in m_new), \
-          " ".join("%.2f" % sqrt(ss) for ss in s_new)
+          " ".join("%.2f" % sqrt(ss) for ss in s_new))
         if eps < self.tolerance:
           break
         g_old = g_new
@@ -264,7 +264,7 @@ class Scaler(object):
         s_old = s_new
         c_old = c_new
         logL_old = logL_new
-      except KeyboardInterrupt, e:
+      except KeyboardInterrupt as e:
         break
     
     # Set the results

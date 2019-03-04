@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 def log_interpolate(x0, y0, x1, y1, x):
   '''Return y(x) where we have fit a linear model to ln(y)(x)'''
   import math
@@ -48,7 +49,7 @@ def derive_absorption_coefficient_Si(energy_kev):
       e_mu1 = coefficients[j]
       return log_interpolate(e_mu0[0], e_mu0[1], e_mu1[0], e_mu1[1], energy_kev)
 
-  raise RuntimeError, 'cannot reach this point'
+  raise RuntimeError('cannot reach this point')
 
 def compute_offset(t0, theta, mu):
   import math
@@ -93,7 +94,7 @@ def work():
     theta = d2r * j
     o_127 = compute_offset(t0, theta, mu_cm_127)
     o_170 = compute_offset(t0, theta, mu_cm_170)
-    print j, o_127 / pixel, o_170 / pixel
+    print(j, o_127 / pixel, o_170 / pixel)
 
 def work_dqe():
   import math
@@ -101,7 +102,7 @@ def work_dqe():
   for j in range(30, 201, 1):
     energy_kev = 0.1 * j
     mu = derive_absorption_coefficient_Si(energy_kev)
-    print energy_kev, dqe(t0, 0.0, mu), dqe(t0, math.pi / 4, mu)
+    print(energy_kev, dqe(t0, 0.0, mu), dqe(t0, math.pi / 4, mu))
 
 def work_compare_2005_paper():
   '''Run with 12 KeV photons, 300 micron sensor, 217 micron pixel size to compare
@@ -122,7 +123,7 @@ def work_compare_2005_paper():
   for j in range(0, 61):
     theta = d2r * j
     o = compute_offset(t0, theta, mu_cm)
-    print j, o / pixel
+    print(j, o / pixel)
 
 def read_xds_calibration_file(calibration_file):
   '''Read XDS calibration file, return as flex array.'''
@@ -216,8 +217,8 @@ def validate_against_xds(xds_directory):
       if offset_y > max_offset_y:
         max_offset_y = offset_y
 
-  print min_offset_x, max_offset_x
-  print min_offset_y, max_offset_y
+  print(min_offset_x, max_offset_x)
+  print(min_offset_y, max_offset_y)
 
 if __name__ == '__main__':
   import sys

@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 class InputWriter(object):
   '''
@@ -138,16 +139,16 @@ def cluster_map(
 if __name__ == '__main__':
 
   def callback(x):
-    print x
+    print(x)
 
   from dials.util.cluster_func_test import func
   from dials.util.mp import MultiNodeClusterFunction
 
 
 
-  print cluster_map(
+  print(cluster_map(
     func,
     list(range(100)),
     nslots=4
    # callback=callback,
-    )
+    ))

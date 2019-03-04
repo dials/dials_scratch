@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from dials.scratch.luiso_s.tree_folder_call_test.function01 import *
 import numpy
@@ -37,7 +38,7 @@ n_frm = numpy.size(data3d_ini[:, 0:1, 0:1])
 n_row = numpy.size(data3d_ini[0:1, :, 0:1])
 n_col = numpy.size(data3d_ini[0:1, 0:1, :])
 
-print "n_frm,n_row,n_col", n_frm, n_row, n_col
+print("n_frm,n_row,n_col", n_frm, n_row, n_col)
 
 exampl_row_from = 1400
 exampl_row_to = 1500
@@ -88,14 +89,14 @@ time4 = time.time()
 
 
 for pos in range(len(x_from_lst)):
-  print "x_from_lst, x_to_lst, y_from_lst, y_to_lst, z_from_lst, z_to_lst =" \
-  , x_from_lst[pos], x_to_lst[pos], y_from_lst[pos], y_to_lst[pos], z_from_lst[pos], z_to_lst[pos]
+  print("x_from_lst, x_to_lst, y_from_lst, y_to_lst, z_from_lst, z_to_lst =" \
+  , x_from_lst[pos], x_to_lst[pos], y_from_lst[pos], y_to_lst[pos], z_from_lst[pos], z_to_lst[pos])
 time5 = time.time()
 
-print "time dif =", time2 - time1
-print "time dif =", time3 - time2
-print "time dif =", time4 - time3
-print "time dif =", time5 - time4
+print("time dif =", time2 - time1)
+print("time dif =", time3 - time2)
+print("time dif =", time4 - time3)
+print("time dif =", time5 - time4)
 
   #print lst_box_pos
   #

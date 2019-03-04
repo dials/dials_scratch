@@ -2,6 +2,7 @@
 
 
 from __future__ import division
+from __future__ import print_function
 
 if __name__ == '__main__':
 
@@ -12,7 +13,7 @@ if __name__ == '__main__':
   # seed(0)
 
   for k in range(10):
-    print k
+    print(k)
     # a = list(poisson(2, 100))
     a = [3,
  2,
@@ -124,12 +125,12 @@ if __name__ == '__main__':
     B = flex.double([0])
 
     result = robust_glm(X, Y, B, family="poisson")
-    print list(result.parameters())
+    print(list(result.parameters()))
 
 
   from matplotlib import pylab
-  print "MOM1: ", sum(means1) / len(means1)
-  print "MOM2: ", sum(means2) / len(means2)
+  print("MOM1: ", sum(means1) / len(means1))
+  print("MOM2: ", sum(means2) / len(means2))
   pylab.plot(means1, color='black')
   pylab.plot(means2, color='blue')
   pylab.show()

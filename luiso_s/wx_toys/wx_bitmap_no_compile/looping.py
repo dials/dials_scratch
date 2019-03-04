@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 def loops_2d(data2d_scale):

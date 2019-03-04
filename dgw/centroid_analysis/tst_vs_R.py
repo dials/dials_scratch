@@ -10,10 +10,11 @@
 """Compare Periodogram with R's spec.pgram"""
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 try:
   import rpy2.robjects as robjects
 except ImportError as e:
-  print "This script requires the rpy2 package to be installed."
+  print("This script requires the rpy2 package to be installed.")
   raise
 from dials.array_family import flex
 from scitbx.math.periodogram import Periodogram
@@ -46,7 +47,7 @@ def test1():
 
     assert approx_equal(a.freq, b.freq)
     assert approx_equal(a.spec, b.spec)
-  print "OK"
+  print("OK")
 
 def test2():
   # compare plots
@@ -74,7 +75,7 @@ def test3():
     assert approx_equal(a.freq, b.freq)
     assert approx_equal(a.spec, b.spec)
 
-    print "OK"
+    print("OK")
 
 def test4():
   # compare kernapply
@@ -92,7 +93,7 @@ def test4():
 
   for e1, e2 in zip(a, b):
     assert approx_equal(e1, e2)
-  print "OK"
+  print("OK")
 
 def test5():
   # compare smoothed pgrams with convolved kernel, even and odd length sequences
@@ -110,7 +111,7 @@ def test5():
     assert approx_equal(a.freq, b.freq)
     assert approx_equal(a.spec, b.spec)
 
-    print "OK"
+    print("OK")
 
 if __name__=="__main__":
   test1()
@@ -119,4 +120,4 @@ if __name__=="__main__":
   test4()
   test5()
 
-  print "OK"
+  print("OK")

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 
 def vonmises_fisher(mu, kappa):
@@ -156,7 +157,7 @@ def simulate(experiment,
   # Loop through the reflections
   for i in range(len(reflections)):
 
-    print "Reflection %d / %d" % (i, len(reflections))
+    print("Reflection %d / %d" % (i, len(reflections)))
 
     # Skip the 0,0,0 reflection
     h = reflections[i]['miller_index']
@@ -195,7 +196,7 @@ def display():
   from matplotlib import pylab, cm
   for k in range(image.all()[0]):
     data = image[k:k+1,:,:]
-    print flex.max(data)
+    print(flex.max(data))
     pylab.imshow(data.as_numpy_array()[0,:,:], cmap=cm.Greys_r)
     pylab.show()
 
@@ -254,7 +255,7 @@ if __name__ == '__main__':
 
   # Predict reflections if none are given
   if reflections is None or len(reflections) == 0:
-    print "Predicting reflections"
+    print("Predicting reflections")
     reflections = flex.reflection_table.from_predictions(experiments[0])
   else:
     reflections = reflections[0]

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 import math
 
@@ -74,7 +75,7 @@ def refine_wavelengths(experiments, reflections, initial_mosaic_parameters, tag,
 
     def target(self, vector):
       """ Compute the functional """
-      print "Starting target", list(vector[0:2])
+      print("Starting target", list(vector[0:2]))
       if (vector < 0).count(True) > 0:
         return 1e6
       if self.refine_bandpass:
@@ -82,17 +83,17 @@ def refine_wavelengths(experiments, reflections, initial_mosaic_parameters, tag,
           width, midpoint = vector[(i*2)+2], vector[(i*2)+3]
           self.experiments[i].crystal.bandpass = midpoint - width, midpoint + width
           if i == 0:
-            print "Experiment 0 bandpass:", self.experiments[i].crystal.bandpass
+            print("Experiment 0 bandpass:", self.experiments[i].crystal.bandpass)
 
       # recompute the wavelengths
       self.reflections = self.wavelength_func(self.experiments, self.reflections, vector[0:2])
       stats = flex.mean_and_variance(12398.4/self.reflections[tag])
-      print "Mean energy: %.1f +/- %.1f"%(stats.mean(), stats.unweighted_sample_standard_deviation()), vector[0], vector[1]
+      print("Mean energy: %.1f +/- %.1f"%(stats.mean(), stats.unweighted_sample_standard_deviation()), vector[0], vector[1])
       self.reflections = predictions_from_per_reflection_energies(experiments, self.reflections, tag, dest)
 
       # Miminimze the deltaXY RMSD of observations-predictions
       rmsd = math.sqrt(flex.sum((self.reflections['xyzobs.mm.value']-self.reflections['xyzcal.mm.%s'%dest]).norms()**2)/len(self.reflections))
-      print "Dataset RMSD (microns)", rmsd * 1000
+      print("Dataset RMSD (microns)", rmsd * 1000)
       return rmsd
       # Alternative formulation of target. Minimize summed squared differences between computed wavelengths for each reflection.
       #f = flex.sum((self.reflections[tag]-self.reflections['reflection_wavelength_from_pixels'])**2)
@@ -106,7 +107,7 @@ def refine_wavelengths(experiments, reflections, initial_mosaic_parameters, tag,
   minimizer = simplex_minimizer(experiments, reflections, initial_mosaic_parameters, \
                                 wavelength_func=wavelength_func, refine_bandpass=refine_bandpass)
   final_mosaic_parameters = minimizer.x[0:2]
-  print "Final mosaic parameters", list(final_mosaic_parameters), experiments[0].crystal.bandpass
+  print("Final mosaic parameters", list(final_mosaic_parameters), experiments[0].crystal.bandpass)
   if refine_bandpass:
     for i in xrange(len(experiments)):
       width, midpoint = minimizer.x[(i*2)+2], minimizer.x[(i*2)+3]
@@ -156,7 +157,7 @@ def tophat_vector_wavelengths(experiments, reflections, mosaic_parameters):
     return reflections
 
   domain_size_ang, half_mosaicity_deg = mosaic_parameters
-  print "Computing per-reflection wavelengths from domain size", domain_size_ang, "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image"
+  print("Computing per-reflection wavelengths from domain size", domain_size_ang, "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image")
 
   table = flex.reflection_table()
 
@@ -247,7 +248,7 @@ def tophat_vector_wavelengths(experiments, reflections, mosaic_parameters):
 
   assert (new_wavelengths <= 0).count(True) == 0
   reflections['reflection_wavelength_from_mosaicity_and_bandpass'] = new_wavelengths
-  print "CASES", case_0, case_1 ,case_2 ,case_3, case_4, case_5
+  print("CASES", case_0, case_1 ,case_2 ,case_3, case_4, case_5)
 
   return reflections
 
@@ -273,7 +274,7 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
 
   if mosaic_parameters is not None:
     domain_size_ang, half_mosaicity_deg = mosaic_parameters
-    print "Computing per-reflection wavelengths from domain size", domain_size_ang, "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image"
+    print("Computing per-reflection wavelengths from domain size", domain_size_ang, "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image")
 
   table = flex.reflection_table()
   new_wavelengths = flex.double()
@@ -297,8 +298,8 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
     if mosaic_parameters is None:
       domain_size_ang = expt.crystal.get_domain_size_ang()
       half_mosaicity_deg = expt.crystal.get_half_mosaicity_deg()
-      print "Computing per-reflection wavelengths from domain size", domain_size_ang, \
-        "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image"
+      print("Computing per-reflection wavelengths from domain size", domain_size_ang, \
+        "(ang), half mosaic angle", half_mosaicity_deg, "(deg), and bandpass derived from each image")
 
     # Determine how to obtain the bandpass
     if hasattr(expt.crystal, 'bandpass'):

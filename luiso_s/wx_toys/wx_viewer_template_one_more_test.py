@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer
 #
@@ -82,31 +83,31 @@ class ReflectionFrame(wx.Frame):
   def B_tst(self, event = None):
     self.frame_scale = self.frame_scale * 1.1
     self.My_Update()
-    print "self.GetSize() =", self.GetSize()
+    print("self.GetSize() =", self.GetSize())
   def B_tst1(self, event = None):
     self.frame_scale = self.frame_scale * 0.9
     self.My_Update()
-    print "self.GetSize() =", self.GetSize()
+    print("self.GetSize() =", self.GetSize())
 
   def OnSize(self, event = None):
     if( self.sizing_counter > 5 ):
       siz_data = self.GetSize()
-      print "New size of window =", siz_data
+      print("New size of window =", siz_data)
       optm_aspec_ratio = 3.81
-      print "siz_data = ", siz_data[0], siz_data[1]
-      print "aspect ratio = ", float(siz_data[0])/ float(siz_data[1])
+      print("siz_data = ", siz_data[0], siz_data[1])
+      print("aspect ratio = ", float(siz_data[0])/ float(siz_data[1]))
       aspec_ratio = float(siz_data[0])/ float(siz_data[1])
 
       if(aspec_ratio > optm_aspec_ratio):
-        print "use float(siz_data[1] (Height) to calculate new size"
+        print("use float(siz_data[1] (Height) to calculate new size")
         self.frame_scale = float(siz_data[1]) * 0.5 / 291.0
         #(1100, 291)
       else:
-        print "use float(siz_data[0] (with) to calculate new size"
+        print("use float(siz_data[0] (with) to calculate new size")
         self.frame_scale = float(siz_data[0]) * 0.5 / 1100.0
         #(1100, 291)
       self.My_Update(request_new_size = False)
-      print "resizing"
+      print("resizing")
     else:
       self.sizing_counter += 1
 
@@ -117,7 +118,7 @@ class ReflectionFrame(wx.Frame):
       self.dat = np_tmp
       self.msk = np_tmp
       self.I_max = 100
-      print "re - fitting"
+      print("re - fitting")
 
       self.wx_Img_dat, self.img_width, self.img_height = GetBitmap_from_np_array(
                                       np_img_2d = self.dat

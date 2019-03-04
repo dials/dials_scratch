@@ -1,3 +1,4 @@
+from __future__ import print_function
 from numpy.random import normal, poisson, seed, uniform, multivariate_normal
 from math import exp, pi, sqrt, log, sin, cos
 from dials.array_family import flex
@@ -27,7 +28,7 @@ def test_non_axis_aligned_random_orientation_likelihood():
 
   params = M
 
-  print sigma
+  print(sigma)
 
   scale = 1e-4
 
@@ -36,7 +37,7 @@ def test_non_axis_aligned_random_orientation_likelihood():
   s0 = s0*scale
   sigma *=scale
 
-  print "Generating"
+  print("Generating")
   s2_list, ctot_list, Sobs_list = generate_simple(s0, sigma)
 
 
@@ -46,8 +47,8 @@ def test_non_axis_aligned_random_orientation_likelihood():
       sigma += (s2-s2.normalize()*s0.length())*(s2-s2.normalize()*s0.length()).transpose()
     sigma /= len(s2_list)
 
-    print "SIMPLE"
-    print sigma
+    print("SIMPLE")
+    print(sigma)
     return sigma
 
   sigma_sim = compute_simple(s0, s2_list)
@@ -62,7 +63,7 @@ def test_non_axis_aligned_random_orientation_likelihood():
 
   #plot_parameters(s0, s2_list, ctot_list, Sobs_list, params)
 
-  print sigma
+  print(sigma)
 
   def kl_divergence(A, B):
     return 0.5 * ((B.inverse()*A).trace() - 3 + log(B.determinant() / A.determinant()))
@@ -70,8 +71,8 @@ def test_non_axis_aligned_random_orientation_likelihood():
   A = sigma
   B = sigma_cal
   C = sigma_sim
-  print kl_divergence(A, B)
-  print kl_divergence(A, C)
+  print(kl_divergence(A, B))
+  print(kl_divergence(A, C))
   # A = (sigma_cal - sigma)
   # print sqrt((A.transpose()*A).trace())
 

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 def simulate(n, size):
   from scitbx.array_family import flex
@@ -14,7 +15,7 @@ def simulate(n, size):
     for k in range(size[0]):
       for j in range(size[1]):
         for i in range(size[2]):
-          sbox[k, j, i] += g.next()
+          sbox[k, j, i] += next(g)
     shoeboxes.append(sbox)
 
   # Calculate the Intensity (should be zero)
@@ -37,12 +38,12 @@ def simulate(n, size):
   I_cal = flex.double(I_cal)
 
   mv = flex.mean_and_variance(flex.double(mean))
-  print mv.mean() - B, mv.unweighted_sample_variance()
+  print(mv.mean() - B, mv.unweighted_sample_variance())
   v1 = B / (size[0] * size[1] * size[2])
   v2= B * (size[0] * size[1] * size[2])
-  print v1
-  print v2
-  print I_cal[0]
+  print(v1)
+  print(v2)
+  print(I_cal[0])
 
   from math import sqrt
   Z = (I_cal - 0) / sqrt(v2)
@@ -57,7 +58,7 @@ if __name__ == '__main__':
   mean, sdev = [], []
   for i in range(1):
     m, s = simulate(1000, (10, 10, 10))
-    print "Mean: %f, Var: %f" % (m, s)
+    print("Mean: %f, Var: %f" % (m, s))
     mean.append(m)
     sdev.append(s)
 #  mv = flex.mean_and_variance(flex.double(mean))

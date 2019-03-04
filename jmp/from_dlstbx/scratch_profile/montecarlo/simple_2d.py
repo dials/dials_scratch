@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 #
 # Simple test to do a montecarlo integration of a 2d gaussian moving through a
@@ -77,9 +78,9 @@ if __name__ == '__main__':
         maxphi = phi
         maxtheta= theta
 
-  print "Max Phi: ", maxphi * 180.0 / pi
-  print "Max Theta: ", maxtheta * 180.0 / pi
-  print "Total: ", flex.sum(z)
+  print("Max Phi: ", maxphi * 180.0 / pi)
+  print("Max Theta: ", maxtheta * 180.0 / pi)
+  print("Total: ", flex.sum(z))
 
 
   # z = flex.double(flex.grid(100, 100))

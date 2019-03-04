@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -16,8 +17,8 @@ if __name__ == '__main__':
   import libtbx.load_env
   try:
     dials_regression = libtbx.env.dist_path('dials_regression')
-  except KeyError, e:
-    print 'FAIL: dials_regression not configured'
+  except KeyError as e:
+    print('FAIL: dials_regression not configured')
     exit(0)
   path = join(dials_regression, "centroid_test_data")
   import sys

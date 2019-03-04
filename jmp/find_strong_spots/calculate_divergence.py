@@ -1,4 +1,6 @@
 from __future__ import division
+from __future__ import print_function
+from functools import reduce
 
 def calculate_threshold(sweep, trusted_range):
   from scipy.ndimage.measurements import histogram
@@ -35,12 +37,12 @@ def select_strong_pixels(sweep, trusted_range):
   import numpy
 
   # Calculate the threshold
-  print "Calculating a threshold."
+  print("Calculating a threshold.")
   threshold = calculate_threshold(sweep, trusted_range)
-  print "Threshold Value: {0}".format(threshold)
+  print("Threshold Value: {0}".format(threshold))
 
   # Select only those pixels with counts > threshold
-  print "Selecting pixels"
+  print("Selecting pixels")
   image = sweep.to_array().as_numpy_array()
   mask = image >= threshold
 
@@ -303,7 +305,7 @@ class Minimize:
 #        startA = 0.2*3.14159 / 180
 #        startB = 0.3*3.14159 / 180
 
-    print "Start: ", startA, startB
+    print("Start: ", startA, startB)
     starting_simplex=[flex.double([startA]), flex.double([startB])]
 #        for ii in range(2):
 #            starting_simplex.append(flex.double([start]))#flex.random_double(1))
@@ -375,7 +377,7 @@ def check_pixel_neighbours(image, mask, reflections, ref_index, objects):
     rown = owner[bbox]
     ind = numpy.where(numpy.logical_and(rown != 0, rown != ind))
     if len(ind[0]) > 0:
-      print len(ind[0])
+      print(len(ind[0]))
 
 
 if __name__ == '__main__':
@@ -390,8 +392,8 @@ if __name__ == '__main__':
 
   try:
     dials_regression = libtbx.env.dist_path('dials_regression')
-  except KeyError, e:
-    print 'FAIL: dials_regression not configured'
+  except KeyError as e:
+    print('FAIL: dials_regression not configured')
     raise
 
   # The XDS values
@@ -405,9 +407,9 @@ if __name__ == '__main__':
   handle = NexusFile(filename, 'r')
 
   # Get the reflection list
-  print 'Reading reflections.'
+  print('Reading reflections.')
   reflections = handle.get_reflections()
-  print 'Read {0} reflections.'.format(len(reflections))
+  print('Read {0} reflections.'.format(len(reflections)))
 
   # Read images
   template = os.path.join(dials_regression,
@@ -416,40 +418,40 @@ if __name__ == '__main__':
   filenames = glob(template)
 
   # Load the sweep
-  print 'Loading sweep'
+  print('Loading sweep')
   sweep = SweepFactory.sweep(filenames)[0:10]
-  print 'Loaded sweep of {0} images.'.format(len(sweep))
+  print('Loaded sweep of {0} images.'.format(len(sweep)))
 
   # Select the strong pixels to use in the divergence calculation
-  print 'Select the strong pixels from the images.'
+  print('Select the strong pixels from the images.')
   trusted_range = (0, 20000)
   image, mask = select_strong_pixels(sweep, trusted_range)
 
   # Putting pixels into groups
-  print 'Putting pixels into groups'
+  print('Putting pixels into groups')
   objects = group_pixels(mask)
-  print 'Found {0} objects'.format(len(objects))
+  print('Found {0} objects'.format(len(objects)))
 
-  print 'Filtering objects'
+  print('Filtering objects')
   min_pixels = 6
   objects = filter_objects(mask, objects, min_pixels)
-  print '{0} remaining objects'.format(len(objects))
+  print('{0} remaining objects'.format(len(objects)))
 
-  print 'Calculating centroid and variance.'
+  print('Calculating centroid and variance.')
   cent, var = centroid(image, mask, sweep.get_detector())
 
-  print 'Find object nearest predicted reflection'
+  print('Find object nearest predicted reflection')
   ref_index, distance2 = find_nearest_neighbour(cent, reflections)
 
-  print 'Filter objects by distance from nearest reflection.'
+  print('Filter objects by distance from nearest reflection.')
   max_distance = 2
   indices = filter_objects_by_distance(ref_index, distance2, max_distance)
-  print '{0} remaining objects'.format(len(indices))
+  print('{0} remaining objects'.format(len(indices)))
 
-  print 'Calculate the e.s.d of the beam divergence'
+  print('Calculate the e.s.d of the beam divergence')
   sigma_d = calculate_sigma_beam_divergence(var[indices])
-  print 'Sigma_d = {0} deg'.format(sigma_d * 180.0 / pi)
-  print 'XDS Sigma_d = {0} deg'.format(xds_sigma_d)
+  print('Sigma_d = {0} deg'.format(sigma_d * 180.0 / pi))
+  print('XDS Sigma_d = {0} deg'.format(xds_sigma_d))
 
 
 
@@ -493,11 +495,11 @@ if __name__ == '__main__':
     e1 = s1.cross(s0).normalize()
     zeta.append(m2.dot(e1))
 
-  print "Mean X/Y centroid diff: {0}".format(numpy.mean(diffxy))
-  print "Mean Z centroid diff: {0}".format(numpy.mean(diffz))
+  print("Mean X/Y centroid diff: {0}".format(numpy.mean(diffxy)))
+  print("Mean Z centroid diff: {0}".format(numpy.mean(diffz)))
 
 
-  print 'Calculate the e.s.d of the mosaicity.'
+  print('Calculate the e.s.d of the mosaicity.')
   sigma_m = calculate_sigma_mosaicity(frames, z_coord, zeta, sweep)
-  print 'Sigma_m = {0} deg'.format(sigma_m)
-  print 'XDS Sigma_m = {0} deg'.format(xds_sigma_m)
+  print('Sigma_m = {0} deg'.format(sigma_m))
+  print('XDS Sigma_m = {0} deg'.format(xds_sigma_m))

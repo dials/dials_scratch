@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 from iotbx.xds import integrate_hkl
@@ -34,7 +35,7 @@ for i in range(len(reader.xyzcal)):
     alfbet1.append(reader.alfbet1[i])
     psi.append(reader.psi[i])
 
-print "Num: ", len(hkl)
+print("Num: ", len(hkl))
 
 f = open(sys.argv[1], 'r')
 lines = f.readlines()

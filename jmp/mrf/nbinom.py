@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import numpy as np
 from scipy.stats import nbinom
@@ -45,8 +46,8 @@ y = list(negative_binomial(1, 0.9, 100))
 from matplotlib import pylab
 pylab.hist(y)
 pylab.show()
-print y
-print nb_fit(y)
+print(y)
+print(nb_fit(y))
 
 # y = numpy.array(
 # [[ 4.0],

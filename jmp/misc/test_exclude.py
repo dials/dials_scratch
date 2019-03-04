@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from dials.model.serialize import load
 from dials.algorithms.reflection_basis import CoordinateSystem
@@ -28,13 +29,13 @@ dm = n * 0.157 * pi / 180.0
 
 #dm /= pi / 2
 
-print dm
+print(dm)
 
 xyz = detector.get_pixel_lab_coord((0, 1200))
 s1 = matrix.col(xyz).normalize() * s0.length()
 phi = 0.0
 cs = CoordinateSystem(m2, s0, s1, phi)
-print "Limits: ", cs.limits()
+print("Limits: ", cs.limits())
 
 #from_angle = FromRotationAngleAccurate(cs)
 #phi_list = []
@@ -81,7 +82,7 @@ print "Limits: ", cs.limits()
 from dials.algorithms.integration import filter
 
 for j in range(int(ysize / div)):
-  print j
+  print(j)
   for i in range(int(xsize / div)):
     xyz = detector.get_pixel_lab_coord((div*i, div*j))
     s1 = matrix.col(xyz).normalize() * s0.length()
@@ -116,7 +117,7 @@ for j in range(int(ysize / div)):
 #        mask1[j,i] = inc1
 #        mask2[j,i] = inc2
 
-print flex.min(mask1.as_1d().as_int()), flex.max(mask1.as_1d().as_int())
+print(flex.min(mask1.as_1d().as_int()), flex.max(mask1.as_1d().as_int()))
 
 from matplotlib import pylab, cm
 #pylab.subplot(1, 2, 1)

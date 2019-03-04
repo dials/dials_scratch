@@ -14,6 +14,7 @@ investigation into the final model quality and execution time vs the number
 of reflections in refinement."""
 
 from __future__ import division
+from __future__ import print_function
 from dials.util.script import ScriptRunner
 
 class Script(ScriptRunner):
@@ -70,7 +71,7 @@ class Script(ScriptRunner):
     params.refinement.target.bin_size_fraction = 0.1
 
     # print header for output table
-    print "Nref RMSDx RMSDy RMSDphi Steps Target_acheived Time"
+    print("Nref RMSDx RMSDy RMSDphi Steps Target_acheived Time")
 
     #for n in range(1,170,2):
     for n in [e * 0.1 for e in range(1,100)]:
@@ -91,15 +92,15 @@ class Script(ScriptRunner):
       try:
         refined = refine(sweep, crystal, reflections)
       except Exception as e:
-        print "ERROR occurred"
+        print("ERROR occurred")
         continue
       time_taken = time() - start_time
 
-      print refined.history.num_reflections[-1],
-      print "%.6f %.6f %.8f" % refine.rmsds(),
-      print "%d" % refined.get_num_steps(),
-      print refined.test_for_termination(),
-      print "%.3f" % time_taken
+      print(refined.history.num_reflections[-1], end=' ')
+      print("%.6f %.6f %.8f" % refine.rmsds(), end=' ')
+      print("%d" % refined.get_num_steps(), end=' ')
+      print(refined.test_for_termination(), end=' ')
+      print("%.3f" % time_taken)
 
       # flush the buffer so we can see some output
       sys.stdout.flush()

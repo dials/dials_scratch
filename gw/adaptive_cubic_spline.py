@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 class bicubic_bilinear_spline(object):
   '''A class to provide support for bicubic spline interpolation falling back
   on bilinear spline interpolation at the corners. To avoid the fallback, pad
@@ -146,7 +147,7 @@ def tst_bicubic_binear_spline2():
   bbs = bicubic_bilinear_spline(data)
   for i in range(1, 5):
     for j in range(1, 5):
-      print math.fabs(data[i, j] - bbs(j, i))
+      print(math.fabs(data[i, j] - bbs(j, i)))
       assert(math.fabs(data[i, j] - bbs(j, i)) < 1.0e-6)
 
   return 'OK'
@@ -154,4 +155,4 @@ def tst_bicubic_binear_spline2():
 
 
 if __name__ == '__main__':
-  print tst_bicubic_binear_spline2()
+  print(tst_bicubic_binear_spline2())

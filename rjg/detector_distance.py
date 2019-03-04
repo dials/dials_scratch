@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+from __future__ import print_function
 from cctbx.array_family import flex
 
 import iotbx.phil
@@ -60,10 +61,10 @@ def run(args):
     image_number = int(os.path.splitext(path)[0].split('_')[-1])
     image_numbers.append(image_number)
 
-  print 'Writing image number and distances to %s' %params.filename
+  print('Writing image number and distances to %s' %params.filename)
   with open(params.filename, 'wb') as f:
     for image_number, distance in zip(image_numbers, distances):
-      print >> f, image_number, distance
+      print(image_number, distance, file=f)
 
   if params.plot:
     from matplotlib import pyplot

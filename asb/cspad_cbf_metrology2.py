@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import libtbx.load_env
 from libtbx import easy_run
@@ -50,7 +51,7 @@ for i in xrange(8):
     geom_path = os.path.join(cwd, "metrology", prev_trial, "t%s_refined_experiments_level%d.json"%(prev_trial, prev_level))
     command += " reference_geometry=%s"%geom_path
 
-  print command
+  print(command)
   easy_run.fully_buffered(command).show_stdout()
 
   os.chdir("../metrology")
@@ -61,7 +62,7 @@ for i in xrange(8):
   command = "cspad.cbf_metrology %s tag=t%s refine_to_hierarchy_level=%d rmsd_filter.enable=False panel_filter=%s %s"%(
     os.path.join(cwd, "indexing", trial), trial, levels[i], ",".join(["%d"%p for p in steps[i]]), refinement_phil)
 
-  print command
+  print(command)
   easy_run.fully_buffered(command).show_stdout()
 
   os.chdir(cwd)

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import math
 from scitbx import matrix
@@ -182,11 +183,11 @@ obs_indices_dgw, obs_angles_dgw = \
 #obs_indices = temp
 
 for i in xrange(20):
-  print (obs_indices_rstbx[i], obs_angles_rstbx[i],
+  print((obs_indices_rstbx[i], obs_angles_rstbx[i],
          obs_indices_wrap[i], obs_angles_wrap[i],
-         obs_indices_dgw[i], obs_angles_dgw[i])
+         obs_indices_dgw[i], obs_angles_dgw[i]))
   assert(obs_indices_rstbx[i] == obs_indices_wrap[i])
-print len(obs_indices_rstbx), len(obs_indices_wrap), len(obs_indices_dgw)
+print(len(obs_indices_rstbx), len(obs_indices_wrap), len(obs_indices_dgw))
 
 # FIXME how do I compare these sets?
 # There are some differences between the limits of reflections that are
@@ -240,11 +241,11 @@ for h1, phi1, h2, phi2 in zip(obs_indices_wrap,
   assert (h1 == h2)
   assert approx_equal(phi1, phi2)
 
-print len(obs_indices_wrap), len(dials_obs_indices)
+print(len(obs_indices_wrap), len(dials_obs_indices))
 
 # if we got this far, excellent, DIALS reflection prediction behaves
 # the same as my AnglePredictor_rstbx, so I can go ahead and use it.
-print "OK"
+print("OK")
 
 # Now continue by testing RayPredictor versus rstbx's
 # reflection_prediction class.
@@ -302,15 +303,15 @@ for h, ang, s_dir, ref in zip(hkls, angles, s_dirs, dials_reflections):
 
 # Good, ray prediction works fine. What about impact prediction?
 # We do that one reflection at a time with the Panel class, like this:
-print dials_panel.get_ray_intersection(dials_reflections[0].beam_vector)
+print(dials_panel.get_ray_intersection(dials_reflections[0].beam_vector))
 
 # Do them all, but one at a time
 impacts = [dials_panel.get_ray_intersection(e.beam_vector) \
                                             for e in dials_reflections]
 for e1, e2 in zip(impacts, zip(d1s,d2s)):
   assert approx_equal(e1, e2)
-print len(impacts), len(d1s)
+print(len(impacts), len(d1s))
 
-print len(hkls), len(dials_reflections)
+print(len(hkls), len(dials_reflections))
 
-print "OK"
+print("OK")

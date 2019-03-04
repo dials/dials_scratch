@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 def diffuse(image, mask, max_iter=10, tolerance=1e-5):
@@ -7,7 +8,7 @@ def diffuse(image, mask, max_iter=10, tolerance=1e-5):
     new_image.reshape(image.accessor())
     diff = 0
     num = 0
-    print mask.count(1), mask.count(0)
+    print(mask.count(1), mask.count(0))
     for j in range(image.all()[0]):
       for i in range(image.all()[1]):
         if mask[j,i] == False:
@@ -19,7 +20,7 @@ def diffuse(image, mask, max_iter=10, tolerance=1e-5):
               image[j,i+1]]) / 4.0
             diff += abs(new_image[j,i] - image[j,i])
             num+=1
-    print num_iter, diff / num
+    print(num_iter, diff / num)
     if diff / num < tolerance:
       break
     image = new_image
@@ -59,7 +60,7 @@ if __name__ == '__main__':
   iod.reshape(avr.accessor())
   mask.reshape(avr.accessor())
 
-  print flex.max(avr), flex.min(avr)
+  print(flex.max(avr), flex.min(avr))
   from matplotlib import pylab
   pylab.imshow(iod.as_numpy_array(), vmax=3, interpolation='none')
   pylab.colorbar()

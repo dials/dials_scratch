@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 from scipy.special import gammaln
@@ -48,7 +49,7 @@ def smirnov2(n, e):
     bb = pow(1.0 - evn, n - v)
     p += c * aa * bb
     c *= float(n - v) / (v + 1)
-    print v, c
+    print(v, c)
   return p * e
 
 def smirnov3(n, e):
@@ -72,10 +73,10 @@ from scipy.stats.distributions import ksone
 Dplus = 0.0002
 N = 100
 
-print ksone.sf(Dplus, N)
-print smirnov(N, Dplus)
+print(ksone.sf(Dplus, N))
+print(smirnov(N, Dplus))
 
-print smirnov2(1300, 0.01)
+print(smirnov2(1300, 0.01))
 
 #for n in range(1000, 1500):
   #print n, smirnov2(n, 0.01)

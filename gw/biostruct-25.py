@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 # copied from James's code...
 
 def get_image(cbf_handle, category='array_data', column='data', row=0,
@@ -339,7 +340,7 @@ def read_spot_xds_apply_corrections(
 
     sumxx_corr += (xo_orig - xc_corr).dot()
 
-  print n_obs
+  print(n_obs)
   return math.sqrt(sumxx_orig / n_obs), math.sqrt(sumxx_corr / n_obs)
 
 if __name__ == '__main__':
@@ -348,4 +349,4 @@ if __name__ == '__main__':
   orig, corr = read_spot_xds_apply_corrections(
       sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
 
-  print orig, corr
+  print(orig, corr)

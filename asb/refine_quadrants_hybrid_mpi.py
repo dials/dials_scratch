@@ -7,6 +7,7 @@ detector, only the detector parameters are refined at first (using all data)
 then each crystal is refined individually. This forms one macrocycle."""
 
 from __future__ import division
+from __future__ import print_function
 import sys
 sys.path.insert(1,'/reg/common/package/mpi4py/mpi4py-1.3.1/install/lib/python')
 from mpi4py import MPI
@@ -64,7 +65,7 @@ class DetectorRefiner(object):
         params, reflections, experiments, verbosity=1)
     refiner.run()
     experiments = refiner.get_experiments()
-    print "Detector refinement finished"
+    print("Detector refinement finished")
 
     return experiments
 
@@ -119,7 +120,7 @@ class CrystalRefiners(object):
 
     for i, (iexp, exp) in enumerate(zip(data[0],data[1])):
 
-      print "Refining crystal", iexp
+      print("Refining crystal", iexp)
       # reflection subset for a single experiment
       refs = data[2].select(data[2]['id'] == iexp)
       refs['id'] = flex.size_t(len(refs),0)
@@ -174,12 +175,12 @@ if __name__ =="__main__":
 
   if rank == 0:
     for input in working_params.input:
-      print input.experiments, input.reflections
+      print(input.experiments, input.reflections)
 
-    print len(working_params.input), "datasets specified as input"
+    print(len(working_params.input), "datasets specified as input")
 
     e = enumerate(working_params.input)
-    i, line = e.next()
+    i, line = next(e)
     reflections, exp = load_input(line.experiments, line.reflections)
     assert reflections['id'].all_eq(0)
     from dials.algorithms.indexing.indexer import indexer_base
@@ -191,7 +192,7 @@ if __name__ =="__main__":
 
     for i, line in e:
       refs, exp = load_input(line.experiments, line.reflections)
-      print i, line.reflections, len(refs)
+      print(i, line.reflections, len(refs))
       refs['id'] = flex.size_t(len(refs),i)
       refs = indexer_base.map_spots_pixel_to_mm_rad(refs, exp.detector, exp.scan)
       reflections.extend(refs)
@@ -208,8 +209,8 @@ if __name__ =="__main__":
   for cycle in range(working_params.n_macrocycles):
 
     if rank == 0:
-      print "MACROCYCLE %02d" % (cycle + 1)
-      print "=============\n"
+      print("MACROCYCLE %02d" % (cycle + 1))
+      print("=============\n")
       # first run: multi experiment joint refinement of detector with fixed beam and
       # crystals
       experiments = dr(experiments, reflections)
@@ -225,4 +226,4 @@ if __name__ =="__main__":
     dump = ExperimentListDumper(experiments)
     experiments_filename = "refined_experiments.json"
     dump.as_json(experiments_filename)
-    print "refined geometry written to {0}".format(experiments_filename)
+    print("refined geometry written to {0}".format(experiments_filename))

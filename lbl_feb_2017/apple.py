@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 import math
@@ -117,9 +118,9 @@ class Apple(object):
     doohicky = simple_simplex(values, offset, self, 2000)
     best = doohicky.get_solution()
     if do_print:
-      print 'Initial cell:', initial
-      print 'Final cell:  ', crystal.get_unit_cell()
-      print 'Score change', initial_score, self.target(best, do_print=False)
+      print('Initial cell:', initial)
+      print('Final cell:  ', crystal.get_unit_cell())
+      print('Score change', initial_score, self.target(best, do_print=False))
     self.best = best
 
   def plot_map(self, map, filename):
@@ -179,9 +180,9 @@ class Apple(object):
     from scitbx import matrix
 
     if do_print:
-      print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
-        tuple(self.crystal.get_unit_cell().parameters())
-      print 'Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation)
+      print('Cell: %.3f %.3f %.3f %.3f %.3f %.3f' % \
+        tuple(self.crystal.get_unit_cell().parameters()))
+      print('Phi(1,2,3): %.3f %.3f %.3f' % tuple(tst_orientation))
 
     UB = matrix.sqr(self.crystal.get_A())
 
@@ -222,7 +223,7 @@ class Apple(object):
       hkl = data['miller_index'][j]
       q = UB * hkl
       qo = self.qobs[j]
-      print (q - qo).length(), self.i_s[j], self.dq0[j]
+      print((q - qo).length(), self.i_s[j], self.dq0[j])
       if (q - qo).length() > self.maxq:
         self.maxq = (q - qo).length()
 

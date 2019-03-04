@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from scitbx import matrix
 
@@ -107,7 +108,7 @@ def laguerre(poly, deriv, deriv2, x, n, eps=1e-10):
         break
       x = x1
 
-    print x1
+    print(x1)
     div.append(x1)
 #        return x1
 
@@ -121,9 +122,9 @@ q = h**2 + d**2 -l**2
 r = -2.0*d*h**2
 s = (h*d)**2
 
-print p, q, r, s
+print(p, q, r, s)
 
-print forward(9.99500872462, h, l)
+print(forward(9.99500872462, h, l))
 
 
 def poly_func(x):
@@ -148,7 +149,7 @@ x = 10 + 10j
 
 x = laguerre(poly_func, poly_derivative, poly_2nd_derivative, x, 4)
 
-print x
+print(x)
 
 #from matplotlib import pylab
 #pylab.plot(diff)

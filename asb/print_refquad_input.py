@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os, sys, random
 
 paths = []
@@ -9,7 +10,7 @@ for arg in sys.argv[1:]:
   else:
     try:
       n_subset = int(arg)
-    except Exception, e:
+    except Exception as e:
       pass
 
 all_exp = []
@@ -37,8 +38,8 @@ if n_subset is not None:
   all_ref = subset_all_ref
 
 for exp_path, ref_path in zip(all_exp, all_ref):
-  print "input {"
-  print "  experiments =", exp_path
-  print "  reflections =", ref_path
-  print "}"
+  print("input {")
+  print("  experiments =", exp_path)
+  print("  reflections =", ref_path)
+  print("}")
 

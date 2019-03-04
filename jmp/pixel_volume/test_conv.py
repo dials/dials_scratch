@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 def normal(x, mu, sigma):
@@ -38,7 +39,7 @@ for t in range(1000):
   Y4.append(y4)
 
 
-print sum(Y3), Y4[600]
+print(sum(Y3), Y4[600])
 
 from matplotlib import pylab
 pylab.plot(X, Y1, color='blue')

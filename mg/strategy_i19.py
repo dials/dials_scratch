@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import division
+from __future__ import print_function
 
 from dxtbx.model.goniometer import goniometer_factory
 import cPickle as pickle
@@ -82,12 +83,12 @@ class Script(object):
     # [dmin, dmax] are inclusive ranges, thus reduce inner sphere radius by a small value (1e-8)
 
     possible_indices_p1 = possible_indices_p1 - lowres_indices_p1
-    print "%5d unique reflections possible in P 1" % len(possible_indices_p1)
+    print("%5d unique reflections possible in P 1" % len(possible_indices_p1))
 
     # filter systematic absent miller indices
     systematic_present_indices = [n for n in possible_indices_p1 if not spacegroup.is_sys_absent(n)]
-    print "%5d of these reflections are not systematically absent in %s" %\
-          (len(systematic_present_indices), spacegroup.type().lookup_symbol())
+    print("%5d of these reflections are not systematically absent in %s" %\
+          (len(systematic_present_indices), spacegroup.type().lookup_symbol()))
 
     return systematic_present_indices
 
@@ -96,7 +97,7 @@ class Script(object):
     # Count the miller indices in hkl_observations and add to the counts recorded in hkl_seen_multiplicity.
     overall_multiplicity = hkl_seen_multiplicity.copy()
     for hkl in hkl_observations:
-      if overall_multiplicity.has_key(hkl):
+      if hkl in overall_multiplicity:
         overall_multiplicity[hkl] += 1
       else:
         overall_multiplicity[hkl] = 1
@@ -122,17 +123,17 @@ class Script(object):
           ring = tools.determine_miller_ring_sectors(detector, gonio, s0, possible_hkl_flex, crystal_A)
           mrings[scan_axis][other_axis] = ring
 
-      print time.clock() - t
-      print list(mrings.iterkeys())
-      print [ list(x.iterkeys()) for x in mrings.itervalues() ]
+      print(time.clock() - t)
+      print(list(mrings.iterkeys()))
+      print([ list(x.iterkeys()) for x in mrings.itervalues() ])
 
       t = time.clock()
       sc = scorings
       all_scorings = { '%s:%s:%s' % (scan, str(x1), str(x2)): tools.geometric_scoring([hkl_to_id[hkl] for hkl in mrings[scan][x1][x2]], sc)['total']
                        for scan in mrings.iterkeys() for x1 in mrings[scan].iterkeys() for x2 in range(0,36) }
 #     print list(all_scorings.itervalues())
-      print len(list(all_scorings.itervalues())), min(all_scorings.itervalues()), max(all_scorings.itervalues()), sum(all_scorings.itervalues()) / len(list(all_scorings.itervalues()))
-      print time.clock() - t
+      print(len(list(all_scorings.itervalues())), min(all_scorings.itervalues()), max(all_scorings.itervalues()), sum(all_scorings.itervalues()) / len(list(all_scorings.itervalues())))
+      print(time.clock() - t)
 
       sys.exit(0)
 
@@ -143,15 +144,15 @@ class Script(object):
       r = tools.determine_miller_ring_sectors(detector, goniometer, s0, possible_hkl_flex, crystal_A)
 
       sc = scorings
-      print map(lambda(x): tools.geometric_scoring([hkl_to_id[hkl] for hkl in x], sc)['total'], r)
+      print(map(lambda x: tools.geometric_scoring([hkl_to_id[hkl] for hkl in x], sc)['total'], r))
       sc = tools.geometric_scoring([hkl_to_id[hkl] for hkl in r[4]], scorings)['scorings']
       sc = tools.geometric_scoring([hkl_to_id[hkl] for hkl in r[5]], sc)['scorings']
       sc = tools.geometric_scoring([hkl_to_id[hkl] for hkl in r[6]], sc)['scorings']
-      print map(lambda(x): tools.geometric_scoring([hkl_to_id[hkl] for hkl in x], sc)['total'], r)
-      print time.clock() -t
+      print(map(lambda x: tools.geometric_scoring([hkl_to_id[hkl] for hkl in x], sc)['total'], r))
+      print(time.clock() -t)
 
 
-      print map(len, r)
+      print(map(len, r))
       sys.exit(0)
       # TODO: To test 2theta rotation code use detector.py detector factory
       # TODO: and create two different two_theta detectors and try to rotate one onto the other
@@ -274,7 +275,7 @@ class Script(object):
       return m
 
     def evaluate_concrete_strategy(hkls, evaluation_function):
-      print "%5d reflections fall on detector during sweep" % len(hkls)
+      print("%5d reflections fall on detector during sweep" % len(hkls))
 #      print "%5d unique reflections fall on detector during sweep (without symmetry relations)" % len(set(list(hkls)))
 #      for r in detectable_rays.rows():
 #        hkl = r['miller_index']
@@ -282,12 +283,12 @@ class Script(object):
 #          print "%12s -> %10s observed at angle %.2f on image %.1f" % (hkl, map_hkl_to_symmhkl[hkl], r['phi'],
 #                                                                       expt.scan.get_image_index_from_angle(r['phi'] - (2 * 3.1415926535), deg=False))
       symmetry_mapped_hkls = set([map_hkl_to_symmhkl[hkl] for hkl in hkls])
-      print "%5d unique reflections fall on detector during sweep (including symmetry relations)" % len(symmetry_mapped_hkls)
+      print("%5d unique reflections fall on detector during sweep (including symmetry relations)" % len(symmetry_mapped_hkls))
       completeness = 100 * len(symmetry_mapped_hkls) / completeness_limit
       multiplicity = len(hkls) / len(symmetry_mapped_hkls)
       score = evaluation_function(hkls)
-      print "Estimated sweep completeness: %5.1f %%   sweep multiplicity : %.1f   sweep score: %.1f" %\
-            (completeness, multiplicity, score)
+      print("Estimated sweep completeness: %5.1f %%   sweep multiplicity : %.1f   sweep score: %.1f" %\
+            (completeness, multiplicity, score))
       return {'completeness': completeness, 'multiplicity': multiplicity, 'score': score}
 
 #    # count the number of observations per reflection to construct an evaluation function
@@ -327,9 +328,9 @@ class Script(object):
                  'symmetry': (scoring_symmetry_related_reflection, [0] * len(possible_hkl)),
                }
 
-    print "%5d unique reflections possible in %s (ignoring anomalous signal)" %\
-          (completeness_limit, spacegroup.type().lookup_symbol())
-    print
+    print("%5d unique reflections possible in %s (ignoring anomalous signal)" %\
+          (completeness_limit, spacegroup.type().lookup_symbol()))
+    print()
 
     # Determine the detectable reflections given some data collection sweep
     s0 = expt.beam.get_s0()
@@ -348,8 +349,8 @@ class Script(object):
 
       from itertools import izip, count
       for (run, strategy) in izip(count(1), strategies):
-        print
-        print "Sweep %d:" % run
+        print()
+        print("Sweep %d:" % run)
         evaluation_function = evaluation_function_factory(possible_hkl, observed_hkls, map_hkl_to_symmhkl, map_symmhkl_to_hkl)
 
         goniometer = goniometer_factory.make_kappa_goniometer(alpha=54.7,
@@ -378,8 +379,8 @@ class Script(object):
         completeness = 100 * num_observed_hkls / completeness_limit
         multiplicity = count_hkl_observations / num_observed_hkls
         total_score += strategy_results['score']
-        print "Estimated total completeness: %5.1f %%   total multiplicity : %.1f   total score: %.1f" %\
-              (completeness, multiplicity, total_score)
+        print("Estimated total completeness: %5.1f %%   total multiplicity : %.1f   total score: %.1f" %\
+              (completeness, multiplicity, total_score))
 
         # keep the repeat sweep and continue
         observed_hkls = combined_observations
@@ -640,7 +641,7 @@ class Script(object):
     params, options = self.parser.parse_args(show_diff_phil=True, args=None)
     experiments = flatten_experiments(params.input.experiments)
     if len(experiments) == 0:
-      print "No experiments given"
+      print("No experiments given")
       return
     elif len(experiments.imagesets()) > 1 or len(experiments.detectors()) > 1:
       raise RuntimeError('experiment list contains > 1 imageset or detector')
@@ -655,7 +656,7 @@ class Script(object):
       if params.prediction.dmax is None:
         params.prediction.dmax = max(integrated["d"])
 
-    print "Considering reflections with resolution %.2f - %.2f Ang" % (params.prediction.dmin, params.prediction.dmax)
+    print("Considering reflections with resolution %.2f - %.2f Ang" % (params.prediction.dmin, params.prediction.dmax))
 
     evaluator = self.StrategyEvaluator(experiments,
                                        self.SimpleGeometricEvaluationFunctionFactory,
@@ -667,17 +668,17 @@ class Script(object):
     results = []
 
     for strategy in strategylist:
-      print
-      print "%s strategy: " % strategy['name']
+      print()
+      print("%s strategy: " % strategy['name'])
       quality = evaluator(strategy['strategy'])
       quality['name'] = strategy['name']
       results.append(quality)
 
-    print "%30s   Comp   Mul  Score  Sweep  Sc/deg" % "Strategy"
+    print("%30s   Comp   Mul  Score  Sweep  Sc/deg" % "Strategy")
     for r in sorted(results, key=(lambda x: x['score']), reverse=True):
-      print "%30s: %5.1f  %4.1f  %5d  %4d%s  %5.1f" %\
+      print("%30s: %5.1f  %4.1f  %5d  %4d%s  %5.1f" %\
             (r['name'], r['completeness'], r['multiplicity'], r['score'], r['degrees'], " deg",
-             r['score'] / r['degrees'])
+             r['score'] / r['degrees']))
 
 if __name__ == '__main__':
   script = Script()
@@ -693,15 +694,15 @@ if __name__ == '__main__':
 
   two_theta_angle = 30
   d = detector_factory.two_theta(sensor, distance, beam_centre, '+x', '-y', '-x', two_theta_angle, pixel_size, image_size, trusted_range = (0.0, 0.0), mask = [], px_mm = None)
-  print d
+  print(d)
 
   two_theta_angle = 10
   d = detector_factory.two_theta(sensor, distance, beam_centre, '+x', '-y', '-x', two_theta_angle, pixel_size, image_size, trusted_range = (0.0, 0.0), mask = [], px_mm = None)
-  print d
+  print(d)
 
   for p in d:
-    print p
-    print dir(p)
+    print(p)
+    print(dir(p))
 
     from scitbx import matrix
     # Obtain and normalize axes
@@ -724,14 +725,14 @@ if __name__ == '__main__':
       rinv[3:6] + (0,) +
       rinv[6:9] + (0,) +
       (0, 0, 0, 1)).transpose()
-    print "Undoing 2theta rotation:"
-    print rinv
-    print
+    print("Undoing 2theta rotation:")
+    print(rinv)
+    print()
 
-    print "2theta=0 orientation matrix:"
+    print("2theta=0 orientation matrix:")
     ztl = rinv * tl
-    print ztl
-    print
+    print(ztl)
+    print()
 
     # Obtain new 2theta orientation
     r = two_theta_axis.axis_and_angle_as_r3_rotation_matrix(30, deg=True).transpose()
@@ -742,14 +743,14 @@ if __name__ == '__main__':
       (0, 0, 0, 1)).transpose()
 
     tgt = (r * ztl).transpose()
-    print "New 2theta orientation:"
-    print tgt
-    print
+    print("New 2theta orientation:")
+    print(tgt)
+    print()
 
     p.set_frame(tgt[0:3], tgt[4:7], tgt[12:15])
-    print p
+    print(p)
 
-  print "Theoretically equivalent to:"
+  print("Theoretically equivalent to:")
   two_theta_angle = 30
   d = detector_factory.two_theta(sensor, distance, beam_centre, '+x', '-y', '-x', two_theta_angle, pixel_size, image_size, trusted_range = (0.0, 0.0), mask = [], px_mm = None)
-  print d
+  print(d)

@@ -15,6 +15,7 @@ scan-varying refinement, which should be able to model the sinusoidal
 variation."""
 
 from __future__ import division
+from __future__ import print_function
 
 class ScriptRunner(object):
   """Class to run script."""
@@ -33,7 +34,7 @@ class ScriptRunner(object):
     from math import sin, pi
 
     # Load the reflection list
-    print 'Loading reflections from {0}'.format(self.reflections_filename)
+    print('Loading reflections from {0}'.format(self.reflections_filename))
     rlist = pickle.load(open(self.reflections_filename, 'r'))
 
     # Loop through all the reflections
@@ -46,7 +47,7 @@ class ScriptRunner(object):
     # Write out reflections
     if self.output_filename is not None:
 
-      print 'Saving reflections to {0}'.format(self.output_filename)
+      print('Saving reflections to {0}'.format(self.output_filename))
       pickle.dump(rlist, open(self.output_filename, 'wb'),
           pickle.HIGHEST_PROTOCOL)
 

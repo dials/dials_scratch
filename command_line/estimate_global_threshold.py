@@ -1,5 +1,6 @@
 # LIBTBX_SET_DISPATCHER_NAME dev.dials.estimate_global_threshold
 from __future__ import absolute_import, division
+from __future__ import print_function
 
 import iotbx.phil
 from scitbx.array_family import flex
@@ -34,8 +35,8 @@ def run(args):
   # Log the diff phil
   diff_phil = parser.diff_phil.as_str()
   if diff_phil is not '':
-    print 'The following parameters have been modified:\n'
-    print diff_phil
+    print('The following parameters have been modified:\n')
+    print(diff_phil)
 
   datablocks = flatten_datablocks(params.input.datablock)
 
@@ -55,7 +56,7 @@ def run(args):
   assert len(image) == 1
   from dials.extensions.kabsch_spotfinder_threshold_ext import estimate_global_threshold
   threshold = estimate_global_threshold(image[0], plot=params.plot)
-  print "Estimated global_threshold: %i" %(threshold)
+  print("Estimated global_threshold: %i" %(threshold))
   return
 
 

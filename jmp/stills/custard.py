@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 
 
@@ -125,7 +126,7 @@ class simple_simplex(object):
     return self.x
 
   def target(self, vector):
-    print "SCORE"
+    print("SCORE")
     score = scorify(vector)
     return score
 
@@ -209,15 +210,15 @@ class CrystalRefiner(object):
     # Perform the optimization
     optimizer = simple_simplex(values, offset, self, 2000)
     result = optimizer.get_solution()
-    print 'Initial cell:', initial_cell
-    print 'Final cell:  ', self.crystal.get_unit_cell()
+    print('Initial cell:', initial_cell)
+    print('Final cell:  ', self.crystal.get_unit_cell())
 
     # Compute RMSD
     xcal, ycal, _ = self.model.observed().parts()
     xobs, yobs, _ = self.model.predicted().parts()
     rmsd_x = sqrt(flex.sum((xcal-xobs)**2) / len(xcal))
     rmsd_y = sqrt(flex.sum((ycal-yobs)**2) / len(ycal))
-    print 'RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y)
+    print('RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y))
 
   def target(self, vector):
     '''
@@ -259,10 +260,10 @@ class CrystalRefiner(object):
     self.history.append((tst_cell, tst_orientation, score))
 
     # Print some info
-    print 'Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
+    print('Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
       tuple(self.crystal.get_unit_cell().parameters()) +
       tuple(tst_orientation) +
-      tuple((sqrt(score / len(Xobs)),)))
+      tuple((sqrt(score / len(Xobs)),))))
     return score
 
 
@@ -314,7 +315,7 @@ class ProfileRefiner(object):
 
     def callback(a, b, fa, fb):
       self.history.append((a, b, fa, fb))
-      print "  A = %f, B = %f, Fa = %f, Fb = %f" % (a, b, fa, fb)
+      print("  A = %f, B = %f, Fa = %f, Fb = %f" % (a, b, fa, fb))
 
     # Compute min and max by taking as fraction of hkl then converting using A
     # matrix
@@ -322,8 +323,8 @@ class ProfileRefiner(object):
     max_mosaicity = 0.01
 
     # Perform a golden section search for the profile parameter
-    print "Refining profile parameters"
-    print "  using '%s' target function" % self.params.refinement.profile.target
+    print("Refining profile parameters")
+    print("  using '%s' target function" % self.params.refinement.profile.target)
     self.profile = golden_section_search(
       self.target,
       min_mosaicity,
@@ -331,7 +332,7 @@ class ProfileRefiner(object):
       self.params.refinement.profile.tolerance,
       callback)
     assert self.profile < max_mosaicity
-    print "Mosaicity = %f" % (self.profile)
+    print("Mosaicity = %f" % (self.profile))
 
   def target(self, mosaicity):
     '''
@@ -423,11 +424,11 @@ class Integrator(object):
     from dials.model.data import PixelListLabeller
     from dials.array_family import flex
 
-    print ""
-    print "-" * 80
-    print " Finding strong spots"
-    print "-" * 80
-    print ""
+    print("")
+    print("-" * 80)
+    print(" Finding strong spots")
+    print("-" * 80)
+    print("")
 
     # Instantiate the threshold function
     threshold = DispersionThresholdStrategy()
@@ -458,12 +459,12 @@ class Integrator(object):
     small = size < self.params.spot_finding.min_spot_size
     bad = large | small
     shoeboxes = shoeboxes.select(~bad)
-    print "Discarding %d spots with < %d pixels" % (
+    print("Discarding %d spots with < %d pixels" % (
       small.count(True),
-      self.params.spot_finding.min_spot_size)
-    print "Discarding %d spots with > %d pixels" % (
+      self.params.spot_finding.min_spot_size))
+    print("Discarding %d spots with > %d pixels" % (
       large.count(True),
-      self.params.spot_finding.max_spot_size)
+      self.params.spot_finding.max_spot_size))
 
     # Extract the strong spot information
     centroid = shoeboxes.centroid_valid()
@@ -472,7 +473,7 @@ class Integrator(object):
 
     # Create the reflection list
     self.reflections = flex.reflection_table(observed, shoeboxes)
-    print "Using %d strong spots" % len(self.reflections)
+    print("Using %d strong spots" % len(self.reflections))
 
   def index_spots(self):
     '''
@@ -483,11 +484,11 @@ class Integrator(object):
     from scitbx import matrix
     from math import sqrt
 
-    print ""
-    print "-" * 80
-    print " Indexing strong spots"
-    print "-" * 80
-    print ""
+    print("")
+    print("-" * 80)
+    print(" Indexing strong spots")
+    print("-" * 80)
+    print("")
 
     # Initialise the arrays
     miller_index = flex.miller_index()
@@ -520,9 +521,9 @@ class Integrator(object):
     # Select only those spots within the tolerance
     selection = distance < self.params.indexing.tolerance
     self.reflections = self.reflections.select(selection)
-    print "Indexed %d strong spots within tolerance %f" % (
+    print("Indexed %d strong spots within tolerance %f" % (
       len(self.reflections),
-      self.params.indexing.tolerance)
+      self.params.indexing.tolerance))
 
   def sample_reflections(self):
     '''
@@ -532,9 +533,9 @@ class Integrator(object):
     from dials.array_family import flex
     from random import sample
     if self.params.refinement.sample:
-      print "Selecting %d/%d reflections for refinement" % (
+      print("Selecting %d/%d reflections for refinement" % (
         self.params.refinement.sample,
-        len(self.reflections))
+        len(self.reflections)))
       selection = flex.size_t(
         sorted(sample(
           range(len(self.reflections)),
@@ -546,11 +547,11 @@ class Integrator(object):
     Refine the profile parameters
 
     '''
-    print ""
-    print "-" * 80
-    print " Refining profile parameters"
-    print "-" * 80
-    print ""
+    print("")
+    print("-" * 80)
+    print(" Refining profile parameters")
+    print("-" * 80)
+    print("")
 
     refiner = ProfileRefiner(
       self.experiment,
@@ -572,11 +573,11 @@ class Integrator(object):
     Refine the crystal parameters
 
     '''
-    print ""
-    print "-" * 80
-    print " Refining crystal parameters"
-    print "-" * 80
-    print ""
+    print("")
+    print("-" * 80)
+    print(" Refining crystal parameters")
+    print("-" * 80)
+    print("")
 
     refiner = CrystalRefiner(
       self.experiment,
@@ -594,11 +595,11 @@ class Integrator(object):
     from dials_scratch.jmp.stills import Model
     from dials.array_family import flex
 
-    print ""
-    print "-" * 80
-    print " Integrating reflections"
-    print "-" * 80
-    print ""
+    print("")
+    print("-" * 80)
+    print(" Integrating reflections")
+    print("-" * 80)
+    print("")
 
     # Get the data and image mask
     data = self.experiment.imageset.get_raw_data(0)[0]
@@ -654,7 +655,7 @@ class Integrator(object):
     selection2 = self.reflections['num_pixels.foreground'] > min_foreground_pixels
     selection = selection1 & selection2
     self.reflections = self.reflections.select(selection)
-    print "Integrated %d reflections" % len(self.reflections)
+    print("Integrated %d reflections" % len(self.reflections))
 
 
 if __name__ == '__main__':
@@ -682,11 +683,11 @@ if __name__ == '__main__':
   min_partiality = flex.min(partiality)
   max_partiality = flex.max(partiality)
 
-  print ""
-  print "Mosaicity: %f" % integrator.mosaicity
-  print "Min partiality: %f, Max partiality: %f" % (
-    min_partiality, max_partiality)
-  print ""
+  print("")
+  print("Mosaicity: %f" % integrator.mosaicity)
+  print("Min partiality: %f, Max partiality: %f" % (
+    min_partiality, max_partiality))
+  print("")
 
   from matplotlib import pylab
   pylab.hist(partiality, bins=100)

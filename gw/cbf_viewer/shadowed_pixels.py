@@ -3,6 +3,7 @@
 """
 Contains the Pixshadow class, used to calculate shadow mask.
 """
+from __future__ import print_function
 
 import analyser
 import shadowmapper
@@ -42,5 +43,5 @@ class Pixshadow(object):
 if __name__ == "__main__":
     pix = Pixshadow('cbf_image2.cbf')
     a, b = pix.pixcounter(-180.0, 90.0)
-    print a
-    print b
+    print(a)
+    print(b)

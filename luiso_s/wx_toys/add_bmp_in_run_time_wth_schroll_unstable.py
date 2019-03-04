@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer_frame
 #
@@ -92,15 +93,15 @@ class MyPanel(wx.Panel):
         self.SetSizer(self.sizer)
 
     def OnNew_data(self, event):
-        print "from OnNew_data"
+        print("from OnNew_data")
         self.il = ImageListCtrl(self)
 
-        print "here 01"
+        print("here 01")
         self.mid_sizer.Hide(1)
         self.mid_sizer.Remove(1)
         self.mid_sizer.Hide(0)
         self.mid_sizer.Remove(0)
-        print "here 02"
+        print("here 02")
 
 
         for times in range(5):
@@ -112,14 +113,14 @@ class MyPanel(wx.Panel):
         self.mid_sizer.Add(self.il, 1, wx.EXPAND)
 
 
-        print "here 03"
+        print("here 03")
 
         self.Refresh()
         self.Update()
         self.Layout()
         self.Fit()
 
-        print "here 04"
+        print("here 04")
 
         wx.Yield()
 

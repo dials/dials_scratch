@@ -1,3 +1,4 @@
+from __future__ import print_function
 def getKey(item):
   return item[3]
 
@@ -10,19 +11,19 @@ if( __name__ == "__main__" ):
       [ 1 ,  5 ,  3 ,  4 ,  2 ,  6 ]
                                     ]
 
-  print "a =", a
-  print "zip(a) =", zip(a)
-  print "zip(*a) =", zip(*a)
+  print("a =", a)
+  print("zip(a) =", zip(a))
+  print("zip(*a) =", zip(*a))
   '''
   print "tuple(zip(*a)) =", tuple(zip(*a))
   print "list(tuple(zip(*a))) =", list(tuple(zip(*a)))
   '''
-  print "___________________________________________"
-  print "              sorted(zip(*a)) =", sorted(zip(*a))
-  print "sorted(zip(*a), key = getKey) =", sorted(zip(*a), key = getKey)
+  print("___________________________________________")
+  print("              sorted(zip(*a)) =", sorted(zip(*a)))
+  print("sorted(zip(*a), key = getKey) =", sorted(zip(*a), key = getKey))
 
 
-  print "___________________________________________"
+  print("___________________________________________")
   '''
   lst = [4,2,4,2,5,8,5,2,54,7,9]
   print "lst =", lst

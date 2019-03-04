@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials_scratch.jmp.profile_modelling import ReciprocalLatticePointSpread
 from dials_scratch.jmp.profile_modelling import WavelengthSpread
 from dials_scratch.jmp.profile_modelling import MosaicBlockAngularSpread
@@ -26,7 +27,7 @@ def tst_reciprocal_lattice_point_spread():
 
   assert all(abs(p1-p2) < 1e-7 for p1, p2 in zip(spread.parameters, parameters))
 
-  print 'OK'
+  print('OK')
 
 def tst_mosaic_block_angular_spread():
 
@@ -39,7 +40,7 @@ def tst_mosaic_block_angular_spread():
 
   assert abs(spread.parameter - 0.001) < 1e-7
 
-  print 'OK'
+  print('OK')
 
 def tst_wavelength_spread():
 
@@ -53,7 +54,7 @@ def tst_wavelength_spread():
 
   assert abs(spread.parameter - 0.01) < 1e-7
 
-  print 'OK'
+  print('OK')
 
 def tst_covariance_matrix():
 
@@ -94,7 +95,7 @@ def tst_covariance_matrix():
   eigen_values = eigvals(sigma.as_list_of_lists())
   assert all(e > 0 for e in eigen_values)
 
-  print 'OK'
+  print('OK')
 
 def tst_model_3d():
 
@@ -145,7 +146,7 @@ def tst_model_3d():
     assert d.length() < 1e-3
     assert f > 0
 
-  print 'OK'
+  print('OK')
 
 
 

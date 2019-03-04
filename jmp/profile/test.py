@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -50,15 +51,15 @@ if __name__ == '__main__':
           diff_angle_d.extend([da] * int(1000.0*c / flex.sum(sbox.data)))
           diff_angle_m.extend([db] * int(1000.0*c/ flex.sum(sbox.data)))
           # counts.append(sbox.data[k,j,i])
-    print index
+    print(index)
 
-  print min(diff_angle_d), max(diff_angle_d)
-  print min(diff_angle_m), max(diff_angle_m)
+  print(min(diff_angle_d), max(diff_angle_d))
+  print(min(diff_angle_m), max(diff_angle_m))
 
   m = sum(diff_angle_m) / len(diff_angle_m)
   v = sum([(d - m)**2 for d in diff_angle_m]) / len(diff_angle_m)
   from math import sqrt
-  print m, sqrt(v)
+  print(m, sqrt(v))
 
   from matplotlib import pylab
   pylab.hist(diff_angle_d, bins=100)

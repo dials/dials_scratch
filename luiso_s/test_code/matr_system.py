@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 to_do = '''
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> to do
@@ -27,10 +28,10 @@ for ypos in range(3):
     a[ypos, xpos] = random.random()
 
 
-print "a ="
+print("a =")
 write_2d(a)
 
-print "b ="
+print("b =")
 write_2d(b)
 
 a_mat = a.as_scitbx_matrix()
@@ -38,8 +39,8 @@ b_mat = b.as_scitbx_matrix()
 
 x_mat = a_mat.inverse() * b_mat
 
-print "x = A ** (-1) * B"
+print("x = A ** (-1) * B")
 x = x_mat.as_flex_double_matrix()
 write_2d(x)
-print "x(as flex)"
+print("x(as flex)")
 flex.show(x)

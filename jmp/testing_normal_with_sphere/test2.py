@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 from math import sqrt, sin, cos, pi, exp
@@ -37,7 +38,7 @@ def find_maximum(mu1, mu2, s1, s2):
   x = cos(peak_theta)
   y = sin(peak_theta)
 
-  print x, y
+  print(x, y)
 
 
 mu1 = 1.1*1 / sqrt(3)
@@ -74,13 +75,13 @@ def compute_l0(x, mu, s):
 from scitbx import matrix
 x = matrix.col((mu1, mu2, mu3)).normalize()
 
-print "Max: ", 1.0 / s1**2
-print "Max: ", 1.0 / s2**2
-print "Max: ", 1.0 / s3**2
+print("Max: ", 1.0 / s1**2)
+print("Max: ", 1.0 / s2**2)
+print("Max: ", 1.0 / s3**2)
 
-print compute_l0(x[0], mu1, s1)
-print compute_l0(x[1], mu2, s2)
-print compute_l0(x[2], mu3, s3)
+print(compute_l0(x[0], mu1, s1))
+print(compute_l0(x[1], mu2, s2))
+print(compute_l0(x[2], mu3, s3))
 
 l0 = compute_l0(x[0], mu1, s1)
 
@@ -96,9 +97,9 @@ for t in range(5):
   x2 = mu2 / (1 - l0*s2**2)
   x3 = mu3 / (1 - l0*s3**2)
 
-  print l0, x1, x2, x3, x1**2 + x2**2 + x3**2
+  print(l0, x1, x2, x3, x1**2 + x2**2 + x3**2)
 
-print tuple(x)
+print(tuple(x))
 
 #find_maximum(mu1, mu2, s1, s2)
 

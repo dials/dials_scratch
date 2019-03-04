@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scitbx.array_family import flex
 import scitbx.lbfgs
 import math
@@ -102,10 +103,10 @@ def meansd(values):
   return mean, math.sqrt(var)
 
 if __name__ == '__main__':
-  print ' nG    nI   rmsG  rmsI'
+  print(' nG    nI   rmsG  rmsI')
   for pnG in range(3, 9):
     nG = 2 ** pnG
     for pnI in range(3, 9):
       nI = 2 ** pnI
       rmsG, rmsI, s = test(nG, nI)
-      print '%5d %5d %.3f %.3f %.3f' % (nG, nI, rmsG, rmsI, s)
+      print('%5d %5d %.3f %.3f %.3f' % (nG, nI, rmsG, rmsI, s))

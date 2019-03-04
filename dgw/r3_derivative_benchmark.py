@@ -3,6 +3,7 @@
 Result: dR_from_axis_and_angle is approximately 3 times faster than
 matrix.rec.axis_and_angle_as_r3_derivative_wrt_angle.
 '''
+from __future__ import print_function
 
 from scitbx import matrix
 from scitbx.array_family import flex #required dependency
@@ -28,7 +29,7 @@ for trial in trials:
   dR_0.append(dR_from_axis_and_angle_cpp(trial[0], trial[1]))
 del(t)
 
-print
+print()
 
 t = Timer('dR_from_axis_and_angle in Python')
 dR_1 = []
@@ -36,7 +37,7 @@ for trial in trials:
   dR_1.append(dR_from_axis_and_angle_py(trial[0], trial[1]))
 del(t)
 
-print
+print()
 
 t = Timer('axis_and_angle_as_r3_derivative_wrt_angle')
 dR_2 = []
@@ -44,7 +45,7 @@ for trial in trials:
   dR_2.append(trial[0].axis_and_angle_as_r3_derivative_wrt_angle(trial[1]))
 del (t)
 
-print "check results are the same"
+print("check results are the same")
 for (a, b) in zip(dR_1, dR_2):
   assert approx_equal(a, b)
-print "OK"
+print("OK")

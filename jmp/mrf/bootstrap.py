@@ -1,6 +1,7 @@
 
 
 from __future__ import division
+from __future__ import print_function
 
 def bootstrap(x):
   from random import sample
@@ -36,8 +37,8 @@ if __name__ == '__main__':
     means2.append(bootstrap(a))
 
   from matplotlib import pylab
-  print "MOM1: ", sum(means1) / len(means1)
-  print "MOM2: ", sum(means2) / len(means2)
+  print("MOM1: ", sum(means1) / len(means1))
+  print("MOM2: ", sum(means2) / len(means2))
   pylab.plot(means1, color='black')
   pylab.plot(means2, color='black')
   pylab.show()

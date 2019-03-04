@@ -1,6 +1,7 @@
 
 
 from __future__ import division
+from __future__ import print_function
 
 # def huber(r, c):
 #   if (abs(r) < c):
@@ -47,7 +48,7 @@ def glm(x, p = None):
     # W2 = matrix.diag(w2)
     Z = matrix.col(z)
     beta = (X.transpose() * W * X).inverse() * X.transpose()*W*z
-    print beta
+    print(beta)
     if abs(beta[0] - beta0) < 1e-3:
       break
     beta0 = beta[0]
@@ -165,7 +166,7 @@ if __name__ == '__main__':
   means2 = []
 
   for k in range(10):
-    print k
+    print(k)
     a = list(poisson(100, 100))
     # a[4] = 10
     # a[50] = 100
@@ -179,13 +180,13 @@ if __name__ == '__main__':
     B = flex.double([0])
 
     result = robust_glm(X, Y, B, family="poisson")
-    print list(result.parameters())
-    print list(glm2(a))
+    print(list(result.parameters()))
+    print(list(glm2(a)))
 
 
   from matplotlib import pylab
-  print "MOM1: ", sum(means1) / len(means1)
-  print "MOM2: ", sum(means2) / len(means2)
+  print("MOM1: ", sum(means1) / len(means1))
+  print("MOM2: ", sum(means2) / len(means2))
   pylab.plot(means1, color='black')
   pylab.plot(means2, color='blue')
   pylab.show()

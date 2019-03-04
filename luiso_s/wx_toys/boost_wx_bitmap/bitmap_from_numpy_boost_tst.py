@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import boost.python
 import numpy as np
 import wx
@@ -24,7 +25,7 @@ def GetBitmap_from_np_array(data2d, mask2d):
   img_array[:,:,:] = img_array_tmp[:,:,:]
 
   time2 = time.time()
-  print ("dif(time) =", time2 - time1 )
+  print(("dif(time) =", time2 - time1 ))
 
   #print "img_array.max =", img_array.max()
   image = wx.EmptyImage(width, height)

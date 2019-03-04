@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import libtbx.load_env
 import logging
@@ -9,7 +10,7 @@ try:
   # sometimes get a segmentation fault/core dump if it is imported after
   # scipy.linalg is a dependency of sklearn.cluster.DBSCAN
   import scipy.linalg # import dependency
-except ImportError, e:
+except ImportError as e:
   pass
 
 import copy
@@ -108,8 +109,8 @@ def estimate_ice_rings_width(imagesets, steps):
     for im, m in zip(image, mask):
       im = im.as_1d()
       m = m.as_1d()
-      print m.count(True), m.count(False)
-      print flex.sum(im), flex.sum(im.select(m)), flex.sum(im.select(~m))
+      print(m.count(True), m.count(False))
+      print(flex.sum(im), flex.sum(im.select(m)), flex.sum(im.select(~m)))
       tot_intensity += flex.sum(im.select(m))
       n_pix += m.count(True)
     total_intensity.append(tot_intensity)

@@ -1,17 +1,18 @@
+from __future__ import print_function
 
 
 def equal(a, b):
     try:
         assert(a == b)
-    except Exception, e:
-        print a, b
+    except Exception as e:
+        print(a, b)
         raise e
 
 def almost_equal(a, b, eps=1e-7):
     try:
         assert(abs(a - b) < eps)
-    except Exception, e:
-        print a, b
+    except Exception as e:
+        print(a, b)
         raise e
 
 import sys
@@ -26,7 +27,7 @@ from cctbx.array_family import flex
 refl1 = load.reflections(filename1)
 refl2 = load.reflections(filename2)
 
-print "Length: ", len(refl1), len(refl2)
+print("Length: ", len(refl1), len(refl2))
 #assert(len(refl1) == len(refl2))
 
 refl1 = ReflectionList([r for r in refl1 if r.is_valid()])
@@ -34,10 +35,10 @@ refl2 = ReflectionList([r for r in refl2 if r.is_valid()])
 
 num_valid1 = len([r for r in refl1 if r.is_valid()])
 num_valid2 = len([r for r in refl2 if r.is_valid()])
-print "Valid: ", num_valid1, num_valid2
+print("Valid: ", num_valid1, num_valid2)
 assert(num_valid1 == num_valid2)
 from scitbx import matrix
-print "Checking"
+print("Checking")
 for r1, r2 in zip(refl1, refl2):
     equal(r1.is_valid(), r2.is_valid())
     equal(r1.miller_index, r2.miller_index)

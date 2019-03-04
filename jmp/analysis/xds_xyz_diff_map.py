@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 class Analyse(object):
 
@@ -14,7 +15,7 @@ class Analyse(object):
     import numpy
 
     # Read the file
-    print "Read INTEGRATE.HKL"
+    print("Read INTEGRATE.HKL")
     handle = integrate_hkl.reader()
     handle.read_file(self.integrate_file)
 
@@ -26,7 +27,7 @@ class Analyse(object):
 
     width, height = handle.detector_size
 
-    print "Get Diff arrays"
+    print("Get Diff arrays")
     diff = []
     x = []
     y = []
@@ -42,14 +43,14 @@ class Analyse(object):
         x.append(c[0])
         y.append(c[1])
 
-    print "Create grid array"
+    print("Create grid array")
     xp = numpy.arange(width * height, dtype=numpy.int32) % width
     yp = numpy.arange(width * height, dtype=numpy.int32) / width
     points = numpy.zeros(shape=(width * height, 2), dtype=numpy.int32)
     points[:,0] = xp
     points[:,1] = yp
 
-    print "Grid data"
+    print("Grid data")
     grid = griddata((x, y), diff, points, 'cubic', 0)
     grid.shape = (height, width)
 

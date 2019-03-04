@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx import easy_run
 import sys, os
 
@@ -14,40 +15,40 @@ def do_work(path):
   refined     = os.path.join(root, basename + "_refined.json")
   integrated  = os.path.join(root, basename + "_integrated.pickle")
 
-  print "Preparing to index", basename
+  print("Preparing to index", basename)
 
   cmd = "dials.import %s output=%s"%(path,datablock)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(datablock): return
 
   cmd = "dials.generate_mask %s border=1 output.mask=%s"%(datablock, mask)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(mask): return
 
   cmd = "dials.find_spots input.datablock=%s threshold.xds.sigma_strong=15 min_spot_size=3 lookup.mask=%s output.reflections=%s"%(datablock, mask, spots)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(spots): return
 
   cmd = "dials.index input.reflections=%s input.datablock=%s method=fft1d beam.fix=all detector.fix=all known_symmetry.unit_cell=93,93,130,90,90,120 known_symmetry.space_group=P6122 n_macro_cycles=5 d_min_final=0.5 refinement.reflections.outlier.algorithm=tukey refinement.reflections.weighting_strategy.override=stills refinement.reflections.weighting_strategy.delpsi_constant=1000000  output.experiments=%s output.reflections=%s"%(spots, datablock, experiments, indexed)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(experiments): return
   if not os.path.exists(indexed): return
 
   cmd = "dials.refine weighting_strategy.override=stills weighting_strategy.delpsi_constant=1000000 reflections.outlier.algorithm=tukey %s %s  output.experiments_filename=%s"%(experiments, indexed, refined)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(refined): return
 
   cmd = "dials.integrate outlier.algorithm=null integration.intensity.algorithm=sum %s %s output.reflections=%s"%(refined, indexed, integrated)
-  print cmd
+  print(cmd)
   easy_run.call(cmd)
   if not os.path.exists(integrated): return
 
-  print basename, "indexed succesfully"
+  print(basename, "indexed succesfully")
 
   results.append((integrated,refined))
 
@@ -87,7 +88,7 @@ else:
     do_work(path)
 
 if len(results) > 0:
-  print "Writing phil input to metrology refiner..."
+  print("Writing phil input to metrology refiner...")
 
   f = open("all.phil", 'w')
   for (indexed, experiments) in results:
@@ -97,6 +98,6 @@ if len(results) > 0:
     f.write("}\n")
   f.close()
 else:
-  print "Nothing indexed"
+  print("Nothing indexed")
 
-print "Done"
+print("Done")

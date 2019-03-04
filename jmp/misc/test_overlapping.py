@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 from scitbx.array_family import flex
 from dials.model.data import Reflection, ReflectionList
@@ -16,7 +17,7 @@ rl.append(r3)
 overlapping = shoebox.find_overlapping(rl)
 
 for e in overlapping.edges():
-  print "Edge: ", overlapping.edge_vertices(e)
+  print("Edge: ", overlapping.edge_vertices(e))
 
 for v in overlapping.vertices():
-  print "Vertex: ", v, " => ", [a for a in overlapping.adjacent_vertices(v)]
+  print("Vertex: ", v, " => ", [a for a in overlapping.adjacent_vertices(v)])

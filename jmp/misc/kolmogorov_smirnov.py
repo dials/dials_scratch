@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -74,7 +75,7 @@ if __name__ == '__main__':
   D = kolmogorov_smirnov_test(t, f)
   n = len(data)
   Dc = 1.36 / sqrt(n)
-  print D, Dc, D < Dc
+  print(D, Dc, D < Dc)
 
   pylab.plot(t, f)
   pylab.plot(t, [standard_normal_cdf(tt) for tt in t])

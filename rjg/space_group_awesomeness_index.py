@@ -1,3 +1,4 @@
+from __future__ import print_function
 def run():
   from cctbx import sgtbx
 
@@ -10,7 +11,7 @@ def run():
   perm = flex.sort_permutation(flex.double(awesomeness_index), reverse=True)
   for rank, i in enumerate(perm):
     sgi = sgtbx.space_group_info(number=i+1)
-    print "%3i %.2f" %(rank+1, awesomeness_index[i]), sgi
+    print("%3i %.2f" %(rank+1, awesomeness_index[i]), sgi)
 
   from matplotlib import pyplot
   pyplot.scatter(range(1, 231), awesomeness_index)

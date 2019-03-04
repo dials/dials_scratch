@@ -10,6 +10,7 @@
 #
 
 from __future__ import division
+from __future__ import print_function
 from model_parameters import Parameter, ModelParameterisation
 from scitbx import matrix
 from dxtbx.model.experiment import Panel, Detector
@@ -533,13 +534,13 @@ if __name__ == '__main__':
                             0., 0., 0.)), eps = 1.e-6))
       except Exception:
         failures += 1
-        print "for try", i
-        print "failure for parameter number", j
-        print "with fd_ds_dp = "
-        print fd_ds_dp[j]
-        print "and an_ds_dp = "
-        print an_ds_dp[j]
-        print "so that difference fd_ds_dp - an_ds_dp ="
-        print fd_ds_dp[j] - an_ds_dp[j]
+        print("for try", i)
+        print("failure for parameter number", j)
+        print("with fd_ds_dp = ")
+        print(fd_ds_dp[j])
+        print("and an_ds_dp = ")
+        print(an_ds_dp[j])
+        print("so that difference fd_ds_dp - an_ds_dp =")
+        print(fd_ds_dp[j] - an_ds_dp[j])
 
-  if failures == 0: print "OK"
+  if failures == 0: print("OK")

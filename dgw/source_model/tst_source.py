@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.scratch.dgw.source_model import source
 from scitbx import matrix
 
@@ -14,4 +15,4 @@ if __name__ == '__main__':
   s0.set_s0(matrix.col.random(3, 0.5, 1.5))
   assert approx_equal(s0.get_wavelength(), curr_lambda)
 
-  print "OK"
+  print("OK")

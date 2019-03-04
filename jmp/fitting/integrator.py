@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import dials
 
 def read_experiments(filename):
@@ -13,7 +14,7 @@ def read_reflections(filename):
   from dials.array_family import flex
   r = flex.reflection_table()
   for f in filename:
-    print "Reading %s" % f
+    print("Reading %s" % f)
     r.extend(flex.reflection_table.from_pickle(f))
   return r
 
@@ -31,7 +32,7 @@ def integrate(experiments, reflections, reference, grid_size=5,
 
   selection = reflections.get_flags(reflections.flags.integrated_sum)
   reflections = reflections.select(selection)
-  print "Selected %d reflections to integrate" % len(reflections)
+  print("Selected %d reflections to integrate" % len(reflections))
 
   assert len(reference) % 9 == 0
   num_scan_points = len(reference) // 9
@@ -128,12 +129,12 @@ def integrate(experiments, reflections, reference, grid_size=5,
         Cprf[i] = fit.correlation()
         Fprf[i] = True
         if r['intensity.sum.value'] > 10 and abs(fit.intensity()) < 1e-3:
-          print r['miller_index'], i, fit.intensity(),  r['intensity.sum.value'],  r['intensity.prf_old.value'], Part[i], fit.niter()
+          print(r['miller_index'], i, fit.intensity(),  r['intensity.sum.value'],  r['intensity.prf_old.value'], Part[i], fit.niter())
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
-      except Exception, e:
-        print e
+      except Exception as e:
+        print(e)
         pass
 
     else:
@@ -167,7 +168,7 @@ def integrate(experiments, reflections, reference, grid_size=5,
         Vprf[i] = fit.variance()[0]
         Cprf[i] = fit.correlation()
         Fprf[i] = True
-        print r['miller_index'], i, fit.intensity(), r['intensity.prf_old.value']
+        print(r['miller_index'], i, fit.intensity(), r['intensity.prf_old.value'])
         # from matplotlib import pylab
         # pylab.imshow(p1.as_numpy_array()[0,:,:], interpolation='none')
         # pylab.show()
@@ -202,7 +203,7 @@ if __name__ == '__main__':
   reflections = read_reflections(reflections_filename)
   reference = read_reference(reference_filename)
 
-  print "Read %d reflections" % len(reflections)
+  print("Read %d reflections" % len(reflections))
 
   reflections = integrate(experiments, reflections, reference[0],
                           grid_size=grid_size, detector_space=detector_space)

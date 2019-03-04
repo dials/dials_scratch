@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 
@@ -15,7 +16,7 @@ def filter_reflections(reflections):
 def main():
   import sys
   data = pickle.load(open(sys.argv[1]))
-  print '%e %d' % total_count(filter_reflections(data))
+  print('%e %d' % total_count(filter_reflections(data)))
 
 if __name__ == '__main__':
   main()

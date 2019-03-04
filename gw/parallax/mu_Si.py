@@ -55,4 +55,4 @@ def derive_absorption_coefficient_Si(energy_kev):
       return 0.1 * log_interpolate(e_mu0[0], e_mu0[1], e_mu1[0], e_mu1[1],
                                    energy_kev)
 
-  raise RuntimeError, 'cannot reach this point'
+  raise RuntimeError('cannot reach this point')

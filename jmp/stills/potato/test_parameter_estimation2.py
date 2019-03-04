@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 from math import sqrt, exp, pi, acos
 from scitbx import matrix
@@ -34,7 +35,7 @@ class simple_simplex(object):
     return self.x
 
   def target(self, vector):
-    print "SCORE"
+    print("SCORE")
     score = scorify(vector)
     return score
 
@@ -103,7 +104,7 @@ def generate_transformed_data(experiments, reflections, sigma):
       if ii >= 0 and jj > 0 and ii < data.all()[1] and jj < data.all()[0]:
         data[jj,ii] += 1
 
-    print i, len(reflections), data.as_numpy_array()
+    print(i, len(reflections), data.as_numpy_array())
     data_list.append(data)
 
   return data_list
@@ -159,15 +160,15 @@ class ProfileRefiner(object):
       result[1], result[2], 0,
       result[3], result[4], result[5]))
     self.sigma = M*M.transpose()
-    print 'Initial sigma:', initial_sigma
-    print 'Final sigma:  ', self.sigma
+    print('Initial sigma:', initial_sigma)
+    print('Final sigma:  ', self.sigma)
 
     # Compute the eigen decomposition of the covariance matrix
     eigen_decomposition = eigensystem.real_symmetric(self.sigma.as_flex_double_matrix())
     Q = matrix.sqr(eigen_decomposition.vectors())
     L = matrix.diag(eigen_decomposition.values())
-    print Q
-    print L
+    print(Q)
+    print(L)
 
     # Compute RMSD
     # xcal, ycal, _ = self.model.observed().parts()
@@ -219,8 +220,8 @@ class ProfileRefiner(object):
     self.history.append((sigma, score))
 
     # Print some info
-    print 'Sigma: %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f; Score: %f' % (
-      tuple(sigma) + tuple((score,)))
+    print('Sigma: %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f; Score: %f' % (
+      tuple(sigma) + tuple((score,))))
     return score
 
 
@@ -276,7 +277,7 @@ if __name__ == '__main__':
   I_obs = I_obs.select(selection)
   reflections = reflections.select(selection)
 
-  print len(selection), len(reflections)
+  print(len(selection), len(reflections))
 
 
   transformed_data = generate_transformed_data(experiments, reflections, sigma)
@@ -297,7 +298,7 @@ if __name__ == '__main__':
   for s1, s2 in zip(s1_obs, s2_obs):
     a = matrix.col(s1).angle(matrix.col(s2), deg=True)
     angles.append(a)
-  print "Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles))
+  print("Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles)))
 
   # Do the ray intersection
   reflections['intensity.sum.value'] = I_obs

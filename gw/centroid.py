@@ -1,10 +1,11 @@
+from __future__ import print_function
 from scitbx.random import variate, normal_distribution
 from scitbx.array_family import flex
 import math
 
 def centroidify(width, shift, count):
     g = variate(normal_distribution(mean=shift, sigma=width))
-    values = flex.double([g.next() for c in range(count)])
+    values = flex.double([next(g) for c in range(count)])
     hist = flex.histogram(data=values, n_slots=20,
                           data_min=-10, data_max=10)
     true_mean = flex.sum(values) / values.size()
@@ -19,13 +20,13 @@ def centroidify(width, shift, count):
     hist_var = sum([(v / total) ** 2 * (1.0/12.0) for v in hist.slots()])
 
     # print input setings
-    print '%8.5f %4.1f %4d' % (width ** 2 / count, shift, count),
+    print('%8.5f %4.1f %4d' % (width ** 2 / count, shift, count), end=' ')
 
     # true variance / mean of distribution
-    print '%6.3f %8.5f' % (true_mean, true_variance / values.size()),
+    print('%6.3f %8.5f' % (true_mean, true_variance / values.size()), end=' ')
 
     # putative values of same derived from histogram
-    print '%6.3f %8.5f' % (hist_mean, hist_var)
+    print('%6.3f %8.5f' % (hist_mean, hist_var))
 
 for width in 0.1, 0.2, 0.5, 1.0, 1.5, 2, 3, 5:
     for shift in 0, 0.1, 0.2, 0.5:

@@ -1,5 +1,6 @@
 
 from __future__ import division
+from __future__ import print_function
 
 def mean_and_variance(a):
   sum1 = sum(a)
@@ -84,7 +85,7 @@ def glm(x, p = None):
   #   D.append(d)
 
   # print min(x), max(x)
-  print min(D), max(D), F(1, len(x))
+  print(min(D), max(D), F(1, len(x)))
 
   return exp(beta[0]), max(D) > F(1, len(x))
 
@@ -137,17 +138,17 @@ if __name__ == '__main__':
   means1 = []
   means2 = []
   for k in range(100):
-    print k
+    print(k)
     a = list(poisson(0.1, 100))
-    print a
+    print(a)
     # a[4] = 10
     # a[50] = 10
     means1.append(sum(a)/len(a))
     means2.append(ts2(a))
-  print "Outliers: ", means2.count(True)
+  print("Outliers: ", means2.count(True))
 
   from matplotlib import pylab
-  print "MOM1: ", sum(means1) / len(means1)
+  print("MOM1: ", sum(means1) / len(means1))
   pylab.plot(means1, color='black')
   pylab.plot(means2, color='blue')
   pylab.show()

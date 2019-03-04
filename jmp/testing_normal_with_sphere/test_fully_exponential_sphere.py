@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx import matrix
 from math import pi, cos, sin, exp, sqrt, atan2, log, tan, acos
@@ -263,7 +264,7 @@ def compute_laplace(mu, sigma):
 
   theta = acos(x[2])
   phi = atan2(x[1], x[0])
-  print theta, phi
+  print(theta, phi)
 
   return x
   # mu_phi = atan2(mu[1], mu[0])
@@ -316,12 +317,12 @@ if __name__ == "__main__":
 
   scal = compute_laplace(mu, sigma)
 
-  print scal.length()
+  print(scal.length())
 
   sest = compute_integrate(mu, sigma)
 
   theta = acos(sest[2])
   phi = atan2(sest[1], sest[0])
-  print theta, phi
+  print(theta, phi)
 
-  print scal.angle(sest)
+  print(scal.angle(sest))

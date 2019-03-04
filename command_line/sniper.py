@@ -1,3 +1,4 @@
+from __future__ import print_function
 def allowed(perm):
   m = perm[0] + perm[1]
   if m != (perm[-2] + perm[-1]): return None
@@ -18,5 +19,5 @@ def solver(n):
 if __name__ == '__main__':
   import sys
   perms, solns = solver(int(sys.argv[1]))
-  print 'Of %d permutations %d unique solutions:' % (perms, len(solns))
-  for s in solns: print s
+  print('Of %d permutations %d unique solutions:' % (perms, len(solns)))
+  for s in solns: print(s)

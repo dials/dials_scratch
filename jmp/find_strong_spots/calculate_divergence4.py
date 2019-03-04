@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -14,8 +15,8 @@ if __name__ == '__main__':
 
   try:
     dials_regression = libtbx.env.dist_path('dials_regression')
-  except KeyError, e:
-    print 'FAIL: dials_regression not configured'
+  except KeyError as e:
+    print('FAIL: dials_regression not configured')
     raise
 
   # The XDS values
@@ -29,9 +30,9 @@ if __name__ == '__main__':
   handle = NexusFile(filename, 'r')
 
   # Get the reflection list
-  print 'Reading reflections.'
+  print('Reading reflections.')
   predicted = handle.get_reflections()
-  print 'Read {0} reflections.'.format(len(predicted))
+  print('Read {0} reflections.'.format(len(predicted)))
 
   # Read images
   template = os.path.join(dials_regression,
@@ -40,9 +41,9 @@ if __name__ == '__main__':
   filenames = glob(template)
 
   # Load the sweep
-  print 'Loading sweep'
+  print('Loading sweep')
   sweep = SweepFactory.sweep(filenames)
-  print 'Loaded sweep of {0} images.'.format(len(sweep))
+  print('Loaded sweep of {0} images.'.format(len(sweep)))
 
   from dials.algorithms.peak_finding.spot_finder import SpotFinder
   sweep.reader().set_max_cache(1)

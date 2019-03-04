@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 if __name__ == '__main__':
@@ -77,8 +78,8 @@ if __name__ == '__main__':
 #    pylab.show()
 
 
-  print energy
-  print mac
+  print(energy)
+  print(mac)
 
 #    x0 = 0
 #    x1 = 0
@@ -102,7 +103,7 @@ if __name__ == '__main__':
   log_energy = numpy.log(energy)
   log_mac = numpy.log(mac)
 
-  print log(beam_energy)
+  print(log(beam_energy))
 
 #    from matplotlib import pylab
 #    pylab.plot(energy, log_mac)
@@ -122,17 +123,17 @@ if __name__ == '__main__':
 #    coeff = 16.9612
   rho = 2.330E+00
 
-  print "Energy: {0} Mev".format(beam_energy)
-  print "Energy: {0} ev".format(beam_energy * 1000000.0)
-  print "Mu/rho: {0} cm^2/g".format(coeff)
-  print "Mu:     {0} cm^-1".format(coeff * rho)
-  print "rho:    {0} g / cm^3".format(rho)
+  print("Energy: {0} Mev".format(beam_energy))
+  print("Energy: {0} ev".format(beam_energy * 1000000.0))
+  print("Mu/rho: {0} cm^2/g".format(coeff))
+  print("Mu:     {0} cm^-1".format(coeff * rho))
+  print("rho:    {0} g / cm^3".format(rho))
   from math import exp
   x_arr = []
   p_arr = []
 
 
-  print "Att Len: {0} microm".format((1.0 / (coeff * rho)) * 10 * 1000)
+  print("Att Len: {0} microm".format((1.0 / (coeff * rho)) * 10 * 1000))
 
   for xx in range(0, 100):
     xcm = xx / 1000.0

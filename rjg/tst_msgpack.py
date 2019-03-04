@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def run(args):
   assert len(args)
@@ -15,7 +16,7 @@ def run(args):
   import msgpack
 
   with open('reflection.mpk', 'wb') as f:
-    print >> f, msgpack.packb(d)
+    print(msgpack.packb(d), file=f)
 
 
 if __name__ == '__main__':

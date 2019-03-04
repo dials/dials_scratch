@@ -10,6 +10,7 @@
 #  included in the root directory of this package.
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 import libtbx.load_env
 import logging
 logger = logging.getLogger(libtbx.env.dispatcher_name)
@@ -102,30 +103,30 @@ class Script(object):
     # Get the mosaicity
     mosaicity = integrator.mosaicity
 
-    print ""
-    print "Mosaicity: %f" % mosaicity
-    print ""
+    print("")
+    print("Mosaicity: %f" % mosaicity)
+    print("")
 
     # The mosaicity matrix in q-space
     Mq = matrix.sqr((
       mosaicity, 0, 0,
       0, mosaicity, 0,
       0, 0, mosaicity))
-    print "Mosacity matrix in q-space"
-    print Mq.as_numpy_array()
-    print ""
+    print("Mosacity matrix in q-space")
+    print(Mq.as_numpy_array())
+    print("")
 
     # The mosaicity matrix in hkl
     A = matrix.sqr(experiments[0].crystal.get_A())
     Mh = A.inverse() * Mq
-    print "Mosacity matrix in h-space"
-    print Mh.as_numpy_array()
-    print ""
+    print("Mosacity matrix in h-space")
+    print(Mh.as_numpy_array())
+    print("")
 
     # Print partiality
-    print "Min partiality: %f, Max partiality: %f" % (
-      min_partiality, max_partiality)
-    print ""
+    print("Min partiality: %f, Max partiality: %f" % (
+      min_partiality, max_partiality))
+    print("")
 
     # Save the reflections
     reflections.as_pickle(params.output.reflections)

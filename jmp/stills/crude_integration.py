@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 def integrate(experiment):
   from dials.algorithms.spot_prediction import PixelToMillerIndex
@@ -21,7 +22,7 @@ def integrate(experiment):
   mask = flex.bool(flex.grid(ysize, xsize), False)
   reflections = defaultdict(list)
 
-  print "Doing pixel labelling"
+  print("Doing pixel labelling")
   for j in range(ysize):
     for i in range(xsize):
       h = transform.h(0, i, j)
@@ -45,7 +46,7 @@ def integrate(experiment):
   # #pylab.imshow(mask.as_numpy_array(), interpolation='none')
   # pylab.show()
 
-  print "Integrating reflections"
+  print("Integrating reflections")
   miller_index = flex.miller_index()
   intensity = flex.double()
   variance = flex.double()
@@ -82,8 +83,8 @@ def integrate(experiment):
       bbox.append((x0, x1, y0, y1, 0, 1))
       # xyz.append((xc, yc, 0))
 
-  print "Integrated %d reflections" % len(reflections)
-  print flex.min(intensity), flex.max(intensity), flex.mean(intensity)
+  print("Integrated %d reflections" % len(reflections))
+  print(flex.min(intensity), flex.max(intensity), flex.mean(intensity))
   reflections = flex.reflection_table()
   reflections["miller_index"] = miller_index
   reflections["intensity.sum.value"] = intensity

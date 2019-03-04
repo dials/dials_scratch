@@ -1,6 +1,7 @@
 #!/usr/bin/env cctbx.python
 
 """Load an XDS GAIN.cbf, flatten the values, then write out again"""
+from __future__ import print_function
 
 import binascii
 import copy
@@ -48,7 +49,7 @@ def squishGain(cbf_file, out_name, force_gain=None):
     new_val = int(mval)
 
   # Set this value everywhere that is not a masked value marked by -3
-  print "Setting flat gain of {0}".format(new_val / 1000.)
+  print("Setting flat gain of {0}".format(new_val / 1000.))
   modified.set_selected(modified >= 0, new_val)
 
   # Compress the data

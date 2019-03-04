@@ -15,6 +15,7 @@ Tests the CentroidAnalyser class used in refinement
 """
 
 from __future__ import absolute_import, division
+from __future__ import print_function
 import os
 import libtbx.load_env # required for libtbx.env.find_in_repositories
 from libtbx.test_utils import approx_equal
@@ -26,7 +27,7 @@ def test1():
   """Test centroid analysis on an indexed.pickle"""
 
   if not libtbx.env.has_module("dials_regression"):
-    print "Skipping test1 in " + __file__ + " as dials_regression not present"
+    print("Skipping test1 in " + __file__ + " as dials_regression not present")
     return
 
   dials_regression = libtbx.env.find_in_repositories(
@@ -92,7 +93,7 @@ def test1():
   assert results['y_periodogram'] is not None
   assert results['phi_periodogram'] is None
 
-  print "OK"
+  print("OK")
   return
 
 
@@ -196,7 +197,7 @@ def test2():
   # in though
   raise RuntimeError('test2 failed')
 
-  print "OK"
+  print("OK")
   return
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import scitbx.matrix
 from scitbx import fftpack
 from cctbx.array_family import flex
@@ -79,7 +80,7 @@ class gen_lattice_points(object):
     self.crystal_symmetry = crystal.symmetry(unit_cell=self.fft_cell,
                                              space_group_symbol="P1")
 
-    print "FFT gridding: (%i,%i,%i)" %self.gridding
+    print("FFT gridding: (%i,%i,%i)" %self.gridding)
 
     grid = flex.double(flex.grid(self.gridding), 0)
 
@@ -139,7 +140,7 @@ def debug_write_reciprocal_lattice_points_as_pdb(
 
   xs.sites_mod_short()
   with open(file_name, 'wb') as f:
-    print >> f, xs.as_pdb_file()
+    print(xs.as_pdb_file(), file=f)
 
 
 def predict_reflections(sweep, crystal_model):
@@ -156,7 +157,7 @@ def run(args):
   args = sys.argv[1:]
   importer = Importer(args)
   if len(importer.imagesets) == 0:
-    print "No sweep object could be constructed"
+    print("No sweep object could be constructed")
     return
   elif len(importer.imagesets) > 1:
     raise RuntimeError("Only one imageset can be processed at a time")

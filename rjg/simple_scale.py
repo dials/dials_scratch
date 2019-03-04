@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 from dials.util.options import OptionParser
@@ -37,7 +38,7 @@ def run(args):
   reader = any_reflection_file(f)
   arrays = reader.as_miller_arrays(merge_equivalents=False)
   for ma in arrays:
-    print ma.info().labels
+    print(ma.info().labels)
     if ma.info().labels == ['I', 'SIGI']:
       intensities = ma
     elif ma.info().labels == ['IMEAN', 'SIGIMEAN']:
@@ -76,7 +77,7 @@ def run(args):
 
   mtz_dataset.add_column('SCALEUSED', 'R').set_values(scales.as_float())
   mtz_out = 'scaled_unmerged.mtz'
-  print 'Writing scaled unmerged intensities to %s' %mtz_out
+  print('Writing scaled unmerged intensities to %s' %mtz_out)
   mtz_obj.write(mtz_out)
   return
 

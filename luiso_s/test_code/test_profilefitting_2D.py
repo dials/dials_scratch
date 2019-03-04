@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.array_family import flex
 from dials.scratch.luiso_s import model_2d
 from matplotlib import pylab
@@ -22,16 +23,16 @@ ncol = int(float(xmax) / float(n_x))
 centr_col = float(ncol)/2.0
 centr_row = float(ncol)/2.0
 
-print "ncol =", ncol
-print "nrow =", nrow
+print("ncol =", ncol)
+print("nrow =", nrow)
 
 if ncol > nrow:
   ncol = nrow
 elif nrow > ncol:
   nrow = ncol
 
-print "ncol =", ncol
-print "nrow =", nrow
+print("ncol =", ncol)
+print("nrow =", nrow)
 
 pi = 3.14159265358
 
@@ -103,7 +104,7 @@ for ypos in range(n_y):
       t_shoebox[t_row].mask = lc_mask
       t_row += 1
 
-print "t_row =", t_row
+print("t_row =", t_row)
 ref_table['shoebox'] = t_shoebox
 ref_table['intensity.sum.value'] = t_intensity
 ref_table['intensity.sum.variance'] = t_intensity_var
@@ -117,7 +118,7 @@ data2d[:, :] += numpy.float64(data2d_tmp)
 
 #tmp = '''
 from matplotlib import pyplot as plt
-print "Plotting data2d"
+print("Plotting data2d")
 plt.imshow(data2d, interpolation = "nearest")
 plt.show()
 #'''
@@ -133,7 +134,7 @@ t_intensity = ref_table['intensity.sum.value']
 old_i_table = t_intensity[:]
 
 #tmp='''
-print "adding noise ...."
+print("adding noise ....")
 t_row = 0
 for count in range(num_ref):
     for x_loc in range(ncol):
@@ -146,7 +147,7 @@ for count in range(num_ref):
           t_shoebox[t_row].data[0, y_loc, x_loc] += random.randint(0,10)
 
     t_row += 1
-print "adding noise .... done"
+print("adding noise .... done")
 #'''
 
 layering_and_background_plane(ref_table)

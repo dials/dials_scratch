@@ -1,3 +1,4 @@
+from __future__ import print_function
 # one Liner for loop
 
 import numpy as np
@@ -9,4 +10,4 @@ if(__name__ == "__main__"):
 
   for p in np.ndarray(shape=(5), dtype = int):
     a[p] = p
-  print a
+  print(a)

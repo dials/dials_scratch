@@ -1,3 +1,4 @@
+from __future__ import print_function
 import copy
 from dials.array_family import flex
 from cctbx import miller, crystal
@@ -154,17 +155,17 @@ def run_main(reflections, experiments, params):
   minimised.expand_scales_to_all_reflections()
 
   Rpim, Rmeas = R_pim_meas(minimised)
-  print "R_meas is %s" % (Rmeas)
-  print "R_pim is %s" % (Rpim)
+  print("R_meas is %s" % (Rmeas))
+  print("R_pim is %s" % (Rpim))
 
   plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
   plot_absorption_surface(minimised)
-  print "Saved plots of correction factors"
+  print("Saved plots of correction factors")
 
   print(len(reflections))
 
   minimised.save_reflection_table('synthetic_scaled.pickle')
-  print "Saved output to %s" % ('synthetic_scaled.pickle')
+  print("Saved output to %s" % ('synthetic_scaled.pickle'))
 
 
 def generate_test_input():

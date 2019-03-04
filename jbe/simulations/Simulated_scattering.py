@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 import cPickle as pickle
 
@@ -170,7 +171,7 @@ def simulate_dataset(ms):
     reflections_list.extend(xyzs)
     miller_indices_list.extend(miller_indices)
     spot_vectors_list.extend(spot_vectors)
-  print "calculated which spots would be detected during sweep - found %s instances" % (len(reflections_list))
+  print("calculated which spots would be detected during sweep - found %s instances" % (len(reflections_list)))
   Ilist = []
   for idx, k1 in enumerate(spot_vectors_list):
     #rotate back to crystal frame first
@@ -182,7 +183,7 @@ def simulate_dataset(ms):
     #scale_factor = 500.0 - reflections_list[idx][2]
     Ilist.append(I)# * scale_factor)
     if I < 0.0:
-      print "negative I calculated"
+      print("negative I calculated")
 
   dlist = []
   #apply LP correction
@@ -258,16 +259,16 @@ def save_data(minimised,filename):
   pickle.dump(minimised, data_file)
   data_file.close()
 
-print reflections.size()
+print(reflections.size())
 #ms = ms.change_symmetry(space_group_symbol="P4")
 #print ms.size()
 ms = miller.set(crystal_symmetry=crystal.symmetry(space_group_symbol="P4",
     unit_cell=(a, b, c, 90, 90, 90)), anomalous_flag=True, indices=reflections['miller_index'])
-print ms.size()
+print(ms.size())
 
 save_data((reflections, ms), 'test_dataset_mu0p2_smalldetector_P4_rot0_test.pickle')
 
-print "(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance"
+print("(x,y,phi) pos, k1 vector, s2d vector, (h,k,l), Intensity, variance")
 for i in range(len(refls)):
   print (("(%.4f,%.4f,%.4f), (%.4f,%.4f,%.4f), (%.4f,%.4f,%.4f), %s, %s, %s")
          % (refls[i][0], refls[i][1], refls[i][2],

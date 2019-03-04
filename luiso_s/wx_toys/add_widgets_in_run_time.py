@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  DIALS viewer_frame
 #
@@ -61,7 +62,7 @@ class MyPanel(wx.Panel):
             self.number_of_img -= 1
             self.frame.fSizer.Layout()
             self.frame.Fit()
-            print "number_of_img =", self.number_of_img
+            print("number_of_img =", self.number_of_img)
 
 class MyFrame(wx.Frame):
     def __init__(self):

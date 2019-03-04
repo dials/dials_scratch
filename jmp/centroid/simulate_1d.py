@@ -1,3 +1,4 @@
+from __future__ import print_function
 def generate_gaussian(xc, sx, width, scale=1000, random=False):
   from dials.array_family import flex
   from numpy.random import poisson
@@ -142,7 +143,7 @@ def compute_variance(sigma, num, width, random=True):
   var_cal3 = sum(xv2_list) / len(xv2_list)
   #var_cal2 = compute_bias(sigma_cal) + sum(xv_list) / len(xv_list)
   #var_cal = sum(xv_list) / len(xv_list)
-  print sigma, sigma_cal, var_obs, var_cal, var_cal2, var_cal3
+  print(sigma, sigma_cal, var_obs, var_cal, var_cal2, var_cal3)
 
   return var_obs, var_cal, var_cal2, var_cal3
 

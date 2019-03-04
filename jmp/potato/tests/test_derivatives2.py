@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from scitbx import matrix
 from math import log, pi
 from random import uniform, randint
@@ -565,7 +566,7 @@ def test():
     test_derivative_of_s1(sigma, s0, b1, b2, b3)
     test_derivative_of_f(sigma, s0, b1, b2, b3)
 
-    print 'OK'
+    print('OK')
 
 if __name__ == '__main__':
   test()

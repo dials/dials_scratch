@@ -1,3 +1,4 @@
+from __future__ import print_function
 from math import sqrt, log
 
 def f(x, mu, s):
@@ -56,7 +57,7 @@ for i in range(200000):
   Y.append(y)
 
 i = min_index(Y)
-print X[i]
+print(X[i])
 
 # print compute_peak(m, s)
 

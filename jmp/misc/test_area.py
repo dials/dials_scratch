@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 
@@ -23,4 +24,4 @@ a2 = v11[0] * 0 - v10[0] * v11[1];
 a3 = v10[0] * v00[1] - v00[0] * 0;
 
 
-print 0.5 * (a0 + a1 + a2 + a3)
+print(0.5 * (a0 + a1 + a2 + a3))

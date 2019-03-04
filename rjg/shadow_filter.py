@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import copy
 from dials.array_family import flex
 import libtbx.phil
@@ -53,8 +54,8 @@ def run(args):
 
   from dials.command_line.check_strategy import filter_shadowed_reflections
   sel = filter_shadowed_reflections(experiments, reflections)
-  print "%i/%i (%.2f%%) shadowed reflections" %(
-    sel.count(True), sel.size(), 100*sel.count(True)/sel.size())
+  print("%i/%i (%.2f%%) shadowed reflections" %(
+    sel.count(True), sel.size(), 100*sel.count(True)/sel.size()))
 
   if params.negate:
     sel = ~sel
@@ -86,8 +87,8 @@ def run(args):
         h, k, l = ref['miller_index']
         x, y, z = ref['xyzcal.px']
         dx, dy, dz = (2, 2, 2)
-        print >> f, "%i %i %i %.1f %.1f %.1f %.1f %.1f %.1f" %(
-          h, k, l, x+ox, y+oy, z, dx, dy, dz)
+        print("%i %i %i %.1f %.1f %.1f %.1f %.1f %.1f" %(
+          h, k, l, x+ox, y+oy, z, dx, dy, dz), file=f)
 
 
 if __name__ == '__main__':

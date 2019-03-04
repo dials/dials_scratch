@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 #
 #  DIALS viewer
 #
@@ -83,7 +84,7 @@ class MyFrame(wx.Frame):
     self.My_Update()
 
   def ChangeDisplay(self, event = None):
-    print "change display"
+    print("change display")
     options_to_show = ''' bkg, dat, msk '''
     if self.to_show == "dat":
       self.to_show = "bkg"
@@ -129,7 +130,7 @@ if __name__ == "__main__":
   from dials.model.data import ReflectionList # implicit import
   table = pickle.load(open(sys.argv[1]))
 
-  print "num of ref =", len(table)
+  print("num of ref =", len(table))
 
   app = App(redirect=False)
   app.table_in(table)

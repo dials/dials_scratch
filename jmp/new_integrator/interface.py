@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from dials.algorithms.integration import IntegrationTask3DExecutor
 from dials.algorithms.integration import IntegrationTask3DMultiExecutorBase
 import boost.python
@@ -168,7 +169,7 @@ class Integrator(object):
     if num_proc > 1:
       def process_output(result):
         self._manager.accumulate(result[0])
-        print result[1]
+        print(result[1])
       def execute_task(task):
         from cStringIO import StringIO
         import sys
@@ -195,10 +196,10 @@ class Integrator(object):
     extract_time = self._manager.extract_time
     process_time = self._manager.process_time
     total_time = end_time - start_time
-    print "Time taken: reading images: %.2f seconds" % read_time
-    print "Time taken: extracting pixels: %.2f seconds" % extract_time
-    print "Time taken: processing data: %.2f seconds" % process_time
-    print "Time taken: total: %.2f seconds" % total_time
+    print("Time taken: reading images: %.2f seconds" % read_time)
+    print("Time taken: extracting pixels: %.2f seconds" % extract_time)
+    print("Time taken: processing data: %.2f seconds" % process_time)
+    print("Time taken: total: %.2f seconds" % total_time)
     return self._manager.result()
 
 
@@ -220,7 +221,7 @@ class IntegrationProcessor3D(object):
   def __call__(self, reflections):
     ''' Perform all the processing for integration. '''
     from time import time
-    print "Process"
+    print("Process")
     st = time()
 
     # Compute the shoebox mask
@@ -357,9 +358,9 @@ class IntegrationTask3D(IntegrationTask):
     from dials.array_family import flex
     from scitbx.array_family import shared
     import sys
-    print "=" * 80
-    print ""
-    print "Integrating task %d" % self._index
+    print("=" * 80)
+    print("")
+    print("Integrating task %d" % self._index)
     process = IntegrationProcessor3D(self._experiments)
 
     if isinstance(self._jobs, shared.tiny_int_2):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from scitbx import matrix
 
@@ -29,17 +30,17 @@ L = matrix.sqr((
 
 Sigma = L*L.transpose()
 
-print E.transpose() * Sigma * E
+print(E.transpose() * Sigma * E)
 
-print E.is_r3_rotation_matrix()
-print "e1: ", tuple("%.2f" % e for e in e1)
-print "e2: ", tuple("%.2f" % e for e in e2)
-print "e3: ", tuple("%.2f" % e for e in e3)
+print(E.is_r3_rotation_matrix())
+print("e1: ", tuple("%.2f" % e for e in e1))
+print("e2: ", tuple("%.2f" % e for e in e2))
+print("e3: ", tuple("%.2f" % e for e in e3))
 
 
 E = E.transpose() * Sigma * E
 
-print Sigma.inverse()
+print(Sigma.inverse())
 
 
 

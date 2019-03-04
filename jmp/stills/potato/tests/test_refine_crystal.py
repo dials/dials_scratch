@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from libtbx.phil import parse
 from math import sqrt, exp, pi, acos
 from scitbx import matrix
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     parameters[3], parameters[4], parameters[5]))
   sigma = M*M.transpose()
 
-  print sigma
+  print(sigma)
 
   # Generate observed positions
   s1_obs, s2_obs = generate_observations(experiments, reflections, sigma)
@@ -88,7 +89,7 @@ if __name__ == '__main__':
   for s1, s2 in zip(s1_obs, s2_obs):
     a = matrix.col(s1).angle(matrix.col(s2), deg=True)
     angles.append(a)
-  print "Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles))
+  print("Mean angle between s1 and s2 %f degrees " % (sum(angles) / len(angles)))
 
   # Do the ray intersection
   reflections['s1_obs'] = s1_obs
@@ -104,7 +105,7 @@ if __name__ == '__main__':
   # Offset the crystal orientation matrix
   U = matrix.sqr(experiments[0].crystal.get_U())
 
-  print 'Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+  print('Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U))
 
   m2 = matrix.col(experiments[0].goniometer.get_rotation_axis())
   R = m2.axis_and_angle_as_r3_rotation_matrix(angle=0.5, deg=True)
@@ -113,4 +114,4 @@ if __name__ == '__main__':
   # Do the refinement
   refiner = CrystalRefiner(experiments[0], reflections, parameters)
 
-  print 'Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U)
+  print('Original orientation: ', "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % tuple(U))

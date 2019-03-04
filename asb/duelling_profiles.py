@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 
 import iotbx.phil
 
@@ -104,7 +105,7 @@ def model_background(shoebox, mean_bg):
   for k in range(dz):
     for j in range(dy):
       for i in range(dx):
-        shoebox[k, j, i] += g.next()
+        shoebox[k, j, i] += next(g)
   return
 
 def random_vector_2D(vector, sd):
@@ -280,9 +281,9 @@ def model_reflection_predict(reflection, experiment, params):
   xyz_mm = reflection['xyzcal.mm']
 
   if params.debug:
-    print 'hkl = %d %d %d' % hkl
-    print 'xyz px = %f %f %f' % xyz
-    print 'xyz mm = %f %f %f' % xyz_mm
+    print('hkl = %d %d %d' % hkl)
+    print('xyz px = %f %f %f' % xyz)
+    print('xyz mm = %f %f %f' % xyz_mm)
 
   Amat = matrix.sqr(experiment.crystal.get_A_at_scan_point(int(xyz[2])))
   p0_star = Amat * hkl
@@ -292,12 +293,12 @@ def model_reflection_predict(reflection, experiment, params):
   assert(angles)
 
   if params.debug:
-    print 'angles = %f %f' % angles
+    print('angles = %f %f' % angles)
 
   angle = angles[0] if reflection['entering'] else angles[1]
 
   if abs_angle(angle, xyz_mm[2]) > 1.0e-3:
-    raise RuntimeError, '%f %f' % (angle, xyz_mm[2])
+    raise RuntimeError('%f %f' % (angle, xyz_mm[2]))
 
   return
 
@@ -424,16 +425,16 @@ def model_reflection_rt0(reflection, experiment, params):
   s0 = matrix.col(experiment.beam.get_s0())
 
   if params.debug:
-    print 'hkl = %d %d %d' % hkl
-    print 'xyz px = %f %f %f' % xyz
-    print 'xyz mm = %f %f %f' % xyz_mm
+    print('hkl = %d %d %d' % hkl)
+    print('xyz px = %f %f %f' % xyz)
+    print('xyz mm = %f %f %f' % xyz_mm)
     if reflection['entering']:
-      print 'entering'
+      print('entering')
     else:
-      print 'exiting'
+      print('exiting')
 
     resolution = p.get_resolution_at_pixel(s0, reflection['xyzobs.px.value'][0:2])
-    print "Resolution = %.2f"% resolution
+    print("Resolution = %.2f"% resolution)
 
   if still:
     Amat = matrix.sqr(experiment.crystal.get_A())
@@ -442,7 +443,7 @@ def model_reflection_rt0(reflection, experiment, params):
     assert angle
 
     if params.debug:
-      print 'delpsi angle = %f' % angle
+      print('delpsi angle = %f' % angle)
   else:
     Amat = matrix.sqr(experiment.crystal.get_A_at_scan_point(int(xyz[2])))
     p0_star = Amat * hkl
@@ -451,7 +452,7 @@ def model_reflection_rt0(reflection, experiment, params):
     assert(angles)
 
     if params.debug:
-      print 'angles = %f %f' % angles
+      print('angles = %f %f' % angles)
 
     angle = angles[0] if (abs(angles[0] - xyz_mm[2]) <
                           abs(angles[1] - xyz_mm[2])) else angles[1]
@@ -461,10 +462,10 @@ def model_reflection_rt0(reflection, experiment, params):
   s1 = matrix.col(reflection['s1'])
   t = p.get_thickness() / math.cos(s1.angle(n))
   if params.debug and 'dqe' in reflection:
-    print 'old dqe = %f' % reflection['dqe']
+    print('old dqe = %f' % reflection['dqe'])
   reflection['dqe'] = (1.0 - math.exp(-p.get_mu() * t * 0.1))
   if params.debug:
-    print 'dqe = %f' % reflection['dqe']
+    print('dqe = %f' % reflection['dqe'])
 
   if params.physics:
     i0 = reflection['intensity.sum.value'] / reflection['dqe']
@@ -480,7 +481,7 @@ def model_reflection_rt0(reflection, experiment, params):
     a = matrix.col(experiment.goniometer.get_rotation_axis())
 
   if params.debug:
-    print 's1 = %f %f %f' % s1
+    print('s1 = %f %f %f' % s1)
 
   pixels = reflection['shoebox']
   pixels.flatten()
@@ -491,12 +492,12 @@ def model_reflection_rt0(reflection, experiment, params):
   data.reshape(flex.grid(dy, dx))
 
   if params.show:
-    print 'Observed reflection (flattened in Z):'
-    print
+    print('Observed reflection (flattened in Z):')
+    print()
     for j in range(dy):
       for i in range(dx):
-        print '%5d' % data[(j, i)],
-      print
+        print('%5d' % data[(j, i)], end=' ')
+      print()
 
   if params.sigma_m is None:
     sigma_m = 0
@@ -533,7 +534,7 @@ def model_reflection_rt0(reflection, experiment, params):
 
     if params.interference_weighting.ncell:
       if params.interference_weighting.domain_size_angstroms:
-        raise RuntimeError, "Only specify ncell or domain_size_angstroms, not both"
+        raise RuntimeError("Only specify ncell or domain_size_angstroms, not both")
       ncell = params.interference_weighting.ncell
     else:
       if params.interference_weighting.domain_size_angstroms:
@@ -550,7 +551,7 @@ def model_reflection_rt0(reflection, experiment, params):
         ncell = volume / uc.volume()
 
     if params.debug:
-      print "ncell: %.1f"%ncell
+      print("ncell: %.1f"%ncell)
 
     d = uc.d(hkl)
     theta = uc.two_theta(hkl, lmbda)/2
@@ -564,7 +565,7 @@ def model_reflection_rt0(reflection, experiment, params):
   else:
     nrays = params.nrays
   if params.show:
-    print '%d rays' % (nrays)
+    print('%d rays' % (nrays))
   for i in range(nrays):
     if params.real_space_beam_simulation.enable:
       # all values in mm
@@ -579,7 +580,7 @@ def model_reflection_rt0(reflection, experiment, params):
         sx = v[0]
         sy = v[1]
       else:
-        raise RuntimeError, "Invalid choice for source_shape"
+        raise RuntimeError("Invalid choice for source_shape")
 
       if params.real_space_beam_simulation.illuminated_crystal_volume.shape == 'sphere':
         crystal_radius = params.real_space_beam_simulation.illuminated_crystal_volume.sphere.radius
@@ -594,7 +595,7 @@ def model_reflection_rt0(reflection, experiment, params):
         cz = (random.random() * depth) - (depth / 2)
         v = matrix.col((cx, cy, cz))
       else:
-        raise RuntimeError, "Invalid choice for illuminated_crystal_volume.shape"
+        raise RuntimeError("Invalid choice for illuminated_crystal_volume.shape")
 
       # construct a vector from a random point on the source to a random point in the crystal (note the minus sign!)
       source_to_crystal = -params.real_space_beam_simulation.source_to_crystal
@@ -660,7 +661,7 @@ def model_reflection_rt0(reflection, experiment, params):
     else:
       try:
         xy = p.get_ray_intersection(s1)
-      except RuntimeError, e:
+      except RuntimeError as e:
         # Not on the detector
         continue
 
@@ -691,13 +692,13 @@ def model_reflection_rt0(reflection, experiment, params):
 
   cc = profile_correlation(data, patch)
   if params.show:
-    print 'Simulated reflection (flattened in Z):'
-    print
+    print('Simulated reflection (flattened in Z):')
+    print()
     for j in range(dy):
       for i in range(dx):
-        print '%5d' % int(patch[(j, i)]),
-      print
-    print 'Correlation coefficient: %.3f isum: %.1f ' % (cc, i0)
+        print('%5d' % int(patch[(j, i)]), end=' ')
+      print()
+    print('Correlation coefficient: %.3f isum: %.1f ' % (cc, i0))
 
   import numpy as np
   maxx = flex.max(all_pix.parts()[0])
@@ -723,12 +724,12 @@ def model_reflection_rt0(reflection, experiment, params):
   reflection['xyzpred.mm'] = (pred[0], pred[1], 0.0)
 
   if params.debug:
-    print "obs:", reflection['xyzobs.mm.value']
-    print "cal:", reflection['xyzcal.mm']
-    print "sim:", reflection['xyzsim.mm']
-    print "delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000
-    print "delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
-    print "delta Cal - sim", (matrix.col(reflection['xyzcal.mm']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000
+    print("obs:", reflection['xyzobs.mm.value'])
+    print("cal:", reflection['xyzcal.mm'])
+    print("sim:", reflection['xyzsim.mm'])
+    print("delta Obs - cal", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzcal.mm'])).length() * 1000)
+    print("delta Obs - sim", (matrix.col(reflection['xyzobs.mm.value']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000)
+    print("delta Cal - sim", (matrix.col(reflection['xyzcal.mm']) - matrix.col(reflection['xyzsim.mm'])).length() * 1000)
 
   if params.plots:
     from matplotlib import pyplot as plt
@@ -800,7 +801,7 @@ def main(reflections, experiment, params):
     reflections = reflections.select(selection)
 
   if params.num > len(reflections):
-    raise RuntimeError, 'you asked for too many reflections sorry'
+    raise RuntimeError('you asked for too many reflections sorry')
 
   from dials.array_family import flex
   if params.seed > 0 and params.num > 0:
@@ -813,7 +814,7 @@ def main(reflections, experiment, params):
 
   nref1 = len(reflections)
 
-  print 'Removed %d reflections, %d remain' % (nref0 - nref1, nref1)
+  print('Removed %d reflections, %d remain' % (nref0 - nref1, nref1))
 
   results = []
   simmed = reflections.copy()[0:0]
@@ -829,11 +830,11 @@ def main(reflections, experiment, params):
     elif params.id_start and params.id_end:
       if j < params.id_start or j >= params.id_end:
         continue
-      print j
+      print(j)
       result = globals()['model_reflection_%s' % method](reflection, experiment, params)
 
     else:
-      print j
+      print(j)
       result = globals()['model_reflection_%s' % method](reflection, experiment, params)
     if not result is None:
       results.append(result[0])
@@ -841,9 +842,9 @@ def main(reflections, experiment, params):
 
   import math
   if params.debug:
-    print "RMSD obs - cal:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzcal.mm']).sum_sq()/len(simmed)) * 1000
-    print "RMSD obs - sim:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()/len(simmed)) * 1000
-    print "Functional:", (simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()
+    print("RMSD obs - cal:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzcal.mm']).sum_sq()/len(simmed)) * 1000)
+    print("RMSD obs - sim:", math.sqrt((simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq()/len(simmed)) * 1000)
+    print("Functional:", (simmed['xyzobs.mm.value'] - simmed['xyzsim.mm']).sum_sq())
   return results
 
 def run(args):
@@ -872,13 +873,13 @@ def run(args):
     exit()
 
   if not 'shoebox' in reflections[0]:
-    print 'Please add shoeboxes to reflection pickle'
+    print('Please add shoeboxes to reflection pickle')
     exit()
 
   results = main(reflections[0], experiments[0], params)
 
   if results:
-    print 'mean result: %.3f' % (sum(results) / len(results))
+    print('mean result: %.3f' % (sum(results) / len(results)))
 
 if __name__ == '__main__':
   import sys

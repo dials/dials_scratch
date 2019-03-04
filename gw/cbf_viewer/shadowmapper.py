@@ -4,6 +4,7 @@
 mapping of the complex goniometer shadow onto the detector. The shadow
 is drawn on the diffraction image texture using PIL.
 """
+from __future__ import print_function
 
 import numpy as np
 from numpy.linalg import norm
@@ -242,4 +243,4 @@ day2_coords = np.array([[107.61, 0.00, -40.00],
 
 if __name__ == "__main__":
     myshadow = Shadow(day2_coords, 250.0, -180.0, 90.0)
-    print myshadow.get_projection()
+    print(myshadow.get_projection())

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 def read_xds_calibration_file(calibration_file):
   '''Read XDS calibration file, return as flex array.'''
 
@@ -119,7 +120,7 @@ def smooth_invert_calibration_table(table, direction):
   size = table.focus()
 
   for j in range(size[0]):
-    print j
+    print(j)
     for i in range(size[1]):
       xyz = []
       for _j in range(j - smooth_scale, j + smooth_scale + 1):
@@ -225,7 +226,7 @@ def image_to_XDS_XYCORR(image_filename, sensor_thickness_mm):
   pyplot.imshow(y_corrections_parallax.as_numpy_array())
   pyplot.savefig('y-corrections.png')
 
-  print 'original maps made'
+  print('original maps made')
 
   x_map, x_inv = smooth_invert_calibration_table(x_corrections_parallax, 'fast')
   pyplot.imshow(x_map.as_numpy_array())
