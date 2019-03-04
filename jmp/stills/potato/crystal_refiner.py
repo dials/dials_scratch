@@ -5,192 +5,204 @@ from math import sqrt, exp, pi, acos
 from scitbx import matrix
 from dials.array_family import flex
 from dials_scratch.jmp.stills.potato.parameterisation import MosaicityParameterisation
-from dials_scratch.jmp.stills.potato.profile_model import compute_change_of_basis_operation
+from dials_scratch.jmp.stills.potato.profile_model import (
+    compute_change_of_basis_operation,
+)
+
 
 def generate_start(values, offset):
-  assert len(values) == len(offset)
-  start = [values]
-  for j, o in enumerate(offset):
-    next = values.deep_copy()
-    next[j] += o
-    start.append(next)
-  return start
+    assert len(values) == len(offset)
+    start = [values]
+    for j, o in enumerate(offset):
+        next = values.deep_copy()
+        next[j] += o
+        start.append(next)
+    return start
+
 
 class simple_simplex(object):
-  def __init__(self, values, offset, evaluator, max_iter):
-    from scitbx import simplex
-    self.n = len(values)
-    self.x = values
-    self.starting_simplex = generate_start(values, offset)
-    self.fcount = 0
+    def __init__(self, values, offset, evaluator, max_iter):
+        from scitbx import simplex
 
-    optimizer = simplex.simplex_opt(dimension=self.n,
-                                    matrix=self.starting_simplex,
-                                    evaluator=evaluator,
-                                    tolerance=1e-7,
-                                    max_iter=max_iter)
+        self.n = len(values)
+        self.x = values
+        self.starting_simplex = generate_start(values, offset)
+        self.fcount = 0
 
-    self.x = optimizer.get_solution()
-    return
+        optimizer = simplex.simplex_opt(
+            dimension=self.n,
+            matrix=self.starting_simplex,
+            evaluator=evaluator,
+            tolerance=1e-7,
+            max_iter=max_iter,
+        )
 
-  def get_solution(self):
-    return self.x
+        self.x = optimizer.get_solution()
+        return
 
-  def target(self, vector):
-    print("SCORE")
-    score = scorify(vector)
-    return score
+    def get_solution(self):
+        return self.x
+
+    def target(self, vector):
+        print("SCORE")
+        score = scorify(vector)
+        return score
 
 
 class CrystalRefiner(object):
+    def __init__(self, experiment, reflections, parameters):
+        from dials.algorithms.refinement.parameterisation.crystal_parameters import (
+            CrystalUnitCellParameterisation,
+        )
+        from dials.algorithms.refinement.parameterisation.crystal_parameters import (
+            CrystalOrientationParameterisation,
+        )
 
-  def __init__(self,
-               experiment,
-               reflections,
-               parameters):
-    from dials.algorithms.refinement.parameterisation.crystal_parameters \
-      import CrystalUnitCellParameterisation
-    from dials.algorithms.refinement.parameterisation.crystal_parameters \
-      import CrystalOrientationParameterisation
+        # Store the input
+        self.experiment = experiment
+        self.reflections = reflections
+        self.parameters = parameters
 
-    # Store the input
-    self.experiment = experiment
-    self.reflections = reflections
-    self.parameters = parameters
+        # Get the crystal model and the parameterisation
+        self.crystal = self.experiment.crystal
+        self.cucp = CrystalUnitCellParameterisation(self.crystal)
+        self.cop = CrystalOrientationParameterisation(self.crystal)
 
-    # Get the crystal model and the parameterisation
-    self.crystal = self.experiment.crystal
-    self.cucp = CrystalUnitCellParameterisation(self.crystal)
-    self.cop = CrystalOrientationParameterisation(self.crystal)
+        # Get the current values and generate some offsets
+        values = flex.double(self.cucp.get_param_vals() + self.cop.get_param_vals())
+        offset = flex.double(
+            [0.01 * v for v in self.cucp.get_param_vals()] + [0.1, 0.1, 0.1]
+        )
 
-    # Get the current values and generate some offsets
-    values = flex.double(
-      self.cucp.get_param_vals() +
-      self.cop.get_param_vals())
-    offset = flex.double(
-      [0.01 * v for v in self.cucp.get_param_vals()] +
-      [0.1, 0.1, 0.1])
+        # The optimization history
+        self.history = []
 
-    # The optimization history
-    self.history = []
+        # Get the initial cell and initial score
+        initial_cell = self.crystal.get_unit_cell()
+        initial_orientation = self.crystal.get_U()
+        initial_score = self.target(values)
 
-    # Get the initial cell and initial score
-    initial_cell = self.crystal.get_unit_cell()
-    initial_orientation = self.crystal.get_U()
-    initial_score = self.target(values)
+        # Perform the optimization
+        optimizer = simple_simplex(values, offset, self, 2000)
+        result = optimizer.get_solution()
 
-    # Perform the optimization
-    optimizer = simple_simplex(values, offset, self, 2000)
-    result = optimizer.get_solution()
+        # Print some information
+        fmt = "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
+        print("Initial cell:", initial_cell)
+        print("Final cell:  ", self.crystal.get_unit_cell())
+        print("Initial orientation: ", fmt % tuple(initial_orientation))
+        print("Final orientation: ", fmt % tuple(self.crystal.get_U()))
 
-    # Print some information
-    fmt = "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)"
-    print('Initial cell:', initial_cell)
-    print('Final cell:  ', self.crystal.get_unit_cell())
-    print('Initial orientation: ', fmt % tuple(initial_orientation))
-    print('Final orientation: ', fmt % tuple(self.crystal.get_U()))
+        # Print RMSD
+        Xobs, Yobs, _ = self.reflections["xyzobs.px.value"].parts()
+        Xcal, Ycal, _ = self.reflections["xyzcal.px"].parts()
+        rmsd_x = sqrt(flex.sum((Xcal - Xobs) ** 2) / len(Xcal))
+        rmsd_y = sqrt(flex.sum((Ycal - Yobs) ** 2) / len(Ycal))
+        print("RMSD X, Y (px): %f, %f" % (rmsd_x, rmsd_y))
 
-    # Print RMSD
-    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
-    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
-    rmsd_x = sqrt(flex.sum((Xcal-Xobs)**2) / len(Xcal))
-    rmsd_y = sqrt(flex.sum((Ycal-Yobs)**2) / len(Ycal))
-    print('RMSD X, Y (px): %f, %f' % (rmsd_x, rmsd_y))
-
-  def target(self, vector):
-    '''
+    def target(self, vector):
+        """
     The target function
 
-    '''
-    from dials.array_family import flex
-    from math import sqrt
+    """
+        from dials.array_family import flex
+        from math import sqrt
 
-    # Get the cell and orientation parameters
-    cell_parms = self.cucp.get_param_vals()
-    orientation_parms = self.cop.get_param_vals()
-    assert len(vector) == len(cell_parms) + len(orientation_parms)
+        # Get the cell and orientation parameters
+        cell_parms = self.cucp.get_param_vals()
+        orientation_parms = self.cop.get_param_vals()
+        assert len(vector) == len(cell_parms) + len(orientation_parms)
 
-    # Update the cell and orientation parameters
-    tst_cell = vector[:len(cell_parms)]
-    tst_orientation = vector[len(cell_parms):len(cell_parms) + len(orientation_parms)]
-    self.cucp.set_param_vals(tst_cell)
-    self.cop.set_param_vals(tst_orientation)
+        # Update the cell and orientation parameters
+        tst_cell = vector[: len(cell_parms)]
+        tst_orientation = vector[
+            len(cell_parms) : len(cell_parms) + len(orientation_parms)
+        ]
+        self.cucp.set_param_vals(tst_cell)
+        self.cop.set_param_vals(tst_orientation)
 
-    # Generate predicted positions
-    s1_cal, s2_cal = self.generate_predictions(self.experiment, self.reflections, self.parameters)
+        # Generate predicted positions
+        s1_cal, s2_cal = self.generate_predictions(
+            self.experiment, self.reflections, self.parameters
+        )
 
-    # Do the ray intersection
-    self.reflections['s1'] = s1_cal
-    self.reflections['s2'] = s2_cal
-    self.reflections['xyzcal.px'] = flex.vec3_double([
-      self.experiment.detector[0].get_ray_intersection_px(s1) + (0,)
-      for s1 in s1_cal])
+        # Do the ray intersection
+        self.reflections["s1"] = s1_cal
+        self.reflections["s2"] = s2_cal
+        self.reflections["xyzcal.px"] = flex.vec3_double(
+            [
+                self.experiment.detector[0].get_ray_intersection_px(s1) + (0,)
+                for s1 in s1_cal
+            ]
+        )
 
-    # Get predictions and observations
-    Xobs, Yobs, _ = self.reflections['xyzobs.px.value'].parts()
-    Xcal, Ycal, _ = self.reflections['xyzcal.px'].parts()
+        # Get predictions and observations
+        Xobs, Yobs, _ = self.reflections["xyzobs.px.value"].parts()
+        Xcal, Ycal, _ = self.reflections["xyzcal.px"].parts()
 
-    # Compute the rmsd between observed and calculated
-    score = flex.sum((Xobs-Xcal)**2 + (Yobs-Ycal)**2)
+        # Compute the rmsd between observed and calculated
+        score = flex.sum((Xobs - Xcal) ** 2 + (Yobs - Ycal) ** 2)
 
-    # Append to the history
-    self.history.append((tst_cell, tst_orientation, score))
+        # Append to the history
+        self.history.append((tst_cell, tst_orientation, score))
 
-    # Print some info
-    print('Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f' % (
-      tuple(self.crystal.get_unit_cell().parameters()) +
-      tuple(tst_orientation) +
-      tuple((sqrt(score / len(Xobs)),))))
-    return score
+        # Print some info
+        print(
+            "Cell: %.3f %.3f %.3f %.3f %.3f %.3f; Phi: %.3f %.3f %.3f; RMSD: %.3f"
+            % (
+                tuple(self.crystal.get_unit_cell().parameters())
+                + tuple(tst_orientation)
+                + tuple((sqrt(score / len(Xobs)),))
+            )
+        )
+        return score
 
-  def generate_predictions(self, experiment, reflections, parameters):
+    def generate_predictions(self, experiment, reflections, parameters):
 
-    # Create the mosaicity model
-    parameterisation = MosaicityParameterisation(parameters)
+        # Create the mosaicity model
+        parameterisation = MosaicityParameterisation(parameters)
 
-    # The crystal A and beam s0
-    A = matrix.sqr(experiment.crystal.get_A())
-    s0 = matrix.col(experiment.beam.get_s0())
-    s0_length = s0.length()
+        # The crystal A and beam s0
+        A = matrix.sqr(experiment.crystal.get_A())
+        s0 = matrix.col(experiment.beam.get_s0())
+        s0_length = s0.length()
 
-    # Compute all the vectors
-    s1_cal = flex.vec3_double()
-    s2_cal = flex.vec3_double()
-    for i in range(len(reflections)):
+        # Compute all the vectors
+        s1_cal = flex.vec3_double()
+        s2_cal = flex.vec3_double()
+        for i in range(len(reflections)):
 
-      # Compute the reciprocal lattice vector
-      h = matrix.col(reflections[i]['miller_index'])
-      r = A * h
-      s2 = s0 + r
+            # Compute the reciprocal lattice vector
+            h = matrix.col(reflections[i]["miller_index"])
+            r = A * h
+            s2 = s0 + r
 
-      # Rotate the covariance matrix
-      R = compute_change_of_basis_operation(s0, s2)
-      S = R * parameterisation.sigma() * R.transpose()
-      mu = R * s2
-      assert abs(1-mu.normalize().dot(matrix.col((0, 0, 1)))) < 1e-7
+            # Rotate the covariance matrix
+            R = compute_change_of_basis_operation(s0, s2)
+            S = R * parameterisation.sigma() * R.transpose()
+            mu = R * s2
+            assert abs(1 - mu.normalize().dot(matrix.col((0, 0, 1)))) < 1e-7
 
-      # Partition the mean vector
-      mu1 = matrix.col((mu[0], mu[1]))
-      mu2 = mu[2]
+            # Partition the mean vector
+            mu1 = matrix.col((mu[0], mu[1]))
+            mu2 = mu[2]
 
-      # Partition the covariance matrix
-      S11 = matrix.sqr((
-        S[0], S[1],
-        S[3], S[4]))
-      S12 = matrix.col((S[2], S[5]))
-      S21 = matrix.col((S[6], S[7])).transpose()
-      S22 = S[8]
+            # Partition the covariance matrix
+            S11 = matrix.sqr((S[0], S[1], S[3], S[4]))
+            S12 = matrix.col((S[2], S[5]))
+            S21 = matrix.col((S[6], S[7])).transpose()
+            S22 = S[8]
 
-      # Compute the conditional mean
-      mubar = mu1 + S12*(1/S22)*(s0_length - mu2)
+            # Compute the conditional mean
+            mubar = mu1 + S12 * (1 / S22) * (s0_length - mu2)
 
-      # Compute the vector and rotate
-      v = matrix.col((mubar[0], mubar[1], s0_length)).normalize() * s0_length
-      s1 = R.transpose() * v
+            # Compute the vector and rotate
+            v = matrix.col((mubar[0], mubar[1], s0_length)).normalize() * s0_length
+            s1 = R.transpose() * v
 
-      # Append the 2 vectors
-      s1_cal.append(s1)
-      s2_cal.append(s2)
+            # Append the 2 vectors
+            s1_cal.append(s1)
+            s2_cal.append(s2)
 
-    # Return the predicted vectors
-    return s1_cal, s2_cal
+        # Return the predicted vectors
+        return s1_cal, s2_cal

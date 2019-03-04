@@ -1,35 +1,33 @@
-
 from __future__ import division
 from __future__ import print_function
 from scitbx import matrix
 
+
 def tst_simple_mosaicity_model():
 
-  from dials_scratch.jmp.potato.model import SimpleMosaicityModel
-  from dials_scratch.jmp.potato.model import SimpleMosaicityParameterisation
+    from dials_scratch.jmp.potato.model import SimpleMosaicityModel
+    from dials_scratch.jmp.potato.model import SimpleMosaicityParameterisation
 
-  sigma = matrix.sqr((
-    1, 0, 0,
-    0, 2, 0,
-    0, 0, 3))
+    sigma = matrix.sqr((1, 0, 0, 0, 2, 0, 0, 0, 3))
 
-  model = SimpleMosaicityModel(sigma)
+    model = SimpleMosaicityModel(sigma)
 
-  parameterisation = model.parameterisation()
+    parameterisation = model.parameterisation()
 
-  params = parameterisation.parameters()
+    params = parameterisation.parameters()
 
-  expected = (1.0, 0.0, 1.4142135623730951, 0.0, 0.0, 1.7320508075688772)
+    expected = (1.0, 0.0, 1.4142135623730951, 0.0, 0.0, 1.7320508075688772)
 
-  assert all(abs(a-b) < 1e-7 for a, b in zip(params, expected))
+    assert all(abs(a - b) < 1e-7 for a, b in zip(params, expected))
 
-  model.compose(parameterisation)
+    model.compose(parameterisation)
 
-  sigma2 = model.sigma()
+    sigma2 = model.sigma()
 
-  assert all(abs(a-b) < 1e-7 for a, b in zip(sigma, sigma2))
+    assert all(abs(a - b) < 1e-7 for a, b in zip(sigma, sigma2))
 
-  print('OK')
+    print("OK")
 
-if __name__ == '__main__':
-  tst_simple_mosaicity_model()
+
+if __name__ == "__main__":
+    tst_simple_mosaicity_model()

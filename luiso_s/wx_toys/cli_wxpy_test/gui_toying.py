@@ -1,36 +1,37 @@
 import subprocess
 import wx
 
+
 class MyWidg(wx.Frame):
     def __init__(self, parent, id, title):
         super(MyWidg, self).__init__(parent, id, title)
         statusbar = self.CreateStatusBar()
-        statusbar.SetStatusText('Running')
+        statusbar.SetStatusText("Running")
 
-        frs_btt = wx.Button(self, -1, "\n import \n", (0,0))
-        seq_btt = wx.Button(self, -1, "\n find_spots \n", (0,0))
-        trd_btt = wx.Button(self, -1, "\n index \n", (0,0))
+        frs_btt = wx.Button(self, -1, "\n import \n", (0, 0))
+        seq_btt = wx.Button(self, -1, "\n find_spots \n", (0, 0))
+        trd_btt = wx.Button(self, -1, "\n index \n", (0, 0))
         main_panel = wx.Panel(self)
-        self.cli_txt = wx.TextCtrl(self, -1, size=(800,20), style=wx.DEFAULT)
+        self.cli_txt = wx.TextCtrl(self, -1, size=(800, 20), style=wx.DEFAULT)
 
-        go_btt = wx.Button(self, -1, " Go ", (0,0))
+        go_btt = wx.Button(self, -1, " Go ", (0, 0))
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(frs_btt, 0, border = 3)
-        vbox.Add(seq_btt, 0, border = 3)
-        vbox.Add(trd_btt, 0, border = 3)
+        vbox.Add(frs_btt, 0, border=3)
+        vbox.Add(seq_btt, 0, border=3)
+        vbox.Add(trd_btt, 0, border=3)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(vbox, 0, border = 3)
-        hbox.Add(main_panel, 0, border = 3)
+        hbox.Add(vbox, 0, border=3)
+        hbox.Add(main_panel, 0, border=3)
 
         bt_box = wx.BoxSizer(wx.HORIZONTAL)
-        bt_box.Add(self.cli_txt,wx.EXPAND | wx.ALL, border = 3)
-        bt_box.Add(go_btt, 0, border = 3)
+        bt_box.Add(self.cli_txt, wx.EXPAND | wx.ALL, border=3)
+        bt_box.Add(go_btt, 0, border=3)
 
         bg_box = wx.BoxSizer(wx.VERTICAL)
-        bg_box.Add(hbox, 0, border = 3)
-        bg_box.Add(bt_box, 0, border = 3)
+        bg_box.Add(hbox, 0, border=3)
+        bg_box.Add(bt_box, 0, border=3)
 
         self.SetSizer(bg_box)
         bg_box.Fit(self)
@@ -57,9 +58,10 @@ class MyWidg(wx.Frame):
 
 class MyApp(wx.App):
     def OnInit(self):
-        frame = MyWidg(None, -1, 'menu1.py')
+        frame = MyWidg(None, -1, "menu1.py")
         frame.Show(True)
         return True
+
 
 app = MyApp(0)
 app.MainLoop()

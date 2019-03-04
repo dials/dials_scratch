@@ -5,7 +5,8 @@ import dxtbx, os
 from dxtbx.imageset import MemImageSet
 from dxtbx.datablock import DataBlockFactory
 
-phil_scope = parse('''
+phil_scope = parse(
+    """
   input {
     single_img = None
       .type = str
@@ -45,58 +46,65 @@ phil_scope = parse('''
   include scope dials.algorithms.integration.integrator.phil_scope
   include scope dials.algorithms.profile_model.factory.phil_scope
   include scope dials.algorithms.spot_prediction.reflection_predictor.phil_scope
-''', process_includes=True)
+""",
+    process_includes=True,
+)
 
 from xfel.cftbx.detector.cspad_cbf_tbx import cbf_wrapper
+
+
 def __stupid_but_swig_safe__deepcopy__(self, memo):
-  pass
+    pass
+
+
 cbf_wrapper.__deepcopy__ = __stupid_but_swig_safe__deepcopy__
 
 from xfel.command_line.xfel_process import Script as DialsProcessScript
+
+
 class InMemScript(DialsProcessScript):
-  def __init__(self):
-    self.parser = OptionParser(
-      phil = phil_scope)
+    def __init__(self):
+        self.parser = OptionParser(phil=phil_scope)
 
-  def run(self):
-    params, options = self.parser.parse_args(show_diff_phil=True)
-    assert params.input.single_img is not None
+    def run(self):
+        params, options = self.parser.parse_args(show_diff_phil=True)
+        assert params.input.single_img is not None
 
-    filebase = os.path.splitext(params.input.single_img)[0]
+        filebase = os.path.splitext(params.input.single_img)[0]
 
-    for item in dir(params.output):
-      value = getattr(params.output, item)
-      try:
-        if "%s" in value:
-          setattr(params.output, item, value%filebase)
-      except Exception:
-        pass
+        for item in dir(params.output):
+            value = getattr(params.output, item)
+            try:
+                if "%s" in value:
+                    setattr(params.output, item, value % filebase)
+            except Exception:
+                pass
 
-    self.params = params
-    self.options = options
+        self.params = params
+        self.options = options
 
-    # load the image
-    img = dxtbx.load(params.input.single_img)
-    imgset = MemImageSet([img])
-    datablock = DataBlockFactory.from_imageset(imgset)[0]
+        # load the image
+        img = dxtbx.load(params.input.single_img)
+        imgset = MemImageSet([img])
+        datablock = DataBlockFactory.from_imageset(imgset)[0]
 
-    # Cannot export MemImageSets
-    #if self.params.output.datablock_filename:
-      #from dxtbx.datablock import DataBlockDumper
-      #dump = DataBlockDumper(datablock)
-      #dump.as_json(self.params.output.datablock_filename)
+        # Cannot export MemImageSets
+        # if self.params.output.datablock_filename:
+        # from dxtbx.datablock import DataBlockDumper
+        # dump = DataBlockDumper(datablock)
+        # dump.as_json(self.params.output.datablock_filename)
 
-    observed = self.find_spots(datablock)
-    experiments, indexed = self.index(datablock, observed)
-    experiments = self.refine(experiments, indexed)
-    integrated = self.integrate(experiments, indexed)
+        observed = self.find_spots(datablock)
+        experiments, indexed = self.index(datablock, observed)
+        experiments = self.refine(experiments, indexed)
+        integrated = self.integrate(experiments, indexed)
 
 
 if __name__ == "__main__":
-  from dials.util import halraiser
-  try:
-    script = InMemScript()
-    script.run()
-  except Exception as e:
-    halraiser(e)
+    from dials.util import halraiser
 
+    try:
+        script = InMemScript()
+        script.run()
+    except Exception as e:
+        halraiser(e)

@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 #
 #  DIALS viewer_frame
 #
@@ -16,15 +17,19 @@ from __future__ import print_function
 import wx
 import wx.lib.scrolledpanel as scroll_pan
 
-from dials.scratch.luiso_s.wx_toys.bitmap_from_numpy_w_matplotlib_well_done \
-     import build_np_img
+from dials.scratch.luiso_s.wx_toys.bitmap_from_numpy_w_matplotlib_well_done import (
+    build_np_img,
+)
 from dials.viewer.img_utilities import GetBitmap_from_np_array
+
+
 class ImageListCtrl(scroll_pan.ScrolledPanel):
     """Simple control to display a list of images"""
-    def __init__(self, parent, bitmaps=list(),
-                 style=wx.TAB_TRAVERSAL|wx.BORDER_SUNKEN):
-        super(ImageListCtrl, self).__init__(parent,
-                                            style=style)
+
+    def __init__(
+        self, parent, bitmaps=list(), style=wx.TAB_TRAVERSAL | wx.BORDER_SUNKEN
+    ):
+        super(ImageListCtrl, self).__init__(parent, style=style)
 
         # Attributes
         self.images = list()
@@ -39,17 +44,18 @@ class ImageListCtrl(scroll_pan.ScrolledPanel):
         """Add another bitmap to the control"""
         self.images.append(bmp)
         sbmp = wx.StaticBitmap(self, bitmap=bmp)
-        self.sizer.Add(sbmp, 0, wx.EXPAND|wx.TOP, 5)
+        self.sizer.Add(sbmp, 0, wx.EXPAND | wx.TOP, 5)
         self.SetupScrolling()
 
 
 class MyApp(wx.App):
     def OnInit(self):
-        self.frame = MyFrame(None, title="ScrolledPanel", size=(300,200))
+        self.frame = MyFrame(None, title="ScrolledPanel", size=(300, 200))
         self.SetTopWindow(self.frame)
         self.frame.Show()
 
         return True
+
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -63,6 +69,7 @@ class MyFrame(wx.Frame):
         sizer.Add(self.panel, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
+
 class MyPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -71,9 +78,18 @@ class MyPanel(wx.Panel):
         self.il = ImageListCtrl(self)
 
         # Setup
-        for art in (wx.ART_ERROR, wx.ART_WARNING, wx.ART_INFORMATION,
-                    wx.ART_COPY, wx.ART_PASTE, wx.ART_CUT, wx.ART_CDROM,
-                    wx.ART_HARDDISK, wx.ART_FOLDER, wx.ART_FLOPPY):
+        for art in (
+            wx.ART_ERROR,
+            wx.ART_WARNING,
+            wx.ART_INFORMATION,
+            wx.ART_COPY,
+            wx.ART_PASTE,
+            wx.ART_CUT,
+            wx.ART_CDROM,
+            wx.ART_HARDDISK,
+            wx.ART_FOLDER,
+            wx.ART_FLOPPY,
+        ):
             bmp = wx.ArtProvider.GetBitmap(art)
             self.il.AppendBitmap(bmp)
 
@@ -82,13 +98,11 @@ class MyPanel(wx.Panel):
         self.Button_nw_dat.Bind(wx.EVT_BUTTON, self.OnNew_data)
 
         self.mid_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.mid_sizer.Add(self.Button_nw_dat, 0, wx.CENTER|wx.ALL, 5)
+        self.mid_sizer.Add(self.Button_nw_dat, 0, wx.CENTER | wx.ALL, 5)
         self.mid_sizer.Add(self.il, 1, wx.EXPAND)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(wx.StaticText(self, label="Image List:"), 0)
         self.sizer.Add(self.mid_sizer, 1, wx.EXPAND)
-
-
 
         self.SetSizer(self.sizer)
 
@@ -103,15 +117,13 @@ class MyPanel(wx.Panel):
         self.mid_sizer.Remove(0)
         print("here 02")
 
-
         for times in range(5):
             data2d = build_np_img(width=5, height=3)
             my_bitmap = GetBitmap_from_np_array(data2d)
             self.il.AppendBitmap(my_bitmap)
 
-        self.mid_sizer.Add(self.Button_nw_dat, 0, wx.CENTER|wx.ALL, 5)
+        self.mid_sizer.Add(self.Button_nw_dat, 0, wx.CENTER | wx.ALL, 5)
         self.mid_sizer.Add(self.il, 1, wx.EXPAND)
-
 
         print("here 03")
 

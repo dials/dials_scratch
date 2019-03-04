@@ -4,64 +4,70 @@ from __future__ import print_function
 import iotbx.phil
 from dials.util.options import OptionParser
 
-help_message = '''
-'''
+help_message = """
+"""
 
-phil_scope = iotbx.phil.parse("""
-""", process_includes=True)
+phil_scope = iotbx.phil.parse(
+    """
+""",
+    process_includes=True,
+)
 
 
 def run(args):
-  import libtbx.load_env
-  usage = "%s [options]" %libtbx.env.dispatcher_name
+    import libtbx.load_env
 
-  parser = OptionParser(
-    usage=usage,
-    phil=phil_scope,
-    check_format=False,
-    epilog=help_message)
+    usage = "%s [options]" % libtbx.env.dispatcher_name
 
-  params, options, args = parser.parse_args(show_diff_phil=True,
-                                            return_unhandled=True)
+    parser = OptionParser(
+        usage=usage, phil=phil_scope, check_format=False, epilog=help_message
+    )
 
-  assert len(args) == 1
-  from iotbx.reflection_file_reader import any_reflection_file
+    params, options, args = parser.parse_args(
+        show_diff_phil=True, return_unhandled=True
+    )
 
-  intensities = None
+    assert len(args) == 1
+    from iotbx.reflection_file_reader import any_reflection_file
 
-  f = args[0]
+    intensities = None
 
-  arrays = any_reflection_file(f).as_miller_arrays(merge_equivalents=False)
-  for ma in arrays:
-    print(ma.info().labels)
-    if ma.info().labels == ['I', 'SIGI']:
-      intensities = ma
-    elif ma.info().labels == ['IMEAN', 'SIGIMEAN']:
-      intensities = ma
-    elif ma.info().labels == ['I(+)', 'SIGI(+)', 'I(-)', 'SIGI(-)']:
-      intensities = ma
+    f = args[0]
 
-  assert intensities is not None
+    arrays = any_reflection_file(f).as_miller_arrays(merge_equivalents=False)
+    for ma in arrays:
+        print(ma.info().labels)
+        if ma.info().labels == ["I", "SIGI"]:
+            intensities = ma
+        elif ma.info().labels == ["IMEAN", "SIGIMEAN"]:
+            intensities = ma
+        elif ma.info().labels == ["I(+)", "SIGI(+)", "I(-)", "SIGI(-)"]:
+            intensities = ma
 
-  i_sigi = intensities.data()/intensities.sigmas()
+    assert intensities is not None
 
-  # set backend before importing pyplot
-  import matplotlib
-  matplotlib.use('Agg')
+    i_sigi = intensities.data() / intensities.sigmas()
 
-  from matplotlib import pyplot
-  pyplot.scatter(intensities.data(), i_sigi, marker='+', s=2, alpha=0.5, c='black')
-  pyplot.gca().set_xscale('log',basex=10)
-  xlim = pyplot.xlim()
-  ylim = pyplot.ylim()
-  pyplot.ylim(0, ylim[1])
-  pyplot.xlim(1, xlim[1])
-  pyplot.savefig('i_sigi_vs_i.png')
-  pyplot.clf()
+    # set backend before importing pyplot
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+    from matplotlib import pyplot
+
+    pyplot.scatter(intensities.data(), i_sigi, marker="+", s=2, alpha=0.5, c="black")
+    pyplot.gca().set_xscale("log", basex=10)
+    xlim = pyplot.xlim()
+    ylim = pyplot.ylim()
+    pyplot.ylim(0, ylim[1])
+    pyplot.xlim(1, xlim[1])
+    pyplot.savefig("i_sigi_vs_i.png")
+    pyplot.clf()
 
 
-if __name__ == '__main__':
-  import sys
-  from libtbx.utils import show_times_at_exit
-  show_times_at_exit()
-  run(sys.argv[1:])
+if __name__ == "__main__":
+    import sys
+    from libtbx.utils import show_times_at_exit
+
+    show_times_at_exit()
+    run(sys.argv[1:])

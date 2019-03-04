@@ -14,34 +14,34 @@ from dials.interfaces import BackgroundIface
 
 
 class XdsBackgroundExt(BackgroundIface):
-  ''' An extension class implementing XDS background subtraction. '''
+    """ An extension class implementing XDS background subtraction. """
 
-  name = 'xds'
+    name = "xds"
 
-  phil = '''
+    phil = """
     min_pixels = 10
       .help = "The minimum number of pixels to use in calculating the"
               "background intensity."
       .type = int
-  '''
+  """
 
-  def __init__(self, params, experiment):
-    ''' Initialise the algorithm. '''
-    from dials.algorithms.background import XdsSubtractorAlgorithm
+    def __init__(self, params, experiment):
+        """ Initialise the algorithm. """
+        from dials.algorithms.background import XdsSubtractorAlgorithm
 
-    if params:
-      min_data = params.integration.background.xds.min_pixels
-    else:
-      min_data = 10
+        if params:
+            min_data = params.integration.background.xds.min_pixels
+        else:
+            min_data = 10
 
-    self._subtractor = XdsSubtractorAlgorithm(min_data)
+        self._subtractor = XdsSubtractorAlgorithm(min_data)
 
-  def compute_background(self, reflections):
-    ''' Compute the backgrond. '''
-    from dials.util.command_line import Command
+    def compute_background(self, reflections):
+        """ Compute the backgrond. """
+        from dials.util.command_line import Command
 
-    # Do the background subtraction
-    Command.start('Calculating reflection background')
-    mask = self._subtractor(reflections['shoebox'])
-    reflections.del_selected(mask != True)
-    Command.end('Calculated {0} background values'.format(len(reflections)))
+        # Do the background subtraction
+        Command.start("Calculating reflection background")
+        mask = self._subtractor(reflections["shoebox"])
+        reflections.del_selected(mask != True)
+        Command.end("Calculated {0} background values".format(len(reflections)))

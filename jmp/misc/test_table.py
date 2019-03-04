@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from dials.array_family import flex
 from dials.framework.table import column_table
+
 table = column_table()
 table["col1"] = flex.double(10)
 table["col2"] = flex.int(10)

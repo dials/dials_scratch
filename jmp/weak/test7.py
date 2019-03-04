@@ -17,9 +17,7 @@ s = [ss / sum(s) for ss in s]
 # c = np.array(   [0,-32])
 # c0 = 64
 
-A = np.array([
-  [1.0, 0.0],
-  [0.45, 1.0]])
+A = np.array([[1.0, 0.0], [0.45, 1.0]])
 
 # A = np.array([  [ 1.,1.],
 #         [-1.,2.],
@@ -32,43 +30,49 @@ C = np.array([0, 0])
 
 x0 = np.array([1e-7, 1e-7])
 
+
 def func(B, S):
-  from math import log, factorial
-  sumc = sum([log(factorial(cc)) for cc in c])
-  sumb = sum(b)
-  sums = sum(s)
-  suml = 0
-  for i in range(len(c)):
-    assert(B*b[i] + S*s[i] > 1e-10)
-    suml += c[i] * log(B*b[i] + S*s[i])
-  return -(suml - sumc - B*sumb - S*sums)
+    from math import log, factorial
+
+    sumc = sum([log(factorial(cc)) for cc in c])
+    sumb = sum(b)
+    sums = sum(s)
+    suml = 0
+    for i in range(len(c)):
+        assert B * b[i] + S * s[i] > 1e-10
+        suml += c[i] * log(B * b[i] + S * s[i])
+    return -(suml - sumc - B * sumb - S * sums)
+
 
 def objective(x0):
-  print(1, x0)
-  return func(x0[0], x0[1])
+    print(1, x0)
+    return func(x0[0], x0[1])
+
 
 def db(B, S):
-  sumb = sum(b)
-  sumc = 0
-  for i in range(len(c)):
-    assert(B*b[i] + S*s[i] > 1e-10)
-    sumc += c[i]*b[i] / (B*b[i] + S*s[i])
-  return sumc - sumb
+    sumb = sum(b)
+    sumc = 0
+    for i in range(len(c)):
+        assert B * b[i] + S * s[i] > 1e-10
+        sumc += c[i] * b[i] / (B * b[i] + S * s[i])
+    return sumc - sumb
+
 
 def ds(B, S):
-  sums = sum(s)
-  sumc = 0
-  for i in range(len(c)):
-    assert(B*b[i] + S*s[i] > 1e-10)
-    sumc += c[i]*s[i] / (B*b[i] + S*s[i])
-  return sumc - sums
+    sums = sum(s)
+    sumc = 0
+    for i in range(len(c)):
+        assert B * b[i] + S * s[i] > 1e-10
+        sumc += c[i] * s[i] / (B * b[i] + S * s[i])
+    return sumc - sums
+
 
 def jacobian(x0):
-  print(2, x0)
-  import numpy
-  return numpy.array((
-    -db(x0[0], x0[1]),
-    -ds(x0[0], x0[1])))
+    print(2, x0)
+    import numpy
+
+    return numpy.array((-db(x0[0], x0[1]), -ds(x0[0], x0[1])))
+
 
 # def objective(x,sign=1.):
 #     return sign*(0.5*np.dot(x.T,np.dot(H,x))+ np.dot(c,x) + c0)
@@ -76,27 +80,27 @@ def jacobian(x0):
 # def jacobian(x,sign=1.):
 #     return sign*(np.dot(x.T,H) + c)
 
-def constraints(x):
-  CC = np.dot(A,x) - C
-  print("C: ", x, CC)
-  return CC
 
-cons = (
-  {
-    'type':'ineq',
-    'fun':constraints
-  })
+def constraints(x):
+    CC = np.dot(A, x) - C
+    print("C: ", x, CC)
+    return CC
+
+
+cons = {"type": "ineq", "fun": constraints}
+
 
 def solve():
     res_cons = optimize.minimize(
-      objective,
-      x0,
-      jac=jacobian,
-      constraints=cons,
-      method='SLSQP',
-      options={'disp':False})
+        objective,
+        x0,
+        jac=jacobian,
+        constraints=cons,
+        method="SLSQP",
+        options={"disp": False},
+    )
 
-    print('\nConstrained:')
+    print("\nConstrained:")
     print(res_cons)
 
     # print '\nUnconstrained:'

@@ -24,86 +24,88 @@ import logging
 
 logger = logging.getLogger(libtbx.env.dispatcher_name)
 
-help_message = '''
+help_message = """
 
 This script does merging for stills
 
-'''
+"""
 
 # Create the phil scope
 phil_scope = parse(
-'''
+    """
   include scope dials_scratch.jmp.merge.merge.phil_scope
 
-''', process_includes=True)
+""",
+    process_includes=True,
+)
 
 
 class Script(object):
-  '''
+    """
   The integration program.
 
-  '''
+  """
 
-  def __init__(self):
-    '''
+    def __init__(self):
+        """
     Initialise the script.
 
-    '''
+    """
 
-    # The script usage
-    usage  = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
+        # The script usage
+        usage = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
 
-    # Create the parser
-    self.parser = OptionParser(
-      usage=usage,
-      phil=phil_scope,
-      epilog=help_message,
-      read_experiments=True,
-      read_reflections=True,
-      check_format=False)
+        # Create the parser
+        self.parser = OptionParser(
+            usage=usage,
+            phil=phil_scope,
+            epilog=help_message,
+            read_experiments=True,
+            read_reflections=True,
+            check_format=False,
+        )
 
-  def run(self):
-    '''
+    def run(self):
+        """
     Perform the integration.
 
-    '''
-    from time import time
+    """
+        from time import time
 
-    # Check the number of arguments is correct
-    start_time = time()
+        # Check the number of arguments is correct
+        start_time = time()
 
-    # Parse the command line
-    params, options = self.parser.parse_args(show_diff_phil=False)
-    reflections = flatten_reflections(params.input.reflections)
-    experiments = flatten_experiments(params.input.experiments)
-    if len(reflections) == 0 or len(experiments) == 0:
-      self.parser.print_help()
-      return
-    elif len(reflections) != 1:
-      raise Sorry('more than 1 reflection file was given')
-    elif len(experiments) == 0:
-      raise Sorry('no experiment list was specified')
-    reflections = reflections[0]
+        # Parse the command line
+        params, options = self.parser.parse_args(show_diff_phil=False)
+        reflections = flatten_reflections(params.input.reflections)
+        experiments = flatten_experiments(params.input.experiments)
+        if len(reflections) == 0 or len(experiments) == 0:
+            self.parser.print_help()
+            return
+        elif len(reflections) != 1:
+            raise Sorry("more than 1 reflection file was given")
+        elif len(experiments) == 0:
+            raise Sorry("no experiment list was specified")
+        reflections = reflections[0]
 
-    # Configure logging
-    log.config(
-      info="dials.merge_stills.log",
-      debug="dials.merge_stills.debug.log")
+        # Configure logging
+        log.config(info="dials.merge_stills.log", debug="dials.merge_stills.debug.log")
 
-    # Log the diff phil
-    diff_phil = self.parser.diff_phil.as_str()
-    if diff_phil is not '':
-      logger.info('The following parameters have been modified:\n')
-      logger.info(diff_phil)
+        # Log the diff phil
+        diff_phil = self.parser.diff_phil.as_str()
+        if diff_phil is not "":
+            logger.info("The following parameters have been modified:\n")
+            logger.info(diff_phil)
 
-    # Do the merging
-    reflections = scale_and_merge(experiments, reflections, params)
+        # Do the merging
+        reflections = scale_and_merge(experiments, reflections, params)
 
-if __name__ == '__main__':
-  from dials.util import halraiser
-  try:
-    script = Script()
-    script.run()
-  except Exception as e:
-    halraiser(e)
 
+if __name__ == "__main__":
+    from dials.util import halraiser
+
+    try:
+        script = Script()
+        script.run()
+    except Exception as e:
+        halraiser(e)

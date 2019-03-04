@@ -1,58 +1,61 @@
 from __future__ import division
 from __future__ import print_function
 
-def resolutionizer(mtz_file, n_shells = 30):
-  import x2tbx
-  from iotbx import mtz
 
-  mtz_obj = mtz.object(mtz_file)
+def resolutionizer(mtz_file, n_shells=30):
+    import x2tbx
+    from iotbx import mtz
 
-  i_data = None
-  sigi_data = None
+    mtz_obj = mtz.object(mtz_file)
 
-  mi = mtz_obj.extract_miller_indices()
+    i_data = None
+    sigi_data = None
 
-  unit_cell = None
+    mi = mtz_obj.extract_miller_indices()
 
-  for crystal in mtz_obj.crystals():
-    unit_cell = crystal.unit_cell()
-    for dataset in crystal.datasets():
-      for column in dataset.columns():
-        if column.label() == 'I':
-          i_data = column.extract_values(
-              not_a_number_substitute = 0.0)
-        if column.label() == 'SIGI':
-          sigi_data = column.extract_values(
-              not_a_number_substitute = 0.0)
+    unit_cell = None
 
-  assert(i_data)
-  assert(sigi_data)
+    for crystal in mtz_obj.crystals():
+        unit_cell = crystal.unit_cell()
+        for dataset in crystal.datasets():
+            for column in dataset.columns():
+                if column.label() == "I":
+                    i_data = column.extract_values(not_a_number_substitute=0.0)
+                if column.label() == "SIGI":
+                    sigi_data = column.extract_values(not_a_number_substitute=0.0)
 
-  r = x2tbx.ReflectionList()
-  r.setup(mi, i_data, sigi_data)
-  r.set_unit_cell(unit_cell.parameters())
-  r.merge()
+    assert i_data
+    assert sigi_data
 
-  r.setup_resolution_shells(n_shells)
+    r = x2tbx.ReflectionList()
+    r.setup(mi, i_data, sigi_data)
+    r.set_unit_cell(unit_cell.parameters())
+    r.merge()
 
-  high = r.shell_high_limits()
-  low = r.shell_low_limits()
+    r.setup_resolution_shells(n_shells)
 
-  rmerges = r.rmerge_shells()
-  isigmas = r.i_sigma_shells()
-  tisigmas = r.total_i_sigma_shells()
+    high = r.shell_high_limits()
+    low = r.shell_low_limits()
 
-  print('High   Low    Nref  Rmerge Mn(I/s) I/s')
-  for j in range(n_shells):
-    shell = r.get_shell(j)
-    print('%.3f %6.3f %5d %.3f %6.2f %6.2f' % (
-        high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j]))
+    rmerges = r.rmerge_shells()
+    isigmas = r.i_sigma_shells()
+    tisigmas = r.total_i_sigma_shells()
 
-  return
+    print("High   Low    Nref  Rmerge Mn(I/s) I/s")
+    for j in range(n_shells):
+        shell = r.get_shell(j)
+        print(
+            "%.3f %6.3f %5d %.3f %6.2f %6.2f"
+            % (high[j], low[j], len(shell), rmerges[j], isigmas[j], tisigmas[j])
+        )
 
-if __name__ == '__main__':
-  import sys
-  if len(sys.argv) < 3:
-    resolutionizer(sys.argv[1])
-  else:
-    resolutionizer(sys.argv[1], n_shells = int(sys.argv[2]))
+    return
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 3:
+        resolutionizer(sys.argv[1])
+    else:
+        resolutionizer(sys.argv[1], n_shells=int(sys.argv[2]))

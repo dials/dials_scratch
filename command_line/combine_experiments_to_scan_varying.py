@@ -32,8 +32,7 @@ dev.dials.combine_experiments_to_scan_varying \
 from __future__ import division, print_function, absolute_import
 import sys
 from libtbx.utils import Sorry
-from dials.util.options import (flatten_reflections, flatten_experiments,
-    OptionParser)
+from dials.util.options import flatten_reflections, flatten_experiments, OptionParser
 from libtbx.table_utils import simple_table
 from scitbx import matrix
 from dxtbx.model.experiment_list import Experiment
@@ -42,7 +41,8 @@ from libtbx.phil import parse
 from copy import deepcopy
 
 # The phil scope
-phil_scope = parse('''
+phil_scope = parse(
+    """
 output {
   experiments = combined_to_sv_experiments.json
     .type = str
@@ -52,124 +52,140 @@ output {
     .type = str
     .help = "The filename for combined reflections"
 }
-''', process_includes=True)
+""",
+    process_includes=True,
+)
+
 
 class Script(object):
-  '''A class for running the script.'''
+    """A class for running the script."""
 
-  def __init__(self):
-    '''Initialise the script.'''
-    import libtbx.load_env
+    def __init__(self):
+        """Initialise the script."""
+        import libtbx.load_env
 
-    # The script usage
-    import __main__
-    usage = ("usage: dials.python {0} refined_experiments.json "
-             "refined.pickle").format(__main__.__file__)
+        # The script usage
+        import __main__
 
-    # Create the parser
-    self.parser = OptionParser(
-      usage=usage,
-      phil=phil_scope,
-      read_experiments=True,
-      read_reflections=True,
-      check_format=False,
-      epilog=__doc__)
+        usage = (
+            "usage: dials.python {0} refined_experiments.json " "refined.pickle"
+        ).format(__main__.__file__)
 
-    return
+        # Create the parser
+        self.parser = OptionParser(
+            usage=usage,
+            phil=phil_scope,
+            read_experiments=True,
+            read_reflections=True,
+            check_format=False,
+            epilog=__doc__,
+        )
 
-  @staticmethod
-  def extended_scan(experiments):
-    '''Return a single scan that encompasses the full scan width of all of
-    the inputs'''
-    scan = deepcopy(experiments[0].scan)
+        return
 
-    for exp in experiments[1:]:
-      scan.append(exp.scan)
+    @staticmethod
+    def extended_scan(experiments):
+        """Return a single scan that encompasses the full scan width of all of
+    the inputs"""
+        scan = deepcopy(experiments[0].scan)
 
-    return scan
+        for exp in experiments[1:]:
+            scan.append(exp.scan)
 
-  @staticmethod
-  def combine_crystals(experiments, scan):
-    '''Create a single crystal model using the static models of each of the
-    input models to define a scan-varying A matrix'''
+        return scan
 
-    crystal = deepcopy(experiments[0].crystal)
-    crystal.reset_scan_points()
+    @staticmethod
+    def combine_crystals(experiments, scan):
+        """Create a single crystal model using the static models of each of the
+    input models to define a scan-varying A matrix"""
 
-    # Extract A matrices from the experiments
-    A = []
-    for exp in experiments:
-      A.extend([exp.crystal.get_A()] * exp.scan.get_num_images())
-    assert len(A) == scan.get_num_images()
+        crystal = deepcopy(experiments[0].crystal)
+        crystal.reset_scan_points()
 
-    # There should be one more scan point than the number of images in the
-    # scan so that the A matrix is defined at the beginning and end of the
-    # scan and at every image boundary. By adding to the end of the A list
-    # the values at the discontinuities favour the later scan
-    A += [A[-1]]
+        # Extract A matrices from the experiments
+        A = []
+        for exp in experiments:
+            A.extend([exp.crystal.get_A()] * exp.scan.get_num_images())
+        assert len(A) == scan.get_num_images()
 
-    # Set the batched static model as a 'scan-varying' model of the crystal
-    crystal.set_A_at_scan_points(A)
+        # There should be one more scan point than the number of images in the
+        # scan so that the A matrix is defined at the beginning and end of the
+        # scan and at every image boundary. By adding to the end of the A list
+        # the values at the discontinuities favour the later scan
+        A += [A[-1]]
 
-    return crystal
+        # Set the batched static model as a 'scan-varying' model of the crystal
+        crystal.set_A_at_scan_points(A)
 
-  def run(self):
-    '''Execute the script.'''
+        return crystal
 
-    # Parse the command line
-    self.params, options = self.parser.parse_args(show_diff_phil=True)
+    def run(self):
+        """Execute the script."""
 
-    if not self.params.input.experiments:
-      self.parser.print_help()
-      sys.exit()
+        # Parse the command line
+        self.params, options = self.parser.parse_args(show_diff_phil=True)
 
-    # Try to load the models
-    experiments = flatten_experiments(self.params.input.experiments)
-    nexp = len(experiments)
-    if nexp == 0:
-      print("No Experiments found in the input")
-      self.parser.print_help()
-      return
+        if not self.params.input.experiments:
+            self.parser.print_help()
+            sys.exit()
 
-    ref_beam = experiments[0].beam
-    ref_goniometer = experiments[0].goniometer
-    ref_detector = experiments[0].detector
+        # Try to load the models
+        experiments = flatten_experiments(self.params.input.experiments)
+        nexp = len(experiments)
+        if nexp == 0:
+            print("No Experiments found in the input")
+            self.parser.print_help()
+            return
 
-    scan = self.extended_scan(experiments)
+        ref_beam = experiments[0].beam
+        ref_goniometer = experiments[0].goniometer
+        ref_detector = experiments[0].detector
 
-    crystal = self.combine_crystals(experiments, scan)
+        scan = self.extended_scan(experiments)
 
-    experiment = Experiment(beam=ref_beam,
-                      detector=ref_detector,
-                      scan=scan,
-                      goniometer=ref_goniometer,
-                      crystal=crystal)
+        crystal = self.combine_crystals(experiments, scan)
 
-    experiments=ExperimentList([experiment])
+        experiment = Experiment(
+            beam=ref_beam,
+            detector=ref_detector,
+            scan=scan,
+            goniometer=ref_goniometer,
+            crystal=crystal,
+        )
 
-    # Reset experiment IDs in the reflections
-    reflections = flatten_reflections(self.params.input.reflections)
-    assert len(reflections) == 1
-    reflections = reflections[0]
-    reflections['id'] *= 0
+        experiments = ExperimentList([experiment])
 
-    # Save the experiments to file
-    print('Saving the combined experiment to {0}'.format(
-        self.params.output.experiments))
-    from dxtbx.model.experiment_list import ExperimentListDumper
-    dump = ExperimentListDumper(experiments)
-    dump.as_json(self.params.output.experiments)
+        # Reset experiment IDs in the reflections
+        reflections = flatten_reflections(self.params.input.reflections)
+        assert len(reflections) == 1
+        reflections = reflections[0]
+        reflections["id"] *= 0
 
-    # Save the reflections to file
-    print('Saving the combined reflections to {0}'.format(
-        self.params.output.reflections))
-    reflections.as_pickle(self.params.output.reflections)
+        # Save the experiments to file
+        print(
+            "Saving the combined experiment to {0}".format(
+                self.params.output.experiments
+            )
+        )
+        from dxtbx.model.experiment_list import ExperimentListDumper
+
+        dump = ExperimentListDumper(experiments)
+        dump.as_json(self.params.output.experiments)
+
+        # Save the reflections to file
+        print(
+            "Saving the combined reflections to {0}".format(
+                self.params.output.reflections
+            )
+        )
+        reflections.as_pickle(self.params.output.reflections)
 
 
-if __name__ == '__main__':
-  from dials.util import halraiser
-  try:
-    script = Script()
-    script.run()
-  except Exception as e:
-    halraiser(e)
+if __name__ == "__main__":
+    from dials.util import halraiser
+
+    try:
+        script = Script()
+        script.run()
+    except Exception as e:
+        halraiser(e)

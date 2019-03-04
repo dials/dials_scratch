@@ -1,16 +1,21 @@
 from __future__ import print_function
 from scitbx import matrix
 
+
 def read_expt(filename):
-  from dials.phil import ExperimentListConverters
-  from dials.util.options import flatten_experiments
-  converter = ExperimentListConverters(check_format=False)
-  return flatten_experiments([converter.from_string(filename)])
+    from dials.phil import ExperimentListConverters
+    from dials.util.options import flatten_experiments
+
+    converter = ExperimentListConverters(check_format=False)
+    return flatten_experiments([converter.from_string(filename)])
+
 
 def write_expt(experiments, filename):
-  from dxtbx.model.experiment_list import ExperimentListDumper
-  dump = ExperimentListDumper(experiments)
-  dump.as_json(filename)
+    from dxtbx.model.experiment_list import ExperimentListDumper
+
+    dump = ExperimentListDumper(experiments)
+    dump.as_json(filename)
+
 
 import sys
 
@@ -45,7 +50,7 @@ import math
 # however right enough for this...
 
 theta = math.asin(expt.beam.get_wavelength() / (2 * resolution))
-print('Using two-theta: %.3f' % (2 * theta * 180.0 / math.pi))
+print("Using two-theta: %.3f" % (2 * theta * 180.0 / math.pi))
 
 epochs = scan.get_epochs()
 exposure_times = scan.get_exposure_times()
@@ -53,14 +58,14 @@ image_range = scan.get_image_range()
 oscillation = scan.get_oscillation()
 
 current = 1 + image_range[1] - image_range[0]
-turn = int(round(360./oscillation[1]))
+turn = int(round(360.0 / oscillation[1]))
 extra = turn - current
 
 for j in range(extra):
-  epochs.append(0.0)
-  exposure_times.append(0.0)
+    epochs.append(0.0)
+    exposure_times.append(0.0)
 
-image_range = image_range[0], image_range[1]+extra
+image_range = image_range[0], image_range[1] + extra
 
 scan.set_image_range(image_range)
 scan.set_epochs(epochs)
@@ -80,7 +85,8 @@ R = matrix.sqr((0, 1, 0, -1, 0, 0, 0, 0, 1))
 from dials.algorithms.refinement import rotation_decomposition
 
 solutions = rotation_decomposition.solve_r3_rotation_for_angles_given_axes(
-  R, e1, e2, e3, return_both_solutions=True, deg=True)
+    R, e1, e2, e3, return_both_solutions=True, deg=True
+)
 
 assert solutions is None
 
@@ -91,14 +97,16 @@ assert solutions is None
 R_tt = s0n.axis_and_angle_as_r3_rotation_matrix(2 * theta)
 
 s = rotation_decomposition.solve_r3_rotation_for_angles_given_axes(
-  R_tt, e1, e2, e3, return_both_solutions=False, deg=False)
+    R_tt, e1, e2, e3, return_both_solutions=False, deg=False
+)
 
 # use solution
 
-print('Using angles: %.3f %.3f' % (180 * s[1] / math.pi, 180 * s[2] / math.pi))
+print("Using angles: %.3f %.3f" % (180 * s[1] / math.pi, 180 * s[2] / math.pi))
 
-F = e2.axis_and_angle_as_r3_rotation_matrix(s[1]) * \
-  e3.axis_and_angle_as_r3_rotation_matrix(s[2])
+F = e2.axis_and_angle_as_r3_rotation_matrix(
+    s[1]
+) * e3.axis_and_angle_as_r3_rotation_matrix(s[2])
 
 gonio.set_fixed_rotation(F.elems)
 write_expt(expts, sys.argv[3])

@@ -1,51 +1,64 @@
 from __future__ import division
 from __future__ import print_function
 
+
 def generate_distribution(mean, sigma, npixels):
-  from random import randint
-  from scitbx.array_family import flex
-  values = [0 for i in range(npixels)]
-  for j in range(int(mean * npixels)):
-    x = randint(0, npixels-1)
-    values[x] += 1
-  return flex.double(values)
+    from random import randint
+    from scitbx.array_family import flex
+
+    values = [0 for i in range(npixels)]
+    for j in range(int(mean * npixels)):
+        x = randint(0, npixels - 1)
+        values[x] += 1
+    return flex.double(values)
+
 
 def index_of_dispersion(data):
-  from scitbx.array_family import flex
-  mv = flex.mean_and_variance(data)
-  mean = mv.mean()
-  var = mv.unweighted_sample_variance()
-  return var / mean
+    from scitbx.array_family import flex
+
+    mv = flex.mean_and_variance(data)
+    mean = mv.mean()
+    var = mv.unweighted_sample_variance()
+    return var / mean
+
 
 def index_of_dispersion_expected_variance(npixels):
-  return 2.0 / (npixels - 1)
+    return 2.0 / (npixels - 1)
+
 
 def is_poisson_distributed(data):
-  from math import sqrt
-  return index_of_dispersion(data) < 1.0 + \
-    sqrt(index_of_dispersion_expected_variance(len(data)))
+    from math import sqrt
 
-if __name__ == '__main__':
-  from math import sqrt
-  from dials.algorithms.background import normal_expected_n_sigma, is_normally_distributed, maximum_n_sigma
-  import numpy
-  from random import sample
-  from scitbx.array_family import flex
+    return index_of_dispersion(data) < 1.0 + sqrt(
+        index_of_dispersion_expected_variance(len(data))
+    )
 
-  mean = 10.0
-  sigma = 5
-  npixels = 1000
-  values = generate_distribution(mean, sigma, npixels)
 
-  ind = sample(range(1000), 800)
-  values = [float(values[i]) for i in ind]
+if __name__ == "__main__":
+    from math import sqrt
+    from dials.algorithms.background import (
+        normal_expected_n_sigma,
+        is_normally_distributed,
+        maximum_n_sigma,
+    )
+    import numpy
+    from random import sample
+    from scitbx.array_family import flex
 
-  cmean = sum(values) / len(values)
-  cvar = sum([(v - cmean)**2 for v in values]) / (len(values) - 1)
-  csdev = sqrt(cvar)
-  cerr = csdev / sqrt(len(values))
+    mean = 10.0
+    sigma = 5
+    npixels = 1000
+    values = generate_distribution(mean, sigma, npixels)
 
-  print("Mean: %f, Error: %f" % (cmean, cerr))
+    ind = sample(range(1000), 800)
+    values = [float(values[i]) for i in ind]
+
+    cmean = sum(values) / len(values)
+    cvar = sum([(v - cmean) ** 2 for v in values]) / (len(values) - 1)
+    csdev = sqrt(cvar)
+    cerr = csdev / sqrt(len(values))
+
+    print("Mean: %f, Error: %f" % (cmean, cerr))
 
 
 #  iod = []

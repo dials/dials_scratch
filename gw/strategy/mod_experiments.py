@@ -1,13 +1,17 @@
 def read_expt(filename):
-  from dials.phil import ExperimentListConverters
-  from dials.util.options import flatten_experiments
-  converter = ExperimentListConverters(check_format=False)
-  return flatten_experiments([converter.from_string(filename)])
+    from dials.phil import ExperimentListConverters
+    from dials.util.options import flatten_experiments
+
+    converter = ExperimentListConverters(check_format=False)
+    return flatten_experiments([converter.from_string(filename)])
+
 
 def write_expt(experiments, filename):
-  from dxtbx.model.experiment_list import ExperimentListDumper
-  dump = ExperimentListDumper(experiments)
-  dump.as_json(filename)
+    from dxtbx.model.experiment_list import ExperimentListDumper
+
+    dump = ExperimentListDumper(experiments)
+    dump.as_json(filename)
+
 
 import sys
 
@@ -22,14 +26,14 @@ image_range = scan.get_image_range()
 oscillation = scan.get_oscillation()
 
 current = 1 + image_range[1] - image_range[0]
-turn = int(round(360./oscillation[1]))
+turn = int(round(360.0 / oscillation[1]))
 extra = turn - current
 
 for j in range(extra):
-  epochs.append(0.0)
-  exposure_times.append(0.0)
+    epochs.append(0.0)
+    exposure_times.append(0.0)
 
-image_range = image_range[0], image_range[1]+extra
+image_range = image_range[0], image_range[1] + extra
 
 scan.set_image_range(image_range)
 scan.set_epochs(epochs)

@@ -1,7 +1,9 @@
 import os
 from iotbx import mtz
 
-m = mtz.object(file_name=os.path.join(os.environ["CEXAM"], "data", "insulin_unmerged.mtz"))
+m = mtz.object(
+    file_name=os.path.join(os.environ["CEXAM"], "data", "insulin_unmerged.mtz")
+)
 h = m.extract_miller_indices()
 
 # get safe access to the crystal owned by m

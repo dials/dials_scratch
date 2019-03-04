@@ -2,17 +2,19 @@ from __future__ import print_function
 import wx
 import subprocess
 
+
 class MyApp(wx.App):
-  def OnInit(self):
+    def OnInit(self):
 
-    print("Hi")
-    subprocess.call("dials.python", shell=True)
-    print("bye")
+        print("Hi")
+        subprocess.call("dials.python", shell=True)
+        print("bye")
 
-    wx.MessageBox("Hi         wx               ", "wxApp")
+        wx.MessageBox("Hi         wx               ", "wxApp")
 
-    return True
+        return True
 
-if(__name__ == "__main__"):
-  app = MyApp(False)
-  app.MainLoop()
+
+if __name__ == "__main__":
+    app = MyApp(False)
+    app.MainLoop()

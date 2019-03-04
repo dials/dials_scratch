@@ -31,40 +31,41 @@ from __future__ import print_function
 #     print >>outfile, r[0], r[1]
 
 
-if __name__ == '__main__':
-  import sys
-  from dxtbx.model.experiment.experiment_list import ExperimentListFactory
+if __name__ == "__main__":
+    import sys
+    from dxtbx.model.experiment.experiment_list import ExperimentListFactory
 
-  exlist = ExperimentListFactory.from_json_file(sys.argv[1])
+    exlist = ExperimentListFactory.from_json_file(sys.argv[1])
 
-  if len(sys.argv) > 2:
-    imageset = exlist[0].imageset[0:int(sys.argv[2])]
-  else:
-    imageset = exlist[0].imageset
+    if len(sys.argv) > 2:
+        imageset = exlist[0].imageset[0 : int(sys.argv[2])]
+    else:
+        imageset = exlist[0].imageset
 
-  print(len(imageset))
+    print(len(imageset))
 
-  # run_test(imageset)
+    # run_test(imageset)
 
-  from time import time
-  st = time()
-  n = int(len(imageset) / 4)
-  for i in range(0, n):
-    image = imageset[i]
-    sys.stdout.write('.')
-    sys.stdout.flush()
-  for i in range(n-17, 2*n):
-    image = imageset[i]
-    sys.stdout.write('.')
-    sys.stdout.flush()
-  for i in range(2*n-17, 3*n):
-    image = imageset[i]
-    sys.stdout.write('.')
-    sys.stdout.flush()
-  for i in range(3*n-17,len(imageset)):
-    image = imageset[i]
-    sys.stdout.write('.')
-    sys.stdout.flush()
-  print('')
-  ft = time()
-  print(ft - st)
+    from time import time
+
+    st = time()
+    n = int(len(imageset) / 4)
+    for i in range(0, n):
+        image = imageset[i]
+        sys.stdout.write(".")
+        sys.stdout.flush()
+    for i in range(n - 17, 2 * n):
+        image = imageset[i]
+        sys.stdout.write(".")
+        sys.stdout.flush()
+    for i in range(2 * n - 17, 3 * n):
+        image = imageset[i]
+        sys.stdout.write(".")
+        sys.stdout.flush()
+    for i in range(3 * n - 17, len(imageset)):
+        image = imageset[i]
+        sys.stdout.write(".")
+        sys.stdout.flush()
+    print("")
+    ft = time()
+    print(ft - st)

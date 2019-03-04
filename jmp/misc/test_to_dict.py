@@ -1,9 +1,8 @@
 from __future__ import print_function
 
 
-
-
 from dxtbx.model import Detector
+
 d = Detector()
 p1 = d.add_panel()
 p2 = d.add_panel()

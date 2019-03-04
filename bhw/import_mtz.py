@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 """
 Import a MTZ file as an ExperimentList and reflection_table as per DIALS.
 

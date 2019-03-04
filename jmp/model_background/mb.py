@@ -1,4 +1,3 @@
-
 from __future__ import division
 from __future__ import print_function
 
@@ -44,115 +43,112 @@ from __future__ import print_function
 #     return flex.sqrt(self.variance())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-  from dials.util.options import OptionParser
-  from dials.util.options import flatten_experiments
-  from dials.util.options import flatten_reflections
-  from dials.array_family import flex
-  from collections import defaultdict
-  from dials.algorithms.shoebox import MaskCode
+    from dials.util.options import OptionParser
+    from dials.util.options import flatten_experiments
+    from dials.util.options import flatten_reflections
+    from dials.array_family import flex
+    from collections import defaultdict
+    from dials.algorithms.shoebox import MaskCode
 
-  # Create the option parser
-  parser = OptionParser(
-    read_experiments=True,
-    read_reflections=True)
+    # Create the option parser
+    parser = OptionParser(read_experiments=True, read_reflections=True)
 
-  # Parse the arguments
-  params, options = parser.parse_args(show_diff_phil=True)
+    # Parse the arguments
+    params, options = parser.parse_args(show_diff_phil=True)
 
-  # Get the experiments and reflections
-  experiments = flatten_experiments(params.input.experiments)
-  reflections = flatten_reflections(params.input.reflections)
+    # Get the experiments and reflections
+    experiments = flatten_experiments(params.input.experiments)
+    reflections = flatten_reflections(params.input.reflections)
 
-  # Get the imageset
-  assert len(experiments) == 1
-  assert len(reflections) == 1
-  reflections = reflections[0]
-  imageset = experiments[0].imageset
+    # Get the imageset
+    assert len(experiments) == 1
+    assert len(reflections) == 1
+    reflections = reflections[0]
+    imageset = experiments[0].imageset
 
-  # Create the reflection lookup
-  bbox = reflections['bbox']
-  reflection_lookup = defaultdict(list)
-  for i in range(len(bbox)):
-    for j in range(bbox[i][4],bbox[i][5]):
-      reflection_lookup[j].append(i)
+    # Create the reflection lookup
+    bbox = reflections["bbox"]
+    reflection_lookup = defaultdict(list)
+    for i in range(len(bbox)):
+        for j in range(bbox[i][4], bbox[i][5]):
+            reflection_lookup[j].append(i)
 
-  width, height = experiments[0].detector[0].get_image_size()
-  sum_background = flex.double(flex.grid(height, width), 0)
-  sum_sq_background = flex.double(flex.grid(height, width), 0)
-  count = flex.int(flex.grid(height, width), 0)
+    width, height = experiments[0].detector[0].get_image_size()
+    sum_background = flex.double(flex.grid(height, width), 0)
+    sum_sq_background = flex.double(flex.grid(height, width), 0)
+    count = flex.int(flex.grid(height, width), 0)
 
-  # Loop through all images
-  print("START")
-  for frame in range(len(imageset)):
+    # Loop through all images
+    print("START")
+    for frame in range(len(imageset)):
 
-    # Get the subset of reflections on this image and compute the mask
-    subset = reflections.select(flex.size_t(reflection_lookup[frame]))
+        # Get the subset of reflections on this image and compute the mask
+        subset = reflections.select(flex.size_t(reflection_lookup[frame]))
 
-    subset['shoebox'] = flex.shoebox(
-      subset['panel'],
-      subset['bbox'],
-      allocate=True)
+        subset["shoebox"] = flex.shoebox(subset["panel"], subset["bbox"], allocate=True)
 
-    subset.compute_mask(experiments)
+        subset.compute_mask(experiments)
 
-    # Get the mask and data
-    mask = imageset.get_mask(frame)[0]
-    data = imageset.get_raw_data(frame)[0]
+        # Get the mask and data
+        mask = imageset.get_mask(frame)[0]
+        data = imageset.get_raw_data(frame)[0]
 
-    sbox_mask = subset['shoebox'].apply_background_mask(frame, 1, (height, width))
+        sbox_mask = subset["shoebox"].apply_background_mask(frame, 1, (height, width))
 
-    mask = mask & sbox_mask
+        mask = mask & sbox_mask
 
-    #from dials.algorithms.image.threshold import DispersionThreshold
-    #threshold = DispersionThreshold(
-    #  data.all(),
-    #  (3,3),
-    #  6,3,0,2)
-    #new_mask = flex.bool(mask.accessor())
-    #threshold(data, mask, new_mask)
-    #mask = mask & (~new_mask)
+        # from dials.algorithms.image.threshold import DispersionThreshold
+        # threshold = DispersionThreshold(
+        #  data.all(),
+        #  (3,3),
+        #  6,3,0,2)
+        # new_mask = flex.bool(mask.accessor())
+        # threshold(data, mask, new_mask)
+        # mask = mask & (~new_mask)
 
-    import cPickle as pickle
-    pickle.dump((data, mask), open("first_image.pickle", "w"))
-    exit(0)
-    m = (mask == True).as_1d().as_int()
-    x = data.as_double() * m.as_double()
-    sum_background += x
-    sum_sq_background += x * x
-    count += m
+        import cPickle as pickle
 
-    average = flex.sum(sum_background) / flex.sum(count)
+        pickle.dump((data, mask), open("first_image.pickle", "w"))
+        exit(0)
+        m = (mask == True).as_1d().as_int()
+        x = data.as_double() * m.as_double()
+        sum_background += x
+        sum_sq_background += x * x
+        count += m
 
-    print("Image %d: selected %d reflections, avr=%f" % (
-      frame,
-      len(subset),
-      average))
+        average = flex.sum(sum_background) / flex.sum(count)
 
-    # from matplotlib import pylab
-    # pylab.imshow((count > 0).as_numpy_array())
-    # pylab.show()
+        print(
+            "Image %d: selected %d reflections, avr=%f" % (frame, len(subset), average)
+        )
 
-  average = flex.double(len(sum_background))
-  variance = flex.double(len(sum_background))
-  count_mask = count > 1
-  indices = flex.size_t(range(len(mask))).select(count_mask.as_1d())
-  from matplotlib import pylab
-  pylab.imshow(count_mask.as_numpy_array())
-  pylab.show()
+        # from matplotlib import pylab
+        # pylab.imshow((count > 0).as_numpy_array())
+        # pylab.show()
 
-  sumb = sum_background.as_1d().select(indices)
-  numb = count.as_1d().select(indices).as_double()
-  avrb = sumb / numb
-  sumsqb = sum_sq_background.as_1d().select(indices)
-  varb = (sumsqb - sumb*sumb / numb) / (numb - 1)
-  average.set_selected(indices, avrb)
-  average.reshape(count_mask.accessor())
-  variance.set_selected(indices, varb)
-  variance.reshape(count_mask.accessor())
+    average = flex.double(len(sum_background))
+    variance = flex.double(len(sum_background))
+    count_mask = count > 1
+    indices = flex.size_t(range(len(mask))).select(count_mask.as_1d())
+    from matplotlib import pylab
 
-  print("Saving to model.pickle")
-  with open("model.pickle", "w") as outfile:
-    import cPickle as pickle
-    pickle.dump((average, count_mask, flex.sqrt(variance)), outfile)
+    pylab.imshow(count_mask.as_numpy_array())
+    pylab.show()
+
+    sumb = sum_background.as_1d().select(indices)
+    numb = count.as_1d().select(indices).as_double()
+    avrb = sumb / numb
+    sumsqb = sum_sq_background.as_1d().select(indices)
+    varb = (sumsqb - sumb * sumb / numb) / (numb - 1)
+    average.set_selected(indices, avrb)
+    average.reshape(count_mask.accessor())
+    variance.set_selected(indices, varb)
+    variance.reshape(count_mask.accessor())
+
+    print("Saving to model.pickle")
+    with open("model.pickle", "w") as outfile:
+        import cPickle as pickle
+
+        pickle.dump((average, count_mask, flex.sqrt(variance)), outfile)

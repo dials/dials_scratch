@@ -11,19 +11,23 @@
 from __future__ import division
 from __future__ import print_function
 
-def show_reflection(reflection, orient = "landscape"):
-  ''' Display a single reflection. '''
-  import wx
-  print("Show Reflection")
 
-  class RefViewApp(wx.App):
-    def OnInit(self):
-      from dials.viewer.shoebox_view_frame import ShoeboxView
-      self.frame = ShoeboxView(None, orient = orient, refl = reflection
-                               , title = "Shoebox Viewer")
-      self.SetTopWindow(self.frame)
-      self.frame.Show()
-      return True
+def show_reflection(reflection, orient="landscape"):
+    """ Display a single reflection. """
+    import wx
 
-  app = RefViewApp(redirect=False)
-  app.MainLoop()
+    print("Show Reflection")
+
+    class RefViewApp(wx.App):
+        def OnInit(self):
+            from dials.viewer.shoebox_view_frame import ShoeboxView
+
+            self.frame = ShoeboxView(
+                None, orient=orient, refl=reflection, title="Shoebox Viewer"
+            )
+            self.SetTopWindow(self.frame)
+            self.frame.Show()
+            return True
+
+    app = RefViewApp(redirect=False)
+    app.MainLoop()

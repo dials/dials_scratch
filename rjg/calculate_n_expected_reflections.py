@@ -2,7 +2,9 @@ from __future__ import division
 from __future__ import print_function
 
 import iotbx.phil
-master_phil_scope = iotbx.phil.parse("""
+
+master_phil_scope = iotbx.phil.parse(
+    """
 unit_cell = None
   .type = unit_cell
 space_group = None
@@ -17,120 +19,134 @@ plot = False
   .type = bool
 nproc = 1
   .type = int(value_min=1)
-""")
+"""
+)
 
 
 def random_rotation():
-  import random
-  from scitbx.math import euler_angles_as_matrix
-  return euler_angles_as_matrix([random.uniform(0,360) for i in xrange(3)])
+    import random
+    from scitbx.math import euler_angles_as_matrix
+
+    return euler_angles_as_matrix([random.uniform(0, 360) for i in xrange(3)])
 
 
 def run(args):
 
-  from libtbx.phil import command_line
+    from libtbx.phil import command_line
 
-  from dials.util.command_line import Importer
-  from dials.array_family import flex
-  print(args)
-  importer = Importer(args, check_format=False)
-  assert len(importer.datablocks) == 1
-  sweeps = importer.datablocks[0].extract_imagesets()
-  assert len(sweeps) == 1
-  sweep = sweeps[0]
+    from dials.util.command_line import Importer
+    from dials.array_family import flex
 
-  cmd_line = command_line.argument_interpreter(master_params=master_phil_scope)
-  working_phil = cmd_line.process_and_fetch(args=importer.unhandled_arguments)
-  working_phil.show()
+    print(args)
+    importer = Importer(args, check_format=False)
+    assert len(importer.datablocks) == 1
+    sweeps = importer.datablocks[0].extract_imagesets()
+    assert len(sweeps) == 1
+    sweep = sweeps[0]
 
-  params = working_phil.extract()
-  assert params.unit_cell is not None
-  assert params.space_group is not None
-  unit_cell = params.unit_cell
-  space_group = params.space_group.group()
+    cmd_line = command_line.argument_interpreter(master_params=master_phil_scope)
+    working_phil = cmd_line.process_and_fetch(args=importer.unhandled_arguments)
+    working_phil.show()
 
-  import random
-  from dxtbx.model.crystal import crystal_model
-  from cctbx import crystal, miller
-  from scitbx import matrix
+    params = working_phil.extract()
+    assert params.unit_cell is not None
+    assert params.space_group is not None
+    unit_cell = params.unit_cell
+    space_group = params.space_group.group()
 
-  flex.set_random_seed(params.random_seed)
-  random.seed(params.random_seed)
+    import random
+    from dxtbx.model.crystal import crystal_model
+    from cctbx import crystal, miller
+    from scitbx import matrix
 
-  crystal_symmetry = crystal.symmetry(unit_cell=unit_cell,
-                                      space_group=space_group)
+    flex.set_random_seed(params.random_seed)
+    random.seed(params.random_seed)
 
-  # the reciprocal matrix
-  B = matrix.sqr(unit_cell.fractionalization_matrix()).transpose()
+    crystal_symmetry = crystal.symmetry(unit_cell=unit_cell, space_group=space_group)
 
-  n_predicted = flex.double()
+    # the reciprocal matrix
+    B = matrix.sqr(unit_cell.fractionalization_matrix()).transpose()
 
-  def predict_once(args):
-    from dxtbx.model.experiment.experiment_list import Experiment
-    U = args[0]
-    A = U * B
-    direct_matrix = A.inverse()
-    cryst_model = crystal_model(direct_matrix[0:3],
-                                direct_matrix[3:6],
-                                direct_matrix[6:9],
-                                space_group=space_group)
-    experiment = Experiment(imageset=sweep,
-                            beam=sweep.get_beam(),
-                            detector=sweep.get_detector(),
-                            goniometer=sweep.get_goniometer(),
-                            scan=sweep.get_scan(),
-                            crystal=cryst_model)
-    predicted_reflections = flex.reflection_table.from_predictions(
-      experiment)
-    miller_indices = predicted_reflections['miller_index']
-    miller_set = miller.set(
-      crystal_symmetry, miller_indices, anomalous_flag=True)
-    if params.d_min is not None:
-      resolution_sel = miller_set.d_spacings().data() > params.d_min
-      predicted_reflections = predicted_reflections.select(resolution_sel)
-    return len(predicted_reflections)
+    n_predicted = flex.double()
 
-  from libtbx import easy_mp
-  args = [(random_rotation(),) for i in range(params.n_samples)]
-  results = easy_mp.parallel_map(
-    func=predict_once,
-    iterable=args,
-    processes=params.nproc,
-    preserve_order=True,
-    preserve_exception_message=True)
-  n_predicted = flex.double(results)
+    def predict_once(args):
+        from dxtbx.model.experiment.experiment_list import Experiment
 
-  print("Basic statistics:")
-  from scitbx.math import basic_statistics
-  stats = basic_statistics(n_predicted)
-  stats.show()
+        U = args[0]
+        A = U * B
+        direct_matrix = A.inverse()
+        cryst_model = crystal_model(
+            direct_matrix[0:3],
+            direct_matrix[3:6],
+            direct_matrix[6:9],
+            space_group=space_group,
+        )
+        experiment = Experiment(
+            imageset=sweep,
+            beam=sweep.get_beam(),
+            detector=sweep.get_detector(),
+            goniometer=sweep.get_goniometer(),
+            scan=sweep.get_scan(),
+            crystal=cryst_model,
+        )
+        predicted_reflections = flex.reflection_table.from_predictions(experiment)
+        miller_indices = predicted_reflections["miller_index"]
+        miller_set = miller.set(crystal_symmetry, miller_indices, anomalous_flag=True)
+        if params.d_min is not None:
+            resolution_sel = miller_set.d_spacings().data() > params.d_min
+            predicted_reflections = predicted_reflections.select(resolution_sel)
+        return len(predicted_reflections)
 
-  print("Histogram:")
-  hist = flex.histogram(n_predicted, n_slots=20)
-  hist.show()
+    from libtbx import easy_mp
 
-  print("Raw spot counts:")
-  print(list(n_predicted))
+    args = [(random_rotation(),) for i in range(params.n_samples)]
+    results = easy_mp.parallel_map(
+        func=predict_once,
+        iterable=args,
+        processes=params.nproc,
+        preserve_order=True,
+        preserve_exception_message=True,
+    )
+    n_predicted = flex.double(results)
 
-  if params.plot:
-    from matplotlib import pyplot
-    from matplotlib.backends.backend_pdf import PdfPages
+    print("Basic statistics:")
+    from scitbx.math import basic_statistics
 
-    pyplot.rc('font', family='serif')
-    pyplot.rc('font', serif='Times New Roman')
+    stats = basic_statistics(n_predicted)
+    stats.show()
 
-    red, blue = '#B2182B', '#2166AC'
-    fig = pyplot.figure()
-    ax = fig.add_subplot(1,1,1)
-    ax.bar(hist.slot_centers(), hist.slots(), width=0.75*hist.slot_width(),
-           color=blue, edgecolor=blue)
-    ax.set_xlabel('Spot count')
-    ax.set_ylabel('Frequency')
-    pdf = PdfPages("predicted_count_histogram.pdf")
-    pdf.savefig(fig)
-    pdf.close()
+    print("Histogram:")
+    hist = flex.histogram(n_predicted, n_slots=20)
+    hist.show()
+
+    print("Raw spot counts:")
+    print(list(n_predicted))
+
+    if params.plot:
+        from matplotlib import pyplot
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        pyplot.rc("font", family="serif")
+        pyplot.rc("font", serif="Times New Roman")
+
+        red, blue = "#B2182B", "#2166AC"
+        fig = pyplot.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.bar(
+            hist.slot_centers(),
+            hist.slots(),
+            width=0.75 * hist.slot_width(),
+            color=blue,
+            edgecolor=blue,
+        )
+        ax.set_xlabel("Spot count")
+        ax.set_ylabel("Frequency")
+        pdf = PdfPages("predicted_count_histogram.pdf")
+        pdf.savefig(fig)
+        pdf.close()
 
 
-if __name__ == '__main__':
-  import sys
-  run(sys.argv[1:])
+if __name__ == "__main__":
+    import sys
+
+    run(sys.argv[1:])

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
-example = '''
+
+example = """
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  from Graeme
 
 >>> from scitbx import matrix
@@ -61,24 +62,26 @@ b = a.as_flex_double_matrix()
 b.as_scitbx_matrix()
 Out[50]: matrix.rec(elems=(0.0, ..., 0.0), n=(2,2))
 
-'''
+"""
 
 from scitbx import matrix
-from dials.scratch.luiso_s import tst_prod , write_2d
+from dials.scratch.luiso_s import tst_prod, write_2d
 from scitbx.array_family import flex
+
 a = flex.double(flex.grid(3, 3))
-#b = flex.double(flex.grid(3, 3))
+# b = flex.double(flex.grid(3, 3))
 import random
+
 for xpos in range(3):
-  for ypos in range(3):
-    a[ypos, xpos] = random.random()
+    for ypos in range(3):
+        a[ypos, xpos] = random.random()
 #        b[ypos, xpos] = 1.0
 
 print("a =")
 write_2d(a)
 
-#print "b ="
-#write_2d(b)
+# print "b ="
+# write_2d(b)
 
 a_mat = a.as_scitbx_matrix()
 

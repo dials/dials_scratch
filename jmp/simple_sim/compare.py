@@ -11,5 +11,6 @@ print(max(diff))
 print(min(diff))
 
 from matplotlib import pylab
+
 pylab.imshow(diff.as_numpy_array())
 pylab.show()

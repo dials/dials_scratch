@@ -1,10 +1,11 @@
 from __future__ import division
+
 try:
-  import boost.python
+    import boost.python
 except Exception:
-  ext = None
+    ext = None
 else:
-  ext = boost.python.import_ext("dials_scratch_ext", optional = True)
+    ext = boost.python.import_ext("dials_scratch_ext", optional=True)
 
 if not ext is None:
-  from dials_scratch_ext import *
+    from dials_scratch_ext import *

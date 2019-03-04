@@ -2,29 +2,29 @@ from __future__ import division
 from __future__ import print_function
 import numpy
 import time
+
 ysize = xsize = 10
 
 
-
-mat2d1 = numpy.arange(ysize * xsize, dtype = 'uintc').reshape(ysize, xsize)
+mat2d1 = numpy.arange(ysize * xsize, dtype="uintc").reshape(ysize, xsize)
 mat2d2 = numpy.transpose(mat2d1)
-mat2dres = numpy.arange(ysize * xsize, dtype = 'uintc').reshape(ysize, xsize)
-mat2dsmoth = numpy.zeros(ysize * xsize, dtype = 'uintc').reshape(ysize, xsize)
+mat2dres = numpy.arange(ysize * xsize, dtype="uintc").reshape(ysize, xsize)
+mat2dsmoth = numpy.zeros(ysize * xsize, dtype="uintc").reshape(ysize, xsize)
 
 print(time.time())
 time1 = time.time()
 print("time1 =", time1)
 
 for y in range(ysize):
-  for x in range(xsize):
-    mat2dres[y, x] = mat2d1[y, x] + mat2d2[y, x]
+    for x in range(xsize):
+        mat2dres[y, x] = mat2d1[y, x] + mat2d2[y, x]
 
 time2 = time.time()
 print("time2 =", time2)
 timedif = time2 - time1
 print("timedif =", timedif)
 
-#for y in range(1, ysize - 1):
+# for y in range(1, ysize - 1):
 #    for x in range(1, xsize - 1):
 #        suma = mat2dres[y - 1, x - 1] + mat2dres[y - 1, x] + mat2dres[y - 1, x + 1] \
 #             + mat2dres[y, x - 1] + mat2dres[y, x + 1]             \
@@ -51,11 +51,11 @@ print("time3 =", time3)
 timedif = time3 - time2
 print("timedif =", timedif)
 
-print('mat2d1')
+print("mat2d1")
 print(mat2d1)
-print('mat2d2')
+print("mat2d2")
 print(mat2d2)
-print('mat2dres')
+print("mat2dres")
 print(mat2dres)
-print('mat2dsmoth')
+print("mat2dsmoth")
 print(mat2dsmoth)

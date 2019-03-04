@@ -3,10 +3,10 @@ import pickle
 import sys
 
 data = pickle.load(open(sys.argv[1]))
-s0 = data['s0']
-s2_list = data['s2_list']
-ctot_list = data['ctot_list']
-Sobs_list = data['Sobs_list']
+s0 = data["s0"]
+s2_list = data["s2_list"]
+ctot_list = data["ctot_list"]
+Sobs_list = data["Sobs_list"]
 
 
 refiner = ProfileRefiner(s0, s2_list, ctot_list, Sobs_list)

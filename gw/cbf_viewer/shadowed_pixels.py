@@ -8,6 +8,7 @@ from __future__ import print_function
 import analyser
 import shadowmapper
 
+
 class Pixshadow(object):
     """
     Uses shadowmapper to return indices and affected pixels.
@@ -16,14 +17,23 @@ class Pixshadow(object):
     filename: The cbf image to base the detector on. The detector
     dimensions and position will be extracted from this.
     """
+
     def __init__(self, filename):
         self.newimage = analyser.Image(filename)
 
-        (origin, fast, slow, dimensions, pix, dist,
-        res) = self.newimage.detector_parameters()
+        (
+            origin,
+            fast,
+            slow,
+            dimensions,
+            pix,
+            dist,
+            res,
+        ) = self.newimage.detector_parameters()
 
-        self.newshadow = shadowmapper.Shadow(shadowmapper.day2_coords,
-                          filename, det_angle, dist, origin, fast, slow)
+        self.newshadow = shadowmapper.Shadow(
+            shadowmapper.day2_coords, filename, det_angle, dist, origin, fast, slow
+        )
 
     def pixcounter(self, kappa, omega):
         """
@@ -35,13 +45,12 @@ class Pixshadow(object):
         args:
         kappa, omega: The goniometer angles to use.
         """
-        affected, indices = self.newshadow.affected_pixels(kappa, omega,
-                                                              True)[1:3]
+        affected, indices = self.newshadow.affected_pixels(kappa, omega, True)[1:3]
         return affected, indices
 
 
 if __name__ == "__main__":
-    pix = Pixshadow('cbf_image2.cbf')
+    pix = Pixshadow("cbf_image2.cbf")
     a, b = pix.pixcounter(-180.0, 90.0)
     print(a)
     print(b)

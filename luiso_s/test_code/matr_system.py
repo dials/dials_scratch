@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
-to_do = '''
+
+to_do = """
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> to do
 A * x = B
@@ -13,19 +14,20 @@ A ** (-1) * (A * x) =A ** (-1) * B
 x = A ** (-1) * B
 
 
-'''
+"""
 
 from dials.scratch.luiso_s import write_2d
 from scitbx.array_family import flex
 import random
+
 a = flex.double(flex.grid(3, 3))
 b = flex.double(flex.grid(3, 1))
 
 
 for ypos in range(3):
-  b[ypos, 0] = random.random()
-  for xpos in range(3):
-    a[ypos, xpos] = random.random()
+    b[ypos, 0] = random.random()
+    for xpos in range(3):
+        a[ypos, xpos] = random.random()
 
 
 print("a =")

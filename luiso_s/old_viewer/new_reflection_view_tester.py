@@ -14,4 +14,5 @@ from dials.array_family import flex
 table = flex.reflection_table.from_pickle("all_refl.pickle")
 
 from dials.viewer.tools import show_reflection
-show_reflection(table[len(table)//2])
+
+show_reflection(table[len(table) // 2])

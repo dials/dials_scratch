@@ -6,13 +6,15 @@ import boost.python
 from iotbx import phil
 import abc
 
-def generate_phil_scope():
-  ''' Generate the phil scope. '''
-  from dials.interfaces import BackgroundIface
-  from dials.interfaces import IntensityIface
-  from dials.interfaces import CentroidIface
 
-  phil_scope = phil.parse('''
+def generate_phil_scope():
+    """ Generate the phil scope. """
+    from dials.interfaces import BackgroundIface
+    from dials.interfaces import IntensityIface
+    from dials.interfaces import CentroidIface
+
+    phil_scope = phil.parse(
+        """
 
     integration {
 
@@ -75,69 +77,72 @@ def generate_phil_scope():
         }
       }
     }
-  ''', process_includes=True)
-  main_scope = phil_scope.get_without_substitution("integration")
-  assert(len(main_scope) == 1)
-  main_scope = main_scope[0]
-  main_scope.adopt_scope(BackgroundIface.phil_scope())
-  main_scope.adopt_scope(IntensityIface.phil_scope())
-  main_scope.adopt_scope(CentroidIface.phil_scope())
-  return phil_scope
+  """,
+        process_includes=True,
+    )
+    main_scope = phil_scope.get_without_substitution("integration")
+    assert len(main_scope) == 1
+    main_scope = main_scope[0]
+    main_scope.adopt_scope(BackgroundIface.phil_scope())
+    main_scope.adopt_scope(IntensityIface.phil_scope())
+    main_scope.adopt_scope(CentroidIface.phil_scope())
+    return phil_scope
+
 
 # The integration phil scope
 phil_scope = generate_phil_scope()
 
 
 class IntegrationResult(object):
-  ''' A class representing an integration result. '''
+    """ A class representing an integration result. """
 
-  def __init__(self, index, reflections):
-    ''' Initialise the data. '''
-    self.index = index
-    self.reflections = reflections
+    def __init__(self, index, reflections):
+        """ Initialise the data. """
+        self.index = index
+        self.reflections = reflections
 
 
 class IntegrationTask(object):
-  ''' The integration task interface. '''
+    """ The integration task interface. """
 
-  __metaclass__ = abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-  @abc.abstractmethod
-  def __call__(self):
-    pass
+    @abc.abstractmethod
+    def __call__(self):
+        pass
 
 
 class IntegrationManager(object):
-  ''' The integration manager interface. '''
+    """ The integration manager interface. """
 
-  __metaclass__ = abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-  @abc.abstractmethod
-  def task(self, index):
-    pass
+    @abc.abstractmethod
+    def task(self, index):
+        pass
 
-  @abc.abstractmethod
-  def tasks(self):
-    pass
+    @abc.abstractmethod
+    def tasks(self):
+        pass
 
-  @abc.abstractmethod
-  def accumulate(self, result):
-    pass
+    @abc.abstractmethod
+    def accumulate(self, result):
+        pass
 
-  @abc.abstractmethod
-  def finished(self):
-    pass
+    @abc.abstractmethod
+    def finished(self):
+        pass
 
-  @abc.abstractmethod
-  def __len__(self):
-    pass
+    @abc.abstractmethod
+    def __len__(self):
+        pass
 
 
 class Integrator(object):
-  ''' Integrator interface class. '''
+    """ Integrator interface class. """
 
-  def __init__(self, manager, max_procs=1, mp_method='multiprocessing'):
-    ''' Initialise the integrator.
+    def __init__(self, manager, max_procs=1, mp_method="multiprocessing"):
+        """ Initialise the integrator.
 
     The integrator requires a manager class implementing the IntegratorManager
     interface. This class executes all the workers in separate threads and
@@ -148,313 +153,315 @@ class Integrator(object):
       max_procs The number of processors
       mp_method The multiprocessing method
 
-    '''
-    self._manager = manager
-    self._max_procs = max_procs
-    self._mp_method = mp_method
+    """
+        self._manager = manager
+        self._max_procs = max_procs
+        self._mp_method = mp_method
 
-  def integrate(self):
-    ''' Do all the integration tasks.
+    def integrate(self):
+        """ Do all the integration tasks.
 
     Returns
       The integration results
 
-    '''
-    from time import time
-    from libtbx import easy_mp
-    start_time = time()
-    num_proc = len(self._manager)
-    if self._max_procs > 0:
-      num_proc = min(num_proc, self._max_procs)
-    if num_proc > 1:
-      def process_output(result):
-        self._manager.accumulate(result[0])
-        print(result[1])
-      def execute_task(task):
-        from cStringIO import StringIO
-        import sys
-        sys.stdout = StringIO()
-        result = task()
-        output = sys.stdout.getvalue()
-        return result, output
-      task_results = easy_mp.parallel_map(
-        func=execute_task,
-        iterable=list(self._manager.tasks()),
-        processes=num_proc,
-        callback=process_output,
-        method=self._mp_method,
-        preserve_order=True,
-        preserve_exception_message=True)
-      task_results, output = zip(*task_results)
-    else:
-      task_results = [task() for task in self._manager.tasks()]
-      for result in task_results:
-        self._manager.accumulate(result)
-    assert(self._manager.finished())
-    end_time = time()
-    read_time = self._manager.read_time
-    extract_time = self._manager.extract_time
-    process_time = self._manager.process_time
-    total_time = end_time - start_time
-    print("Time taken: reading images: %.2f seconds" % read_time)
-    print("Time taken: extracting pixels: %.2f seconds" % extract_time)
-    print("Time taken: processing data: %.2f seconds" % process_time)
-    print("Time taken: total: %.2f seconds" % total_time)
-    return self._manager.result()
+    """
+        from time import time
+        from libtbx import easy_mp
+
+        start_time = time()
+        num_proc = len(self._manager)
+        if self._max_procs > 0:
+            num_proc = min(num_proc, self._max_procs)
+        if num_proc > 1:
+
+            def process_output(result):
+                self._manager.accumulate(result[0])
+                print(result[1])
+
+            def execute_task(task):
+                from cStringIO import StringIO
+                import sys
+
+                sys.stdout = StringIO()
+                result = task()
+                output = sys.stdout.getvalue()
+                return result, output
+
+            task_results = easy_mp.parallel_map(
+                func=execute_task,
+                iterable=list(self._manager.tasks()),
+                processes=num_proc,
+                callback=process_output,
+                method=self._mp_method,
+                preserve_order=True,
+                preserve_exception_message=True,
+            )
+            task_results, output = zip(*task_results)
+        else:
+            task_results = [task() for task in self._manager.tasks()]
+            for result in task_results:
+                self._manager.accumulate(result)
+        assert self._manager.finished()
+        end_time = time()
+        read_time = self._manager.read_time
+        extract_time = self._manager.extract_time
+        process_time = self._manager.process_time
+        total_time = end_time - start_time
+        print("Time taken: reading images: %.2f seconds" % read_time)
+        print("Time taken: extracting pixels: %.2f seconds" % extract_time)
+        print("Time taken: processing data: %.2f seconds" % process_time)
+        print("Time taken: total: %.2f seconds" % total_time)
+        return self._manager.result()
 
 
 class IntegrationProcessor3D(object):
-  ''' A class to do the processing. '''
+    """ A class to do the processing. """
 
-  def __init__(self, experiments):
-    ''' Initialise the processor and set the algorithms. '''
-    from dials.framework.registry import Registry
-    params = Registry().params()
+    def __init__(self, experiments):
+        """ Initialise the processor and set the algorithms. """
+        from dials.framework.registry import Registry
 
-    # Save the list of experiments
-    self._experiments = experiments
-    self._n_sigma = params.integration.shoebox.n_sigma
-    self._sigma_b = params.integration.shoebox.sigma_b
-    self._sigma_m = params.integration.shoebox.sigma_m
-    self.time = 0
+        params = Registry().params()
 
-  def __call__(self, reflections):
-    ''' Perform all the processing for integration. '''
-    from time import time
-    print("Process")
-    st = time()
+        # Save the list of experiments
+        self._experiments = experiments
+        self._n_sigma = params.integration.shoebox.n_sigma
+        self._sigma_b = params.integration.shoebox.sigma_b
+        self._sigma_m = params.integration.shoebox.sigma_m
+        self.time = 0
 
-    # Compute the shoebox mask
-    reflections.compute_mask(self._experiments,
-                             self._n_sigma,
-                             self._sigma_b,
-                             self._sigma_m)
+    def __call__(self, reflections):
+        """ Perform all the processing for integration. """
+        from time import time
 
-    # Integrate the reflections
-    # reflections.integrate(self._experiments)
+        print("Process")
+        st = time()
 
-    self.time += time() - st
-    return reflections
+        # Compute the shoebox mask
+        reflections.compute_mask(
+            self._experiments, self._n_sigma, self._sigma_b, self._sigma_m
+        )
 
-  def compute_mask(self, reflections):
-    pass
+        # Integrate the reflections
+        # reflections.integrate(self._experiments)
+
+        self.time += time() - st
+        return reflections
+
+    def compute_mask(self, reflections):
+        pass
 
 
-class IntegrationTask3DExecutorAux(boost.python.injector,
-                                   IntegrationTask3DExecutor):
-  ''' Add additional methods. '''
+class IntegrationTask3DExecutorAux(boost.python.injector, IntegrationTask3DExecutor):
+    """ Add additional methods. """
 
-  def execute(self, imageset, mask=None):
-    ''' Passing in an imageset process all the images. '''
-    from dials.model.data import Image
-    from time import time
-    import sys
-    detector = imageset.get_detector()
-    frame00 = self.frame0()
-    frame10 = self.frame1()
-    frame01, frame11 = imageset.get_array_range()
-    assert(frame00 == frame01)
-    assert(frame10 == frame11)
-    self.read_time = 0
-    self.extract_time = 0
-    if mask is None:
-      image = imageset[0]
-      if not isinstance(image, tuple):
-        image = (image,)
-      mask = []
-      for i in range(len(image)):
-        tr = detector[i].get_trusted_range()
-        mask.append(image[i].as_double() > tr[0])
-      mask = tuple(mask)
-    sys.stdout.write("Reading images: ")
-    for i in range(len(imageset)):
-      sys.stdout.write(".")
-      sys.stdout.flush()
-      st = time()
-      image = imageset[i]
-      self.read_time += time() - st
-      if not isinstance(image, tuple):
-        image = (image,)
-      st = time()
-      self.next(Image(image, mask))
-      self.extract_time += time() - st
-      del image
-    sys.stdout.write("\n")
-    sys.stdout.flush()
-    assert(self.finished())
+    def execute(self, imageset, mask=None):
+        """ Passing in an imageset process all the images. """
+        from dials.model.data import Image
+        from time import time
+        import sys
+
+        detector = imageset.get_detector()
+        frame00 = self.frame0()
+        frame10 = self.frame1()
+        frame01, frame11 = imageset.get_array_range()
+        assert frame00 == frame01
+        assert frame10 == frame11
+        self.read_time = 0
+        self.extract_time = 0
+        if mask is None:
+            image = imageset[0]
+            if not isinstance(image, tuple):
+                image = (image,)
+            mask = []
+            for i in range(len(image)):
+                tr = detector[i].get_trusted_range()
+                mask.append(image[i].as_double() > tr[0])
+            mask = tuple(mask)
+        sys.stdout.write("Reading images: ")
+        for i in range(len(imageset)):
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            st = time()
+            image = imageset[i]
+            self.read_time += time() - st
+            if not isinstance(image, tuple):
+                image = (image,)
+            st = time()
+            self.next(Image(image, mask))
+            self.extract_time += time() - st
+            del image
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+        assert self.finished()
 
 
 class IntegrationTask3DMultiExecutor(IntegrationTask3DMultiExecutorBase):
-  ''' Add additional methods. '''
+    """ Add additional methods. """
 
-  def __init__(self, data, jobs, npanels, callback):
-    from dials.array_family import flex
+    def __init__(self, data, jobs, npanels, callback):
+        from dials.array_family import flex
 
-    # Allocate shoeboxes
-    data["shoebox"] = flex.shoebox(data["panel"], data["bbox"])
-    data["shoebox"].allocate()
+        # Allocate shoeboxes
+        data["shoebox"] = flex.shoebox(data["panel"], data["bbox"])
+        data["shoebox"].allocate()
 
-    # Set the callback
-    self._callback = callback
+        # Set the callback
+        self._callback = callback
 
-    # Initialise the base class
-    super(IntegrationTask3DMultiExecutor, self).__init__(data, jobs, npanels)
+        # Initialise the base class
+        super(IntegrationTask3DMultiExecutor, self).__init__(data, jobs, npanels)
 
-  def execute(self, imageset, mask=None):
-    ''' Passing in an imageset process all the images. '''
-    from dials.model.data import Image
-    from time import time
-    import sys
-    detector = imageset.get_detector()
-    frame00 = self.frame0()
-    frame10 = self.frame1()
-    frame01, frame11 = imageset.get_array_range()
-    assert(frame00 == frame01)
-    assert(frame10 == frame11)
-    self.read_time = 0
-    self.extract_time = 0
-    if mask is None:
-      image = imageset[0]
-      if not isinstance(image, tuple):
-        image = (image,)
-      mask = []
-      for i in range(len(image)):
-        tr = detector[i].get_trusted_range()
-        mask.append(image[i].as_double() > tr[0])
-      mask = tuple(mask)
-    sys.stdout.write("Reading images: ")
-    for i in range(len(imageset)):
-      st = time()
-      image = imageset[i]
-      self.read_time += time() - st
-      if not isinstance(image, tuple):
-        image = (image,)
-      st = time()
-      self.next(Image(image, mask))
-      self.extract_time += time() - st
-      sys.stdout.write(".")
-      sys.stdout.flush()
-      del image
-    self._callback(self.data())
-    del self.data()["shoebox"]
-    sys.stdout.write("\n")
-    sys.stdout.flush()
-    assert(self.finished())
+    def execute(self, imageset, mask=None):
+        """ Passing in an imageset process all the images. """
+        from dials.model.data import Image
+        from time import time
+        import sys
+
+        detector = imageset.get_detector()
+        frame00 = self.frame0()
+        frame10 = self.frame1()
+        frame01, frame11 = imageset.get_array_range()
+        assert frame00 == frame01
+        assert frame10 == frame11
+        self.read_time = 0
+        self.extract_time = 0
+        if mask is None:
+            image = imageset[0]
+            if not isinstance(image, tuple):
+                image = (image,)
+            mask = []
+            for i in range(len(image)):
+                tr = detector[i].get_trusted_range()
+                mask.append(image[i].as_double() > tr[0])
+            mask = tuple(mask)
+        sys.stdout.write("Reading images: ")
+        for i in range(len(imageset)):
+            st = time()
+            image = imageset[i]
+            self.read_time += time() - st
+            if not isinstance(image, tuple):
+                image = (image,)
+            st = time()
+            self.next(Image(image, mask))
+            self.extract_time += time() - st
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            del image
+        self._callback(self.data())
+        del self.data()["shoebox"]
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+        assert self.finished()
 
 
 class IntegrationTask3D(IntegrationTask):
-  ''' A class to perform a 3D integration task. '''
+    """ A class to perform a 3D integration task. """
 
-  def __init__(self, index, experiments, data, jobs):
-    ''' Initialise the task. '''
-    self._index = index
-    self._experiments = experiments
-    self._data = data
-    self._jobs = jobs
-    self._mask = None
+    def __init__(self, index, experiments, data, jobs):
+        """ Initialise the task. """
+        self._index = index
+        self._experiments = experiments
+        self._data = data
+        self._jobs = jobs
+        self._mask = None
 
-  def __call__(self):
-    ''' Do the integration. '''
-    from dials.array_family import flex
-    from scitbx.array_family import shared
-    import sys
-    print("=" * 80)
-    print("")
-    print("Integrating task %d" % self._index)
-    process = IntegrationProcessor3D(self._experiments)
+    def __call__(self):
+        """ Do the integration. """
+        from dials.array_family import flex
+        from scitbx.array_family import shared
+        import sys
 
-    if isinstance(self._jobs, shared.tiny_int_2):
-      Executor = IntegrationTask3DExecutor
-    else:
-      Executor = IntegrationTask3DMultiExecutor
-    detectors = self._experiments.detectors()
-    assert(len(detectors) == 1)
-    npanels = len(detectors[0])
-    executor = Executor(self._data, self._jobs, npanels, process)
-    imageset = self._experiments[0].imageset
-    imageset = imageset[executor.frame0():executor.frame1()]
-    executor.execute(imageset)
-    result = IntegrationResult(self._index, executor.data())
-    result.read_time = executor.read_time
-    result.extract_time = executor.extract_time
-    result.process_time = process.time
-    return result
+        print("=" * 80)
+        print("")
+        print("Integrating task %d" % self._index)
+        process = IntegrationProcessor3D(self._experiments)
+
+        if isinstance(self._jobs, shared.tiny_int_2):
+            Executor = IntegrationTask3DExecutor
+        else:
+            Executor = IntegrationTask3DMultiExecutor
+        detectors = self._experiments.detectors()
+        assert len(detectors) == 1
+        npanels = len(detectors[0])
+        executor = Executor(self._data, self._jobs, npanels, process)
+        imageset = self._experiments[0].imageset
+        imageset = imageset[executor.frame0() : executor.frame1()]
+        executor.execute(imageset)
+        result = IntegrationResult(self._index, executor.data())
+        result.read_time = executor.read_time
+        result.extract_time = executor.extract_time
+        result.process_time = process.time
+        return result
 
 
 class IntegrationManager3D(IntegrationManager):
-  ''' An class to manage 3D integration. book-keeping '''
+    """ An class to manage 3D integration. book-keeping """
 
-  def __init__(self,
-               experiments,
-               reflections,
-               block_size=1,
-               max_procs=1):
-    ''' Initialise the manager. '''
-    from dials.algorithms.integration import IntegrationManager3DExecutor
-    from dials.algorithms.integration import IntegrationManager3DMultiExecutor
-    from dials.array_family import flex
-    imagesets = experiments.imagesets()
-    detectors = experiments.detectors()
-    scans = experiments.scans()
-    assert(len(imagesets) == 1)
-    assert(len(scans) == 1)
-    assert(len(detectors) == 1)
-    imageset = imagesets[0]
-    scan = scans[0]
-    detector = detectors[0]
-    assert(len(imageset) == len(scan))
-    self._experiments = experiments
-    self._reflections = reflections
-    phi0, dphi = scan.get_oscillation()
-    block_size = block_size / dphi
-    if max_procs == 1:
-      self._manager = IntegrationManager3DExecutor(
-        self._reflections,
-        scan.get_array_range(),
-        block_size)
-    else:
-      self._manager = IntegrationManager3DMultiExecutor(
-        self._reflections,
-        scan.get_array_range(),
-        block_size)
-    self.read_time = 0
-    self.extract_time = 0
-    self.process_time = 0
+    def __init__(self, experiments, reflections, block_size=1, max_procs=1):
+        """ Initialise the manager. """
+        from dials.algorithms.integration import IntegrationManager3DExecutor
+        from dials.algorithms.integration import IntegrationManager3DMultiExecutor
+        from dials.array_family import flex
 
-  def task(self, index):
-    ''' Get a task. '''
-    return IntegrationTask3D(
-      index,
-      self._experiments,
-      self._manager.split(index),
-      self._manager.job(index))
+        imagesets = experiments.imagesets()
+        detectors = experiments.detectors()
+        scans = experiments.scans()
+        assert len(imagesets) == 1
+        assert len(scans) == 1
+        assert len(detectors) == 1
+        imageset = imagesets[0]
+        scan = scans[0]
+        detector = detectors[0]
+        assert len(imageset) == len(scan)
+        self._experiments = experiments
+        self._reflections = reflections
+        phi0, dphi = scan.get_oscillation()
+        block_size = block_size / dphi
+        if max_procs == 1:
+            self._manager = IntegrationManager3DExecutor(
+                self._reflections, scan.get_array_range(), block_size
+            )
+        else:
+            self._manager = IntegrationManager3DMultiExecutor(
+                self._reflections, scan.get_array_range(), block_size
+            )
+        self.read_time = 0
+        self.extract_time = 0
+        self.process_time = 0
 
-  def tasks(self):
-    ''' Iterate through the tasks. '''
-    for i in range(len(self)):
-      yield self.task(i)
+    def task(self, index):
+        """ Get a task. """
+        return IntegrationTask3D(
+            index,
+            self._experiments,
+            self._manager.split(index),
+            self._manager.job(index),
+        )
 
-  def accumulate(self, result):
-    ''' Accumulate the results. '''
-    self._manager.accumulate(result.index, result.reflections)
-    self.read_time += result.read_time
-    self.extract_time += result.extract_time
-    self.process_time += result.process_time
+    def tasks(self):
+        """ Iterate through the tasks. """
+        for i in range(len(self)):
+            yield self.task(i)
 
-  def result(self):
-    ''' Return the result. '''
-    return self._manager.data()
+    def accumulate(self, result):
+        """ Accumulate the results. """
+        self._manager.accumulate(result.index, result.reflections)
+        self.read_time += result.read_time
+        self.extract_time += result.extract_time
+        self.process_time += result.process_time
 
-  def finished(self):
-    ''' Return if all tasks have finished. '''
-    return self._manager.finished()
+    def result(self):
+        """ Return the result. """
+        return self._manager.data()
 
-  def __len__(self):
-    ''' Return the number of tasks. '''
-    return len(self._manager)
+    def finished(self):
+        """ Return if all tasks have finished. """
+        return self._manager.finished()
 
-
-
+    def __len__(self):
+        """ Return the number of tasks. """
+        return len(self._manager)
 
 
 #   def _print_summary(self, block_size):
@@ -529,103 +536,113 @@ class IntegrationManager3D(IntegrationManager):
 
 
 class Integrator3D(Integrator):
-  ''' Top level integrator for 3D integration. '''
+    """ Top level integrator for 3D integration. """
 
-  def __init__(self,
-               experiments,
-               reflections,
-               block_size=1,
-               max_procs=1,
-               mp_method='multiprocessing'):
-    ''' Initialise the manager and the integrator. '''
+    def __init__(
+        self,
+        experiments,
+        reflections,
+        block_size=1,
+        max_procs=1,
+        mp_method="multiprocessing",
+    ):
+        """ Initialise the manager and the integrator. """
 
-    # Create the integration manager
-    manager = IntegrationManager3D(
-      experiments,
-      reflections,
-      block_size,
-      max_procs)
+        # Create the integration manager
+        manager = IntegrationManager3D(experiments, reflections, block_size, max_procs)
 
-    # Initialise the integrator
-    super(Integrator3D, self).__init__(manager, max_procs, mp_method)
+        # Initialise the integrator
+        super(Integrator3D, self).__init__(manager, max_procs, mp_method)
 
 
 class IntegratorFlat2D(Integrator):
-  ''' Top level integrator for flat 2D integration. '''
+    """ Top level integrator for flat 2D integration. """
 
-  def __init__(self,
-               experiments,
-               reflections,
-               block_size=1,
-               max_procs=1,
-               mp_method='multiprocessing'):
-    ''' Initialise the manager and the integrator. '''
-    raise RuntimeError("Not Implemented")
+    def __init__(
+        self,
+        experiments,
+        reflections,
+        block_size=1,
+        max_procs=1,
+        mp_method="multiprocessing",
+    ):
+        """ Initialise the manager and the integrator. """
+        raise RuntimeError("Not Implemented")
 
 
 class Integrator2D(Integrator):
-  ''' Top level integrator for 2D integration. '''
+    """ Top level integrator for 2D integration. """
 
-  def __init__(self,
-               experiments,
-               reflections,
-               block_size=1,
-               max_procs=1,
-               mp_method='multiprocessing'):
-    ''' Initialise the manager and the integrator. '''
-    raise RuntimeError("Not Implemented")
+    def __init__(
+        self,
+        experiments,
+        reflections,
+        block_size=1,
+        max_procs=1,
+        mp_method="multiprocessing",
+    ):
+        """ Initialise the manager and the integrator. """
+        raise RuntimeError("Not Implemented")
 
 
 class IntegratorFactory(object):
-  ''' A factory for creating integrators. '''
+    """ A factory for creating integrators. """
 
-  @staticmethod
-  def create(params, experiments, reflections):
-    ''' Create the integrator from the input configuration. '''
-    from dials.interfaces import IntensityIface
-    from dials.interfaces import BackgroundIface
-    from dials.interfaces import CentroidIface
-    from dials.array_family import flex
+    @staticmethod
+    def create(params, experiments, reflections):
+        """ Create the integrator from the input configuration. """
+        from dials.interfaces import IntensityIface
+        from dials.interfaces import BackgroundIface
+        from dials.interfaces import CentroidIface
+        from dials.array_family import flex
 
-    # Initialise the strategy classes
-    BackgroundAlgorithm = BackgroundIface.extension(
-      params.integration.background.algorithm)
-    IntensityAlgorithm = IntensityIface.extension(
-      params.integration.intensity.algorithm)
-    CentroidAlgorithm = CentroidIface.extension(
-      params.integration.centroid.algorithm)
+        # Initialise the strategy classes
+        BackgroundAlgorithm = BackgroundIface.extension(
+            params.integration.background.algorithm
+        )
+        IntensityAlgorithm = IntensityIface.extension(
+            params.integration.intensity.algorithm
+        )
+        CentroidAlgorithm = CentroidIface.extension(
+            params.integration.centroid.algorithm
+        )
 
-    # Set the algorithms in the reflection table
-    flex.reflection_table._background_algorithm = \
-      flex.strategy(BackgroundAlgorithm, params)
-    flex.reflection_table._intensity_algorithm = \
-      flex.strategy(IntensityAlgorithm, params)
-    flex.reflection_table._centroid_algorithm = \
-      flex.strategy(CentroidAlgorithm, params)
+        # Set the algorithms in the reflection table
+        flex.reflection_table._background_algorithm = flex.strategy(
+            BackgroundAlgorithm, params
+        )
+        flex.reflection_table._intensity_algorithm = flex.strategy(
+            IntensityAlgorithm, params
+        )
+        flex.reflection_table._centroid_algorithm = flex.strategy(
+            CentroidAlgorithm, params
+        )
 
-    # Get the integrator class
-    IntegratorClass = IntegratorFactory.select_integrator(IntensityAlgorithm)
+        # Get the integrator class
+        IntegratorClass = IntegratorFactory.select_integrator(IntensityAlgorithm)
 
-    # Return an instantiation of the class
-    return IntegratorClass(
-      experiments=experiments,
-      reflections=reflections,
-      block_size=params.integration.block.size,
-      max_procs=params.integration.mp.max_procs,
-      mp_method=params.integration.mp.method)
+        # Return an instantiation of the class
+        return IntegratorClass(
+            experiments=experiments,
+            reflections=reflections,
+            block_size=params.integration.block.size,
+            max_procs=params.integration.mp.max_procs,
+            mp_method=params.integration.mp.method,
+        )
 
-  @staticmethod
-  def select_integrator(cls):
-    ''' Select the integrator. '''
-    from dials.interfaces import Integration3DMixin
-    from dials.interfaces import IntegrationFlat2DMixin
-    from dials.interfaces import Integration2DMixin
-    if issubclass(cls, Integration3DMixin):
-      IntegratorClass = Integrator3D
-    elif issubclass(cls, IntegrationFlat2DMixin):
-      IntegratorClass = IntegratorFlat2D
-    elif issubclass(cls, Integration2DMixin):
-      IntegratorClass = Integrator2D
-    else:
-      raise RuntimeError("Unknown integration type")
-    return IntegratorClass
+    @staticmethod
+    def select_integrator(cls):
+        """ Select the integrator. """
+        from dials.interfaces import Integration3DMixin
+        from dials.interfaces import IntegrationFlat2DMixin
+        from dials.interfaces import Integration2DMixin
+
+        if issubclass(cls, Integration3DMixin):
+            IntegratorClass = Integrator3D
+        elif issubclass(cls, IntegrationFlat2DMixin):
+            IntegratorClass = IntegratorFlat2D
+        elif issubclass(cls, Integration2DMixin):
+            IntegratorClass = Integrator2D
+        else:
+            raise RuntimeError("Unknown integration type")
+        return IntegratorClass

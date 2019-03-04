@@ -1,83 +1,85 @@
-
 from __future__ import division
 from __future__ import print_function
+
+
 def median(x):
-  import numpy
-  return numpy.median(x)
+    import numpy
 
-if __name__ == '__main__':
+    return numpy.median(x)
 
-  from scitbx.glmtbx import robust_glm, glm
-  from math import exp, ceil, log
-  from dials.array_family import flex
-  from numpy.random import poisson
-  from time import time
 
-  known = [1, 1]
+if __name__ == "__main__":
 
-  X = []
-  for i in range(1000):
-    X.append([1, i])
+    from scitbx.glmtbx import robust_glm, glm
+    from math import exp, ceil, log
+    from dials.array_family import flex
+    from numpy.random import poisson
+    from time import time
 
-  tt = 0
+    known = [1, 1]
 
-  for it in range(1000):
+    X = []
+    for i in range(1000):
+        X.append([1, i])
 
-    # Y = [exp(known[0]*x[0] + known[1]*x[1]) for x in X]
+    tt = 0
 
-    # Y1 = [int(poisson(exp(known[0]*x[0] + known[1]*x[1]),1)[0]) for x in X]
-    Y1 = [int(poisson(known[0]*x[0] + known[1]*x[1],1)[0]) for x in X]
-    # Y1 = [int(exp(known[0]*x[0] + known[1]*x[1])) for x in X]
+    for it in range(1000):
 
-    initial = median(Y1)
-    if initial > 0:
-      initial = log(initial)
+        # Y = [exp(known[0]*x[0] + known[1]*x[1]) for x in X]
 
-    initial = [initial, 0]
+        # Y1 = [int(poisson(exp(known[0]*x[0] + known[1]*x[1]),1)[0]) for x in X]
+        Y1 = [int(poisson(known[0] * x[0] + known[1] * x[1], 1)[0]) for x in X]
+        # Y1 = [int(exp(known[0]*x[0] + known[1]*x[1])) for x in X]
 
-    st = time()
-    result = robust_glm(
-      flex.double(X),
-      flex.double(Y1),
-      flex.double(initial),
-      max_iter=1000)
-    assert result.converged()
-    tt += time() - st
+        initial = median(Y1)
+        if initial > 0:
+            initial = log(initial)
 
-    beta = list(result.parameters())
+        initial = [initial, 0]
 
-    print(beta)
+        st = time()
+        result = robust_glm(
+            flex.double(X), flex.double(Y1), flex.double(initial), max_iter=1000
+        )
+        assert result.converged()
+        tt += time() - st
 
-    Y2 = [exp(beta[0]*x[0] + beta[1]*x[1]) for x in X]
+        beta = list(result.parameters())
 
-    P = [1.0 for x in X]
+        print(beta)
 
-    result = glm(
-      flex.double(X),
-      flex.double(Y1),
-      flex.double(initial),
-      flex.double(P),
-      max_iter=1000)
-    assert result.converged()
+        Y2 = [exp(beta[0] * x[0] + beta[1] * x[1]) for x in X]
 
-    beta = list(result.parameters())
+        P = [1.0 for x in X]
 
-    print(beta)
+        result = glm(
+            flex.double(X),
+            flex.double(Y1),
+            flex.double(initial),
+            flex.double(P),
+            max_iter=1000,
+        )
+        assert result.converged()
 
-    Y3 = [exp(beta[0]*x[0] + beta[1]*x[1]) for x in X]
+        beta = list(result.parameters())
 
-    m1 = max(Y1)
-    m2 = max(Y2)
-    m3 = max(Y3)
-    m = ceil(max([m1,m2,m3]))
+        print(beta)
 
-    # from matplotlib import pylab
-    # pylab.ylim((0, m))
-    # # pylab.plot(Y, label="Y")
-    # pylab.plot(Y1, label="Y1")
-    # pylab.plot(Y2, label="Y2")
-    # pylab.plot(Y3, label="Y3")
-    # pylab.legend()
-    # pylab.show()
+        Y3 = [exp(beta[0] * x[0] + beta[1] * x[1]) for x in X]
 
-  print("Time: ", time() - st)
+        m1 = max(Y1)
+        m2 = max(Y2)
+        m3 = max(Y3)
+        m = ceil(max([m1, m2, m3]))
+
+        # from matplotlib import pylab
+        # pylab.ylim((0, m))
+        # # pylab.plot(Y, label="Y")
+        # pylab.plot(Y1, label="Y1")
+        # pylab.plot(Y2, label="Y2")
+        # pylab.plot(Y3, label="Y3")
+        # pylab.legend()
+        # pylab.show()
+
+    print("Time: ", time() - st)

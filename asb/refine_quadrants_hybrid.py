@@ -19,29 +19,32 @@ from dials.model.serialize import load as load_dials
 from dials.array_family import flex
 from dials.algorithms.refinement import RefinerFactory
 
+
 def load_input(exp_path, ref_path):
 
-  refs = load_dials.reflections(ref_path)
-  exp = load_dxtbx.experiment_list(exp_path , check_format=False)[0]
-  return refs, exp
+    refs = load_dials.reflections(ref_path)
+    exp = load_dxtbx.experiment_list(exp_path, check_format=False)[0]
+    return refs, exp
+
 
 class ExperimentFromCrystal(object):
+    def __init__(self, reference_beam, reference_detector):
 
-  def __init__(self, reference_beam, reference_detector):
+        self.reference_beam = reference_beam
+        self.reference_detector = reference_detector
+        return
 
-    self.reference_beam = reference_beam
-    self.reference_detector = reference_detector
-    return
+    def __call__(self, crystal):
 
-  def __call__(self, crystal):
+        return Experiment(
+            beam=self.reference_beam, detector=self.reference_detector, crystal=crystal
+        )
 
-    return Experiment(beam=self.reference_beam,
-                      detector=self.reference_detector,
-                      crystal=crystal)
 
 class DetectorRefiner(object):
 
-  user_phil=parse("""
+    user_phil = parse(
+        """
   refinement{
     parameterisation {
       beam.fix=all
@@ -51,24 +54,29 @@ class DetectorRefiner(object):
     }
     target.gradient_calculation_blocksize=100000
     reflections.outlier.algorithm=tukey
-  }""")
-  from dials.algorithms.refinement.refiner import phil_scope as refinement_phil
-  working_phil = refinement_phil.fetch(sources=[user_phil])
+  }"""
+    )
+    from dials.algorithms.refinement.refiner import phil_scope as refinement_phil
 
-  def __call__(self, experiments, reflections):
+    working_phil = refinement_phil.fetch(sources=[user_phil])
 
-    self.working_phil.show()
-    params = self.working_phil.extract()
-    refiner = RefinerFactory.from_parameters_data_experiments(
-        params, reflections, experiments, verbosity=2)
-    refiner.run()
-    experiments = refiner.get_experiments()
+    def __call__(self, experiments, reflections):
 
-    return experiments
+        self.working_phil.show()
+        params = self.working_phil.extract()
+        refiner = RefinerFactory.from_parameters_data_experiments(
+            params, reflections, experiments, verbosity=2
+        )
+        refiner.run()
+        experiments = refiner.get_experiments()
+
+        return experiments
+
 
 class CrystalRefiners(object):
 
-  user_phil=parse("""
+    user_phil = parse(
+        """
   refinement{
     parameterisation {
       beam.fix=all
@@ -76,79 +84,87 @@ class CrystalRefiners(object):
     }
     reflections.outlier.algorithm=tukey
     refinery.engine=LBFGScurvs
-  }""")
-  from dials.algorithms.refinement.refiner import phil_scope as refinement_phil
-  working_phil = refinement_phil.fetch(sources=[user_phil])
+  }"""
+    )
+    from dials.algorithms.refinement.refiner import phil_scope as refinement_phil
 
-  def __call__(self, experiments, reflections):
+    working_phil = refinement_phil.fetch(sources=[user_phil])
 
-    self.working_phil.show()
-    params = self.working_phil.extract()
+    def __call__(self, experiments, reflections):
 
-    for iexp, exp in enumerate(experiments):
+        self.working_phil.show()
+        params = self.working_phil.extract()
 
-      print("Refining crystal", iexp)
-      # reflection subset for a single experiment
-      refs = reflections.select(reflections['id'] == iexp)
-      refs['id'] = flex.size_t(len(refs),0)
-      # experiment list for a single experiment
-      exps=ExperimentList()
-      exps.append(exp)
-      refiner = RefinerFactory.from_parameters_data_experiments(
-        params, refs, exps, verbosity=1)
-      # do refinement
-      refiner.run()
-      refined_exps = refiner.get_experiments()
-      # replace this experiment with the refined one
-      experiments[iexp] = refined_exps[0]
+        for iexp, exp in enumerate(experiments):
 
-    return experiments
+            print("Refining crystal", iexp)
+            # reflection subset for a single experiment
+            refs = reflections.select(reflections["id"] == iexp)
+            refs["id"] = flex.size_t(len(refs), 0)
+            # experiment list for a single experiment
+            exps = ExperimentList()
+            exps.append(exp)
+            refiner = RefinerFactory.from_parameters_data_experiments(
+                params, refs, exps, verbosity=1
+            )
+            # do refinement
+            refiner.run()
+            refined_exps = refiner.get_experiments()
+            # replace this experiment with the refined one
+            experiments[iexp] = refined_exps[0]
+
+        return experiments
+
 
 def check_experiment(experiment, reflections):
 
-  # predict reflections in place
-  from dials.algorithms.spot_prediction import StillsReflectionPredictor
-  sp = StillsReflectionPredictor(experiment)
-  UB = experiment.crystal.get_U() * experiment.crystal.get_B()
-  try:
-    sp.for_reflection_table(reflections, UB)
-  except RuntimeError:
-    return False
+    # predict reflections in place
+    from dials.algorithms.spot_prediction import StillsReflectionPredictor
 
-  # calculate unweighted RMSDs
-  x_obs, y_obs, _ = reflections['xyzobs.px.value'].parts()
-  delpsi = reflections['delpsical.rad']
-  x_calc, y_calc, _ = reflections['xyzcal.px'].parts()
+    sp = StillsReflectionPredictor(experiment)
+    UB = experiment.crystal.get_U() * experiment.crystal.get_B()
+    try:
+        sp.for_reflection_table(reflections, UB)
+    except RuntimeError:
+        return False
 
-  # calculate residuals and assign columns
-  x_resid = x_calc - x_obs
-  x_resid2 = x_resid**2
-  y_resid = y_calc - y_obs
-  y_resid2 = y_resid**2
-  delpsical2 = delpsi**2
-  r_x = flex.sum(x_resid2)
-  r_y = flex.sum(y_resid2)
-  r_z = flex.sum(delpsical2)
+    # calculate unweighted RMSDs
+    x_obs, y_obs, _ = reflections["xyzobs.px.value"].parts()
+    delpsi = reflections["delpsical.rad"]
+    x_calc, y_calc, _ = reflections["xyzcal.px"].parts()
 
-  # rmsd calculation
-  n = len(reflections)
-  rmsds = (sqrt(r_x / n),
-           sqrt(r_y / n),
-           sqrt(r_z / n))
+    # calculate residuals and assign columns
+    x_resid = x_calc - x_obs
+    x_resid2 = x_resid ** 2
+    y_resid = y_calc - y_obs
+    y_resid2 = y_resid ** 2
+    delpsical2 = delpsi ** 2
+    r_x = flex.sum(x_resid2)
+    r_y = flex.sum(y_resid2)
+    r_z = flex.sum(delpsical2)
 
-  # check positional RMSDs are within 5 pixels
-  print(rmsds)
-  if rmsds[0] > 5: return False
-  if rmsds[1] > 5: return False
+    # rmsd calculation
+    n = len(reflections)
+    rmsds = (sqrt(r_x / n), sqrt(r_y / n), sqrt(r_z / n))
 
-  return True
+    # check positional RMSDs are within 5 pixels
+    print(rmsds)
+    if rmsds[0] > 5:
+        return False
+    if rmsds[1] > 5:
+        return False
 
-if __name__ =="__main__":
+    return True
 
-  if len(sys.argv) != 2: exit("please pass the path to a phil file")
-  phil = sys.argv[1]
 
-  master_phil = parse("""
+if __name__ == "__main__":
+
+    if len(sys.argv) != 2:
+        exit("please pass the path to a phil file")
+    phil = sys.argv[1]
+
+    master_phil = parse(
+        """
     input
       .multiple = True
     {
@@ -159,59 +175,64 @@ if __name__ =="__main__":
     }
     n_macrocycles = 1
       .type = int(value_min=1)
-    """)
+    """
+    )
 
-  cmd_line = command_line.argument_interpreter(master_params=master_phil)
-  working_phil = cmd_line.process_and_fetch(args=(phil,))
-  working_params = working_phil.extract()
+    cmd_line = command_line.argument_interpreter(master_params=master_phil)
+    working_phil = cmd_line.process_and_fetch(args=(phil,))
+    working_params = working_phil.extract()
 
-  for input in working_params.input:
-    print(input.experiments, input.reflections)
+    for input in working_params.input:
+        print(input.experiments, input.reflections)
 
-  assert len(working_params.input) > 1
-  print(len(working_params.input), "datasets specified as input")
+    assert len(working_params.input) > 1
+    print(len(working_params.input), "datasets specified as input")
 
-  e = enumerate(working_params.input)
-  i, line = next(e)
-  reflections, exp = load_input(line.experiments, line.reflections)
-  assert reflections['id'].all_eq(0)
-  from dials.algorithms.indexing.indexer import indexer_base
-  reflections = indexer_base.map_spots_pixel_to_mm_rad(reflections, exp.detector, exp.scan)
-  experiment_from_crystal=ExperimentFromCrystal(exp.beam, exp.detector)
+    e = enumerate(working_params.input)
+    i, line = next(e)
+    reflections, exp = load_input(line.experiments, line.reflections)
+    assert reflections["id"].all_eq(0)
+    from dials.algorithms.indexing.indexer import indexer_base
 
-  experiments=ExperimentList()
-  experiments.append(experiment_from_crystal(exp.crystal))
+    reflections = indexer_base.map_spots_pixel_to_mm_rad(
+        reflections, exp.detector, exp.scan
+    )
+    experiment_from_crystal = ExperimentFromCrystal(exp.beam, exp.detector)
 
-  for i, line in e:
+    experiments = ExperimentList()
+    experiments.append(experiment_from_crystal(exp.crystal))
 
-    refs, exp = load_input(line.experiments, line.reflections)
-    new_exp = experiment_from_crystal(exp.crystal)
-    if check_experiment(new_exp, refs):
-      refs['id'] = flex.size_t(len(refs),len(experiments))
-      refs = indexer_base.map_spots_pixel_to_mm_rad(refs, exp.detector, exp.scan)
-      reflections.extend(refs)
-      experiments.append(experiment_from_crystal(exp.crystal))
-    else:
-      print("skipping experiment", i, "due to poor RMSDs")
-      continue
+    for i, line in e:
 
-  dr = DetectorRefiner()
-  cr = CrystalRefiners()
+        refs, exp = load_input(line.experiments, line.reflections)
+        new_exp = experiment_from_crystal(exp.crystal)
+        if check_experiment(new_exp, refs):
+            refs["id"] = flex.size_t(len(refs), len(experiments))
+            refs = indexer_base.map_spots_pixel_to_mm_rad(refs, exp.detector, exp.scan)
+            reflections.extend(refs)
+            experiments.append(experiment_from_crystal(exp.crystal))
+        else:
+            print("skipping experiment", i, "due to poor RMSDs")
+            continue
 
-  for cycle in range(working_params.n_macrocycles):
+    dr = DetectorRefiner()
+    cr = CrystalRefiners()
 
-    print("MACROCYCLE %02d" % (cycle + 1))
-    print("=============\n")
-    # first run: multi experiment joint refinement of detector with fixed beam and
-    # crystals
-    experiments = dr(experiments, reflections)
+    for cycle in range(working_params.n_macrocycles):
 
-    # second run
-    experiments = cr(experiments, reflections)
+        print("MACROCYCLE %02d" % (cycle + 1))
+        print("=============\n")
+        # first run: multi experiment joint refinement of detector with fixed beam and
+        # crystals
+        experiments = dr(experiments, reflections)
 
-  # save the refined experiments
-  from dxtbx.model.experiment.experiment_list import ExperimentListDumper
-  dump = ExperimentListDumper(experiments)
-  experiments_filename = "refined_experiments.json"
-  dump.as_json(experiments_filename)
-  print("refined geometry written to {0}".format(experiments_filename))
+        # second run
+        experiments = cr(experiments, reflections)
+
+    # save the refined experiments
+    from dxtbx.model.experiment.experiment_list import ExperimentListDumper
+
+    dump = ExperimentListDumper(experiments)
+    experiments_filename = "refined_experiments.json"
+    dump.as_json(experiments_filename)
+    print("refined geometry written to {0}".format(experiments_filename))

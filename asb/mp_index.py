@@ -35,18 +35,18 @@ user_phil = []
 root_dirs = []
 indexing_phil = None
 for arg in sys.argv[1:]:
-  if os.path.isdir(arg):
-    root_dirs.append(arg)
-  elif os.path.isfile(arg):
-    assert indexing_phil is None
-    indexing_phil = arg
-  else:
-    try:
-      user_phil.append(parse(arg))
-    except Exception:
-      raise Sorry("Couldn't parse argument %s"%arg)
+    if os.path.isdir(arg):
+        root_dirs.append(arg)
+    elif os.path.isfile(arg):
+        assert indexing_phil is None
+        indexing_phil = arg
+    else:
+        try:
+            user_phil.append(parse(arg))
+        except Exception:
+            raise Sorry("Couldn't parse argument %s" % arg)
 
-params = phil_scope.fetch(sources = user_phil).extract()
+params = phil_scope.fetch(sources=user_phil).extract()
 
 print("Finding files")
 
@@ -54,40 +54,49 @@ images = []
 strongs = []
 
 for root in root_dirs:
-  for filename in os.listdir(root):
-    if os.path.splitext(filename)[1] != params.image_extension: continue
-    filepath = os.path.join(root, filename)
-    strong_filepath = os.path.join(root, os.path.splitext(filename)[0] + "_strong.pickle")
-    if not os.path.exists(strong_filepath):
-      raise Sorry("Couldn't find spotfinding results for image %s"%filepath)
-    images.append(filepath)
-    strongs.append(strong_filepath)
+    for filename in os.listdir(root):
+        if os.path.splitext(filename)[1] != params.image_extension:
+            continue
+        filepath = os.path.join(root, filename)
+        strong_filepath = os.path.join(
+            root, os.path.splitext(filename)[0] + "_strong.pickle"
+        )
+        if not os.path.exists(strong_filepath):
+            raise Sorry("Couldn't find spotfinding results for image %s" % filepath)
+        images.append(filepath)
+        strongs.append(strong_filepath)
 
-print("Found %d images to index"%len(images))
+print("Found %d images to index" % len(images))
+
 
 def index(item):
-  image, strong = item
-  base = os.path.splitext(os.path.basename(image))[0]
-  datablock = os.path.join(params.output_dir, base + "_datablock.json")
-  command = "dials.import %s output.datablock=%s"%(image, datablock)
-  if params.reference_geometry is not None:
-    command += " reference_geometry=%s"%params.reference_geometry
-  easy_run.fully_buffered(command).raise_if_errors().show_stdout()
+    image, strong = item
+    base = os.path.splitext(os.path.basename(image))[0]
+    datablock = os.path.join(params.output_dir, base + "_datablock.json")
+    command = "dials.import %s output.datablock=%s" % (image, datablock)
+    if params.reference_geometry is not None:
+        command += " reference_geometry=%s" % params.reference_geometry
+    easy_run.fully_buffered(command).raise_if_errors().show_stdout()
 
-  command = "dials.index %s %s output.experiments=%s output.reflections=%s"% (
-    datablock, strong, os.path.join(params.output_dir, base + "_experiments.json"),
-                       os.path.join(params.output_dir, base + "_indexed.pickle"))
-  if indexing_phil is not None:
-    command += " %s"%indexing_phil
+    command = "dials.index %s %s output.experiments=%s output.reflections=%s" % (
+        datablock,
+        strong,
+        os.path.join(params.output_dir, base + "_experiments.json"),
+        os.path.join(params.output_dir, base + "_indexed.pickle"),
+    )
+    if indexing_phil is not None:
+        command += " %s" % indexing_phil
 
-  easy_run.fully_buffered(command).show_stdout()
+    easy_run.fully_buffered(command).show_stdout()
+
 
 easy_mp.parallel_map(
-  func=index,
-  iterable=zip(images, strongs),
-  processes=params.mp.nproc,
-  method=params.mp.method,
-  preserve_order=False,
-  preserve_exception_message=True)
+    func=index,
+    iterable=zip(images, strongs),
+    processes=params.mp.nproc,
+    method=params.mp.method,
+    preserve_order=False,
+    preserve_exception_message=True,
+)
 
 print("All done")

@@ -2,7 +2,7 @@ from __future__ import print_function
 from dials.array_family import flex
 
 
-'''
+"""
 import numpy
 data2d = numpy.zeros((3, 3), dtype = numpy.float64)
 
@@ -15,26 +15,24 @@ for row in range(3):
     data2d[row, col] += col * 2
 
 ref_table = flex.reflection_table()
-'''
+"""
 
 
 shoebox = flex.shoebox(5)
-#panel = flex.size_t(1)
+# panel = flex.size_t(1)
 ref_table = flex.reflection_table()
 shoebox.data = flex.double(flex.grid(6, 6, 6))
-ref_table['shoebox'] = shoebox
-#ref_table['panel'] = panel
+ref_table["shoebox"] = shoebox
+# ref_table['panel'] = panel
 
 
-
-
-#efisient_way = '''
-its = ref_table['shoebox']
+# efisient_way = '''
+its = ref_table["shoebox"]
 for arr in its:
-  print(arr.data.as_numpy_array())
+    print(arr.data.as_numpy_array())
 #'''
 
-example_from_other_code = '''
+example_from_other_code = """
 strong_ref_table = flex.reflection_table()
 for row in table.rows():
   h = row['miller_index']
@@ -45,9 +43,9 @@ for row in table.rows():
   i_r_var = row['intensity.sum.variance']
   if( i_c > math.sqrt(i_c_var) and i_r > math.sqrt(i_r_var) ):
     strong_ref_table.append(row)
-'''
+"""
 
-example_from_other_code = '''
+example_from_other_code = """
     from random import randint
     from dials.model.data import Shoebox
     from scitbx.array_family import flex
@@ -76,4 +74,4 @@ example_from_other_code = '''
 
     # Test passed
     print 'OK'
-'''
+"""

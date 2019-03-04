@@ -15,8 +15,10 @@ import shadowmapper
 
 det = []
 
-def view_experiment(filename, sample_x_length=4.0, sample_y_length=0.5,
-    sample_z_length=8.0):
+
+def view_experiment(
+    filename, sample_x_length=4.0, sample_y_length=0.5, sample_z_length=8.0
+):
 
     """
     Read a cbf image and display a 3D model of the experiment.
@@ -43,53 +45,82 @@ def view_experiment(filename, sample_x_length=4.0, sample_y_length=0.5,
 
     viewer.B = myimage.find_beam_direction()
 
-    (viewer.detector_origin, viewer.fast_axis, viewer.slow_axis,
-    viewer.dimensions, viewer.pix, viewer.d,
-    res) = myimage.detector_parameters()
+    (
+        viewer.detector_origin,
+        viewer.fast_axis,
+        viewer.slow_axis,
+        viewer.dimensions,
+        viewer.pix,
+        viewer.d,
+        res,
+    ) = myimage.detector_parameters()
 
-    ((i, j, k), (alpha, beta, gamma),
-    viewer.R) = myimage.get_sample_orientation()
+    ((i, j, k), (alpha, beta, gamma), viewer.R) = myimage.get_sample_orientation()
 
     viewer.sample_angles = (alpha, beta, gamma)
 
     viewer.img_array = myimage.image_to_array()
 
-    mysample = modeller.Sample(sample_x_length, sample_y_length,
-                                  sample_z_length)
+    mysample = modeller.Sample(sample_x_length, sample_y_length, sample_z_length)
 
     viewer.r_f = mysample.rotate(i, j, k)
 
     for i in range(viewer.num_panels):
-        det.append(modeller.Panel(viewer.dimensions[i, 0],
-                                    viewer.dimensions[i, 1]))
+        det.append(modeller.Panel(viewer.dimensions[i, 0], viewer.dimensions[i, 1]))
 
-        viewer.d_r_f[i] = (det[i].get_coords(viewer.detector_origin[i],
-                            viewer.fast_axis[i], viewer.slow_axis[i]))
+        viewer.d_r_f[i] = det[i].get_coords(
+            viewer.detector_origin[i], viewer.fast_axis[i], viewer.slow_axis[i]
+        )
 
-    myshadow = shadowmapper.Shadow(shadowmapper.day2_coords, filename,
-    viewer.DET_ANGLE, viewer.d, viewer.detector_origin, viewer.fast_axis,
-    viewer.slow_axis)
+    myshadow = shadowmapper.Shadow(
+        shadowmapper.day2_coords,
+        filename,
+        viewer.DET_ANGLE,
+        viewer.d,
+        viewer.detector_origin,
+        viewer.fast_axis,
+        viewer.slow_axis,
+    )
 
-    viewer.filename, viewer.shadowsetting, viewer.blanksetting = (filename,
-                                                                False, False)
+    viewer.filename, viewer.shadowsetting, viewer.blanksetting = (
+        filename,
+        False,
+        False,
+    )
 
-    (viewer.kappa, viewer.omega, viewer.offset_matrix,
-    viewer.sample_x) = -180.0, 90.0, np.zeros(3), 0.0
+    (viewer.kappa, viewer.omega, viewer.offset_matrix, viewer.sample_x) = (
+        -180.0,
+        90.0,
+        np.zeros(3),
+        0.0,
+    )
 
-    (viewer.tex_data, viewer.tex, viewer.tex2, viewer.tex_shadow,
-    viewer.tex_noshad, viewer.noshad_data) = myshadow.shadow_texture()
+    (
+        viewer.tex_data,
+        viewer.tex,
+        viewer.tex2,
+        viewer.tex_shadow,
+        viewer.tex_noshad,
+        viewer.noshad_data,
+    ) = myshadow.shadow_texture()
 
     viewer.app = wx.App()
     viewer.frame = viewer.MainWindow()
     viewer.app.MainLoop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     app = wx.App()
     done = False
     wildcard = "cbf images (*.cbf)|*.cbf|All Files (*.*)|*.*"
-    dlg = wx.FileDialog(message = "Select a cbf image", parent = None,
-                wildcard = wildcard, defaultFile = "", style = wx.OPEN)
+    dlg = wx.FileDialog(
+        message="Select a cbf image",
+        parent=None,
+        wildcard=wildcard,
+        defaultFile="",
+        style=wx.OPEN,
+    )
     # Making the user repeatedly try to pick a new file if their
     # selection is invalid, without closing the dialog until 'cancel'
     # is clicked.

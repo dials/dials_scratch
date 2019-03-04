@@ -7,10 +7,11 @@ from cctbx import uctbx
 import iotbx.phil
 from dials.util.options import OptionParser
 
-help_message = '''
-'''
+help_message = """
+"""
 
-phil_scope = iotbx.phil.parse("""
+phil_scope = iotbx.phil.parse(
+    """
 space_group = None
   .type = space_group
 n_bins = 20
@@ -29,101 +30,112 @@ labels = None
   .type = str
 prefix = None
   .type = str
-""", process_includes=True)
+""",
+    process_includes=True,
+)
 
 
 def run(args):
-  import matplotlib
-  matplotlib.use('Agg')
-  import libtbx.load_env
-  usage = "%s [options]" %libtbx.env.dispatcher_name
+    import matplotlib
 
-  parser = OptionParser(
-    usage=usage,
-    phil=phil_scope,
-    check_format=False,
-    epilog=help_message)
+    matplotlib.use("Agg")
+    import libtbx.load_env
 
-  params, options, args = parser.parse_args(
-    show_diff_phil=True, return_unhandled=True)
+    usage = "%s [options]" % libtbx.env.dispatcher_name
 
-  for mtz in args:
-    print(mtz)
-    assert os.path.isfile(mtz), mtz
-    import iotbx.merging_statistics
-    i_obs = iotbx.merging_statistics.select_data(mtz, data_labels=params.labels)
-    if params.space_group is not None:
-      i_obs = i_obs.customized_copy(space_group_info=params.space_group)
+    parser = OptionParser(
+        usage=usage, phil=phil_scope, check_format=False, epilog=help_message
+    )
 
-    from scitbx.array_family import flex
-    # set the sigmas to 1, and calculate the mean intensities and internal variances
-    intensities_copy = i_obs.customized_copy(
-      sigmas=flex.double(i_obs.size(), 1))
-    merging_internal = intensities_copy.merge_equivalents(
-      use_internal_variance=True)
-    merged = merging_internal.array()
+    params, options, args = parser.parse_args(
+        show_diff_phil=True, return_unhandled=True
+    )
 
-    merging_external = i_obs.merge_equivalents(use_internal_variance=False)
+    for mtz in args:
+        print(mtz)
+        assert os.path.isfile(mtz), mtz
+        import iotbx.merging_statistics
 
-    sigmas_internal = merging_internal.array().sigmas()
-    sigmas_external = merging_external.array().sigmas()
+        i_obs = iotbx.merging_statistics.select_data(mtz, data_labels=params.labels)
+        if params.space_group is not None:
+            i_obs = i_obs.customized_copy(space_group_info=params.space_group)
 
-    variances_internal = flex.pow2(sigmas_internal)
-    variances_external = flex.pow2(sigmas_external)
+        from scitbx.array_family import flex
 
-    n_bins = 100
-    i_obs.setup_binner_counting_sorted(n_bins=n_bins)
-    sigmas_ratio = sigmas_external/sigmas_internal
-    variance_ratio = variances_external/variances_internal
+        # set the sigmas to 1, and calculate the mean intensities and internal variances
+        intensities_copy = i_obs.customized_copy(sigmas=flex.double(i_obs.size(), 1))
+        merging_internal = intensities_copy.merge_equivalents(
+            use_internal_variance=True
+        )
+        merged = merging_internal.array()
 
-    array_sr = merging_external.array().customized_copy(
-      data=sigmas_ratio, sigmas=None)
-    array_sr.use_binning_of(i_obs)
-    mean_sr = array_sr.mean(use_binning=True)
+        merging_external = i_obs.merge_equivalents(use_internal_variance=False)
 
-    ds2 = mean_sr.binner.bin_centers(2)
-    sr = mean_sr.data[1:-1]
+        sigmas_internal = merging_internal.array().sigmas()
+        sigmas_external = merging_external.array().sigmas()
 
-    array_vr = merging_external.array().customized_copy(
-      data=variance_ratio, sigmas=None)
-    array_vr.use_binning_of(i_obs)
-    mean_vr = array_vr.mean(use_binning=True)
+        variances_internal = flex.pow2(sigmas_internal)
+        variances_external = flex.pow2(sigmas_external)
 
-    d_star_sq = mean_vr.binner.bin_centers(2)
-    vr = mean_vr.data[1:-1]
+        n_bins = 100
+        i_obs.setup_binner_counting_sorted(n_bins=n_bins)
+        sigmas_ratio = sigmas_external / sigmas_internal
+        variance_ratio = variances_external / variances_internal
 
-    prefix = params.prefix
-    if prefix is None:
-      prefix = ''
+        array_sr = merging_external.array().customized_copy(
+            data=sigmas_ratio, sigmas=None
+        )
+        array_sr.use_binning_of(i_obs)
+        mean_sr = array_sr.mean(use_binning=True)
 
-    from matplotlib import pyplot
-    pyplot.style.use('ggplot')
+        ds2 = mean_sr.binner.bin_centers(2)
+        sr = mean_sr.data[1:-1]
 
-    pyplot.plot(d_star_sq, sr)
-    ax = pyplot.gca()
-    xticks = ax.get_xticks()
-    xticks_d = [
-      '%.2f' %uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks]
-    ax.set_xticklabels(xticks_d)
-    pyplot.xlabel('d spacing (A)')
-    pyplot.ylabel('<sigI_ext/sigI_int>')
-    pyplot.savefig('%ssigmas_ratio.png' %prefix)
-    pyplot.clf()
+        array_vr = merging_external.array().customized_copy(
+            data=variance_ratio, sigmas=None
+        )
+        array_vr.use_binning_of(i_obs)
+        mean_vr = array_vr.mean(use_binning=True)
 
-    pyplot.plot(d_star_sq, vr)
-    ax = pyplot.gca()
-    xticks = ax.get_xticks()
-    xticks_d = [
-      '%.2f' %uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks]
-    ax.set_xticklabels(xticks_d)
-    pyplot.xlabel('d spacing (A)')
-    pyplot.ylabel('<varI_ext/varI_int>')
-    pyplot.savefig('%svariances_ratio.png' %prefix)
-    pyplot.clf()
+        d_star_sq = mean_vr.binner.bin_centers(2)
+        vr = mean_vr.data[1:-1]
+
+        prefix = params.prefix
+        if prefix is None:
+            prefix = ""
+
+        from matplotlib import pyplot
+
+        pyplot.style.use("ggplot")
+
+        pyplot.plot(d_star_sq, sr)
+        ax = pyplot.gca()
+        xticks = ax.get_xticks()
+        xticks_d = [
+            "%.2f" % uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks
+        ]
+        ax.set_xticklabels(xticks_d)
+        pyplot.xlabel("d spacing (A)")
+        pyplot.ylabel("<sigI_ext/sigI_int>")
+        pyplot.savefig("%ssigmas_ratio.png" % prefix)
+        pyplot.clf()
+
+        pyplot.plot(d_star_sq, vr)
+        ax = pyplot.gca()
+        xticks = ax.get_xticks()
+        xticks_d = [
+            "%.2f" % uctbx.d_star_sq_as_d(ds2) if ds2 > 0 else 0 for ds2 in xticks
+        ]
+        ax.set_xticklabels(xticks_d)
+        pyplot.xlabel("d spacing (A)")
+        pyplot.ylabel("<varI_ext/varI_int>")
+        pyplot.savefig("%svariances_ratio.png" % prefix)
+        pyplot.clf()
 
 
-if __name__ == '__main__':
-  import sys
-  from libtbx.utils import show_times_at_exit
-  show_times_at_exit()
-  run(sys.argv[1:])
+if __name__ == "__main__":
+    import sys
+    from libtbx.utils import show_times_at_exit
+
+    show_times_at_exit()
+    run(sys.argv[1:])

@@ -1,4 +1,3 @@
-
 from __future__ import division
 from __future__ import print_function
 
@@ -14,7 +13,7 @@ bj = b[9]
 sj = s[9]
 mu = sum(s) / sum(b)
 lb = sum(c) / sum(b)
-print(1 - (sj-bj)/((sj - bj*mu) + bj*lb), 9.0 / 20.0, 9 / (20 - 9))
+print(1 - (sj - bj) / ((sj - bj * mu) + bj * lb), 9.0 / 20.0, 9 / (20 - 9))
 exit(0)
 
 
@@ -25,25 +24,25 @@ mu = sum(s) / sum(b)
 lb = sum(c) / sum(b)
 print(mu, lb)
 for j in range(100):
-  S = j*(sumc -0) / 100.0
-  X.append(S)
-  sum1 = 0
-  sum2 = 0
-  for i in range(len(c)):
-    den = (S*(s[i]-b[i]*mu) + b[i]*lb)
-    sum1 += c[i]*(s[i] - mu*b[i]) / den
-    # den = (S*(s[i] - b[i]) + b[i]*sumc)
-    # print den
-    # DD += c[i]*(S*(s[i] + b[i]) - s[i]*sumc) / den
-  D.append(sum1)
+    S = j * (sumc - 0) / 100.0
+    X.append(S)
+    sum1 = 0
+    sum2 = 0
+    for i in range(len(c)):
+        den = S * (s[i] - b[i] * mu) + b[i] * lb
+        sum1 += c[i] * (s[i] - mu * b[i]) / den
+        # den = (S*(s[i] - b[i]) + b[i]*sumc)
+        # print den
+        # DD += c[i]*(S*(s[i] + b[i]) - s[i]*sumc) / den
+    D.append(sum1)
 
 ind = sorted(range(len(D)), key=lambda x: abs(D[x]))[0]
 print("Min: ", D[ind], X[ind])
 
 from matplotlib import pylab
+
 pylab.plot(X, D)
 pylab.show()
-
 
 
 # S = 1

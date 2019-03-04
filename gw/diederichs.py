@@ -19,18 +19,19 @@ for j, hklin in enumerate(hklins):
 
     for k, m in enumerate(merged_data):
         cc = merged.correlation(m).coefficient()
-        cc_matrix[k,j] = cc
-        cc_matrix[j,k] = cc
+        cc_matrix[k, j] = cc
+        cc_matrix[j, k] = cc
 
     merged_data.append(merged)
     ms = iotbx.merging_statistics.dataset_statistics(i_obs=iobs)
     overall = ms.overall
     cc_star = overall.cc_star
-    cc_matrix[j,j] = cc_star * cc_star
+    cc_matrix[j, j] = cc_star * cc_star
 
 from numpy import linalg
 
 from matplotlib import pyplot
+
 pyplot.imshow(cc_matrix)
 pyplot.show()
 

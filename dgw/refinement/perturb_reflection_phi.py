@@ -17,63 +17,71 @@ variation."""
 from __future__ import division
 from __future__ import print_function
 
+
 class ScriptRunner(object):
-  """Class to run script."""
+    """Class to run script."""
 
-  def __init__(self, options, reflections_filename):
-    """Setup the script."""
+    def __init__(self, options, reflections_filename):
+        """Setup the script."""
 
-    # Filename data
-    self.output_filename = options.output_file
-    self.reflections_filename = reflections_filename
+        # Filename data
+        self.output_filename = options.output_file
+        self.reflections_filename = reflections_filename
 
-  def __call__(self):
-    """Run the script."""
-    from dials.model.serialize import load, dump
-    import cPickle as pickle
-    from math import sin, pi
+    def __call__(self):
+        """Run the script."""
+        from dials.model.serialize import load, dump
+        import cPickle as pickle
+        from math import sin, pi
 
-    # Load the reflection list
-    print('Loading reflections from {0}'.format(self.reflections_filename))
-    rlist = pickle.load(open(self.reflections_filename, 'r'))
+        # Load the reflection list
+        print("Loading reflections from {0}".format(self.reflections_filename))
+        rlist = pickle.load(open(self.reflections_filename, "r"))
 
-    # Loop through all the reflections
-    for r in rlist:
+        # Loop through all the reflections
+        for r in rlist:
 
-      d_phi = sin(r.rotation_angle) * 0.5 * pi / 180
-      r.rotation_angle += d_phi
-      r.centroid_position = r.image_coord_mm + (r.rotation_angle, )
+            d_phi = sin(r.rotation_angle) * 0.5 * pi / 180
+            r.rotation_angle += d_phi
+            r.centroid_position = r.image_coord_mm + (r.rotation_angle,)
 
-    # Write out reflections
-    if self.output_filename is not None:
+        # Write out reflections
+        if self.output_filename is not None:
 
-      print('Saving reflections to {0}'.format(self.output_filename))
-      pickle.dump(rlist, open(self.output_filename, 'wb'),
-          pickle.HIGHEST_PROTOCOL)
+            print("Saving reflections to {0}".format(self.output_filename))
+            pickle.dump(
+                rlist, open(self.output_filename, "wb"), pickle.HIGHEST_PROTOCOL
+            )
 
-if __name__ == '__main__':
 
-  from optparse import OptionParser
+if __name__ == "__main__":
 
-  # Specify the command line options
-  usage  = "usage: %prog [options] reflections.pickle"
+    from optparse import OptionParser
 
-  # Create an option parser
-  parser = OptionParser(usage)
+    # Specify the command line options
+    usage = "usage: %prog [options] reflections.pickle"
 
-  parser.add_option('-o', '--output-file',
-                    dest='output_file', type="string", default=None,
-                    help='Destination filename for reflections')
+    # Create an option parser
+    parser = OptionParser(usage)
 
-  # Parse the arguments
-  options, args = parser.parse_args()
+    parser.add_option(
+        "-o",
+        "--output-file",
+        dest="output_file",
+        type="string",
+        default=None,
+        help="Destination filename for reflections",
+    )
 
-  # Print help if not enough arguments specified, otherwise call function
-  if len(args) < 1:
-    parser.print_help()
-  else:
-    # Initialise the script runner
-    runner = ScriptRunner(options, reflections_filename=args[0])
+    # Parse the arguments
+    options, args = parser.parse_args()
 
-    # Run the script
-    runner()
+    # Print help if not enough arguments specified, otherwise call function
+    if len(args) < 1:
+        parser.print_help()
+    else:
+        # Initialise the script runner
+        runner = ScriptRunner(options, reflections_filename=args[0])
+
+        # Run the script
+        runner()

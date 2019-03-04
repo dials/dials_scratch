@@ -15,8 +15,13 @@ from dials_scratch.jbe.scaling_code.data_quality_assessment import R_pim_meas
 from dials_scratch.jbe.scaling_code.target_Ih import SingleIhTable
 import matplotlib.pyplot as plt
 from dials_scratch.jbe.scaling_code.data_manager_functions import AimlessDataManager
-from dials_scratch.jbe.scaling_code.data_plotter import (plot_data_decay,
-plot_data_absorption, plot_data_modulation, plot_smooth_scales, plot_absorption_surface)
+from dials_scratch.jbe.scaling_code.data_plotter import (
+    plot_data_decay,
+    plot_data_absorption,
+    plot_data_modulation,
+    plot_smooth_scales,
+    plot_absorption_surface,
+)
 from dials.util.options import OptionParser
 from libtbx import phil
 from dxtbx.model.experiment_list import ExperimentList
@@ -24,9 +29,9 @@ from dxtbx.model import Crystal, Scan, Beam, Goniometer
 
 
 class test_data_manager(AimlessDataManager):
-  def __init__(self, reflections, experiments, params):
-    super(test_data_manager, self).__init__(reflections, experiments, params)
-    """self._reflection_table = reflections
+    def __init__(self, reflections, experiments, params):
+        super(test_data_manager, self).__init__(reflections, experiments, params)
+        """self._reflection_table = reflections
     self.miller_set = miller_set
     self._initial_keys = [key for key in self.reflection_table.keys()]
     self._reflection_table['inverse_scale_factor'] = flex.double(
@@ -68,7 +73,7 @@ class test_data_manager(AimlessDataManager):
     self.g_absorption.set_values(sph_harm_table(reflections_for_scaling,
                                                 self.scaling_options['lmax']))"""
 
-  """def map_indices_to_asu(self, reflection_table):
+    """def map_indices_to_asu(self, reflection_table):
     '''Create a miller_set object, map to the asu and create a sorted
        reflection table, sorted by asu miller index'''
     reflection_table["asu_miller_index"] = self.miller_set.map_to_asu().indices()
@@ -137,70 +142,77 @@ class test_data_manager(AimlessDataManager):
         gradient_vector.extend(gradient)
     return (residual, gradient_vector)"""
 
+
 def load_data(filename):
-  data_file = open(filename)
-  data = pickle.load(data_file)
-  data_file.close()
-  return data
+    data_file = open(filename)
+    data = pickle.load(data_file)
+    data_file.close()
+    return data
+
 
 def run_main(reflections, experiments, params):
-  #(reflections, ms) = load_data('test_dataset_mu5.pickle')
-  loaded_reflections = test_data_manager(reflections, experiments, params)
+    # (reflections, ms) = load_data('test_dataset_mu5.pickle')
+    loaded_reflections = test_data_manager(reflections, experiments, params)
 
+    minimised = mf.LBFGS_optimiser(
+        loaded_reflections, param_name=["g_scale", "g_decay", "g_absorption"]
+    ).return_data_manager()
+    # print list(minimised.g_absorption.inverse_scales)
+    # print list(minimised.apm.active_parameters)
+    minimised.expand_scales_to_all_reflections()
 
-  minimised = mf.LBFGS_optimiser(loaded_reflections,
-    param_name=['g_scale', 'g_decay', 'g_absorption']).return_data_manager()
-  #print list(minimised.g_absorption.inverse_scales)
-  #print list(minimised.apm.active_parameters)
-  minimised.expand_scales_to_all_reflections()
+    Rpim, Rmeas = R_pim_meas(minimised)
+    print("R_meas is %s" % (Rmeas))
+    print("R_pim is %s" % (Rpim))
 
-  Rpim, Rmeas = R_pim_meas(minimised)
-  print("R_meas is %s" % (Rmeas))
-  print("R_pim is %s" % (Rpim))
+    plot_smooth_scales(minimised, outputfile="Smooth_scale_factors.png")
+    plot_absorption_surface(minimised)
+    print("Saved plots of correction factors")
 
-  plot_smooth_scales(minimised, outputfile='Smooth_scale_factors.png')
-  plot_absorption_surface(minimised)
-  print("Saved plots of correction factors")
+    print(len(reflections))
 
-  print(len(reflections))
-
-  minimised.save_reflection_table('synthetic_scaled.pickle')
-  print("Saved output to %s" % ('synthetic_scaled.pickle'))
+    minimised.save_reflection_table("synthetic_scaled.pickle")
+    print("Saved output to %s" % ("synthetic_scaled.pickle"))
 
 
 def generate_test_input():
-  (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
+    (reflections, ms) = load_data("test_dataset_mu0p2_smalldetector_P4_rot0.pickle")
 
-  #json.dump(datablock, open(datablock_json, 'w'))
+    # json.dump(datablock, open(datablock_json, 'w'))
 
+    experiments = ExperimentList()
+    exp_dict = {
+        "__id__": "crystal",
+        "real_space_a": [20.0, 0.0, 0.0],
+        "real_space_b": [0.0, 20.0, 0.0],
+        "real_space_c": [0.0, 0.0, 15.0],
+        "space_group_hall_symbol": " P 4",
+    }
+    experiments.crystal = Crystal.from_dict(exp_dict)
+    experiments.scan = Scan(image_range=[0, 360], oscillation=[0.0, 1.0])
+    experiments.beam = Beam(s0=(0.0, 0.0, 1.01))
+    experiments.goniometer = Goniometer((1.0, 0.0, 0.0))
 
-  experiments = ExperimentList()
-  exp_dict = {"__id__" : "crystal", "real_space_a": [20.0, 0.0, 0.0],
-              "real_space_b": [0.0, 20.0, 0.0], "real_space_c": [0.0, 0.0, 15.0],
-              "space_group_hall_symbol": " P 4"}
-  experiments.crystal = Crystal.from_dict(exp_dict)
-  experiments.scan = Scan(image_range=[0, 360], oscillation=[0.0, 1.0])
-  experiments.beam = Beam(s0=(0.0, 0.0, 1.01))
-  experiments.goniometer = Goniometer((1.0, 0.0, 0.0))
-
-
-
-  phil_scope = phil.parse('''
+    phil_scope = phil.parse(
+        """
       include scope dials_scratch.jbe.scaling_code.scaling_options.phil_scope
-  ''', process_includes=True)
+  """,
+        process_includes=True,
+    )
 
-  optionparser = OptionParser(phil=phil_scope, check_format=False)
-  parameters, _ = optionparser.parse_args(args=None, quick_parse=True,
-    show_diff_phil=False)
-  parameters.__inject__('scaling_method', 'aimless')
-  parameters.scaling_options.__inject__('multi_mode', False)
-  return (reflections, experiments, parameters)
+    optionparser = OptionParser(phil=phil_scope, check_format=False)
+    parameters, _ = optionparser.parse_args(
+        args=None, quick_parse=True, show_diff_phil=False
+    )
+    parameters.__inject__("scaling_method", "aimless")
+    parameters.scaling_options.__inject__("multi_mode", False)
+    return (reflections, experiments, parameters)
 
 
 ##########
 if __name__ == "__main__":
-  (reflections, ms) = load_data('test_dataset_mu0p2_smalldetector_P4_rot0.pickle')
+    (reflections, ms) = load_data("test_dataset_mu0p2_smalldetector_P4_rot0.pickle")
 
-  reflections, experiments, params = generate_test_input()
+    reflections, experiments, params = generate_test_input()
 
-  run_main(reflections, experiments, params)
+    run_main(reflections, experiments, params)

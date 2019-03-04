@@ -14,11 +14,13 @@ import dxtbx
 
 import viewer
 
+
 class Image(object):
     """
     The basic diffraction image class. Used to get useful data from
     a cbf header. Most methods are named so as to be self-explanatory.
     """
+
     def __init__(self, filename):
         self.image = dxtbx.load(filename)
 
@@ -85,7 +87,8 @@ class Image(object):
 
         return img_array
 
+
 if __name__ == "__main__":
-    image = Image('cbf_image2.cbf')
+    image = Image("cbf_image2.cbf")
     a, b, c, d = image.detector_parameters()
     print(a, b, c, d)

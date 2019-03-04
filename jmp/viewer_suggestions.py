@@ -1,21 +1,19 @@
-
-
 class ImageFrame(wx.Frame):
-  ''' Low-level image frame class.
+    """ Low-level image frame class.
 
   Display a single image Provide methods to manipulate the image frame and
   toggle various bits of information on and off.
 
-  '''
+  """
 
-  @property
-  def image(self):
-    return self._image
+    @property
+    def image(self):
+        return self._image
 
-  @image.setter
-  def image(self, value):
-    self._image = value
-    return self._image
+    @image.setter
+    def image(self, value):
+        self._image = value
+        return self._image
 
 
 # Example
@@ -31,14 +29,16 @@ class ImageFrame(wx.Frame):
 
 
 class ReflectionFrame(wx.Frame):
-  ''' Higher-level reflection frame class.
+    """ Higher-level reflection frame class.
 
   Display information for a single reflection. Display each slice of the
   reflection in it's own ImageFrame instance and toggle higher-level items on
   and off, such as reflection centroid. Give frame a slider to allow moving
   through slices of reflection shoebox.
-  '''
-  pass
+  """
+
+    pass
+
 
 # Example
 # frame = ReflectionFrame(...)
@@ -51,11 +51,12 @@ class ReflectionFrame(wx.Frame):
 
 
 def view_reflection(reflection, **kwargs):
-  ''' A simple wrapper function that can be called from my code that takes a
+    """ A simple wrapper function that can be called from my code that takes a
   reflection (as a row of data) and displays it using the viewer. The kwargs
   can be used to configure the properties above. This would be really useful for
-  debugging. '''
-  pass
+  debugging. """
+    pass
+
 
 # Example
 view_reflection(reflection_table[i], show_centroid=False, overlay_mask=True)
