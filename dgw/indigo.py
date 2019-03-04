@@ -19,7 +19,6 @@ from libtbx.utils import Sorry
 import iotbx.phil
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections
-from dials.util.options import flatten_datablocks
 from dials.util.options import flatten_experiments
 import cctbx.miller
 from dials.array_family import flex
@@ -178,8 +177,8 @@ from dials.algorithms.indexing.indexer import indexer_base
 
 
 class indexer_low_res_spot_match(indexer_base):
-    def __init__(self, reflections, imagesets, params):
-        super(indexer_low_res_spot_match, self).__init__(reflections, imagesets, params)
+    def __init__(self, reflections, experiments, params):
+        super(indexer_low_res_spot_match, self).__init__(reflections, experiments, params)
 
     def debug(self):
         # load up known indices
@@ -195,7 +194,7 @@ class indexer_low_res_spot_match(indexer_base):
         return indexed
 
     @staticmethod
-    def from_parameters(reflections, imagesets, known_crystal_models=None, params=None):
+    def from_parameters(reflections, experiments, known_crystal_models=None, params=None):
 
         if params is None:
             params = master_params
@@ -210,16 +209,16 @@ class indexer_low_res_spot_match(indexer_base):
                     known_crystal_models[0].get_space_group().info()
                 )
             idxr = indexer_known_orientation(
-                reflections, imagesets, params, known_crystal_models
+                reflections, experiments, params, known_crystal_models
             )
         else:
             has_stills = False
             has_sweeps = False
-            for imageset in imagesets:
+            for expt in experiments:
                 if (
-                    imageset.get_goniometer() is None
-                    or imageset.get_scan() is None
-                    or imageset.get_scan().get_oscillation()[1] == 0
+                    expt.goniometer is None
+                    or expt.scan is None
+                    or expt.scan.get_oscillation()[1] == 0
                 ):
                     if has_sweeps:
                         raise Sorry(
@@ -256,23 +255,23 @@ class indexer_low_res_spot_match(indexer_base):
                 # Ensure the indexer and downstream applications treat this as set of stills
                 from dxtbx.imageset import ImageSet  # , MemImageSet
 
-                reset_sets = []
-                for i in xrange(len(imagesets)):
-                    imagesweep = imagesets.pop(0)
-                    imageset = ImageSet(imagesweep.data(), imagesweep.indices())
+                for experiment in experiments:
+                    experiment.imageset = ImageSet(
+                        experiment.imageset.data(), experiment.imageset.indices()
+                    )
                     # if isinstance(imageset, MemImageSet):
                     #   imageset = MemImageSet(imagesweep._images, imagesweep.indices())
                     # else:
                     #   imageset = ImageSet(imagesweep.reader(), imagesweep.indices())
                     #   imageset._models = imagesweep._models
-                    imageset.set_scan(None)
-                    imageset.set_goniometer(None)
-                    reset_sets.append(imageset)
-                imagesets.extend(reset_sets)
+                    experiment.imageset.set_scan(None)
+                    experiment.imageset.set_goniometer(None)
+                    experiment.scan = None
+                    experiment.goniometer = None
 
             # Parameters are set differently depending on use_stills_indexer, but
             # either way you get an indexer_low_res_spot_match
-            idxr = indexer_low_res_spot_match(reflections, imagesets, params=params)
+            idxr = indexer_low_res_spot_match(reflections, experiments, params=params)
 
         return idxr
 
@@ -298,14 +297,14 @@ class indexer_low_res_spot_match(indexer_base):
             crystal_models = []
         experiments = ExperimentList()
         for cm in crystal_models:
-            for imageset in self.imagesets:
+            for expt in self.experiments:
                 experiments.append(
                     Experiment(
-                        imageset=imageset,
-                        beam=imageset.get_beam(),
-                        detector=imageset.get_detector(),
-                        goniometer=imageset.get_goniometer(),
-                        scan=imageset.get_scan(),
+                        imageset=expt.imageset,
+                        beam=expt.beam,
+                        detector=expt.detector,
+                        goniometer=expt.goniometer,
+                        scan=expt.scan,
                         crystal=cm,
                     )
                 )
@@ -439,9 +438,9 @@ class indexer_low_res_spot_match(indexer_base):
         self.spots = self.reflections.select(sel)
         self.spots["dstar"] = spot_dstar.select(sel)
 
-        # XXX In what circumstance might there be more than one imageset?
-        detector = self.imagesets[0].get_detector()
-        beam = self.imagesets[0].get_beam()
+        # XXX In what circumstance might there be more than one experiment?
+        detector = self.experiments.detectors()[0]
+        beam = self.experiments.beams()[0]
 
         # Lab coordinate of the beam centre, using the first spot's panel
         panel = detector[self.spots[0]["panel"]]
@@ -752,7 +751,6 @@ def run(args):
         usage=usage,
         phil=working_phil,
         read_reflections=True,
-        read_datablocks=True,
         read_experiments=True,
         check_format=False,
         epilog=help_message,
@@ -773,21 +771,14 @@ def run(args):
         logger.info("The following parameters have been modified:\n")
         logger.info(diff_phil)
 
-    datablocks = flatten_datablocks(params.input.datablock)
     experiments = flatten_experiments(params.input.experiments)
     reflections = flatten_reflections(params.input.reflections)
 
-    if len(datablocks) == 0:
-        if len(experiments) > 0:
-            imagesets = experiments.imagesets()
-        else:
-            parser.print_help()
-            return
-    else:
-        imagesets = []
-        for datablock in datablocks:
-            imagesets.extend(datablock.extract_imagesets())
-    if len(experiments):
+    if len(experiments) == 0:
+        parser.print_help()
+        return
+
+    if experiments.crystals()[0] is not None:
         known_crystal_models = experiments.crystals()
     else:
         known_crystal_models = None
@@ -805,17 +796,17 @@ def run(args):
 
     reflections = reflections[0]
 
-    for imageset in imagesets:
+    for expt in experiments:
         if (
-            imageset.get_goniometer() is not None
-            and imageset.get_scan() is not None
-            and imageset.get_scan().get_oscillation()[1] == 0
+            expt.goniometer is not None
+            and expt.scan is not None
+            and expt.scan.get_oscillation()[1] == 0
         ):
-            imageset.set_goniometer(None)
-            imageset.set_scan(None)
+            expt.goniometer = None
+            expt.scan = None
 
     idxr = indexer_low_res_spot_match.from_parameters(
-        reflections, imagesets, known_crystal_models=known_crystal_models, params=params
+        reflections, experiments, known_crystal_models=known_crystal_models, params=params
     )
     idxr.index()
     refined_experiments = idxr.refined_experiments
