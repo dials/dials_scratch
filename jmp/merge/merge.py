@@ -1,10 +1,15 @@
 from __future__ import division
-from __future__ import print_function
 from libtbx import phil
+from dxtbx.model.experiment_list import ExperimentList
+from scipy.optimize import least_squares
 from collections import Counter, defaultdict
 from dials.array_family import flex
-from math import floor, sqrt, ceil
+from math import floor, sqrt, ceil, log, pi
+import numpy
 import cPickle as pickle
+import logging
+
+logger = logging.getLogger("dials")
 
 phil_scope = phil.parse(
     """
@@ -17,27 +22,26 @@ phil_scope = phil.parse(
     .type = int
     .help = "Maximum number of iterations"
 
-  grid_size = 50,20
-    .type = ints(size=2)
-    .help = "The grid of partiality priors"
+  scales = None
+    .type = str
+    .help = "The scales pickle file"
+
+  scaling {
+    d_min = 4
+      .type = float
+      .help = "Minimum resolution for scaling"
+  }
 
 """
 )
 
 
-def compute_Ep(rho0, var_rho0, mu, I, V):
-    var_rho1 = 1.0 / (1 / var_rho0 + mu ** 2 / V)
-    rho1 = (rho0 / var_rho0 + I * mu / V) * var_rho1
-    return rho1, var_rho1 + rho1 ** 2
-
-
 class Scaler(object):
-    def __init__(self, tolerance=1e-3, max_iter=10000, grid_size=(20, 20)):
+    def __init__(self, tolerance=1e-3, max_iter=10000):
 
         # Set the parameters
         self.tolerance = tolerance
         self.max_iter = max_iter
-        self.grid_size = grid_size
 
         # Initialise the reflections
         self.reflections = None
@@ -49,24 +53,73 @@ class Scaler(object):
 
         # Initialise the scales
         self.image_scale = None
-        self.epsilon_mean = None
-        self.epsilon_variance = None
+        self.image_bfactor = None
+        self.image_mosaicity = None
+        self.image_pfactor = None
 
-    def scale(self, experiments, reflections):
+    def scale(self, experiments, reflections, reference=None):
+
+        # Match reflections with reference
+        if reference is not None:
+            reflections, reference = self._match_with_reference(
+                reflections, experiments, reference
+            )
 
         # Preprocess the data
-        self.reflections = self._preprocess(experiments, reflections)
+        experiments, reflections = self._preprocess(experiments, reflections, reference)
 
-        # Solve the equations
+        # Save the reflections
+        self.reflections = reflections
+
+        # Initialise the starting values
+        # self._initialise(self.reflections, reference)
+
+        # Solve equations
         self._solve(
             self.reflections["intensity.sum.value"],
             self.reflections["intensity.sum.variance"],
+            self.reflections["theta"],
+            self.reflections["epsilon"],
+            self.reflections["correction"],
+            self.reflections["wavelength"],
             self.reflections["image"],
             self.reflections["reflection_id"],
-            self.reflections["epsilon_id"],
         )
 
-    def _preprocess(self, experiments, reflections):
+    def _match_with_reference(self, reflections, experiments, reference):
+
+        # Compute the miller indices in the asu
+        reflections.compute_miller_indices_in_asu(experiments)
+
+        # Item to hold matches
+        class Item(object):
+            def __init__(self):
+                self.a = None
+                self.b = flex.size_t()
+
+        # Search for matches
+        lookup = defaultdict(Item)
+        for i, h in enumerate(reference["miller_index"]):
+            lookup[h].a = i
+        for i, h in enumerate(reflections["miller_index_asu"]):
+            lookup[h].b.append(i)
+
+        # Compute the selections
+        selection1 = flex.size_t()
+        selection2 = flex.size_t()
+        for key, value in lookup.iteritems():
+            if value.a is not None and len(value.b) > 0:
+                selection1.append(value.a)
+                selection2.extend(value.b)
+
+        # Select the reflections
+        reference = reference.select(selection1)
+        reflections = reflections.select(selection2)
+
+        # Return
+        return reflections, reference
+
+    def _preprocess(self, experiments, reflections, reference):
 
         # Filter reflections by:
         # - integrated
@@ -78,20 +131,70 @@ class Scaler(object):
         selection = selection1 & selection2 & selection3
         reflections = reflections.select(selection)
 
+        # Ensure we aren't missing experiments
+        num_images = len(set(reflections["id"]))
+        if num_images != len(experiments):
+            new_experiments = ExperimentList()
+            new_reflections = flex.reflection_table()
+            counter = 0
+            for experiment, indices in reflections.iterate_experiments_and_indices(
+                experiments
+            ):
+                if len(indices) > 0:
+                    subset = reflections.select(indices)
+                    subset["id"] = flex.size_t(len(subset), counter)
+                    new_experiments.append(experiment)
+                    new_reflections.extend(subset)
+                    counter += 1
+            experiments = new_experiments
+            reflections = new_reflections
+
         # Convert id to image
         reflections["image"] = flex.size_t(list(reflections["id"]))
 
         def compute_epsilon(reflections):
-            s2 = reflections["s2"]
-            s1 = reflections["s1"]
+            if "s2" not in reflections:
+                A = flex.mat3_double([e.crystal.get_A() for e in experiments])
+                s0 = flex.vec3_double([e.beam.get_s0() for e in experiments])
+                A = A.select(reflections["image"])
+                s0 = s0.select(reflections["image"])
+                h = flex.vec3_double(list(reflections["miller_index"]))
+                r = A * h
+                s2 = s0 + r
+                s1 = s0.norms() * s2 / s2.norms()
+                reflections["s1"] = s1
+                reflections["s2"] = s2
+            else:
+                s2 = reflections["s2"]
+                s1 = reflections["s1"]
             epsilon = s2.norms() - s1.norms()
             reflections["epsilon"] = epsilon
+
+        def compute_theta(reflections):
+            if "theta" not in reflections:
+                panels = [
+                    experiments[i].detector[j]
+                    for i, j in zip(reflections["image"], reflections["panel"])
+                ]
+                s0 = flex.vec3_double([e.beam.get_s0() for e in experiments])
+                s0 = s0.select(reflections["image"])
+                x, y, _ = reflections["xyzcal.px"].parts()
+                xy = flex.vec2_double(zip(x, y))
+                two_theta = flex.double(
+                    panels[i].get_two_theta_at_pixel(s0[i], xy[i])
+                    for i in range(len(s0))
+                )
+                reflections["theta"] = two_theta / 2.0
+                reflections["wavelength"] = 1.0 / s0.norms()
 
         # Compute the resolution
         reflections.compute_d(experiments)
 
         # Compute distance to Ewald sphere
         compute_epsilon(reflections)
+
+        # Compute the theta angle
+        compute_theta(reflections)
 
         # Compute the miller indices in the asu
         reflections.compute_miller_indices_in_asu(experiments)
@@ -113,69 +216,61 @@ class Scaler(object):
 
         # Create a lookup for image number
         num_images = len(set(reflections["id"]))
+        assert num_images == len(experiments)
         assert num_images == flex.max(reflections["id"]) + 1
         lookup_image = [flex.size_t() for i in range(num_images)]
         for i, j in enumerate(reflections["id"]):
             lookup_image[j].append(i)
 
-        # Compute the epsilon bins
-        M = self.grid_size[0]
-        abs_epsilon = flex.abs(reflections["epsilon"])
-        sorted_index = flex.size_t(
-            sorted(range(len(abs_epsilon)), key=lambda x: abs_epsilon[x])
-        )
-        eps_index = flex.size_t(len(reflections))
-        lookup_epsilon = []
-        step = int(ceil(len(sorted_index) / M))
-        for j in range(M):
-            m1 = j * step
-            m2 = (j + 1) * step
-            selection = sorted_index[m1:m2]
-            lookup_epsilon.append(selection)
-            eps_index.set_selected(selection, j)
+        # Create reference lookup
+        reference_lookup = flex.size_t()
+        for h0 in h_unique:
+            for i, h in enumerate(reference["miller_index"]):
+                if h == h0:
+                    reference_lookup.append(i)
+                    break
 
-        # Set the epsilon index
-        reflections["epsilon_id"] = eps_index
+        # Get reference intensities
+        I_ref = flex.double()
+        for h in range(len(lookup_index)):
+            I_ref.append(reference[reference_lookup[h]]["intensity.ref.value"])
+
+        # Save the reference intensity
+        self.I_mean = I_ref
 
         # Save the arrays
         self.h_unique = h_unique
         self.lookup_index = lookup_index
         self.lookup_image = lookup_image
-        self.lookup_epsilon = lookup_epsilon
 
         # Compute multiplicity and # obs on image
         multiplicity = flex.int(len(x) for x in lookup_index)
         obs_on_image = flex.int(len(x) for x in lookup_image)
-        obs_on_epbin = flex.int(len(x) for x in lookup_epsilon)
-        print(len(reflections), flex.sum(obs_on_epbin))
         assert flex.sum(multiplicity) == len(reflections)
         assert flex.sum(obs_on_image) == len(reflections)
-        assert flex.sum(obs_on_epbin) == len(reflections)
 
         # Print some info
-        print("# Total reflections:  %d" % len(reflections))
-        print("# Unique reflections: %d" % len(self.h_unique))
-        print("# Images: %d" % len(self.lookup_image))
-        print("Min multiplicity: %d" % flex.min(multiplicity))
-        print("Max multiplicity: %d" % flex.max(multiplicity))
-        print("Min observations on image: %d" % flex.min(obs_on_image))
-        print("Max observations on image: %d" % flex.max(obs_on_image))
-        print("Min observations in epsilon bin: %d" % flex.min(obs_on_epbin))
-        print("Max observations in epsilon bin: %d" % flex.max(obs_on_epbin))
+        logger.info("# Total reflections:  %d" % len(reflections))
+        logger.info("# Unique reflections: %d" % len(self.h_unique))
+        logger.info("# Images: %d" % len(self.lookup_image))
+        logger.info("Min multiplicity: %d" % flex.min(multiplicity))
+        logger.info("Max multiplicity: %d" % flex.max(multiplicity))
+        logger.info("Min observations on image: %d" % flex.min(obs_on_image))
+        logger.info("Max observations on image: %d" % flex.max(obs_on_image))
 
         # Return reflections
-        return reflections
+        return experiments, reflections
 
-    def _solve(self, I, V, image, ref_index, eps_index):
+    def _initialise(self, reflections, reference=None):
+
+        # Get the intensity data
+        I = reflections["intensity.sum.value"]
 
         # Get number of classes
         num_images = len(self.lookup_image)
-        num_epbins = len(self.lookup_epsilon)
 
         # Initialise the scale factors
         g_old = flex.double(num_images, 1.0)
-        m_old = flex.double(num_epbins, 1.0)
-        s_old = flex.double(num_epbins, 0.05 ** 2)
 
         # Initialise the intensities
         c_old = flex.double()
@@ -183,122 +278,342 @@ class Scaler(object):
             I_i = I.select(selection)
             c_old.append(flex.sum(I_i) / len(I_i))
 
-        # Set the starting logL to something small
-        logL_old = -1e50
+        # Initialise the partiality parameters
+        v_old = 1.0
+        m_old = sqrt(1e-7)
 
-        # Iterate until max iter has been reached, the change in log likelihood is
-        # below the tolerance indicating convergence or a keyboard interrupt is
-        # received.
-        for iteration in range(self.max_iter):
-            try:
+        # Set the initial values
+        self.image_scale = g_old
+        self.partiality_v = v_old
+        self.partiality_m = m_old
+        # self.I_mean = c_old
 
-                # Get the scale factors for each reflection
-                c = c_old.select(ref_index)
-                m = m_old.select(eps_index)
-                s = s_old.select(eps_index)
-                g = g_old.select(image)
+    def _solve_for_image(
+        self,
+        I_obs,
+        V_obs,
+        correction,
+        epsilon,
+        theta,
+        wavelength,
+        J_ref,
+        I_ref,
+        V0,
+        S0,
+        B0,
+        G0,
+    ):
+        from scipy.optimize import least_squares
+        import numpy as np
 
-                # Compute the expected value of rho and rho**2
-                E_p = flex.double()
-                E_p2 = flex.double()
-                for i in range(len(c)):
-                    m1, m2 = compute_Ep(m[i], s[i], g[i] * c[i], I[i], V[i])
-                    E_p.append(m1)
-                    E_p2.append(m2)
+        def function(p):
+            """
+      The runction of residuals
 
-                # Compute the new values for the epsilon scale factors
-                m_new = flex.double()
-                s_new = flex.double()
-                for i, selection in enumerate(self.lookup_epsilon):
-                    E_p_i = E_p.select(selection)
-                    E_p2_i = E_p2.select(selection)
-                    n = len(E_p_i)
-                    mm = flex.sum(E_p_i) / n
-                    ss = flex.sum((E_p2_i - 2 * m_old[i] * E_p_i + m_old[i] ** 2)) / n
-                    m_new.append(mm)
-                    s_new.append(ss)
-                m_new /= m_new[0]
-                s_new = s_old
+      """
+            # Get the parameters
+            V, S, B, G = flex.double(p)
 
-                # Compute the new values for the intensities
-                c_new = flex.double()
-                for selection in self.lookup_index:
-                    E_p_i = E_p.select(selection)
-                    E_p2_i = E_p2.select(selection)
-                    yy = I.select(selection)
-                    ss = V.select(selection)
-                    gg = g.select(selection)
-                    cc = flex.sum(yy * gg * E_p_i / ss) / flex.sum(
-                        gg ** 2 * E_p2_i / ss
-                    )
-                    c_new.append(cc)
+            # Get the reference intensity
+            I_i = I_ref.select(J_ref)
 
-                # Compute the new values for the image scale factors
-                g_new = flex.double()
-                for selection in self.lookup_image:
-                    E_p_i = E_p.select(selection)
-                    E_p2_i = E_p2.select(selection)
-                    yy = I.select(selection)
-                    ss = V.select(selection)
-                    cc = c.select(selection)
-                    gg = flex.sum(yy * cc * E_p_i / ss) / flex.sum(
-                        cc ** 2 * E_p2_i / ss
-                    )
-                    g_new.append(gg)
-                g_new /= g_new[0]
+            # Compute the B factor correction
+            b = flex.exp(-2 * B * (flex.sin(theta) / wavelength) ** 2)
 
-                # Compute the log likelihood
-                logL_new = (
-                    flex.sum(-0.5 * (I - c * g * E_p) ** 2 / V)
-                    + flex.sum(-0.5 * (E_p - m) ** 2 / s)
-                    - flex.sum(flex.log(s))
-                )
+            # Compute the expected partiality for the observation
+            p = (1 + (1 / V) * (epsilon / S) ** 2) ** (-(V + 1) / 2)
 
-                # assert logL > logL_old
-                eps = abs(logL_new - logL_old)
-                print(
-                    iteration,
-                    eps,
-                    flex.sum(c_new) / len(c_new),
-                    flex.min(g_new),
-                    flex.max(g_new),
-                    " ".join("%.2f" % mm for mm in m_new),
-                    " ".join("%.2f" % sqrt(ss) for ss in s_new),
-                )
-                if eps < self.tolerance:
-                    break
-                g_old = g_new
-                m_old = m_new
-                s_old = s_new
-                c_old = c_new
-                logL_old = logL_new
-            except KeyboardInterrupt as e:
-                break
+            # from matplotlib import pylab
+            # pylab.scatter(epsilon, I_obs/I_i)
+            # pylab.show()
+
+            # Compute the expected value of the observation
+            mu = correction * G * b * p * I_i
+
+            # Compute the residuals
+            residuals = (I_obs - mu) / flex.sqrt(V_obs)
+
+            # Print out some information
+            cost = flex.sum(residuals ** 2)
+            logger.info(
+                "%d: cost=%.5e V=%.5f S=%.5f B=%.3f G=%.3f"
+                % (self.it, cost, V, S, B, G)
+            )
+
+            # Update the iteration counter
+            self.it += 1
+
+            # Return the residuals
+            return residuals
+
+        def jacobian(p):
+            """
+      Compute the Jacobian matrix of residuals
+
+      """
+
+            # Get the parameters
+            V, S, B, G = flex.double(p)
+
+            # Get the reference intensity
+            I_i = I_ref.select(J_ref)
+
+            # Compute the B factor correction
+            b = flex.exp(-2 * B * (flex.sin(theta) / wavelength) ** 2)
+
+            # Compute the expected partiality for the observation
+            p = (1 + (1 / V) * (epsilon / S) ** 2) ** (-(V + 1) / 2)
+
+            # Compute the expected value of the observation
+            mu = G * b * p * I_i
+
+            # Compute the derivative of p(V,S) wrt V
+            num = (
+                V
+                * (S ** 2 * V + epsilon ** 2)
+                * flex.log(1 + (1 / V) * (epsilon / S) ** 2)
+                - (V + 1) * epsilon ** 2
+            )
+            den = 2 * V * (S ** 2 * V + epsilon ** 2)
+            dp_dV = -p * num / den
+
+            # Compute the derivative of p(V,S) wrt S
+            num = (
+                (1 + (1 / V) * (epsilon / S) ** 2) ** (-(V + 1) / 2 - 1)
+                * (V + 1)
+                * epsilon ** 2
+            )
+            den = S ** 3 * V
+            dp_dS = num / den
+
+            # The derivatives of each expected value wrt to parameters that effect them
+            dmu_dV = correction * G * b * I_i * dp_dV / flex.sqrt(V_obs)
+            dmu_dS = correction * G * b * I_i * dp_dS / flex.sqrt(V_obs)
+            dmu_dB = (
+                correction
+                * mu
+                * (-2 * (flex.sin(theta) / wavelength) ** 2)
+                / flex.sqrt(V_obs)
+            )
+            dmu_dG = correction * b * p * I_i / flex.sqrt(V_obs)
+
+            # Construct the Jacobian
+            n_par = 4
+            J = flex.double(flex.grid(len(I_obs), n_par), 0)
+            for j in range(len(I_obs)):
+                J[j, 0] = 0  # -dmu_dV[j]
+                J[j, 1] = 0  # -dmu_dS[j]
+                J[j, 2] = 0  # -dmu_dB[j]
+                J[j, 3] = -dmu_dG[j]
+
+            # Return the Jacobian
+            return J.as_numpy_array()
+
+        # Get number of images and reflections etc
+        n_ref = len(I_ref)
+
+        # Set the iteration counter
+        self.it = 0
+
+        # The initial parameters
+        p0 = flex.double([V0, S0, B0, G0])
+
+        # The parameter bounds
+        bounds = ([1e-7, 1e-20, -np.inf, -np.inf], [np.inf, np.inf, 0, np.inf])
+
+        # Do the least squares minimization
+        result = least_squares(function, p0, jac=jacobian, bounds=bounds)
+
+        # Get the parameter estimates
+        V, S, B, G = result.x
+        return V, S, B, G
+
+    def _solve_for_all(
+        self, I_obs, V_obs, correction, epsilon, theta, J_img, J_ref, I_ref, wavelength
+    ):
+
+        n_ref = len(I_ref)
+        n_img = flex.max(J_img) + 1
+
+        # The initial parameters
+        V = flex.double(1.0 for i in range(n_img))
+        S = flex.double(1.0 for i in range(n_img))
+        B = flex.double(0.0 for i in range(n_img))
+        G = flex.double(1.0 for i in range(n_img))
+
+        # Vt = 1.0
+        # St = 1e-7
+        # Gt = 1.0
+        for i in range(n_img):
+
+            selection = J_img == i
+            logger.info("Image: %d, # Reflections: %d" % (i, selection.count(True)))
+
+            # V[i] = Vt
+            # S[i] = St
+            # G[i] = Gt
+
+            V_i, S_i, B_i, G_i = self._solve_for_image(
+                I_obs.select(selection),
+                V_obs.select(selection),
+                correction.select(selection),
+                epsilon.select(selection),
+                theta.select(selection),
+                wavelength.select(selection),
+                J_ref.select(selection),
+                I_ref,
+                V[i],
+                S[i],
+                B[i],
+                G[i],
+            )
+
+            V[i] = V_i
+            S[i] = S_i
+            B[i] = B_i
+            G[i] = G_i
+
+            Vt = flex.sum(V[: i + 1]) / (i + 1)
+            St = flex.sum(S[: i + 1]) / (i + 1)
+            Gt = flex.sum(G[: i + 1]) / (i + 1)
+
+        # Return the result
+        return V, S, B, G
+
+    def _compute_partiality_and_intensity(
+        self,
+        I_obs,
+        V_obs,
+        correction,
+        epsilon,
+        theta,
+        wavelength,
+        J_img,
+        J_ref,
+        V,
+        S,
+        B,
+        G,
+    ):
+        """
+    Compute the partiality and intensity from the parameters
+
+    """
+
+        # Get the sigma, b factor and scale for each reflection
+        V_i = V.select(J_img)
+        S_i = S.select(J_img)
+        B_i = B.select(J_img)
+        G_i = G.select(J_img)
+
+        # Compute the B factor correction
+        b_i = flex.exp(-2 * B_i * (flex.sin(theta) / wavelength) ** 2)
+
+        # Compute the expected partiality for the observation
+        p_i = flex.double(
+            (1 + (1 / V_i[i]) * (epsilon[i] / S_i[i]) ** 2) ** (-(V_i[i] + 1) / 2)
+            for i in range(len(V_i))
+        )
+
+        # Compute the intensities#
+        n_ref = flex.max(J_ref) + 1
+        I_est = flex.double(n_ref)
+        for i in range(n_ref):
+            selection = J_ref == i
+            g = G_i.select(selection)
+            b = b_i.select(selection)
+            p = p_i.select(selection)
+            I = I_obs.select(selection)
+            var_I = V_obs.select(selection)
+            c = correction.select(selection)
+
+            num = flex.sum(I * c * g * b * p / var_I)
+            den = flex.sum((c * g * b * p) ** 2 / var_I)
+
+            I_est[i] = num / den
+
+        # Return the intensity
+        return p_i, I_est
+
+    def _solve(
+        self, I_obs, V_obs, theta, epsilon, correction, wavelength, img_index, ref_index
+    ):
+
+        # Solve for all images
+        V, S, B, G = self._solve_for_all(
+            I_obs,
+            V_obs,
+            correction,
+            epsilon,
+            theta,
+            img_index,
+            ref_index,
+            self.I_mean,
+            wavelength,
+        )
+        # with open("scales.pickle") as infile:
+        #   result = pickle.load(infile)
+        #   V = result['image_pfactor']
+        #   S = result['image_mosaicity']
+        #   B = result['image_bfactor']
+        #   G = result['image_scale']
+
+        # Compute the intensity
+        P, I_est = self._compute_partiality_and_intensity(
+            I_obs,
+            V_obs,
+            correction,
+            epsilon,
+            theta,
+            wavelength,
+            img_index,
+            ref_index,
+            V,
+            S,
+            B,
+            G,
+        )
+
+        from matplotlib import pylab
+
+        xmin = min(self.I_mean)
+        xmax = max(self.I_mean)
+        pylab.scatter(self.I_mean, I_est, s=1, alpha=0.5)
+        pylab.plot([xmin, xmax], [xmin, xmax], color="black")
+        pylab.show()
 
         # Set the results
-        self.I_mean = c_new
-        self.image_scales = g_new
-        self.epsilon_mean = m_new
-        self.epsilon_variance = s_new
+        self.I_mean = I_est
+        self.image_scale = G
+        self.image_bfactor = B
+        self.image_mosaicity = S
+        self.image_pfactor = V
 
         # Set some reflection data
-        self.reflections["E_p"] = E_p
-        self.reflections["E_p2"] = E_p2
-        self.reflections["image_scale"] = g
-        self.reflections["epsilon_mean"] = m
-        self.reflections["epsilon_variance"] = s
-        self.reflections["Imean"] = c
+        self.reflections["partiality"] = P
+        self.reflections["image_scale"] = G.select(img_index)
+        self.reflections["image_bfactor"] = B.select(img_index)
+        self.reflections["image_mosaicity"] = S.select(img_index)
+        self.reflections["image_pfactor"] = V.select(img_index)
+        self.reflections["Imean"] = I_est.select(ref_index)
 
 
-def scale_and_merge(experiments, reflections, params):
+def scale_and_merge(experiments, reflections, params, reference):
+
+    # reflections = reflections[0:1000]
+
+    # Compute corrections (here LP is just 1/P)
+    # I_true * correction = I
+    reflections.compute_corrections(experiments)
+    reflections["correction"] = reflections["qe"] / reflections["lp"]
+
+    reflections = reflections.select(reflections["d"] > params.scaling.d_min)
 
     # Configure the scaler
-    scaler = Scaler(
-        tolerance=params.tolerance, max_iter=params.max_iter, grid_size=params.grid_size
-    )
+    scaler = Scaler(tolerance=params.tolerance, max_iter=params.max_iter)
 
     # Run the scaler
-    scaler.scale(experiments, reflections)
+    scaler.scale(experiments, reflections, reference)
 
     # Get the reflections
     reflections = scaler.reflections
@@ -308,17 +623,13 @@ def scale_and_merge(experiments, reflections, params):
     I_mean = scaler.I_mean
     V_mean = scaler.V_mean
 
-    # Get some scales
-    image_scale = scaler.image_scale
-    epsilon_mean = scaler.epsilon_mean
-    epsilon_variance = scaler.epsilon_variance
-
     result = {
         "h_unique": h_unique,
         "I_mean": I_mean,
-        "image_scale": image_scale,
-        "epsilon_mean": epsilon_mean,
-        "epsilon_variance": epsilon_variance,
+        "image_scale": scaler.image_scale,
+        "image_bfactor": scaler.image_bfactor,
+        "image_mosaicity": scaler.image_mosaicity,
+        "image_pfactor": scaler.image_pfactor,
     }
 
     reflections.as_pickle("output_reflections.pickle")

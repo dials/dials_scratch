@@ -15,10 +15,12 @@ from __future__ import absolute_import, division
 import libtbx.load_env
 from libtbx.utils import Sorry
 from libtbx.phil import parse
+from iotbx.reflection_file_reader import any_reflection_file
 from dials.util import log
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
 from dials_scratch.jmp.merge.merge import scale_and_merge
+from dials.array_family import flex
 import logging
 
 
@@ -33,6 +35,13 @@ This script does merging for stills
 # Create the phil scope
 phil_scope = parse(
     """
+
+  input {
+    reference = None
+      .type = str
+      .help = "The reference reflections"
+  }
+
   include scope dials_scratch.jmp.merge.merge.phil_scope
 
 """,
@@ -97,8 +106,37 @@ class Script(object):
             logger.info("The following parameters have been modified:\n")
             logger.info(diff_phil)
 
+        # Read the reference
+        if params.input.reference:
+            reference = self._read_reference(params.input.reference)
+        else:
+            reference = None
+
         # Do the merging
-        reflections = scale_and_merge(experiments, reflections, params)
+        reflections = scale_and_merge(experiments, reflections, params, reference)
+
+    def _read_reference(self, filename):
+
+        # Read the MTZ file
+        reader = any_reflection_file(filename)
+
+        # Get the columns as miller arrays
+        miller_arrays = reader.as_miller_arrays(merge_equivalents=False)
+
+        # Select the desired columns
+        intensities = None
+        for array in miller_arrays:
+            if array.info().labels == ["IMEAN", "SIGIMEAN"]:
+                intensities = array
+        assert intensities is not None
+        indices = intensities.indices()
+        I = intensities.data()
+        V = intensities.sigmas() ** 2
+        reference = flex.reflection_table()
+        reference["miller_index"] = indices
+        reference["intensity.ref.value"] = I
+        reference["intensity.ref.variance"] = V
+        return reference
 
 
 if __name__ == "__main__":
