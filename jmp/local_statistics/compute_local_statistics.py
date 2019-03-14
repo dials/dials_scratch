@@ -329,8 +329,8 @@ if __name__ == '__main__':
   reflections['asu_miller_index'] = ms_asu.indices()
 
   # Compute the local mean / variance
-  H, K, L, result = compute_local_mean_over_variance(reflections, kernel_size)
-  #H, K, L, result = compute_local_cchalf(reflections, kernel_size)
+  #H, K, L, result = compute_local_mean_over_variance(reflections, kernel_size)
+  H, K, L, result = compute_local_cchalf(reflections, kernel_size)
   
   # Get the coordinats of points to show
   X, Y, Z = (flex.mat3_double(len(H), A)*flex.vec3_double(H,K,L)).parts()
@@ -342,7 +342,7 @@ if __name__ == '__main__':
   print max(result)
   min_r = 0
   max_r = 1.0#max(result)
-  max_r = max(result)
+  #max_r = max(result)
   B = 255.0/ (max_r-min_r)
   A = -B*min_r
   rgba = []
@@ -352,8 +352,8 @@ if __name__ == '__main__':
       i = 0
     if i > 255:
       i = 255
-    alpha = i/255.0
-    #alpha = 0.1+0.9-i/255.0
+    # alpha = i/255.0
+    alpha = 0.1+0.9*(1.0-i/255.0)
     rgba.append(colors[int(i)] + [alpha])
 
   print min(X), max(X)
