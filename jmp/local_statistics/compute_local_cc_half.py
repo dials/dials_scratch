@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 from dials.array_family import flex
@@ -151,7 +152,7 @@ def display_local_cchalf(mask, cchalf, hrange):
   k = -hrange[2]#cchalf.all()[1] // 2
   l = -hrange[4]#cchalf.all()[0] // 2
 
-  print hrange
+  print(hrange)
 
   fig, (ax1, ax2, ax3) = pylab.subplots(ncols=3)
   ax1.imshow(
@@ -213,8 +214,8 @@ if __name__ == '__main__':
   # Compute the local cchalf
   mask, cchalf, hrange = compute_local_cchalf(reflections, kernel_size)
 
-  print min(cchalf)
-  print max(cchalf)
+  print(min(cchalf))
+  print(max(cchalf))
 
   from dials_scratch.jmp.viewer import show_image_stack_multi_view
   show_image_stack_multi_view(

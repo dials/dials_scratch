@@ -21,7 +21,7 @@ def is_inside(p, aabb, side):
     elif side == TOP:
         return p[1] <= aabb[1][1]
     else:
-        raise "Bad"
+        raise ValueError("Bad")
 
 
 def intersection(p1, p2, aabb, side):
@@ -42,7 +42,7 @@ def intersection(p1, p2, aabb, side):
         x = p1[0] + (p2[0] - p1[0]) * (y - p1[1]) / (p2[1] - p1[1])
         return (x, y)
     else:
-        raise "Bad"
+        raise ValueError("Bad")
 
 
 def clip_line(input, aabb, code):

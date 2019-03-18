@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 from dxtbx.model.experiment_list import ExperimentListFactory
 from sklearn.neighbors import NearestNeighbors 
@@ -126,7 +127,7 @@ def compute_local_mean_over_variance2(reflections, kernel_size):
   convolved_I = flex.double(convolved_I)
   convolved_S = flex.double(convolved_S)
   convolved_N = flex.double(convolved_N)
-  print max(convolved_N)
+  print(max(convolved_N))
   selection = (convolved_N >= 0.5*kernel_size**3).as_1d()
   I_sub = convolved_I.as_1d().select(selection)
   S_sub = convolved_S.as_1d().select(selection)
@@ -337,9 +338,9 @@ if __name__ == '__main__':
  
   # Get the colours
   colors = cm.plasma.colors
-  print len(result), len(H), len(K), len(L)
-  print min(result)
-  print max(result)
+  print(len(result), len(H), len(K), len(L))
+  print(min(result))
+  print(max(result))
   min_r = 0
   max_r = 1.0#max(result)
   #max_r = max(result)
@@ -356,9 +357,9 @@ if __name__ == '__main__':
     alpha = 0.1+0.9*(1.0-i/255.0)
     rgba.append(colors[int(i)] + [alpha])
 
-  print min(X), max(X)
-  print min(Y), max(Y)
-  print min(Z), max(Z)
+  print(min(X), max(X))
+  print(min(Y), max(Y))
+  print(min(Z), max(Z))
 
   # Display the points
   xyz = list(zip(X,Y,Z))

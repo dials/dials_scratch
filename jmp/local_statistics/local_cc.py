@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dials.array_family import flex
 from dxtbx.model.experiment_list import ExperimentListFactory
 from sklearn.neighbors import NearestNeighbors
@@ -320,7 +321,7 @@ def compute_local_cc_vs_ref(reflections, reference, kernel_size):
         if len(X) > 0.25 * (2 * kernel_size + 1) ** 3:
             c = flex.linear_correlation(X, Y)
             cc_array[k,j,i] = c.coefficient()
-            print c.coefficient()
+            print(c.coefficient())
             mask_out[k,j,i] = True
 
     selection = (mask_out == True).as_1d()
