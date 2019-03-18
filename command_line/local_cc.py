@@ -92,7 +92,7 @@ class Script(object):
             epilog=help_message,
             read_experiments=True,
             read_reflections=True,
-            check_format=False
+            check_format=False,
         )
 
     def run(self):
@@ -131,7 +131,9 @@ class Script(object):
         if params.input.hklref is None:
             reference = None
         else:
-            reference, _ = self.process_mtzfile(params.input.hklref, merge_equivalents=True)
+            reference, _ = self.process_mtzfile(
+                params.input.hklref, merge_equivalents=True
+            )
 
         # Configure logging
         log.config(info="dials.potato.log", debug="dials.potato.debug.log")
@@ -150,7 +152,7 @@ class Script(object):
                 kernel_size=params.kernel_size,
                 record=params.output.record,
                 directory=params.output.directory,
-                point_size=params.point_size
+                point_size=params.point_size,
             )
         else:
             plot_local_cc_vs_ref(
@@ -160,7 +162,7 @@ class Script(object):
                 kernel_size=params.kernel_size,
                 record=params.output.record,
                 directory=params.output.directory,
-                point_size=params.point_size
+                point_size=params.point_size,
             )
 
     def process_reflections_and_experiments(

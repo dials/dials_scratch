@@ -16,6 +16,7 @@ import os.path
 
 logger = logging.getLogger(__name__)
 
+
 def compute_cchalf(mean, var):
     """
     Compute the CC 1/2 using the formular from Assmann, Brehm and Diederichs 2016
@@ -35,10 +36,10 @@ def compute_cchalf(mean, var):
 
 
 def compute_local_cchalf(reflections, kernel_size):
-    '''
+    """
     Compute the local CC 1/2
 
-    '''
+    """
     # Get the miller indices, intensities and variances
     H, K, L = zip(*list(reflections["asu_miller_index"]))
     I = reflections["intensity"]
@@ -144,10 +145,12 @@ def compute_local_cchalf(reflections, kernel_size):
     return H_sub, K_sub, L_sub, R_sub
 
 
-def plot_local_cc_half(reflections, A, kernel_size=5, record=False, directory="output", point_size=0.0025):
-    '''
+def plot_local_cc_half(
+    reflections, A, kernel_size=5, record=False, directory="output", point_size=0.0025
+):
+    """
     Plot the local CC 1/2
-    '''
+    """
 
     # Compute the local mean / variance
     logger.info("Compute local CC 1/2")
@@ -185,13 +188,13 @@ def plot_local_cc_half(reflections, A, kernel_size=5, record=False, directory="o
     # Display the points
     logger.info("Displaying")
     xyz = list(zip(X, Y, Z))
-    meanX = sum(X)/len(X)
-    meanY = sum(Y)/len(Y)
-    meanZ = sum(Z)/len(Z)
-    rangeX = max(X)-min(X)
-    rangeY = max(Y)-min(Y)
-    rangeZ = max(Z)-min(Z)
-    distance = 3*max([rangeX, rangeY, rangeZ])
+    meanX = sum(X) / len(X)
+    meanY = sum(Y) / len(Y)
+    meanZ = sum(Z) / len(Z)
+    rangeX = max(X) - min(X)
+    rangeY = max(Y) - min(Y)
+    rangeZ = max(Z) - min(Z)
+    distance = 3 * max([rangeX, rangeY, rangeZ])
     v = pptk.viewer(xyz, rgba)
     v.set(show_grid=False)
     v.set(bg_color=[0, 0, 0, 0])
@@ -209,25 +212,25 @@ def plot_local_cc_half(reflections, A, kernel_size=5, record=False, directory="o
         distance = v.get("r")
         theta = v.get("theta")
         poses = []
-        poses.append([lookatX, lookatY, lookatZ, 0 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 1 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 2 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 3 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 4 * np.pi/2, theta, distance])
-        #v.play("images", poses, 2 * np.arange(5), repeat=True, interp='linear') 
-        v.record(directory, poses, 2 * np.arange(5), interp='cubic_natural') 
+        poses.append([lookatX, lookatY, lookatZ, 0 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 1 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 2 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 3 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 4 * np.pi / 2, theta, distance])
+        # v.play("images", poses, 2 * np.arange(5), repeat=True, interp='linear')
+        v.record(directory, poses, 2 * np.arange(5), interp="cubic_natural")
 
 
 def match_reflections(reflections, reference):
-    '''
+    """
     Match two sets of reflections
 
-    '''
+    """
     lookup1 = {}
     lookup2 = {}
-    for i, h in enumerate(reflections['asu_miller_index']):
+    for i, h in enumerate(reflections["asu_miller_index"]):
         lookup1[h] = i
-    for i, h in enumerate(reference['asu_miller_index']):
+    for i, h in enumerate(reference["asu_miller_index"]):
         if h in lookup1:
             lookup2[h] = i
     H = flex.int()
@@ -235,8 +238,8 @@ def match_reflections(reflections, reference):
     L = flex.int()
     I1 = flex.double()
     I2 = flex.double()
-    intensity1 = reflections['intensity']
-    intensity2 = reference['intensity']
+    intensity1 = reflections["intensity"]
+    intensity2 = reference["intensity"]
     for h in lookup2:
         H.append(h[0])
         K.append(h[1])
@@ -245,11 +248,12 @@ def match_reflections(reflections, reference):
         I2.append(intensity2[lookup2[h]])
     return H, K, L, I1, I2
 
+
 def compute_local_cc_vs_ref(reflections, reference, kernel_size):
-    '''
+    """
     Compute the local cc vs a reference set of intrnsities
 
-    '''
+    """
 
     H, K, L, I1, I2 = match_reflections(reflections, reference)
 
@@ -262,7 +266,6 @@ def compute_local_cc_vs_ref(reflections, reference, kernel_size):
     n_K = max_K - min_K + 1
     n_L = max_L - min_L + 1
 
-    
     mask = flex.bool(flex.grid(n_L, n_K, n_H))
     data1 = flex.double(mask.accessor())
     data2 = flex.double(mask.accessor())
@@ -316,13 +319,13 @@ def compute_local_cc_vs_ref(reflections, reference, kernel_size):
             for jj in range(j0, j1):
                 for ii in range(i0, i1):
                     if mask[kk, jj, ii]:
-                        X.append(data1[kk,jj,ii])
-                        Y.append(data2[kk,jj,ii])
+                        X.append(data1[kk, jj, ii])
+                        Y.append(data2[kk, jj, ii])
         if len(X) > 0.25 * (2 * kernel_size + 1) ** 3:
             c = flex.linear_correlation(X, Y)
-            cc_array[k,j,i] = c.coefficient()
+            cc_array[k, j, i] = c.coefficient()
             print(c.coefficient())
-            mask_out[k,j,i] = True
+            mask_out[k, j, i] = True
 
     selection = (mask_out == True).as_1d()
     H_sub = H_array.as_1d().select(selection)
@@ -333,10 +336,18 @@ def compute_local_cc_vs_ref(reflections, reference, kernel_size):
     return H_sub, K_sub, L_sub, R_sub
 
 
-def plot_local_cc_vs_ref(reflections, reference, A, kernel_size=5, record=False, directory="output", point_size=0.0025):
-    '''
+def plot_local_cc_vs_ref(
+    reflections,
+    reference,
+    A,
+    kernel_size=5,
+    record=False,
+    directory="output",
+    point_size=0.0025,
+):
+    """
     Plot the local CC vs a reference
-    '''
+    """
 
     # Compute the local CC
     logger.info("Compute local CC vs reference")
@@ -374,13 +385,13 @@ def plot_local_cc_vs_ref(reflections, reference, A, kernel_size=5, record=False,
     # Display the points
     logger.info("Displaying")
     xyz = list(zip(X, Y, Z))
-    meanX = sum(X)/len(X)
-    meanY = sum(Y)/len(Y)
-    meanZ = sum(Z)/len(Z)
-    rangeX = max(X)-min(X)
-    rangeY = max(Y)-min(Y)
-    rangeZ = max(Z)-min(Z)
-    distance = 3*max([rangeX, rangeY, rangeZ])
+    meanX = sum(X) / len(X)
+    meanY = sum(Y) / len(Y)
+    meanZ = sum(Z) / len(Z)
+    rangeX = max(X) - min(X)
+    rangeY = max(Y) - min(Y)
+    rangeZ = max(Z) - min(Z)
+    distance = 3 * max([rangeX, rangeY, rangeZ])
     v = pptk.viewer(xyz, rgba)
     v.set(show_grid=False)
     v.set(bg_color=[0, 0, 0, 0])
@@ -398,10 +409,10 @@ def plot_local_cc_vs_ref(reflections, reference, A, kernel_size=5, record=False,
         theta = v.get("theta")
         lookatX, lookatY, lookatZ = v.get("lookat")
         poses = []
-        poses.append([lookatX, lookatY, lookatZ, 0 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 1 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 2 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 3 * np.pi/2, theta, distance])
-        poses.append([lookatX, lookatY, lookatZ, 4 * np.pi/2, theta, distance])
-        #v.play("images", poses, 2 * np.arange(5), repeat=True, interp='linear') 
-        v.record(directory, poses, 2 * np.arange(5), interp='cubic_natural') 
+        poses.append([lookatX, lookatY, lookatZ, 0 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 1 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 2 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 3 * np.pi / 2, theta, distance])
+        poses.append([lookatX, lookatY, lookatZ, 4 * np.pi / 2, theta, distance])
+        # v.play("images", poses, 2 * np.arange(5), repeat=True, interp='linear')
+        v.record(directory, poses, 2 * np.arange(5), interp="cubic_natural")

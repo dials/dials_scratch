@@ -158,10 +158,10 @@ def compute_reciprocal_space_distance_map(cbf_image):
     # clean up...
 
     detector.__swig_destroy__(detector)
-    del (detector)
+    del detector
 
     gonio.__swig_destroy__(gonio)
-    del (gonio)
+    del gonio
 
 
 if __name__ == "__main__":

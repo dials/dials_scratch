@@ -178,7 +178,9 @@ from dials.algorithms.indexing.indexer import indexer_base
 
 class indexer_low_res_spot_match(indexer_base):
     def __init__(self, reflections, experiments, params):
-        super(indexer_low_res_spot_match, self).__init__(reflections, experiments, params)
+        super(indexer_low_res_spot_match, self).__init__(
+            reflections, experiments, params
+        )
 
     def debug(self):
         # load up known indices
@@ -194,7 +196,9 @@ class indexer_low_res_spot_match(indexer_base):
         return indexed
 
     @staticmethod
-    def from_parameters(reflections, experiments, known_crystal_models=None, params=None):
+    def from_parameters(
+        reflections, experiments, known_crystal_models=None, params=None
+    ):
 
         if params is None:
             params = master_params
@@ -806,7 +810,10 @@ def run(args):
             expt.scan = None
 
     idxr = indexer_low_res_spot_match.from_parameters(
-        reflections, experiments, known_crystal_models=known_crystal_models, params=params
+        reflections,
+        experiments,
+        known_crystal_models=known_crystal_models,
+        params=params,
     )
     idxr.index()
     refined_experiments = idxr.refined_experiments
