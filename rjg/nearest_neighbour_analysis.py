@@ -1,5 +1,4 @@
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import libtbx.load_env
 import logging
@@ -20,7 +19,7 @@ from libtbx.phil import command_line
 import iotbx.phil
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections
-from dials.util.options import flatten_datablocks
+from dials.util.options import flatten_experiments
 from dials.array_family import flex
 
 import matplotlib
@@ -53,7 +52,7 @@ def run(args):
         usage=usage,
         phil=phil_scope,
         read_reflections=True,
-        read_datablocks=True,
+        read_experiments=True,
         check_format=False,
         epilog=help_message,
     )
@@ -76,15 +75,12 @@ def run(args):
         logger.info("The following parameters have been modified:\n")
         logger.info(diff_phil)
 
-    datablocks = flatten_datablocks(params.input.datablock)
+    experiments = flatten_experiments(params.input.experiments)
     reflections = flatten_reflections(params.input.reflections)
 
-    if len(datablocks) == 0:
+    if len(experiments) == 0:
         parser.print_help()
         return
-    imagesets = []
-    for datablock in datablocks:
-        imagesets.extend(datablock.extract_imagesets())
 
     if len(reflections) == 0:
         raise Sorry("No reflection lists found in input")
@@ -98,35 +94,30 @@ def run(args):
 
     # assert(len(reflections) == 1)
     reflections_input = reflections[0]
+    if "imageset_id" not in reflections_input:
+        reflections_input["imageset_id"] = reflections_input["id"]
 
-    for imageset in imagesets:
+    for expt in experiments:
         if (
-            imageset.get_goniometer() is not None
-            and imageset.get_scan() is not None
-            and imageset.get_scan().get_oscillation()[1] == 0
+            expt.goniometer is not None
+            and expt.scan is not None
+            and expt.scan.get_oscillation()[1] == 0
         ):
-            imageset.set_goniometer(None)
-            imageset.set_scan(None)
+            expt.goniometer = None
+            expt.scan = None
 
     from dials.algorithms.indexing.indexer import indexer_base
 
     reflections = flex.reflection_table()
 
-    for i, imageset in enumerate(imagesets):
-        if "imageset_id" not in reflections_input:
-            reflections_input["imageset_id"] = reflections_input["id"]
-        sel = reflections_input["imageset_id"] == i
-        refl = indexer_base.map_spots_pixel_to_mm_rad(
-            reflections_input.select(sel), imageset.get_detector(), imageset.get_scan()
-        )
-        indexer_base.map_centroids_to_reciprocal_space(
-            refl,
-            imageset.get_detector(),
-            imageset.get_beam(),
-            imageset.get_goniometer(),
+    for i, expt in enumerate(experiments):
+        refl = reflections_input.select(reflections_input["imageset_id"] == i)
+        refl.centroid_px_to_mm(expt.detector, expt.scan)
+        refl.map_centroids_to_reciprocal_space(
+            expt.detector, expt.beam, expt.goniometer
         )
         refl["entering"] = indexer_base.calculate_entering_flags(
-            refl, beam=imageset.get_beam(), goniometer=imageset.get_goniometer()
+            refl, beam=expt.beam, goniometer=expt.goniometer
         )
         reflections.extend(refl)
 
