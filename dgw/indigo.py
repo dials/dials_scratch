@@ -90,7 +90,7 @@ indexing{
 }
 
 output {
-  experiments = experiments.json
+  experiments = indexed_experiments.json
     .type = path
   split_experiments = False
     .type = bool
