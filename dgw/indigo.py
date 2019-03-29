@@ -77,6 +77,15 @@ indexing{
 
     bootstrap_crystal = False
       .type = bool
+
+    max_pairs = 200
+      .type = int
+
+    max_triplets = 600
+      .type = int
+
+    max_quads = 600
+      .type = int
   }
 }
 
@@ -340,6 +349,11 @@ class indexer_low_res_spot_match(indexer_base):
             pairs.extend(self._pairs_with_seed(seed))
         logger.debug("{0} pairs".format(len(pairs)))
         pairs = list(set(pairs))  # filter duplicates
+
+        if self.params.low_res_spot_match.max_pairs:
+            pairs.sort(key=operator.attrgetter("total_weight"))
+            idx = self.params.low_res_spot_match.max_pairs
+            pairs = pairs[0:idx]
         logger.debug("{0} filtered pairs".format(len(pairs)))
 
         # Further search iterations: extend to more spots within tolerated distances
@@ -348,6 +362,10 @@ class indexer_low_res_spot_match(indexer_base):
             triplets.extend(self._extend_by_candidates(pair))
         logger.debug("{0} triplets".format(len(triplets)))
         triplets = list(set(triplets))  # filter duplicates
+        if self.params.low_res_spot_match.max_triplets:
+            triplets.sort(key=operator.attrgetter("total_weight"))
+            idx = self.params.low_res_spot_match.max_triplets
+            triplets = triplets[0:idx]
         logger.debug("{0} filtered triplets".format(len(triplets)))
 
         if self.params.low_res_spot_match.debug_reflections:
@@ -368,6 +386,10 @@ class indexer_low_res_spot_match(indexer_base):
                 quads.extend(self._extend_by_candidates(triplet))
             logger.debug("{0} quads".format(len(quads)))
             quads = list(set(quads))  # filter duplicates
+            if self.params.low_res_spot_match.max_quads:
+                quads.sort(key=operator.attrgetter("total_weight"))
+                idx = self.params.low_res_spot_match.max_quads
+                quads = quads[0:idx]
             logger.debug("{0} filtered quads".format(len(quads)))
             branches = quads
 
