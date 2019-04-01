@@ -37,7 +37,7 @@ import matplotlib
 import json
 
 # Set matplotlib backend
-# matplotlib.use("agg", warn=False)
+matplotlib.use("agg", warn=False)
 
 logger = logging.getLogger("dials." + __name__)
 
@@ -96,6 +96,9 @@ phil_scope = parse(
     n_macro_cycles = 3
       .type = int
 
+    min_n_reflections=10
+      .type = int
+
   }
 
   prediction {
@@ -115,6 +118,19 @@ phil_scope = parse(
 
       probability = 0.9973
         .type = float
+
+    }
+
+    corrections {
+      
+      lp = True
+        .type = bool
+      
+      dqe = True
+        .type = bool
+      
+      partiality = True
+        .type = bool
 
     }
 
@@ -213,7 +229,7 @@ class Indexer(object):
                     int(floor(hf[0] + 0.5)),
                     int(floor(hf[1] + 0.5)),
                     int(floor(hf[2] + 0.5)),
-                )
+              )
             )
 
             # Print warning if reindexing
@@ -283,6 +299,7 @@ class Indexer(object):
         """
     Filter reflections too far from predicted position
 
+<<<<<<< HEAD
     """
 
         # Compute the x and y residuals
@@ -311,14 +328,13 @@ class Indexer(object):
         # Compute the cutoff
         mahasq_cutoff = chisq_quantile(2, self.params.refinement.outlier_probability)
 
-        # compare to the threshold
-        selection = d2s < mahasq_cutoff
-        selection = selection & (
-            flex.sqrt(Xres ** 2 + Yres ** 2) < self.params.refinement.max_separation
-        )
-
-        # Select the reflections
+        # compare to the threshold and select reflections
+        selection1 = d2s < mahasq_cutoff
+        selection2 = flex.sqrt(Xres ** 2 + Yres ** 2) < self.params.refinement.max_separation
+        selection = selection1 & selection2
         self.reflections = self.reflections.select(selection)
+
+        # Print some stuff
         logger.info("-" * 80)
         logger.info("Centroid outlier rejection")
         logger.info(
@@ -343,12 +359,21 @@ class Indexer(object):
         #   %.7f, %.7f, %.7f,
         #   %.7f, %.7f, %.7f,
         #   %.7f, %.7f, %.7f''' % tuple(list(S)))
-        logger.info(" Number of outliers: %d" % selection.count(False))
+        logger.info(" Number of outliers: %d" % selection1.count(False))
+        logger.info(" Number of reflections with residual > %0.2f pixels: %d" % (
+          self.params.refinement.max_separation,
+          selection2.count(False)))
         logger.info(
             " Number of reflections selection for refinement: %d"
             % len(self.reflections)
         )
         logger.info("-" * 80)
+   
+        # Throw exception
+        if len(self.reflections) < self.params.refinement.min_n_reflections:
+          raise RuntimeError('Too few reflections to perform refinement: got %d, expected %d' % (
+            len(self.reflections),
+            self.params.refinement.min_n_reflections))
 
 
 class InitialIntegrator(object):
@@ -1166,3 +1191,13 @@ class Integrator(object):
         # Delete shoeboxes if necessary
         if not self.params.debug.output.shoeboxes:
             del self.reflections["shoebox"]
+
+        # Delete corrections if specified
+        if not self.params.integration.corrections.lp:
+          del self.reflections['lp']
+        if not self.params.integration.corrections.dqe:
+          del self.reflections['dqe']
+        if not self.params.integration.corrections.partiality:
+          del self.reflections['partiality']
+          del self.reflections['partiality.inv.variance']
+
