@@ -229,7 +229,7 @@ class Indexer(object):
                     int(floor(hf[0] + 0.5)),
                     int(floor(hf[1] + 0.5)),
                     int(floor(hf[2] + 0.5)),
-              )
+                )
             )
 
             # Print warning if reindexing
@@ -330,7 +330,9 @@ class Indexer(object):
 
         # compare to the threshold and select reflections
         selection1 = d2s < mahasq_cutoff
-        selection2 = flex.sqrt(Xres ** 2 + Yres ** 2) < self.params.refinement.max_separation
+        selection2 = (
+            flex.sqrt(Xres ** 2 + Yres ** 2) < self.params.refinement.max_separation
+        )
         selection = selection1 & selection2
         self.reflections = self.reflections.select(selection)
 
@@ -360,20 +362,22 @@ class Indexer(object):
         #   %.7f, %.7f, %.7f,
         #   %.7f, %.7f, %.7f''' % tuple(list(S)))
         logger.info(" Number of outliers: %d" % selection1.count(False))
-        logger.info(" Number of reflections with residual > %0.2f pixels: %d" % (
-          self.params.refinement.max_separation,
-          selection2.count(False)))
+        logger.info(
+            " Number of reflections with residual > %0.2f pixels: %d"
+            % (self.params.refinement.max_separation, selection2.count(False))
+        )
         logger.info(
             " Number of reflections selection for refinement: %d"
             % len(self.reflections)
         )
         logger.info("-" * 80)
-   
+
         # Throw exception
         if len(self.reflections) < self.params.refinement.min_n_reflections:
-          raise RuntimeError('Too few reflections to perform refinement: got %d, expected %d' % (
-            len(self.reflections),
-            self.params.refinement.min_n_reflections))
+            raise RuntimeError(
+                "Too few reflections to perform refinement: got %d, expected %d"
+                % (len(self.reflections), self.params.refinement.min_n_reflections)
+            )
 
 
 class InitialIntegrator(object):
@@ -1194,10 +1198,9 @@ class Integrator(object):
 
         # Delete corrections if specified
         if not self.params.integration.corrections.lp:
-          del self.reflections['lp']
+            del self.reflections["lp"]
         if not self.params.integration.corrections.dqe:
-          del self.reflections['dqe']
+            del self.reflections["dqe"]
         if not self.params.integration.corrections.partiality:
-          del self.reflections['partiality']
-          del self.reflections['partiality.inv.variance']
-
+            del self.reflections["partiality"]
+            del self.reflections["partiality.inv.variance"]
