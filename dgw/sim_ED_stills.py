@@ -150,11 +150,11 @@ class Simulation(object):
             "DIALS beam centre will be", self.detector[0].get_beam_centre(beam.get_s0())
         )
 
-        # Construct simulation. Ugh, it prints a load of junk from C++ that is not
+        # Construct simulation. Ugh, it prints a load of stuff from C++ that is not
         # easy to suppress.
         print("Ignore the following output from simtbx")
         print("#######################################")
-        SIM = nanoBragg(self.detector, beam, verbose=0)
+        SIM = nanoBragg(self.detector, beam, verbose=1)
         print("#######################################")
 
         # Set Ncells to give approx 200nm cube
@@ -198,7 +198,7 @@ class Simulation(object):
         SIM.add_nanoBragg_spots()
 
         # Amplify spot signal
-        SIM.raw_pixels *= 2000 ** 3
+        SIM.raw_pixels *= 10 ** 3
 
         # Write out the noise-free image with a pedestal matching that reported in
         # the header
@@ -207,29 +207,14 @@ class Simulation(object):
         SIM.to_smv_format(fileout=fileout, intfile_scale=1)
         SIM.raw_pixels -= SIM.adc_offset_adu
 
-        # Add scatter from rough approximation to water: interpolation points for
-        # sin(theta/lambda) vs structure factor.
-        # NB is nonsense for ED.
-        bg = flex.vec2_double(
-            [
-                (0, 2.57),
-                (0.0365, 2.58),
-                (0.07, 2.8),
-                (0.12, 5),
-                (0.162, 8),
-                (0.2, 6.75),
-                (0.18, 7.32),
-                (0.216, 6.75),
-                (0.236, 6.5),
-                (0.28, 4.5),
-                (0.3, 4.3),
-                (0.345, 4.36),
-                (0.436, 3.77),
-                (0.5, 3.17),
-            ]
-        )
+        # Add background scatter: interpolation points for sin(theta/lambda)
+        # vs structure factor. Model ED images approximately using an
+        # exponential fall off
+        stol = flex.double_range(0,51,2) / 100
+        scatt = 70 * flex.exp(-7 * stol)
+        bg = flex.vec2_double(stol, scatt)
         SIM.Fbg_vs_stol = bg
-        SIM.amorphous_sample_thick_mm = 0.03
+        SIM.amorphous_sample_thick_mm = 0.3
         SIM.amorphous_density_gcm3 = 1
         SIM.amorphous_molecular_weight_Da = 18
         SIM.add_background()
