@@ -186,8 +186,13 @@ class Simulation(object):
         SIM.beamsize_mm = 0.01  # assumes round beam
         SIM.exposure_s = 0.1
 
-        SIM.mosaic_domains = 10
+        SIM.divergence_hv_mrad = 0.07,0.07
+        SIM.divsteps_hv = 6,6
+
+        # Set mosaic spread _before_ setting the number of domains.  If the
+        # mosaicity is zero, the domain count is always reset to 1.
         SIM.mosaic_spread_deg = 0.1
+        SIM.mosaic_domains = 10
 
         # Set detector noise and offset parameters to zero
         SIM.adc_offset_adu = 0
@@ -198,7 +203,7 @@ class Simulation(object):
         SIM.add_nanoBragg_spots()
 
         # Amplify spot signal
-        SIM.raw_pixels *= 10 ** 3
+        SIM.raw_pixels *= 100
 
         # Write out the noise-free image with a pedestal matching that reported in
         # the header
