@@ -186,8 +186,8 @@ class Simulation(object):
         SIM.beamsize_mm = 0.01  # assumes round beam
         SIM.exposure_s = 0.1
 
-        SIM.divergence_hv_mrad = 0.07,0.07
-        SIM.divsteps_hv = 6,6
+        SIM.divergence_hv_mrad = 0.07, 0.07
+        SIM.divsteps_hv = 6, 6
 
         # Set mosaic spread _before_ setting the number of domains.  If the
         # mosaicity is zero, the domain count is always reset to 1.
@@ -215,7 +215,7 @@ class Simulation(object):
         # Add background scatter: interpolation points for sin(theta/lambda)
         # vs structure factor. Model ED images approximately using an
         # exponential fall off
-        stol = flex.double_range(0,51,2) / 100
+        stol = flex.double_range(0, 51, 2) / 100
         scatt = 70 * flex.exp(-7 * stol)
         bg = flex.vec2_double(stol, scatt)
         SIM.Fbg_vs_stol = bg
