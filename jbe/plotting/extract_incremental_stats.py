@@ -34,6 +34,7 @@ def merging_stats_from_scaled_array(scaled_miller_array):
     )
     return result, anom_result
 
+
 filenames = (
     "/Users/whi10850/Documents/test_data/multi_example/integrated_files/inc_test/1/",
     "/Users/whi10850/Documents/test_data/multi_example/integrated_files/inc_test/2/",
@@ -43,8 +44,10 @@ cc_one_half_data = []
 i_over_sig_data = []
 
 for filepath in filenames:
-    experiments = load.experiment_list(filepath+"scaled_experiments.json", check_format=False)
-    reflections = flex.reflection_table.from_pickle(filepath+"scaled.pickle")
+    experiments = load.experiment_list(
+        filepath + "scaled_experiments.json", check_format=False
+    )
+    reflections = flex.reflection_table.from_pickle(filepath + "scaled.pickle")
     print("memory: %s" % int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
     arr = scaled_data_as_miller_array([reflections], experiments)
     norm_stats, anom_stats = merging_stats_from_scaled_array(arr)
@@ -58,6 +61,6 @@ for filepath in filenames:
     print("added data for %s" % filepath)
 
 
-data = {"cc_one_half" : cc_one_half_data, "i_over_sigma": i_over_sig_data}
+data = {"cc_one_half": cc_one_half_data, "i_over_sigma": i_over_sig_data}
 with open("incremental_data.json", "w") as f:
     json.dump(data, f, indent=True)

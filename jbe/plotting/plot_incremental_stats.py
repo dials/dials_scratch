@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+
 matplotlib.use("Agg")
 
 with open("incremental_data.json") as f:
@@ -14,8 +15,14 @@ with open("incremental_data.json") as f:
     gs = GridSpec(1, 2)
     ax1 = fig.add_subplot(gs[0, 0])
     for i, d in enumerate(cc_one_half_data):
-        ax1.plot(d["data"][0]["x"], d["data"][0]["y"], label=r"CC$_{1/2}$"+" (%s)" % i)
-        ax1.plot(d["data"][2]["x"], d["data"][2]["y"], label=r"CC$_{1/2}$-anom."+" (%s)" % i)
+        ax1.plot(
+            d["data"][0]["x"], d["data"][0]["y"], label=r"CC$_{1/2}$" + " (%s)" % i
+        )
+        ax1.plot(
+            d["data"][2]["x"],
+            d["data"][2]["y"],
+            label=r"CC$_{1/2}$-anom." + " (%s)" % i,
+        )
     ax1.set_xticks(cc_one_half_data[-1]["layout"]["xaxis"]["tickvals"])
     ax1.set_xticklabels(cc_one_half_data[-1]["layout"]["xaxis"]["ticktext"])
     ax1.legend(fontsize=fontsize)
