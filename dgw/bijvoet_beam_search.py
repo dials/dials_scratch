@@ -249,7 +249,7 @@ class Script(object):
 
         from dials.algorithms.indexing import indexer
 
-        self.reflections = indexer.indexer_base.map_spots_pixel_to_mm_rad(
+        self.reflections = indexer.Indexer.map_spots_pixel_to_mm_rad(
             self.reflections, self.detector, self.scan
         )
 

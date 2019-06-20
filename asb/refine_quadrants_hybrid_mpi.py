@@ -210,9 +210,9 @@ if __name__ == "__main__":
         i, line = next(e)
         reflections, exp = load_input(line.experiments, line.reflections)
         assert reflections["id"].all_eq(0)
-        from dials.algorithms.indexing.indexer import indexer_base
+        from dials.algorithms.indexing.indexer import Indexer
 
-        reflections = indexer_base.map_spots_pixel_to_mm_rad(
+        reflections = Indexer.map_spots_pixel_to_mm_rad(
             reflections, exp.detector, exp.scan
         )
         experiment_from_crystal = ExperimentFromCrystal(exp.beam, exp.detector)
@@ -224,7 +224,7 @@ if __name__ == "__main__":
             refs, exp = load_input(line.experiments, line.reflections)
             print(i, line.reflections, len(refs))
             refs["id"] = flex.size_t(len(refs), i)
-            refs = indexer_base.map_spots_pixel_to_mm_rad(refs, exp.detector, exp.scan)
+            refs = Indexer.map_spots_pixel_to_mm_rad(refs, exp.detector, exp.scan)
             reflections.extend(refs)
             experiments.append(experiment_from_crystal(exp.crystal))
 

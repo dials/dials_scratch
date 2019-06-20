@@ -182,10 +182,10 @@ class CompleteGraph(object):
         return not self == other
 
 
-from dials.algorithms.indexing.indexer import indexer_base
+from dials.algorithms.indexing.indexer import Indexer
 
 
-class indexer_low_res_spot_match(indexer_base):
+class indexer_low_res_spot_match(Indexer):
     def __init__(self, reflections, experiments, params):
         super(indexer_low_res_spot_match, self).__init__(
             reflections, experiments, params
@@ -214,14 +214,14 @@ class indexer_low_res_spot_match(indexer_base):
 
         if known_crystal_models is not None:
             from dials.algorithms.indexing.known_orientation import (
-                indexer_known_orientation,
+                IndexerKnownOrientation,
             )
 
             if params.indexing.known_symmetry.space_group is None:
                 params.indexing.known_symmetry.space_group = (
                     known_crystal_models[0].get_space_group().info()
                 )
-            idxr = indexer_known_orientation(
+            idxr = IndexerKnownOrientation(
                 reflections, experiments, params, known_crystal_models
             )
         else:

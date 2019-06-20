@@ -98,7 +98,7 @@ def run(args):
             imageset.set_goniometer(None)
             imageset.set_scan(None)
 
-    from dials.algorithms.indexing.indexer import indexer_base
+    from dials.algorithms.indexing.indexer import Indexer
 
     reflections = flex.reflection_table()
 
@@ -106,16 +106,16 @@ def run(args):
         if "imageset_id" not in reflections_input:
             reflections_input["imageset_id"] = reflections_input["id"]
         sel = reflections_input["imageset_id"] == i
-        refl = indexer_base.map_spots_pixel_to_mm_rad(
+        refl = Indexer.map_spots_pixel_to_mm_rad(
             reflections_input.select(sel), imageset.get_detector(), imageset.get_scan()
         )
-        indexer_base.map_centroids_to_reciprocal_space(
+        Indexer.map_centroids_to_reciprocal_space(
             refl,
             imageset.get_detector(),
             imageset.get_beam(),
             imageset.get_goniometer(),
         )
-        refl["entering"] = indexer_base.calculate_entering_flags(
+        refl["entering"] = Indexer.calculate_entering_flags(
             refl, beam=imageset.get_beam(), goniometer=imageset.get_goniometer()
         )
         reflections.extend(refl)

@@ -85,7 +85,7 @@ def run(args):
             imageset.set_goniometer(None)
             imageset.set_scan(None)
 
-    from dials.algorithms.indexing.indexer import indexer_base
+    from dials.algorithms.indexing.indexer import Indexer
 
     estimate_ice_rings_width(imagesets, params.steps)
     return

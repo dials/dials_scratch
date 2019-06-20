@@ -106,7 +106,7 @@ def run(args):
             expt.goniometer = None
             expt.scan = None
 
-    from dials.algorithms.indexing.indexer import indexer_base
+    from dials.algorithms.indexing.indexer import Indexer
 
     reflections = flex.reflection_table()
 
@@ -116,7 +116,7 @@ def run(args):
         refl.map_centroids_to_reciprocal_space(
             expt.detector, expt.beam, expt.goniometer
         )
-        refl["entering"] = indexer_base.calculate_entering_flags(
+        refl["entering"] = Indexer.calculate_entering_flags(
             refl, beam=expt.beam, goniometer=expt.goniometer
         )
         reflections.extend(refl)

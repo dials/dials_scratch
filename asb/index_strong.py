@@ -65,15 +65,15 @@ class Script(object):
         exp = experiments[0]
 
         from dials.algorithms.indexing import index_reflections
-        from dials.algorithms.indexing.indexer import indexer_base
+        from dials.algorithms.indexing.indexer import Indexer
 
         reflections["id"] = flex.int(len(reflections), -1)
         reflections["imageset_id"] = flex.int(len(reflections), 0)
-        reflections = indexer_base.map_spots_pixel_to_mm_rad(
+        reflections = Indexer.map_spots_pixel_to_mm_rad(
             reflections, exp.detector, exp.scan
         )
 
-        indexer_base.map_centroids_to_reciprocal_space(
+        Indexer.map_centroids_to_reciprocal_space(
             reflections, exp.detector, exp.beam, exp.goniometer
         )
 

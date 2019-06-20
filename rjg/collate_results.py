@@ -80,10 +80,10 @@ def run_once(directory):
         d_strong_spots_50th_percentile = 0
         n_strong_spots_dmin_4 = 0
     else:
-        spots_mm = indexer.indexer_base.map_spots_pixel_to_mm_rad(
+        spots_mm = indexer.Indexer.map_spots_pixel_to_mm_rad(
             strong_spots, detector, scan
         )
-        indexer.indexer_base.map_centroids_to_reciprocal_space(
+        indexer.Indexer.map_centroids_to_reciprocal_space(
             spots_mm, detector, beam, goniometer
         )
         d_spacings = 1 / spots_mm["rlp"].norms()
@@ -125,7 +125,7 @@ def run_once(directory):
             if len(spots_mm) == 0:
                 d_min_indexed.append(0)
             else:
-                indexer.indexer_base.map_centroids_to_reciprocal_space(
+                indexer.Indexer.map_centroids_to_reciprocal_space(
                     spots_mm, detector, beam, goniometer
                 )
                 d_spacings = 1 / spots_mm["rlp"].norms()
