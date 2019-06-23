@@ -194,9 +194,7 @@ if __name__ == "__main__":
     assert reflections["id"].all_eq(0)
     from dials.algorithms.indexing.indexer import Indexer
 
-    reflections = Indexer.map_spots_pixel_to_mm_rad(
-        reflections, exp.detector, exp.scan
-    )
+    reflections = Indexer.map_spots_pixel_to_mm_rad(reflections, exp.detector, exp.scan)
     experiment_from_crystal = ExperimentFromCrystal(exp.beam, exp.detector)
 
     experiments = ExperimentList()
