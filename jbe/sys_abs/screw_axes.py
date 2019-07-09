@@ -1,10 +1,13 @@
 """Definitions of screw axes with methods for scoring against data."""
 from scitbx.array_family import flex
-
 from dials.util.observer import Observer, Subject, singleton
+from jinja2 import Environment, ChoiceLoader, PackageLoader
+from dials_scratch.jbe.sys_abs.plots import plot_screw_axes
 
 @singleton
 class ScrewAxisObserver(Observer):
+
+    """Observer to record data used in screw axis analysis."""
 
     def update(self, screw_axis):
         self.data[screw_axis.name] = {
@@ -12,8 +15,28 @@ class ScrewAxisObserver(Observer):
             'i_over_sigma': screw_axis.i_over_sigma,
         }
 
+    def generate_html_report(self, filename):
+        """Generate a html report using the data."""
+        screw_axes_graphs = plot_screw_axes(self.data)
+        self.data['screw_axes'] = screw_axes_graphs
+        loader = ChoiceLoader(
+            [
+                PackageLoader("dials", "templates"),
+                PackageLoader("dials", "static", encoding="utf-8"),
+            ]
+        )
+        env = Environment(loader=loader)
+        template = env.get_template("systematic_absences_report.html")
+        html = template.render(
+            page_title="DIALS systematic absences report",
+            screw_axes_graphs=self.data['screw_axes'],
+        )
+        with open(filename, "wb") as f:
+            f.write(html.encode("ascii", "xmlcharrefreplace"))
 
-class screw_axis(Subject):
+
+
+class ScrewAxis(Subject):
 
     """Definition of a generic screw axis."""
 
@@ -26,17 +49,18 @@ class screw_axis(Subject):
     exclude_in_sum = [] # should any be excluded (e.g. don't test l=4 for 42 screw)
 
     def __init__(self):
-        super(screw_axis, self).__init__(events=["selected data for scoring"])
+        super(ScrewAxis, self).__init__(events=["selected data for scoring"])
         self.equivalent_axes = []
         self.n_refl_used = ()
         self.miller_axis_vals = []
         self.i_over_sigma = []
 
     def add_equivalent_axis(self, equivalent):
+        """Add a symmetry equivalent axis."""
         self.equivalent_axes.append(equivalent)
 
     def select_axial_reflections(self, miller_indices):
-
+        """Select reflections along the screw axis."""
         indices = miller_indices.as_vec3_double()
 
         v1 = flex.vec3_double(indices.size(), self.orthogonal_vectors[0])
@@ -49,6 +73,7 @@ class screw_axis(Subject):
 
     @Subject.notify_event(event="selected data for scoring")
     def get_all_suitable_reflections(self, reflection_table):
+        """Select suitable reflections for testing the screw axis."""
         refl = reflection_table
         sel = self.select_axial_reflections(refl['miller_index'])
         miller_idx = refl['miller_index'].select(sel)
@@ -98,7 +123,7 @@ class screw_axis(Subject):
 
         return score
 
-class screw_axis_21c(screw_axis):
+class ScrewAxis21c(ScrewAxis):
 
     """Definition of a 21c screw axis"""
 
@@ -107,10 +132,8 @@ class screw_axis_21c(screw_axis):
     name = "21c"
     orthogonal_vectors = ((1, 0, 0), (0, 1, 0))
 
-    def __init__(self):
-        super(screw_axis_21c, self).__init__()
 
-class screw_axis_21b(screw_axis):
+class ScrewAxis21b(ScrewAxis):
 
     """Definition of a 21b screw axis"""
 
@@ -119,10 +142,7 @@ class screw_axis_21b(screw_axis):
     name = "21b"
     orthogonal_vectors = ((1, 0, 0), (0, 0, 1))
 
-    def __init__(self):
-        super(screw_axis_21b, self).__init__()
-
-class screw_axis_21a(screw_axis):
+class ScrewAxis21a(ScrewAxis):
 
     """Definition of a 21a screw axis"""
 
@@ -131,10 +151,7 @@ class screw_axis_21a(screw_axis):
     name = "21a"
     orthogonal_vectors = ((0, 1, 0), (0, 0, 1))
 
-    def __init__(self):
-        super(screw_axis_21a, self).__init__()
-
-class screw_axis_41c(screw_axis):
+class ScrewAxis41c(ScrewAxis):
 
     """Definition of a 41c screw axis"""
 
@@ -143,10 +160,8 @@ class screw_axis_41c(screw_axis):
     name = "41c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
 
-    def __init__(self):
-        super(screw_axis_41c, self).__init__()
 
-class screw_axis_42c(screw_axis):
+class ScrewAxis42c(ScrewAxis):
 
     """Definition of a 42c screw axis"""
 
@@ -156,10 +171,8 @@ class screw_axis_42c(screw_axis):
     name = "42c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
 
-    def __init__(self):
-        super(screw_axis_42c, self).__init__()
 
-class screw_axis_41b(screw_axis):
+class ScrewAxis41b(ScrewAxis):
 
     """Definition of a 41b screw axis"""
 
@@ -168,10 +181,8 @@ class screw_axis_41b(screw_axis):
     name = "41c"
     orthogonal_vectors = ((0, 0, 1), (1, 0, 0))
 
-    def __init__(self):
-        super(screw_axis_41b, self).__init__()
 
-class screw_axis_41a(screw_axis):
+class ScrewAxis41a(ScrewAxis):
 
     """Definition of a 41a screw axis"""
 
@@ -180,10 +191,8 @@ class screw_axis_41a(screw_axis):
     name = "41c"
     orthogonal_vectors = ((0, 1, 0), (0, 0, 1))
 
-    def __init__(self):
-        super(screw_axis_41a, self).__init__()
 
-class screw_axis_31c(screw_axis):
+class ScrewAxis31c(ScrewAxis):
 
     """Definition of a 31c screw axis"""
 
@@ -192,10 +201,8 @@ class screw_axis_31c(screw_axis):
     name = "31c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
 
-    def __init__(self):
-        super(screw_axis_31c, self).__init__()
 
-class screw_axis_61c(screw_axis):
+class ScrewAxis61c(ScrewAxis):
 
     """Definition of a 61c screw axis"""
 
@@ -204,10 +211,8 @@ class screw_axis_61c(screw_axis):
     name = "61c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
 
-    def __init__(self):
-        super(screw_axis_61c, self).__init__()
 
-class screw_axis_62c(screw_axis):
+class ScrewAxis62c(ScrewAxis):
 
     """Definition of a 62c screw axis"""
 
@@ -217,10 +222,8 @@ class screw_axis_62c(screw_axis):
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
     exclude_in_sum = [6]
 
-    def __init__(self):
-        super(screw_axis_62c, self).__init__()
 
-class screw_axis_63c(screw_axis):
+class ScrewAxis63c(ScrewAxis):
 
     """Definition of a 63c screw axis"""
 
@@ -229,6 +232,3 @@ class screw_axis_63c(screw_axis):
     name = "63c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
     exclude_in_sum = [6, 3]
-
-    def __init__(self):
-        super(screw_axis_63c, self).__init__()

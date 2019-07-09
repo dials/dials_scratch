@@ -1,6 +1,7 @@
+"""Test scoring of screw axes."""
 from dials.array_family import flex
-from dials_scratch.jbe.sys_abs.screw_axes import screw_axis_41c, screw_axis_42c,\
-    screw_axis_61c, screw_axis_62c, screw_axis_63c
+from dials_scratch.jbe.sys_abs.screw_axes import ScrewAxis41c, ScrewAxis42c,\
+    ScrewAxis61c, ScrewAxis62c, ScrewAxis63c
 
 def test_fourfold_screw():
     """Test the discernment between a 41 and 42 with weak pattern."""
@@ -16,22 +17,22 @@ def test_fourfold_screw():
 
     # Test 41 and 42 screw
     reflection_table['intensity'] = intensity_pattern_41
-    score_41 = screw_axis_41c().score_axis(reflection_table)
-    score_42 = screw_axis_42c().score_axis(reflection_table)
+    score_41 = ScrewAxis41c().score_axis(reflection_table)
+    score_42 = ScrewAxis42c().score_axis(reflection_table)
 
     assert score_41 > 0.95
     assert score_42 < 0.05
 
     reflection_table['intensity'] = weak_intensity_pattern_42
 
-    score_41 = screw_axis_41c().score_axis(reflection_table)
-    score_42 = screw_axis_42c().score_axis(reflection_table)
+    score_41 = ScrewAxis41c().score_axis(reflection_table)
+    score_42 = ScrewAxis42c().score_axis(reflection_table)
 
     assert score_42 > score_41 # score_41 still fairly high as looks almost like 41
     assert score_42 > 0.8 #weak but should still be found
 
 def test_sixfold_screw():
-
+    """Test the discernment between a 61 and 62 with weak pattern."""
     intensity_pattern_61 = flex.double([0.05, 0.03, 0.07, 0.04, 0.02, 10.0,
         0.06, 0.12, 0.15, 0.02, 0.07, 12.0])
     weak_intensity_pattern_62 = flex.double([0.05, 0.03, 2.0, 0.04, 0.02, 10.0,
@@ -51,9 +52,9 @@ def test_sixfold_screw():
 
     # Test 61, 62 and 63 screw
     reflection_table['intensity'] = intensity_pattern_61
-    score_61 = screw_axis_61c().score_axis(reflection_table)
-    score_62 = screw_axis_62c().score_axis(reflection_table)
-    score_63 = screw_axis_63c().score_axis(reflection_table)
+    score_61 = ScrewAxis61c().score_axis(reflection_table)
+    score_62 = ScrewAxis62c().score_axis(reflection_table)
+    score_63 = ScrewAxis63c().score_axis(reflection_table)
 
     assert score_61 > 0.92
     assert score_62 < 0.05
@@ -61,9 +62,9 @@ def test_sixfold_screw():
 
     reflection_table['intensity'] = weak_intensity_pattern_62
 
-    score_61 = screw_axis_61c().score_axis(reflection_table)
-    score_62 = screw_axis_62c().score_axis(reflection_table)
-    score_63 = screw_axis_63c().score_axis(reflection_table)
+    score_61 = ScrewAxis61c().score_axis(reflection_table)
+    score_62 = ScrewAxis62c().score_axis(reflection_table)
+    score_63 = ScrewAxis63c().score_axis(reflection_table)
 
     assert score_62 > score_61
     assert score_62 > score_63
@@ -71,9 +72,9 @@ def test_sixfold_screw():
 
     reflection_table['intensity'] = intensity_pattern_62
 
-    score_61 = screw_axis_61c().score_axis(reflection_table)
-    score_62 = screw_axis_62c().score_axis(reflection_table)
-    score_63 = screw_axis_63c().score_axis(reflection_table)
+    score_61 = ScrewAxis61c().score_axis(reflection_table)
+    score_62 = ScrewAxis62c().score_axis(reflection_table)
+    score_63 = ScrewAxis63c().score_axis(reflection_table)
 
     assert score_62 > score_61
     assert score_62 > score_63
@@ -81,9 +82,9 @@ def test_sixfold_screw():
 
     reflection_table['intensity'] = weak_intensity_pattern_63
 
-    score_61 = screw_axis_61c().score_axis(reflection_table)
-    score_62 = screw_axis_62c().score_axis(reflection_table)
-    score_63 = screw_axis_63c().score_axis(reflection_table)
+    score_61 = ScrewAxis61c().score_axis(reflection_table)
+    score_62 = ScrewAxis62c().score_axis(reflection_table)
+    score_63 = ScrewAxis63c().score_axis(reflection_table)
 
     assert score_63 > score_61
     assert score_63 > score_62
