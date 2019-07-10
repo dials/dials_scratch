@@ -12,11 +12,12 @@ import sys
 from dials.util import log, show_mail_on_error, Sorry
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 from dials.util.version import dials_version
-from dials.util.filter_reflections import ScaleIntensityReducer
+from dials.util.filter_reflections import ScaleIntensityReducer, PrfIntensityReducer
+from dials.array_family import flex
 from dials_scratch.jbe.sys_abs.laue_groups_info import (
     laue_groups,
     score_screw_axes,
-    score_space_groups,
+    score_space_groups
 )
 from dials_scratch.jbe.sys_abs.screw_axes import ScrewAxisObserver
 from cctbx import sgtbx
@@ -29,6 +30,10 @@ help_message = """Program to assess space group symmetry (for MX datasets)."""
 logger = logging.getLogger("dials.absences")
 info_handle = log.info_handle(logger)
 phil_scope = phil.parse("""
+    significance_level = *0.95, 0.975, 0.99
+        .type = choice
+        .help = "Signficance to use when testing whether axial reflections are "
+                "different to zero (absences and reflections in reflecting condition)"
     output {
         log = dials.systematic_absences.log
             .type = str
@@ -36,9 +41,9 @@ phil_scope = phil.parse("""
         debug.log = dials.systematic_absences.debug.log
             .type = str
             .help = "The debug log filename"
-        experiments = "scaled_experiments.json"
+        experiments = symmetrized.expt
             .type = str
-            .help = "Option to set filepath for output json."
+            .help = "The name of the output file with space group updated"
         html = "absences.html"
             .type = str
             .help = "Filename for html report."
@@ -50,10 +55,40 @@ def run_sys_abs_checks(params, experiments, reflections):
     """Run the algorithm - check screw axes, score space groups and save in best."""
 
     # Get the good, scaled data from the table.
-    reflections = ScaleIntensityReducer.reduce_on_intensities(reflections[0])
-    logger.info("Number of reflections in dataset: %s", reflections.size())
-    reflections['intensity'] = reflections['intensity.scale.value']
-    reflections['variance'] = reflections['intensity.scale.variance']
+    if 'inverse_scale_factor' in reflections[0] and 'intensity.scale.value' in reflections[0]:
+        logger.info("Attempting to perform absence checks on scaled data")
+        reflections = ScaleIntensityReducer.reduce_on_intensities(reflections[0])
+        logger.info("Number of reflections in dataset: %s", reflections.size())
+        reflections['intensity'] = reflections['intensity.scale.value']
+        reflections['variance'] = reflections['intensity.scale.variance']
+        reflections['inverse_scale_factor'] = flex.double(reflections.size(), 1.0)
+    else:
+        logger.info("Attempting to perform absence checks on unscaled profile-integrated data")
+        reflections = PrfIntensityReducer.reduce_on_intensities(reflections[0])
+        logger.info("Number of reflections in dataset: %s", reflections.size())
+        reflections['intensity'] = reflections['intensity.prf.value']
+        reflections['variance'] = reflections['intensity.prf.variance']
+        reflections['inverse_scale_factor'] = flex.double(reflections.size(), 1.0)
+
+    # now merge
+    from dials.algorithms.scaling.Ih_table import _reflection_table_to_iobs, map_indices_to_asu
+    reflections['asu_miller_index'] = map_indices_to_asu(
+        reflections['miller_index'],
+        experiments[0].crystal.get_space_group(),
+    )
+
+    ma = _reflection_table_to_iobs(
+        reflections,
+        experiments[0].crystal.get_unit_cell(),
+        experiments[0].crystal.get_space_group(),
+    )
+    merged = ma.merge_equivalents(use_internal_variance=False).array()
+
+    new_reflections = flex.reflection_table()
+    new_reflections['intensity'] = merged.data()
+    new_reflections['variance'] = merged.sigmas() ** 2
+    new_reflections['miller_index'] = merged.indices()
+
 
     # Get the laue class from the space group.
     laue_group = str(
@@ -64,12 +99,15 @@ def run_sys_abs_checks(params, experiments, reflections):
         return
 
     # Score the screw axes.
-    screw_axes, screw_axis_scores = score_screw_axes(laue_groups[laue_group], reflections)
+    screw_axes, screw_axis_scores = score_screw_axes(laue_groups[laue_group], new_reflections)
 
     logger.info(simple_table(
-        [[a.name, "%.5f" % score, str(a.n_refl_used[0]), str(a.n_refl_used[1])] for
+        [[a.name, "%.3f" % score, str(a.n_refl_used[0]), str(a.n_refl_used[1]),
+            "%.3f" % a.mean_I, "%.3f" % a.mean_I_abs, "%.3f" % a.mean_I_sigma,
+            "%.3f" % a.mean_I_sigma_abs] for
             a, score in zip(screw_axes, screw_axis_scores)],
-        column_headers=["Screw axis", "Score", "No. present", "No. absent"],
+        column_headers=["Screw axis", "Score", "No. present", "No. absent",
+            "<I> present",  "<I> absent", "<I/sig> present",  "<I/sig> absent"],
     ).format())
 
     # Score the space groups from the screw axis scores.
@@ -89,7 +127,8 @@ def run_sys_abs_checks(params, experiments, reflections):
                 laue_groups[laue_group]["enantiomorphic pairs"][best_sg])
 
     new_sg = sgtbx.space_group_info(symbol=best_sg).group()
-    experiments[0].crystal.set_space_group(new_sg)
+    for experiment in experiments:
+        experiment.crystal.set_space_group(new_sg)
 
     dump = ExperimentListDumper(experiments)
     with open(params.output.experiments, "w") as outfile:
@@ -126,6 +165,8 @@ def run(args=None):
 
     reflections = flatten_reflections(params.input.reflections)
     experiments = flatten_experiments(params.input.experiments)
+
+    print((dir(params.input.experiments)))
 
     log.config(verbosity=1, info=params.output.log, debug=params.output.debug.log)
     logger.info(dials_version())

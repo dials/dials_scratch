@@ -55,6 +55,7 @@ def test_sixfold_screw():
     score_61 = ScrewAxis61c().score_axis(reflection_table)
     score_62 = ScrewAxis62c().score_axis(reflection_table)
     score_63 = ScrewAxis63c().score_axis(reflection_table)
+    print(score_61, score_62, score_63)
 
     assert score_61 > 0.92
     assert score_62 < 0.05
@@ -65,6 +66,7 @@ def test_sixfold_screw():
     score_61 = ScrewAxis61c().score_axis(reflection_table)
     score_62 = ScrewAxis62c().score_axis(reflection_table)
     score_63 = ScrewAxis63c().score_axis(reflection_table)
+    print(score_61, score_62, score_63)
 
     assert score_62 > score_61
     assert score_62 > score_63
@@ -75,6 +77,7 @@ def test_sixfold_screw():
     score_61 = ScrewAxis61c().score_axis(reflection_table)
     score_62 = ScrewAxis62c().score_axis(reflection_table)
     score_63 = ScrewAxis63c().score_axis(reflection_table)
+    print(score_61, score_62, score_63)
 
     assert score_62 > score_61
     assert score_62 > score_63
@@ -85,6 +88,7 @@ def test_sixfold_screw():
     score_61 = ScrewAxis61c().score_axis(reflection_table)
     score_62 = ScrewAxis62c().score_axis(reflection_table)
     score_63 = ScrewAxis63c().score_axis(reflection_table)
+    print(score_61, score_62, score_63)
 
     assert score_63 > score_61
     assert score_63 > score_62

@@ -22,12 +22,14 @@ These definitions test the following laue groups and screw axes:
 'I m -3 m': ["4(1) a", "4(1) b", "4(1) c"],#symmetry equivalent # I432, I4132
 'F m -3 m': ["4(1) a", "4(1) b", "4(1) c"],#symmetry equivalent # F432, F4132
 """
+import copy
 from dials_scratch.jbe.sys_abs.screw_axes import (
     ScrewAxis21a, ScrewAxis21b, ScrewAxis21c,
     ScrewAxis41a, ScrewAxis41b, ScrewAxis41c, ScrewAxis42c,
     ScrewAxis61c, ScrewAxis62c, ScrewAxis63c, ScrewAxis31c,
     ScrewAxisObserver
 )
+from cctbx import sgtbx
 
 def score_screw_axes(laue_group_info, reflection_table):
     """Get the relevant screw axes and score them. Print pretty table."""
@@ -54,9 +56,10 @@ def score_space_groups(screw_axis_scores, laue_group_info):
     for space_g, conditions in laue_group_info["space_groups"]:
         sg_score = 1.0
         for condition, score in zip(conditions, screw_axis_scores):
-            if condition:
+            #condition can be True, False or 'pass'
+            if condition is True:
                 sg_score *= score
-            else:
+            elif condition is False:
                 sg_score *= (1.0 - score)
         scores.append(sg_score)
         space_groups.append(space_g)
@@ -104,9 +107,9 @@ p6m = {
     "unique_axes" : [ScrewAxis61c, ScrewAxis62c, ScrewAxis63c],
     "space_groups": [
         ('P 6', [False, False, False]),
-        ('P 61', [True, False, False]),
-        ('P 62', [False, True, False]),
-        ('P 63', [False, False, True]),
+        ('P 61', [True]),
+        ('P 62', [False, True]),
+        ('P 63', [False, 'pass', True]),
     ],
     "enantiomorphic pairs" : {
         'P 61' : 'P 65',
@@ -118,9 +121,9 @@ p6mmm = {
     "unique_axes" : [ScrewAxis61c, ScrewAxis62c, ScrewAxis63c],
     "space_groups": [
         ('P 6 2 2', [False, False, False]),
-        ('P 61 2 2', [True, False, False]),
-        ('P 62 2 2', [False, True, False]),
-        ('P 63 2 2', [False, False, True]),
+        ('P 61 2 2', [True]),
+        ('P 62 2 2', [False, True]),
+        ('P 63 2 2', [False, 'pass', True]),
     ],
     "enantiomorphic pairs" : {
         'P 61 2 2' : 'P 65 2 2',
@@ -167,9 +170,9 @@ p4mmm = {
     "space_groups": [# name and which unique axes expect.
         ('P 4 2 2', [False, False, False]),
         ('P 4 21 2', [False, True, False]),
-        ('P 41 2 2', [True, False, False]),
+        ('P 41 2 2', [True, False]),
         ('P 42 2 2', [False, False, True]),
-        ('P 41 21 2', [True, True, False]),
+        ('P 41 21 2', [True, True]),
         ('P 42 21 2', [False, True, True]),
     ],
     "enantiomorphic pairs" : {
@@ -182,7 +185,7 @@ p4m = {
     "unique_axes" : [ScrewAxis41c, ScrewAxis42c],
     "space_groups": [
         ('P 4', [False, False]),
-        ('P 41', [True, False]),
+        ('P 41', [True]),
         ('P 42', [False, True]),
     ],
     "enantiomorphic pairs" : {
@@ -229,7 +232,7 @@ pm3m = {
     "equivalent_axes" : {ScrewAxis41a : [ScrewAxis41b, ScrewAxis41c]},
     "space_groups" : [
         ("P 4 3 2", [False, False]),
-        ("P 41 3 2", [True, False]),
+        ("P 41 3 2", [True]),
         ("P 42 3 2", [False, True]),
     ],
     "enantiomorphic pairs" : {
@@ -259,7 +262,7 @@ Fm3m = {
 # - adding P1, C2, F222, R3, R32 and F23 make 65 MX space groups.
 laue_groups = {
     'P 1 2/m 1' : p2m,
-    'P m m m ' : pmmm,
+    'P m m m' : pmmm,
     'C m m m' : Cmmm,
     'I m m m' : Immm,
     'P 4/m' : p4m,

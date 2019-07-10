@@ -1,8 +1,12 @@
 """Definitions of screw axes with methods for scoring against data."""
+import math
+import logging
 from scitbx.array_family import flex
 from dials.util.observer import Observer, Subject, singleton
 from jinja2 import Environment, ChoiceLoader, PackageLoader
 from dials_scratch.jbe.sys_abs.plots import plot_screw_axes
+
+logger = logging.getLogger('dials.absences')
 
 @singleton
 class ScrewAxisObserver(Observer):
@@ -13,6 +17,8 @@ class ScrewAxisObserver(Observer):
         self.data[screw_axis.name] = {
             'miller_axis_vals': screw_axis.miller_axis_vals,
             'i_over_sigma': screw_axis.i_over_sigma,
+            'intensities': screw_axis.intensities,
+            'sigmas': screw_axis.sigmas,
         }
 
     def generate_html_report(self, filename):
@@ -35,6 +41,9 @@ class ScrewAxisObserver(Observer):
             f.write(html.encode("ascii", "xmlcharrefreplace"))
 
 
+def fourfold_axis_test():
+    # first test 4_1, if not 4_1 then try 4_2
+    pass
 
 class ScrewAxis(Subject):
 
@@ -46,14 +55,19 @@ class ScrewAxis(Subject):
     orthogonal_vectors = (None, None) # two vectors orthogonal to the screw axis,
     # to allow determination of screw axis (these two not necessariy orthogonal
     # to each other).
-    exclude_in_sum = [] # should any be excluded (e.g. don't test l=4 for 42 screw)
 
     def __init__(self):
         super(ScrewAxis, self).__init__(events=["selected data for scoring"])
         self.equivalent_axes = []
-        self.n_refl_used = ()
+        self.n_refl_used = (0.0, 0.0)
         self.miller_axis_vals = []
         self.i_over_sigma = []
+        self.intensities = []
+        self.sigmas = []
+        self.mean_I_sigma_abs = 0.0
+        self.mean_I_sigma = 0.0
+        self.mean_I_abs = 0.0
+        self.mean_I = 0.0
 
     def add_equivalent_axis(self, equivalent):
         """Add a symmetry equivalent axis."""
@@ -80,48 +94,94 @@ class ScrewAxis(Subject):
         self.i_over_sigma = refl['intensity'].select(sel) / (
             refl['variance'].select(sel) ** 0.5)
         self.miller_axis_vals = miller_idx.as_vec3_double().parts()[self.axis_idx]
+        self.intensities = refl['intensity'].select(sel)
+        self.sigmas = refl['variance'].select(sel) ** 0.5
+
         if self.equivalent_axes:
             for a in self.equivalent_axes:
                 sel = a.select_axial_reflections(refl['miller_index'])
                 miller_idx = refl['miller_index'].select(sel)
                 extra_i_over_sigma = refl['intensity'].select(sel) / (
                     refl['variance'].select(sel) ** 0.5)
+                extra_i = refl['intensity'].select(sel)
+                extra_sig = refl['variance'].select(sel) ** 0.5
                 extra_miller_axis_vals = miller_idx.as_vec3_double().parts()[a.axis_idx]
                 self.miller_axis_vals.extend(extra_miller_axis_vals)
                 self.i_over_sigma.extend(extra_i_over_sigma)
+                self.intensities.extend(extra_i)
+                self.sigmas.extend(extra_sig)
 
-        if self.exclude_in_sum:
-            for repeat_to_exclude in self.exclude_in_sum:
-                #need to ignore those which might be due to screw with lower translation
-                include = (self.miller_axis_vals.iround() % repeat_to_exclude != 0)
-                self.miller_axis_vals = self.miller_axis_vals.select(include)
-                self.i_over_sigma = self.i_over_sigma.select(include)
-
-
-    def score_axis(self, reflection_table):
+    def score_axis(self, reflection_table, significance_level=0.95):
         """Score the axis give a reflection table of data."""
+        assert significance_level in [0.95, 0.975, 0.99]
         self.get_all_suitable_reflections(reflection_table)
 
         expected_sel = (self.miller_axis_vals.iround() % self.axis_repeat == 0)
 
         expected = self.i_over_sigma.select(expected_sel)
         expected_abs = self.i_over_sigma.select(~expected_sel)
-
-        # Limit to best #n reflections to avoid weak at high res?
         self.n_refl_used = (expected.size(), expected_abs.size())
-        expected_sum = flex.sum(expected)
-        expected_abs_sum = flex.sum(expected_abs)
-        #need some uncertainty estimates to help when all values low!
-        if expected_sum < 0.0:
-            score = 0
-        else:
-            F0 = expected_abs_sum + expected_sum
-            F_frac = expected_sum - expected_abs_sum #fractional F e.g F1/2 for 2_1, F1/3 for 3_1 etc
-            score = max(min(F_frac/F0, 1.0), 0.0)
-        #print("score for %s: %s" % (self.name, score))
-        #print(expected_abs_sum, expected_sum)
 
-        return score
+        if not expected or not expected_abs:
+            return 0.0
+
+        # Limit to best #n reflections to avoid weak at high res - use wilson B?
+        self.n_refl_used = (expected.size(), expected_abs.size())
+
+        # z = (sample mean - population mean) / standard error
+        S_E_abs = 1.0 # errors probably correlated so say standard error = 1
+        S_E_pres = 1.0 # / expected.size() ** 0.5
+
+        self.mean_I_sigma_abs = flex.mean(expected_abs)
+        self.mean_I_sigma = flex.mean(expected)
+
+        self.mean_I = flex.mean(self.intensities.select(expected_sel))
+        self.mean_I_abs = flex.mean(self.intensities.select(~expected_sel))
+
+        z_score_absent = self.mean_I_sigma_abs / S_E_abs
+        z_score_present = self.mean_I_sigma / S_E_pres
+
+        # get a p-value for z > z_score
+        P_absent = 0.5 * (1.0 + math.erf(z_score_absent / (2**0.5)))
+        P_present = 0.5 * (1.0 + math.erf(z_score_present / (2**0.5)))
+
+        # sanity check - is most of intensity in 'expected' channel?
+        intensity_test = self.mean_I_sigma > (20.0 * self.mean_I_sigma_abs)
+
+        cutoffs = {0.95 : 1.645, 0.975: 1.960, 0.99 : 2.326}
+        cutoff = cutoffs[significance_level]
+
+        if z_score_absent > cutoff and not intensity_test: # z > 1.65 in only 5% of cases for normal dist
+            # significant nonzero intensity where expected absent.
+            return (1.0 - P_absent) * P_present
+        elif z_score_absent > cutoff:
+            # results appear inconsistent - significant i_over_sigma_abs, but this
+            # is still low compared to i_over_sigma_expected
+            # try removing the highest absent reflection in case its an outlier
+            logger.info(
+"""Tests for %s appear inconsistent (significant nonzero intensity for 'absent'
+reflections, but majority of intensity in reflection condition). Performing
+outlier check.""", self.name)
+            sel = flex.sort_permutation(expected_abs)
+            sorted_exp_abs = expected_abs.select(sel)
+            mean_i_sigma_abs = flex.mean(sorted_exp_abs[:-1])
+            if (mean_i_sigma_abs / S_E_abs) > cutoff:
+                logger.info("""Removed a reflection but still significant nonzero intensity
+for 'absent' reflections.""")
+                # Still high intensity of absent, so return as before
+                return (1.0 - P_absent) * P_present
+            logger.info("""Removed a reflection, intensities of 'absent' reflections no longer
+significantly different to zero.""")
+            self.mean_I_sigma_abs = mean_i_sigma_abs
+            self.mean_I_abs = flex.mean(self.intensities.select(~expected_sel).select(sel)[:-1])
+            # else was maybe misled by outlier, can continue to next test
+        if z_score_present > cutoff: # evidence with confidence
+            return P_present
+        else:
+            logger.info("""No evidence to suggest a screw axis for %s, but insufficient
+evidence to rule out completely, possibly due to limited data.""", self.name)
+            return 0.0
+
 
 class ScrewAxis21c(ScrewAxis):
 
@@ -167,7 +227,6 @@ class ScrewAxis42c(ScrewAxis):
 
     axis_idx = 2
     axis_repeat = 2
-    exclude_in_sum = [4]
     name = "42c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
 
@@ -178,7 +237,7 @@ class ScrewAxis41b(ScrewAxis):
 
     axis_idx = 1
     axis_repeat = 4
-    name = "41c"
+    name = "41b"
     orthogonal_vectors = ((0, 0, 1), (1, 0, 0))
 
 
@@ -188,7 +247,7 @@ class ScrewAxis41a(ScrewAxis):
 
     axis_idx = 0
     axis_repeat = 4
-    name = "41c"
+    name = "41a"
     orthogonal_vectors = ((0, 1, 0), (0, 0, 1))
 
 
@@ -220,7 +279,6 @@ class ScrewAxis62c(ScrewAxis):
     axis_repeat = 3
     name = "62c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
-    exclude_in_sum = [6]
 
 
 class ScrewAxis63c(ScrewAxis):
@@ -231,4 +289,3 @@ class ScrewAxis63c(ScrewAxis):
     axis_repeat = 2
     name = "63c"
     orthogonal_vectors = ((0, 1, 0), (1, 0, 0))
-    exclude_in_sum = [6, 3]

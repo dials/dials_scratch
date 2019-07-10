@@ -45,4 +45,40 @@ def plot_screw_axes(screw_axes_data):
                 },
             }
         })
+        d.update({
+            'intensities_plot_' + name : {
+                "data": [
+                    {
+                        "x": list(data['miller_axis_vals']),
+                        "y": list(data['intensities']),
+                        "type": "scatter",
+                        "name": 'intensity',
+                        "xaxis": "x",
+                        "yaxis": "y",
+                        "mode": "markers",
+                        "marker": {
+                            "color" : color_axis_data(
+                                name,
+                                list(data['miller_axis_vals'],
+                            )),
+                            "colorscale" : 'Viridis',
+                        }
+                    },
+                    {
+                        "x": list(data['miller_axis_vals']),
+                        "y": list(data['sigmas']),
+                        "type": "scatter",
+                        "name": 'sigma',
+                        "xaxis": "x",
+                        "yaxis": "y",
+                        "mode": "markers",
+                    }
+                ],
+                "layout": {
+                    "title": "I & sigma along axis %s" % name,
+                    "xaxis": {"domain": [0, 1], "anchor": "y", "title": "index along axis"},
+                    "yaxis": {"domain": [0, 1], "anchor": "x", "title": "I & sigma"},
+                },
+            }
+        })
     return d
