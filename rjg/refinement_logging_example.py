@@ -26,9 +26,11 @@ def run(args):
     print("Finished refinement #1")
 
     # configure logging
-    import dials.util.log
-    dials.util.log.config_simple_stdout()
+    logging.basicConfig(
+        level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s'
+    )
 
+    # we should now get logging output from refinement
     print("Starting refinement #2")
     refiner = RefinerFactory.from_parameters_data_experiments(params, refl, expts)
     refiner.run()
