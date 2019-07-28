@@ -27,7 +27,7 @@ def run(args):
 
     # configure logging
     logging.basicConfig(
-        level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s'
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
     )
 
     # we should now get logging output from refinement
@@ -43,5 +43,6 @@ def run(args):
     refiner.run()
     print("Finished refinement #3")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run(sys.argv[1:])
