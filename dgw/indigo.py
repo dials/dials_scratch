@@ -861,7 +861,7 @@ def run(args):
         refined_experiments.as_json(params.output.experiments)
 
         logger.info("Saving refined reflections to %s" % params.output.reflections)
-        reflections.as_pickle("params.output.reflections")
+        reflections.as_pickle(params.output.reflections)
 
         if params.output.unindexed_reflections is not None:
             logger.info(
