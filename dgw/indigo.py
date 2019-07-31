@@ -95,11 +95,11 @@ indexing{
 include scope dials.algorithms.refinement.refiner.phil_scope
 
 output {
-  experiments = indexed_experiments.json
+  experiments = indexed.expt
     .type = path
   split_experiments = False
     .type = bool
-  reflections = indexed.pickle
+  reflections = indexed.refl
     .type = path
   unindexed_reflections = None
     .type = path
