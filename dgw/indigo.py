@@ -44,9 +44,12 @@ Example::
 
 phil_scope = iotbx.phil.parse(
     """\
-include scope dials.algorithms.indexing.indexer.master_phil_scope
+include scope dials.algorithms.indexing.indexer.phil_scope
 
 indexing{
+
+  include scope dials.algorithms.indexing.lattice_search.basis_vector_search_phil_scope
+
   low_res_spot_match
     .expert_level = 1
   {
@@ -88,6 +91,8 @@ indexing{
       .type = int
   }
 }
+
+include scope dials.algorithms.refinement.refiner.phil_scope
 
 output {
   experiments = indexed_experiments.json
@@ -182,10 +187,10 @@ class CompleteGraph(object):
         return not self == other
 
 
-from dials.algorithms.indexing.indexer import Indexer
+from dials.algorithms.indexing.lattice_search import BasisVectorSearch
 
 
-class indexer_low_res_spot_match(Indexer):
+class indexer_low_res_spot_match(BasisVectorSearch):
     def __init__(self, reflections, experiments, params):
         super(indexer_low_res_spot_match, self).__init__(
             reflections, experiments, params
@@ -291,13 +296,15 @@ class indexer_low_res_spot_match(Indexer):
     def find_lattices(self):
 
         try:
-            assert self.target_symmetry_primitive is not None
-            assert self.target_symmetry_primitive.unit_cell() is not None
+            assert self._symmetry_handler.target_symmetry_primitive is not None
+            assert (
+                self._symmetry_handler.target_symmetry_primitive.unit_cell() is not None
+            )
         except AssertionError:
             raise Sorry("indigo requires a known unit_cell=a,b,c,aa,bb,cc")
 
         # Set reciprocal space orthogonalisation matrix
-        uc = self.target_symmetry_primitive.unit_cell()
+        uc = self._symmetry_handler.target_symmetry_primitive.unit_cell()
         self.Bmat = matrix.sqr(uc.fractionalization_matrix()).transpose()
 
         self._low_res_spot_match()
@@ -418,7 +425,7 @@ class indexer_low_res_spot_match(Indexer):
     def _calc_candidate_hkls(self):
         # 1 ASU
         hkl_list = cctbx.miller.build_set(
-            self.target_symmetry_primitive,
+            self._symmetry_handler.target_symmetry_primitive,
             anomalous_flag=False,
             d_min=self.params.low_res_spot_match.candidate_spots.d_min,
         )
@@ -430,7 +437,7 @@ class indexer_low_res_spot_match(Indexer):
 
         # P1 indices with separate Friedel pairs
         hkl_list = cctbx.miller.build_set(
-            self.target_symmetry_primitive,
+            self._symmetry_handler.target_symmetry_primitive,
             anomalous_flag=True,
             d_min=self.params.low_res_spot_match.candidate_spots.d_min,
         )
@@ -850,9 +857,11 @@ def run(args):
                 [copy.deepcopy(re) for re in refined_experiments]
             )
         logger.info("Saving refined experiments to %s" % params.output.experiments)
-        idxr.export_as_json(refined_experiments, file_name=params.output.experiments)
+        assert refined_experiments.is_consistent()
+        refined_experiments.as_json(params.output.experiments)
+
         logger.info("Saving refined reflections to %s" % params.output.reflections)
-        idxr.export_reflections(reflections, file_name=params.output.reflections)
+        reflections.as_pickle("params.output.reflections")
 
         if params.output.unindexed_reflections is not None:
             logger.info(
