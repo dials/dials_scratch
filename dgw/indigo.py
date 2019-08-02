@@ -308,6 +308,13 @@ class indexer_low_res_spot_match(BasisVectorSearch):
         self.Bmat = matrix.sqr(uc.fractionalization_matrix()).transpose()
 
         self._low_res_spot_match()
+
+        if self.params.optimise_initial_basis_vectors:
+            self.optimise_basis_vectors()
+        self.candidate_crystal_models = self.find_candidate_orientation_matrices(
+            self.candidate_basis_vectors
+        )
+
         crystal_model, n_indexed = self.choose_best_orientation_matrix(
             self.candidate_crystal_models
         )
@@ -417,10 +424,11 @@ class indexer_low_res_spot_match(BasisVectorSearch):
         # sort models by rmsd
         # candidate_crystal_models.sort(key=operator.attrgetter('rms'))
 
-        # At this point, either extract basis vectors from the candidate_crystal_models
-        # and pass to indexer_base.find_candidate_orientation_matrices, or just
-        # use the candidate_crystal_models as it is. Currently, try the latter
-        self.candidate_crystal_models = candidate_crystal_models
+        self.candidate_basis_vectors = []
+        for crystal in candidate_crystal_models:
+            self.candidate_basis_vectors.extend(
+                [matrix.col(e) for e in crystal.get_real_space_vectors()]
+            )
 
     def _calc_candidate_hkls(self):
         # 1 ASU
