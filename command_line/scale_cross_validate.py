@@ -39,7 +39,7 @@ from copy import deepcopy
 from libtbx import phil
 from libtbx.table_utils import simple_table
 from scitbx.array_family import flex
-from dials.util import halraiser, log
+from dials.util import log, show_mail_on_error
 from dials.util.options import OptionParser, flatten_reflections, flatten_experiments
 from dials.util.version import dials_version
 from dials.command_line.scale import Script
@@ -355,7 +355,5 @@ def interpret_results(results_dict):
 
 
 if __name__ == "__main__":
-    try:
+    with show_mail_on_error():
         cross_validate()
-    except Exception as e:
-        halraiser(e)

@@ -34,6 +34,7 @@ from libtbx import easy_run
 import libtbx.load_env
 from libtbx.test_utils import open_tmp_directory
 from dials.command_line.analyse_output import ensure_directory
+from dials.util import show_mail_on_error
 
 
 class Script(object):
@@ -269,10 +270,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

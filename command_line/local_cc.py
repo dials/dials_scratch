@@ -17,7 +17,7 @@ from libtbx.utils import Sorry
 from cctbx import miller
 from libtbx.phil import parse
 from iotbx.reflection_file_reader import any_reflection_file
-from dials.util import log
+from dials.util import log, show_mail_on_error
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
 from dials.array_family import flex
@@ -253,10 +253,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

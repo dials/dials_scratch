@@ -1,4 +1,5 @@
 from __future__ import division
+from dials.util import show_mail_on_error
 from dials.util.options import OptionParser
 from libtbx.phil import parse
 import dxtbx, os
@@ -101,10 +102,6 @@ class InMemScript(DialsProcessScript):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = InMemScript()
         script.run()
-    except Exception as e:
-        halraiser(e)

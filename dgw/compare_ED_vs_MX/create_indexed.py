@@ -4,6 +4,7 @@ from __future__ import print_function
 from libtbx.phil import parse
 from libtbx.utils import Sorry
 from dials.array_family import flex
+from dials.util import show_mail_on_error
 from math import pi, sqrt, floor
 from functools import reduce
 
@@ -238,10 +239,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

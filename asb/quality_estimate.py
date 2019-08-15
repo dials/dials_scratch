@@ -5,6 +5,8 @@
 from __future__ import division
 from __future__ import print_function
 
+from dials.util import show_mail_on_error
+
 help_message = """
 Script to estimate diffraction limit given a directory filled with integration results.
 """
@@ -242,10 +244,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

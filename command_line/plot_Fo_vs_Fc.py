@@ -11,7 +11,7 @@ Usage: dev.dials.plot_Fo_vs_Fc hklin=refined.mtz
 
 from __future__ import division, print_function, absolute_import
 import sys
-from dials.util import Sorry
+from dials.util import show_mail_on_error, Sorry
 from dials.util.options import OptionParser
 
 # from libtbx.table_utils import simple_table
@@ -248,10 +248,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

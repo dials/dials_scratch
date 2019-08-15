@@ -12,6 +12,7 @@
 from __future__ import division
 from __future__ import print_function
 from dials.array_family import flex
+from dials.util import show_mail_on_error
 from libtbx.phil import parse
 from libtbx import easy_pickle
 
@@ -89,10 +90,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 
+from dials.util import show_mail_on_error
 import libtbx.load_env
 
 logger = logging.getLogger("dials.command_line.extract_background_signal")
@@ -152,10 +153,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

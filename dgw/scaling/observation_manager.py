@@ -16,6 +16,7 @@ from __future__ import print_function
 from dials.array_family import flex
 import cctbx.crystal
 import cctbx.miller
+from dials.util import show_mail_on_error
 from dials_scaling_helpers_ext import (
     GroupedObservations,
     minimum_multiplicity_selection,
@@ -210,10 +211,6 @@ class Script(object):
 
 # For testing, instantiate from reflections passed at the command line.
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

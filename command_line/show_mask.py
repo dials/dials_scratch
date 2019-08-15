@@ -22,7 +22,7 @@ from __future__ import absolute_import, division, print_function
 from dials.array_family import flex
 from dials.util.options import flatten_experiments, flatten_reflections
 from libtbx.phil import parse
-from dials.util import Sorry
+from dials.util import show_mail_on_error, Sorry
 
 # The phil scope
 phil_scope = parse(
@@ -89,10 +89,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)

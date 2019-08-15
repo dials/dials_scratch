@@ -32,6 +32,7 @@ dev.dials.combine_experiments_to_scan_varying \
 from __future__ import division, print_function, absolute_import
 import sys
 from libtbx.utils import Sorry
+from dials.util import show_mail_on_error
 from dials.util.options import flatten_reflections, flatten_experiments, OptionParser
 from libtbx.table_utils import simple_table
 from scitbx import matrix
@@ -182,10 +183,6 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
+    with show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)
