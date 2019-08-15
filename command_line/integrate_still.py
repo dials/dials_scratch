@@ -74,13 +74,12 @@ class Script(object):
     def run(self):
         """ Perform the integration. """
 
-        from dials.util.options import flatten_reflections, flatten_experiments
+        from dials.util.options import flatten_experiments
         from dxtbx.model.experiment_list import ExperimentListDumper
         from dials_scratch.jmp.stills.custard import Integrator
         from dials.array_family import flex
         from scitbx import matrix
         import cPickle as pickle
-        import sys
 
         # Parse the command line
         params, options = self.parser.parse_args(show_diff_phil=False)

@@ -44,7 +44,7 @@ phil_scope = parse(
         hklin = None
             .type = str
             .help = "The input MTZ file"
-        
+
         hklref = None
             .type = str
             .help = "The reference MTZ file"
@@ -96,11 +96,6 @@ class Script(object):
         )
 
     def run(self):
-        from time import time
-
-        # Check the number of arguments is correct
-        start_time = time()
-
         # Parse the command line
         params, options = self.parser.parse_args(show_diff_phil=False)
         reflections = flatten_reflections(params.input.reflections)
@@ -223,7 +218,7 @@ class Script(object):
             if array.info().labels == ["I", "SIGI"]:
                 intensities = array
                 miller_set = array.set(anomalous_flag=False)
-        if intensities is None and merge_equivalents == True:
+        if intensities is None and merge_equivalents is True:
             for array in miller_arrays:
                 if array.info().labels == ["IMEAN", "SIGIMEAN"]:
                     intensities = array

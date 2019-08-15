@@ -26,7 +26,8 @@ experiments.jsons will be determined by matching expected filenames."""
 
 from __future__ import division
 from __future__ import print_function
-import os, shutil
+import os
+import shutil
 import datetime
 import glob
 from libtbx.utils import Sorry
@@ -44,7 +45,6 @@ class Script(object):
         """Initialise the script."""
         from dials.util.options import OptionParser
         from libtbx.phil import parse
-        import libtbx.load_env
 
         # The phil scope
         phil_scope = parse(
@@ -164,7 +164,7 @@ class Script(object):
             "output.experiments=refined_static.json "
             "output.reflections=refined_static.pickle"
         ).format(exp_path, idx_path)
-        result = easy_run.fully_buffered(command=cmd)
+        easy_run.fully_buffered(command=cmd)
         tst = [os.path.exists("refined_static" + e) for e in [".json", ".pickle"]]
         if tst.count(True) != 2:
             return "Static refinement output was not found"
@@ -181,7 +181,7 @@ class Script(object):
             "output.reflections=sv_refined_54deg.pickle",
         ]
         cmd = " ".join(args)
-        result = easy_run.fully_buffered(command=cmd)
+        easy_run.fully_buffered(command=cmd)
         tst = [os.path.exists("sv_refined_54deg" + e) for e in [".json", ".pickle"]]
         if tst.count(True) != 2:
             return "54 deg interval width scan-varying refinement output was not found"
@@ -198,7 +198,7 @@ class Script(object):
             "output.reflections=sv_refined_36deg.pickle",
         ]
         cmd = " ".join(args)
-        result = easy_run.fully_buffered(command=cmd)
+        easy_run.fully_buffered(command=cmd)
         tst = [os.path.exists("sv_refined_36deg" + e) for e in [".json", ".pickle"]]
         if tst.count(True) != 2:
             return "36 deg interval width scan-varying refinement output was not found"
@@ -215,7 +215,7 @@ class Script(object):
             "output.reflections=sv_refined_18deg.pickle",
         ]
         cmd = " ".join(args)
-        result = easy_run.fully_buffered(command=cmd)
+        easy_run.fully_buffered(command=cmd)
         tst = [os.path.exists("sv_refined_18deg" + e) for e in [".json", ".pickle"]]
         if tst.count(True) != 2:
             return "18 deg interval width scan-varying refinement output was not found"

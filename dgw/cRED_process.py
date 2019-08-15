@@ -34,7 +34,6 @@ class Script(object):
         """Initialise the script."""
         from dials.util.options import OptionParser
         from libtbx.phil import parse
-        import libtbx.load_env
 
         # The phil scope
         phil_scope = parse(

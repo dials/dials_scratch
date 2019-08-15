@@ -352,8 +352,6 @@ class IntegrationReport(Report):
     :param reflections: The reflection table
 
     """
-        from collections import OrderedDict
-
         # Initialise the report class
         super(IntegrationReport, self).__init__()
 
@@ -503,8 +501,6 @@ class ProfileModelReport(Report):
     :param reflections: The reflection table
 
     """
-        from collections import OrderedDict
-
         # Initialise the report class
         super(ProfileModelReport, self).__init__()
 
@@ -570,8 +566,6 @@ class ProfileModelReport2(Report):
     :param reflections: The reflection table
 
     """
-        from collections import OrderedDict
-
         # Initialise the report class
         super(ProfileModelReport, self).__init__()
 
@@ -611,8 +605,8 @@ class ProfileModelReport2(Report):
         self.add_table(table)
 
         # Add the profiles
-        for i in range(len(fitter)):
-            model = fitter[i]
+        for i in range(len(reference)):
+            model = reference[i]
             for j in range(len(model)):
                 if model.valid(j):
                     array = Array()
@@ -637,8 +631,6 @@ class ProfileValidationReport(Report):
     :param reflections: The reflection table
 
     """
-        from collections import OrderedDict
-
         # Initialise the report class
         super(ProfileValidationReport, self).__init__()
 
@@ -723,8 +715,6 @@ class Script(object):
         if len(params.input.reflections) != 1 and not len(params.input.experiments):
             self.parser.print_help()
             exit(0)
-
-        from dials.util.options import flatten_reflections, flatten_experiments
 
         reflections = flatten_reflections(params.input.reflections)[0]
         experiments = flatten_experiments(params.input.experiments)

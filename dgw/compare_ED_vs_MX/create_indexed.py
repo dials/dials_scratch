@@ -5,7 +5,7 @@ from libtbx.phil import parse
 from libtbx.utils import Sorry
 from dials.array_family import flex
 from dials.util import show_mail_on_error
-from math import pi, sqrt, floor
+from math import pi
 from functools import reduce
 
 phil_scope = parse(

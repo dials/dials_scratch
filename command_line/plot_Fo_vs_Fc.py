@@ -92,7 +92,6 @@ class Script(object):
     def __init__(self):
         """Initialise the script."""
         from libtbx.phil import parse
-        import libtbx.load_env
 
         # The phil scope
         phil_scope = parse(
@@ -213,7 +212,7 @@ class Script(object):
             # fit by NLLS Levenberg Marquardt algorithm
             hyperbola_fit = HyperbolaFit(self.fc, self.fobs)
             hyperbola_fit.restart()
-            iterations = normal_eqns_solving.levenberg_marquardt_iterations(
+            normal_eqns_solving.levenberg_marquardt_iterations(
                 hyperbola_fit,
                 track_all=True,
                 gradient_threshold=1e-8,

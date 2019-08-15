@@ -1,7 +1,7 @@
 #!/usr/bin/env dials.python
 from __future__ import absolute_import, division, print_function
 
-from dials.util import show_mail_on_error
+from dials.util import show_mail_on_error, Sorry
 from libtbx.phil import parse
 from libtbx.table_utils import simple_table
 from scitbx import matrix
@@ -60,7 +60,6 @@ class Script(object):
         """Execute the script."""
 
         from dials.util.options import flatten_experiments
-        from dials.util import Sorry
         from dials.array_family import flex
 
         # Parse the command line

@@ -58,7 +58,6 @@ class Script(object):
         """ Initialise the script. """
 
         from dials.util.options import OptionParser
-        import libtbx.load_env
 
         # The script usage
         usage = (
@@ -77,7 +76,6 @@ class Script(object):
     def run(self):
         """ Extract the shoeboxes. """
         from dials.util.options import flatten_reflections
-        from dials.util.options import flatten_experiments
         from dials.util.options import flatten_experiments
         from dials.util import log
         from dials.array_family import flex

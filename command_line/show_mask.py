@@ -1,4 +1,4 @@
-#!/usr/bin/env cctbx.python
+#!/usr/bin/env dials.python
 
 #
 #  Copyright (C) (2017) Diamond Light Source
@@ -16,13 +16,11 @@ Just display the mask for the specified image
 
 """
 
-#!/usr/bin/env dials.python
 from __future__ import absolute_import, division, print_function
 
-from dials.array_family import flex
-from dials.util.options import flatten_experiments, flatten_reflections
+from dials.util.options import flatten_experiments
 from libtbx.phil import parse
-from dials.util import show_mail_on_error, Sorry
+from dials.util import show_mail_on_error
 
 # The phil scope
 phil_scope = parse(

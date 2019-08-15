@@ -149,8 +149,6 @@ class Script(object):
     def __init__(self):
         """Initialise the script."""
         from dials.util.options import OptionParser
-        from libtbx.phil import parse
-        import libtbx.load_env
 
         # The script usage
         import __main__
@@ -206,7 +204,7 @@ class Script(object):
 
         om = ObservationManager(reflections, experiment)
 
-        gp_idx = om.group_index
+        gp_idx = om.group_index  # noqa F841
 
 
 # For testing, instantiate from reflections passed at the command line.

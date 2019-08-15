@@ -31,11 +31,8 @@ dev.dials.combine_experiments_to_scan_varying \
 
 from __future__ import division, print_function, absolute_import
 import sys
-from libtbx.utils import Sorry
 from dials.util import show_mail_on_error
 from dials.util.options import flatten_reflections, flatten_experiments, OptionParser
-from libtbx.table_utils import simple_table
-from scitbx import matrix
 from dxtbx.model.experiment_list import Experiment
 from dxtbx.model.experiment_list import ExperimentList
 from libtbx.phil import parse
@@ -63,8 +60,6 @@ class Script(object):
 
     def __init__(self):
         """Initialise the script."""
-        import libtbx.load_env
-
         # The script usage
         import __main__
 

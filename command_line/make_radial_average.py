@@ -67,7 +67,6 @@ class Script(object):
     def __init__(self):
         """Initialise the script."""
         from dials.util.options import OptionParser
-        import libtbx.load_env
 
         # The script usage
         usage = "usage: dev.dials.make_radial_average [options] models.expt"
@@ -134,7 +133,7 @@ class Script(object):
         if params.d_max is None:
             vmin = 0
         else:
-            vmin = (1.0 / d_max) ** 2
+            vmin = (1.0 / params.d_max) ** 2
         if params.d_min is None:
             params.d_min = detector.get_max_resolution(beam.get_s0())
         vmax = (1.0 / params.d_min) ** 2

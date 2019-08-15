@@ -51,7 +51,6 @@ class Script(object):
     def __init__(self):
         """Initialise the script."""
         from dials.util.options import OptionParser
-        import libtbx.load_env
 
         # The script usage
         usage = "usage: dev.dials.make_polar_background_image [options] models.expt"
@@ -75,7 +74,6 @@ class Script(object):
             return
 
         assert len(experiments) == 1
-        imageset = experiments[0].imageset
         beam = experiments[0].beam
         detector = experiments[0].detector
         goniometer = experiments[0].goniometer
@@ -104,7 +102,7 @@ class Script(object):
         from matplotlib import pylab
 
         vmax = sorted(list(data))[int(0.99 * len(data))]
-        figure = pylab.figure(figsize=(6, 4))
+        pylab.figure(figsize=(6, 4))
         pylab.imshow(data.as_numpy_array(), interpolation="none", vmin=0, vmax=vmax)
         ax1 = pylab.gca()
         ax1.get_xaxis().set_visible(False)
