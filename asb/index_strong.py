@@ -65,7 +65,7 @@ class Script(object):
         reflections = reflections[0]
         exp = experiments[0]
 
-        from dials.algorithms.indexing import index_reflections
+        from dials.algorithms.indexing.assign_indices import AssignIndicesGlobal
         from dials.algorithms.indexing.indexer import Indexer
 
         reflections["id"] = flex.int(len(reflections), -1)
@@ -78,7 +78,8 @@ class Script(object):
             reflections, exp.detector, exp.beam, exp.goniometer
         )
 
-        index_reflections(reflections, experiments, params.d_min, tolerance=0.3)
+        index = AssignIndicesGlobal(tolerance=0.3)
+        index(reflections, experiments, params.d_min)
         indexed_reflections = reflections.select(
             reflections["miller_index"] != (0, 0, 0)
         )

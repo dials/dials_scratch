@@ -19,7 +19,6 @@ from dials.util import log, show_mail_on_error
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
 from dials_scratch.jmp.potato.potato import Integrator
-from dxtbx.model.experiment_list import ExperimentListDumper
 import logging
 
 
@@ -54,15 +53,15 @@ phil_scope = parse(
 
 class Script(object):
     """
-  The integration program.
+    The integration program.
 
-  """
+    """
 
     def __init__(self):
         """
-    Initialise the script.
+        Initialise the script.
 
-    """
+        """
 
         # The script usage
         usage = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
@@ -78,9 +77,9 @@ class Script(object):
 
     def run(self):
         """
-    Perform the integration.
+        Perform the integration.
 
-    """
+        """
         from time import time
 
         # Check the number of arguments is correct
@@ -128,9 +127,7 @@ class Script(object):
         # Save the reflections
         reflections.as_pickle(params.output.reflections)
 
-        dump = ExperimentListDumper(experiments)
-        with open(params.output.experiments, "w") as outfile:
-            outfile.write(dump.as_json())
+        experiments.as_file(params.output.experiments)
 
 
 if __name__ == "__main__":

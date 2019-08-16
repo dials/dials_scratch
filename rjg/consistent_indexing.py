@@ -74,9 +74,7 @@ def run(args):
         experiments[i].crystal = experiments[i].crystal.change_basis(cb_op)
         prev_expt = experiments[i]
 
-        from dxtbx.serialize import dump
-
-        dump.experiment_list(experiments[i : i + 1], output_template % i)
+        experiments[i : i + 1].as_file(output_template % i)
 
     from matplotlib import pyplot
 

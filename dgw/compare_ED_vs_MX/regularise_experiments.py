@@ -58,10 +58,7 @@ exp.scan = ScanFactory.make_scan(
     image_range, exposure_times, oscillation, epochs, deg=True
 )
 
-from dxtbx.model.experiment_list import ExperimentListDumper
-
-dump = ExperimentListDumper(el)
-dump.as_json("experiments_ED_regularised.json")
+el.as_file("experiments_ED_regularised.json")
 
 # Now regularize to standard MX geometry
 # Set beam energy to 12 keV
@@ -86,5 +83,4 @@ detector3 = DetectorFactory.simple(
 )
 exp.detector = detector3
 
-dump = ExperimentListDumper(el)
-dump.as_json("experiments_MX_regularised.json")
+el.as_file("experiments_MX_regularised.json")

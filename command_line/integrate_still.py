@@ -75,7 +75,6 @@ class Script(object):
         """ Perform the integration. """
 
         from dials.util.options import flatten_experiments
-        from dxtbx.model.experiment_list import ExperimentListDumper
         from dials_scratch.jmp.stills.custard import Integrator
         from dials.array_family import flex
         from scitbx import matrix
@@ -133,7 +132,7 @@ class Script(object):
         reflections.as_pickle(params.output.reflections)
 
         # Save the experiments
-        ExperimentListDumper(experiments).as_json(params.output.experiments)
+        experiments.as_file(params.output.experiments)
 
         # Save the image model
         pickle.dump(image_pred, open(params.output.model, "w"))

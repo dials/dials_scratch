@@ -163,10 +163,7 @@ class Script(object):
                 self.params.output.experiments
             )
         )
-        from dxtbx.model.experiment_list import ExperimentListDumper
-
-        dump = ExperimentListDumper(experiments)
-        dump.as_json(self.params.output.experiments)
+        experiments.as_file(self.params.output.experiments)
 
         # Save the reflections to file
         print(

@@ -27,7 +27,6 @@ and so on.
 from __future__ import absolute_import, division
 from __future__ import print_function
 from dxtbx.model.experiment_list import ExperimentListFactory
-from dxtbx.model.experiment_list import ExperimentListDumper
 from dials.util.options import flatten_reflections
 from dials.array_family import flex
 from dials.command_line.show import beam_centre_mm
@@ -232,8 +231,7 @@ class Script(object):
             for exp in el:
                 exp.scan.swap(exp.scan[start:stop])
 
-            dump = ExperimentListDumper(el)
-            dump.as_json("experiments_{0:03d}.json".format(job_id))
+            el.as_file("experiments_{0:03d}.json".format(job_id))
 
             filelist_lines.append(
                 "block{0:03d} experiments_{0:03d}.json ".format(job_id) + indexed_path

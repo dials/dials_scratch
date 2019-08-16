@@ -161,7 +161,6 @@ class CrystalRefiner(object):
         )
         from dials_scratch.jmp.stills import Model
         from dials.array_family import flex
-        from scitbx import simplex
         from math import sqrt
 
         # Store the input
@@ -671,7 +670,6 @@ class Integrator(object):
 if __name__ == "__main__":
 
     from dxtbx.model.experiment_list import ExperimentListFactory
-    from dxtbx.model.experiment_list import ExperimentListDumper
     from dials.array_family import flex
     import sys
 
@@ -704,4 +702,4 @@ if __name__ == "__main__":
     pylab.show()
 
     reflections.as_pickle("integrated.pickle")
-    ExperimentListDumper(experiments).as_json("integrated_experiments.json")
+    experiments.as_file("integrated_experiments.json")

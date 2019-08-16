@@ -11,10 +11,7 @@ def read_expt(filename):
 
 
 def write_expt(experiments, filename):
-    from dxtbx.model.experiment_list import ExperimentListDumper
-
-    dump = ExperimentListDumper(experiments)
-    dump.as_json(filename)
+    experiments.as_file(filename)
 
 
 import sys

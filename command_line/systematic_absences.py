@@ -25,7 +25,6 @@ from dials_scratch.jbe.sys_abs.laue_groups_info import (
 )
 from dials_scratch.jbe.sys_abs.screw_axes import ScrewAxisObserver
 from cctbx import sgtbx
-from dxtbx.model.experiment_list import ExperimentListDumper
 from libtbx import phil
 from libtbx.table_utils import simple_table
 
@@ -221,9 +220,7 @@ def run(args=None):
         ScrewAxisObserver().generate_html_report(params.output.html)
 
     if params.output.experiments:
-        dump = ExperimentListDumper(experiments)
-        with open(params.output.experiments, "w") as outfile:
-            outfile.write(dump.as_json(split=True))
+        experiments.as_file(params.output.experiments, split=True)
 
 
 if __name__ == "__main__":

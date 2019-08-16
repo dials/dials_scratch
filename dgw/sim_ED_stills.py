@@ -6,20 +6,13 @@ from __future__ import print_function
 from scitbx.array_family import flex
 from simtbx.nanoBragg import shapetype
 from simtbx.nanoBragg import nanoBragg
-import libtbx.load_env  # possibly implicit
-from cctbx import miller
 from scitbx import matrix
 from dxtbx.model.detector import DetectorFactory
-from dxtbx.model.beam import Beam, BeamFactory
-from dxtbx.model.scan import ScanFactory
-from dxtbx.model.goniometer import GoniometerFactory
+from dxtbx.model.beam import BeamFactory
 from dxtbx.model import Crystal
 from dxtbx.model.experiment_list import Experiment
 from dxtbx.model.experiment_list import ExperimentList
-from dxtbx.model.experiment_list import ExperimentListFactory
-from dxtbx.model.experiment_list import ExperimentListDumper
 from random import uniform, seed
-from math import pi
 import sys
 
 pdb_lines = """HEADER TEST
@@ -102,8 +95,7 @@ class Simulation(object):
         exp.imageset = imset
 
     def dump_experiment(self, experiments, filename):
-        dump = ExperimentListDumper(experiments)
-        dump.as_json(filename)
+        experiments.as_file(filename)
         return
 
     def cell_from_pdb(self):
@@ -123,7 +115,7 @@ class Simulation(object):
         # would one use electron scattering instead?
         scatterers = xray_structure.scatterers()
         for sc in scatterers:
-            from cctbx.eltbx import sasaki, henke
+            from cctbx.eltbx import henke
 
             expected_henke = henke.table(sc.element_symbol()).at_angstrom(wavelength)
             sc.fp = expected_henke.fp()
