@@ -90,9 +90,7 @@ if __name__ == "__main__":
     params, options = parser.parse_args(show_diff_phil=False)
     experiments = flatten_experiments(params.input.experiments)[0]
     reflections = flatten_reflections(params.input.reflections)[0]
-    print(reflections.size())
     reflections = unroll_counts(reflections)
-    print(reflections.size())
 
     map_to_reciprocal_space(reflections, experiments)
 
