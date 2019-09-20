@@ -20,6 +20,11 @@ int main(int argc,
   plist = H5Dget_create_plist(dataset);
   layout = H5Pget_layout(plist);
 
+  if (layout != H5D_CHUNKED) {
+    printf("You will not go to space, sorry\n");
+    return 1;
+  }
+  
   space = H5Dget_space(dataset);
   
   printf("N dimensions %d\n", H5Sget_simple_extent_ndims(space));
@@ -40,8 +45,8 @@ int main(int argc,
   offset[1] = 0;
   offset[2] = 0; 
 
-  status = H5Sselect_hyperslab(space, H5S_SELECT_SET, offset, NULL, block, NULL);
-  memory = H5Screate_simple(3, block, NULL);
+  //status = H5Sselect_hyperslab(space, H5S_SELECT_SET, offset, NULL, block, NULL);
+  //memory = H5Screate_simple(3, block, NULL);
 
   //status = H5Dread(dataset, H5T_NATIVE_INT, memory, space, H5P_DEFAULT, buffer);
 
@@ -56,25 +61,19 @@ int main(int argc,
 
     chunk_buffer = (char *) malloc (chunk_size);
 
-    uint32_t filter;
-    H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk_buffer);
+    uint32_t filter = 0;
+    status = H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk_buffer)
+;
+    int sum = 0;
+    for (int k = 0; k < chunk_size; k++) {
+      sum += chunk_buffer[k];
+    }
+    printf("Status %d sum: %d\n", filter, sum);
     
     free(chunk_buffer);
     chunk_buffer = 0;
   }
   
-  switch (layout) {
-  case H5D_COMPACT:
-    printf("H5D_COMPACT\n");
-    break;
-  case H5D_CONTIGUOUS:
-    printf("H5D_CONTIGUOUS\n");
-    break;
-  case H5D_CHUNKED:
-    printf("H5D_CHUNKED\n");
-    break;
-  }
-
   if (chunk_buffer) free(chunk_buffer);
   if (buffer) free(buffer);
   
