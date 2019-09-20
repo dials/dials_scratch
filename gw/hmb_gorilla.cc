@@ -24,6 +24,9 @@ int main(int argc,
 
   if (layout != H5D_CHUNKED) {
     printf("You will not go to space, sorry\n");
+    H5Pclose(plist);
+    H5Dclose(dataset);
+    H5Fclose(file);
     return 1;
   }
   
@@ -33,9 +36,8 @@ int main(int argc,
 
   H5Sget_simple_extent_dims(space, dims, NULL);
 
-
   for (int j = 0; j < 3; j++) {
-    printf("Dimension %d: %d\n", j, dims[j]);
+    printf("Dimension %d: %lld\n", j, dims[j]);
   }
   
   buffer = (int *) malloc (sizeof(int) * dims[1] * dims[2]);
@@ -47,12 +49,7 @@ int main(int argc,
   offset[1] = 0;
   offset[2] = 0; 
 
-  //status = H5Sselect_hyperslab(space, H5S_SELECT_SET, offset, NULL, block, NULL);
-  //memory = H5Screate_simple(3, block, NULL);
-
-  //status = H5Dread(dataset, H5T_NATIVE_INT, memory, space, H5P_DEFAULT, buffer);
-
-  double total = 0;
+  uint64_t total = 0;
   
   for (int j = 0; j < dims[0]; j++) {
     hsize_t chunk_size;
@@ -64,23 +61,13 @@ int main(int argc,
     chunk_buffer = (char *) malloc (chunk_size);
 
     uint32_t filter = 0;
-    status = H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk_buffer)
-;
-    int sum = 0;
-    //
-    /* 
-    for (int k = 0; k < chunk_size; k++) {
-      sum += chunk_buffer[k];
-    }
-    printf("Chunk %d size: %d\n", j, chunk_size);
-    printf("Status %d sum: %d\n", filter, sum);
-    */
-    
+    status = H5DOread_chunk(dataset, H5P_DEFAULT, offset,
+			    &filter, chunk_buffer);    
     free(chunk_buffer);
     chunk_buffer = 0;
   }
 
-  printf("Read %d images %e bytes\n", dims[0], total);
+  printf("Read %lld images %lld bytes\n", dims[0], total);
   
   if (chunk_buffer) free(chunk_buffer);
   if (buffer) free(buffer);
