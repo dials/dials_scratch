@@ -73,6 +73,8 @@ int main(int argc,
   clock_t start, end;
   
   for (int j = 0; j < dims[0]; j++) {
+    printf(".");
+    fflush(stdout);
     hsize_t chunk_size;
     total += chunk_size;
     offset[0] = j;
@@ -98,7 +100,8 @@ int main(int argc,
   }
 
   free(frame_buffer);
-  
+
+  printf("\n");
   printf("Read %lld images %lld bytes\n", dims[0], total);
   printf("Total read time: %.2fs\n", read_time);
   printf("Total decompress time: %.2fs\n", decompress_time);
