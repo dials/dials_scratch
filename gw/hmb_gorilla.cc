@@ -52,14 +52,14 @@ int main(int argc,
 
   //status = H5Dread(dataset, H5T_NATIVE_INT, memory, space, H5P_DEFAULT, buffer);
 
-
+  double total = 0;
+  
   for (int j = 0; j < dims[0]; j++) {
     hsize_t chunk_size;
+    total += chunk_size;
     offset[0] = j;
   
     H5Dget_chunk_storage_size(dataset, offset, &chunk_size);
-
-    printf("Chunk %d size: %d\n", j, chunk_size);
 
     chunk_buffer = (char *) malloc (chunk_size);
 
@@ -67,14 +67,20 @@ int main(int argc,
     status = H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk_buffer)
 ;
     int sum = 0;
+    //
+    /* 
     for (int k = 0; k < chunk_size; k++) {
       sum += chunk_buffer[k];
     }
+    printf("Chunk %d size: %d\n", j, chunk_size);
     printf("Status %d sum: %d\n", filter, sum);
+    */
     
     free(chunk_buffer);
     chunk_buffer = 0;
   }
+
+  printf("Read %d images %e bytes\n", dims[0], total);
   
   if (chunk_buffer) free(chunk_buffer);
   if (buffer) free(buffer);
