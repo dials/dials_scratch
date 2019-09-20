@@ -2,15 +2,15 @@
 #include <hdf5_hl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dials/util/thread_pool.h>
+#include "dials/util/thread_pool.h"
 
 struct Decompress {
   
-    const char *buffer;
-    std::size_t size;
+    const char *buffer_;
+    std::size_t size_;
     
 
-    Decompress(const char **buffer, std::size_t size)
+    Decompress(const char *buffer, std::size_t size)
       : buffer_(buffer),
         size_(size) {}
 

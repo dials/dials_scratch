@@ -1,3 +1,5 @@
+/* hello from 1990 - please compile with h5cc hmb_gorilla.cc  */
+
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <stdio.h>
