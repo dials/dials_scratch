@@ -7,6 +7,8 @@
 #include <pthread.h>
 #include "bitshuffle.h"
 
+/* global variables - necessary until I move the whole shebang into a class */
+
 pthread_mutex_t hdf_mutex;
 
 int n_jobs;
@@ -17,14 +19,14 @@ hsize_t dims[3];
 
 typedef struct chunk_t {
   char * chunk;
-  size_t chunk_size;
+  size_t size;
   int index;
 } chunk_t;
 
 chunk_t next() {
-  hsize_t offset[3];
+  hsize_t offset[3], size;
 
-  chunk_t retval;
+  chunk_t chunk;
 
   pthread_mutex_lock(&hdf_mutex);
 
@@ -35,43 +37,54 @@ chunk_t next() {
 
   if(job > n_jobs) {
     pthread_mutex_unlock(&hdf_mutex);
-    retval.chunk_size = 0;
-    retval.chunk = NULL;
-    retval.index = 0;
-    return retval;
+    chunk.size = 0;
+    chunk.chunk = NULL;
+    chunk.index = 0;
+    return chunk;
   }
 
-  hsize_t chunk_size;
-
-  H5Dget_chunk_storage_size(dataset, offset, &chunk_size);
-  retval.chunk_size = chunk_size;
-  retval.index = offset[0];
-
-  retval.chunk = (char *) malloc(chunk_size);
+  H5Dget_chunk_storage_size(dataset, offset, &size);
+  chunk.index = offset[0];
+  chunk.size = (int) size;
+  chunk.chunk = (char *) malloc(size);
 
   uint32_t filter = 0;
-  int status = H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter,
-                              retval.chunk);
+  H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk.chunk);
   pthread_mutex_unlock(&hdf_mutex);
-  return retval;
+  return chunk;
 }
 
-void* worker(void * nonsense) {
+/* stupid interface to worker thread as it must be passed a void * and return 
+   the same */
+
+void* worker(void* nonsense) {
+
+  /* allocate frame storage - uses global information which is configured
+     before threads spawned */
+  
   int size = dims[1] * dims[2];
   char* buffer = (char *) malloc(datasize * size);
+
+  /* alias the buffer as a short and long also, for ease of access */
+  
   int32_t * longbuffer = (int32_t *) buffer;
   int16_t * shortbuffer = (int16_t *) buffer;
 
+  /* while there is work to do, do work */
+  
   while(1) {
     chunk_t chunk = next();
-    if (chunk.chunk_size == 0) {
+    if (chunk.size == 0) {
       free(buffer);
       return NULL;
     }
+
+    /* decompress chunk */
     bshuf_decompress_lz4((chunk.chunk)+12, (void *) buffer, size, datasize, 0);
 
+    /* perform some calculation to verify that the data are read correctly */
     int64_t total = 0;
-
+    
     for (size_t j = 0; j < size; j++) {
       if (datasize == 2) {
         if (shortbuffer[j] > 0) total += shortbuffer[j];
@@ -91,9 +104,6 @@ int main(int argc,
   hid_t file, plist, space, datatype;
   H5D_layout_t layout;
   herr_t status;
-
-  int * buffer = 0;
-  char * chunk_buffer = 0;
 
   file = H5Fopen(argv[1], H5F_ACC_RDONLY, H5P_DEFAULT);
   dataset = H5Dopen(file, argv[2], H5P_DEFAULT);
@@ -122,8 +132,8 @@ int main(int argc,
     printf("Dimension %d: %lld\n", j, dims[j]);
   }
 
-  size_t size = dims[1] * dims[2];
-
+  /* set up global variables */
+  
   job = 0;
   n_jobs = dims[0];
 
