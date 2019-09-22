@@ -54,24 +54,24 @@ chunk_t next() {
   return chunk;
 }
 
-/* stupid interface to worker thread as it must be passed a void * and return 
+/* stupid interface to worker thread as it must be passed a void * and return
    the same */
 
 void* worker(void* nonsense) {
 
   /* allocate frame storage - uses global information which is configured
      before threads spawned */
-  
+
   int size = dims[1] * dims[2];
   char* buffer = (char *) malloc(datasize * size);
 
   /* alias the buffer as a short and long also, for ease of access */
-  
+
   int32_t * longbuffer = (int32_t *) buffer;
   int16_t * shortbuffer = (int16_t *) buffer;
 
   /* while there is work to do, do work */
-  
+
   while(1) {
     chunk_t chunk = next();
     if (chunk.size == 0) {
@@ -84,7 +84,7 @@ void* worker(void* nonsense) {
 
     /* perform some calculation to verify that the data are read correctly */
     int64_t total = 0;
-    
+
     for (size_t j = 0; j < size; j++) {
       if (datasize == 2) {
         if (shortbuffer[j] > 0) total += shortbuffer[j];
@@ -133,7 +133,7 @@ int main(int argc,
   }
 
   /* set up global variables */
-  
+
   job = 0;
   n_jobs = dims[0];
 
