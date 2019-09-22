@@ -17,15 +17,19 @@ int job;
 hid_t dataset, datasize;
 hsize_t dims[3];
 
+/* data structures to manage the work */
+
 typedef struct chunk_t {
   char * chunk;
   size_t size;
   int index;
 } chunk_t;
 
-chunk_t next() {
-  hsize_t offset[3], size;
+/* next() method will lock and read the next chunk from the file as needed */
 
+chunk_t next() {
+  uint32_t filter = 0;
+  hsize_t offset[3], size;
   chunk_t chunk;
 
   pthread_mutex_lock(&hdf_mutex);
@@ -48,10 +52,21 @@ chunk_t next() {
   chunk.size = (int) size;
   chunk.chunk = (char *) malloc(size);
 
-  uint32_t filter = 0;
   H5DOread_chunk(dataset, H5P_DEFAULT, offset, &filter, chunk.chunk);
   pthread_mutex_unlock(&hdf_mutex);
   return chunk;
+}
+
+/* data structure to store the results */
+
+pthread_mutex_t result_mutex;
+int * result;
+
+void save_result(int frame,
+                 int value) {
+  pthread_mutex_lock(&result_mutex);
+  result[frame] = value;
+  pthread_mutex_unlock(&result_mutex);
 }
 
 /* stupid interface to worker thread as it must be passed a void * and return
@@ -68,7 +83,7 @@ void* worker(void* nonsense) {
   /* alias the buffer as a short and long also, for ease of access */
 
   int32_t * longbuffer = (int32_t *) buffer;
-  int16_t * shortbuffer = (int16_t *) buffer;
+  uint16_t * shortbuffer = (uint16_t *) buffer;
 
   /* while there is work to do, do work */
 
@@ -79,7 +94,7 @@ void* worker(void* nonsense) {
       return NULL;
     }
 
-    /* decompress chunk */
+    /* decompress chunk - which starts 12 bytes in... */
     bshuf_decompress_lz4((chunk.chunk)+12, (void *) buffer, size, datasize, 0);
 
     /* perform some calculation to verify that the data are read correctly */
@@ -87,12 +102,12 @@ void* worker(void* nonsense) {
 
     for (size_t j = 0; j < size; j++) {
       if (datasize == 2) {
-        if (shortbuffer[j] > 0) total += shortbuffer[j];
+        if (shortbuffer[j] < 65535) total += shortbuffer[j];
       } else {
         if (longbuffer[j] > 0) total += longbuffer[j];
       }
     }
-    printf("Total counts for frame %d %lld\n", chunk.index, total);
+    save_result(chunk.index, (int) total);
     free(chunk.chunk);
   }
   return NULL;
@@ -136,6 +151,7 @@ int main(int argc,
 
   job = 0;
   n_jobs = dims[0];
+  result = (int *) malloc(sizeof(int) * n_jobs);
 
   /* allocate and spin up threads */
 
@@ -143,6 +159,7 @@ int main(int argc,
   pthread_t * threads;
 
   pthread_mutex_init(&hdf_mutex, NULL);
+  pthread_mutex_init(&result_mutex, NULL);
 
   threads = (pthread_t *) malloc(sizeof(pthread_t) * n_threads);
 
@@ -155,6 +172,14 @@ int main(int argc,
   }
 
   pthread_mutex_destroy(&hdf_mutex);
+  pthread_mutex_destroy(&result_mutex);
+
+  /* print the results */
+  for (int j = 0; j < n_jobs; j++) {
+    printf("Frame %6d total %6d\n", j + 1, result[j]);
+  }
+
+  free(result);
 
   H5Sclose(space);
   status = H5Pclose(plist);
