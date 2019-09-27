@@ -10,6 +10,7 @@ from dials.algorithms.indexing.indexer import Indexer
 from dials.array_family import flex
 from dxtbx.model.detector_helpers import set_slow_fast_beam_centre_mm
 from dxtbx.serialize import load
+from libtbx.utils import time_log
 
 
 def run(experiments, reflections, random_seed=42):
@@ -37,6 +38,9 @@ def run(experiments, reflections, random_seed=42):
     misindexed_local = flex.size_t()
     correct_local = flex.size_t()
 
+    global_timer = time_log("global")
+    local_timer = time_log("local")
+
     for d_x, d_y in zip(shift_x, shift_y):
         set_slow_fast_beam_centre_mm(detector, beam, (y + d_y, x + d_x), p_id)
 
@@ -44,7 +48,9 @@ def run(experiments, reflections, random_seed=42):
 
         refl_global = copy.deepcopy(refl)
         refl_global["id"] = flex.int(len(refl), -1)
+        global_timer.start()
         assign_indices.AssignIndicesGlobal()(refl_global, experiments)
+        global_timer.stop()
 
         misindexed_global.append(
             (expected_miller_indices == refl_global["miller_index"])
@@ -59,7 +65,9 @@ def run(experiments, reflections, random_seed=42):
 
         refl_local = copy.deepcopy(refl)
         refl_local["id"] = flex.int(len(refl), -1)
+        local_timer.start()
         assign_indices.AssignIndicesLocal()(refl_local, experiments)
+        local_timer.stop()
 
         misindexed_local.append(
             (expected_miller_indices == refl_local["miller_index"])
@@ -78,6 +86,10 @@ def run(experiments, reflections, random_seed=42):
         print("Misindexed local: %i" % misindexed_local[-1])
         print("Correct local: %i" % correct_local[-1])
         print()
+
+    print(global_timer.legend)
+    print(global_timer.report())
+    print(local_timer.report())
 
     vmax = max(flex.max(correct_global), flex.max(correct_local))
 
