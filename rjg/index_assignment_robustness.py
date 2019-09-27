@@ -17,6 +17,7 @@ def run(experiments, reflections, random_seed=42):
     random.seed(random_seed)
 
     reflections["id"] = flex.int(len(reflections), 0)
+    reflections = reflections.select(reflections.get_flags(reflections.flags.indexed))
 
     beam = experiments[0].beam
     detector = experiments[0].detector
@@ -80,6 +81,9 @@ def run(experiments, reflections, random_seed=42):
 
     vmax = max(flex.max(correct_global), flex.max(correct_local))
 
+    import matplotlib
+
+    matplotlib.use("Agg")
     from matplotlib import pyplot as plt
 
     fig, axes = plt.subplots(ncols=2, sharey=True, figsize=(15, 10))
