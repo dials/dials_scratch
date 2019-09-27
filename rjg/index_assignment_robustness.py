@@ -82,7 +82,7 @@ def run(experiments, reflections, random_seed=42):
 
     from matplotlib import pyplot as plt
 
-    fig, axes = plt.subplots(ncols=2, sharey=True, figsize=(10, 15))
+    fig, axes = plt.subplots(ncols=2, sharey=True, figsize=(15, 10))
     sc = axes[0].scatter(
         shift_x,
         shift_y,
@@ -106,7 +106,7 @@ def run(experiments, reflections, random_seed=42):
         ax.set_xlabel("beam centre shift (mm)")
     axes[0].set_ylabel("beam centre shift (mm)")
 
-    cbar = plt.colorbar(sc, ax=axes, shrink=0.7)
+    cbar = plt.colorbar(sc, ax=axes, shrink=0.5)
     cbar.set_label("Fraction correctly indexed")
     plt.savefig("correctly_indexed.png")
 
