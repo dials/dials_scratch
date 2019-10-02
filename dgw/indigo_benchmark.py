@@ -25,13 +25,15 @@ class Script(object):
                 "n_macro_cycles=2 detector.fix_list=Dist"
             ),  # RSGS
             (
-                "dev.dials.indigo imported.expt strong.refl "
-                "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 space_group=P43212 "
+                "dials.index imported.expt strong.refl "
+                "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 "
+                "space_group=P43212 indexing.method=low_res_spot_match "
                 "stills.indexer=sweeps n_macro_cycles=2 detector.fix_list=Dist "
             ),  # indigo
             (
-                "dev.dials.indigo imported.expt strong.refl "
-                "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 space_group=P43212 "
+                "dials.index imported.expt strong.refl "
+                "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 "
+                "space_group=P43212 indexing.method=low_res_spot_match "
                 "stills.indexer=sweeps n_macro_cycles=2 detector.fix_list=Dist "
                 "bootstrap_crystal=True "
             ),  # indigo + bootstrap crystal
