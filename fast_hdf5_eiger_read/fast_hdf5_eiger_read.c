@@ -82,7 +82,7 @@ void* worker(void* nonsense) {
 
   /* alias the buffer as a short and long also, for ease of access */
 
-  int32_t * longbuffer = (int32_t *) buffer;
+  uint32_t * longbuffer = (uint32_t *) buffer;
   uint16_t * shortbuffer = (uint16_t *) buffer;
 
   /* while there is work to do, do work */
@@ -155,7 +155,12 @@ int main(int argc,
 
   /* allocate and spin up threads */
 
-  int n_threads = atoi(argv[3]);
+  int n_threads = 1;
+
+  if (argc > 3) {
+    n_threads = atoi(argv[3]);
+  }
+
   pthread_t * threads;
 
   pthread_mutex_init(&hdf_mutex, NULL);
