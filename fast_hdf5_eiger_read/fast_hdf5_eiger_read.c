@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <limits.h>
 #include "bitshuffle.h"
 
 /* global variables - necessary until I move the whole shebang into a class */
@@ -80,6 +81,8 @@ void* worker(void* nonsense) {
   int size = dims[1] * dims[2];
   char* buffer = (char *) malloc(datasize * size);
 
+  /* allocate a buffer for the histogram */
+
   /* alias the buffer as a short and long also, for ease of access */
 
   uint32_t * longbuffer = (uint32_t *) buffer;
@@ -90,15 +93,20 @@ void* worker(void* nonsense) {
   while(1) {
     chunk_t chunk = next();
     if (chunk.size == 0) {
+      /* free histogram */
       free(buffer);
       return NULL;
     }
+
+    /* reset histogram */
 
     /* decompress chunk - which starts 12 bytes in... */
     bshuf_decompress_lz4((chunk.chunk)+12, (void *) buffer, size, datasize, 0);
 
     /* perform some calculation to verify that the data are read correctly */
     int64_t total = 0;
+
+    /* accumulate histogram */
 
     for (size_t j = 0; j < size; j++) {
       if (datasize == 2) {
@@ -108,6 +116,9 @@ void* worker(void* nonsense) {
       }
     }
     save_result(chunk.index, (int) total);
+
+    /* accumulate histogram */
+
     free(chunk.chunk);
   }
   return NULL;
@@ -152,6 +163,17 @@ int main(int argc,
   job = 0;
   n_jobs = dims[0];
   result = (int *) malloc(sizeof(int) * n_jobs);
+
+  /* useful static values
+     UCHAR_MAX
+     USHRT_MAX
+     ULONG_MAX - I would not go bigger than here... */
+
+  /* create a buffer here for the histogram */
+
+  /* create a mutex for the histogram buffer */
+
+  /* init with 0's */
 
   /* allocate and spin up threads */
 
