@@ -61,12 +61,16 @@ chunk_t next() {
 /* data structure to store the results */
 
 pthread_mutex_t result_mutex;
-int * result;
+uint64_t * histogram;
+uint64_t histogram_bins;
 
-void save_result(int frame,
-                 int value) {
+void save_result(uint64_t * result) {
   pthread_mutex_lock(&result_mutex);
-  result[frame] = value;
+
+  for (int i = 0; i < histogram_bins; i++) {
+    histogram[i] += result[i];
+  }
+
   pthread_mutex_unlock(&result_mutex);
 }
 
@@ -82,42 +86,41 @@ void* worker(void* nonsense) {
   char* buffer = (char *) malloc(datasize * size);
 
   /* allocate a buffer for the histogram */
+  uint64_t * hbuffer = (uint64_t *) malloc(sizeof(uint64_t) * histogram_bins);
 
   /* alias the buffer as a short and long also, for ease of access */
 
-  uint32_t * longbuffer = (uint32_t *) buffer;
-  uint16_t * shortbuffer = (uint16_t *) buffer;
+   uint16_t * shortbuffer = (uint16_t *) buffer;
+  unsigned char * charbuffer = (unsigned char *) buffer;
 
   /* while there is work to do, do work */
 
   while(1) {
     chunk_t chunk = next();
     if (chunk.size == 0) {
-      /* free histogram */
       free(buffer);
+      free(hbuffer);
       return NULL;
     }
 
     /* reset histogram */
+    for (int i = 0; i < histogram_bins; i++) {
+      hbuffer[i] = 0;
+    }
 
     /* decompress chunk - which starts 12 bytes in... */
     bshuf_decompress_lz4((chunk.chunk)+12, (void *) buffer, size, datasize, 0);
 
-    /* perform some calculation to verify that the data are read correctly */
-    int64_t total = 0;
-
     /* accumulate histogram */
 
     for (size_t j = 0; j < size; j++) {
-      if (datasize == 2) {
-        if (shortbuffer[j] < 65535) total += shortbuffer[j];
-      } else {
-        if (longbuffer[j] > 0) total += longbuffer[j];
+      if (datasize == 1) {
+        hbuffer[charbuffer[j]] += 1;
+      } else if (datasize == 2) {
+        hbuffer[shortbuffer[j]] += 1;
       }
     }
-    save_result(chunk.index, (int) total);
-
-    /* accumulate histogram */
+    save_result(hbuffer);
 
     free(chunk.chunk);
   }
@@ -140,6 +143,14 @@ int main(int argc,
 
   printf("Element size %lld\n", datasize);
 
+  if (datasize > 2) {
+    printf("Not histogramming > 16 bit data\n");
+    H5Pclose(plist);
+    H5Dclose(dataset);
+    H5Fclose(file);
+    return 1;
+  }
+
   if (layout != H5D_CHUNKED) {
     printf("You will not go to space, sorry\n");
     H5Pclose(plist);
@@ -147,6 +158,14 @@ int main(int argc,
     H5Fclose(file);
     return 1;
   }
+
+  if (datasize == 1) {
+    histogram_bins = 1 + UCHAR_MAX;
+  } else if (datasize == 2) {
+    histogram_bins = 1+ USHRT_MAX;
+  }
+
+  histogram = (uint64_t *) malloc(sizeof(uint64_t) * histogram_bins);
 
   space = H5Dget_space(dataset);
 
@@ -162,7 +181,6 @@ int main(int argc,
 
   job = 0;
   n_jobs = dims[0];
-  result = (int *) malloc(sizeof(int) * n_jobs);
 
   /* useful static values
      UCHAR_MAX
@@ -202,11 +220,11 @@ int main(int argc,
   pthread_mutex_destroy(&result_mutex);
 
   /* print the results */
-  for (int j = 0; j < n_jobs; j++) {
-    printf("Frame %6d total %6d\n", j + 1, result[j]);
+  for (int j = 0; j < histogram_bins; j++) {
+    printf("Count %d total %lld\n", j, histogram[j]);
   }
 
-  free(result);
+  free(histogram);
 
   H5Sclose(space);
   status = H5Pclose(plist);
