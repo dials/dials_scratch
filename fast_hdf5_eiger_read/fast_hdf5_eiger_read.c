@@ -162,7 +162,7 @@ int main(int argc,
   if (datasize == 1) {
     histogram_bins = 1 + UCHAR_MAX;
   } else if (datasize == 2) {
-    histogram_bins = 1+ USHRT_MAX;
+    histogram_bins = 1 + USHRT_MAX;
   }
 
   histogram = (uint64_t *) malloc(sizeof(uint64_t) * histogram_bins);
