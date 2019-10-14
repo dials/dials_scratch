@@ -8,7 +8,7 @@ if __name__ == "__main__":
     import libtbx.load_env
     from dials.util.nexus import NexusFile
     from glob import glob
-    from dxtbx.sweep import SweepFactory
+    from dxtbx.sequence import SequenceFactory
     from math import pi
     from scitbx import matrix
 
@@ -37,20 +37,20 @@ if __name__ == "__main__":
     # template = os.path.join('/home/upc86896/Data/X1_strong_M1S1_1_', 'X1_strong_M1S1_1_*.cbf')
     filenames = glob(template)
 
-    # Load the sweep
-    print("Loading sweep")
-    sweep = SweepFactory.sweep(filenames)
-    print("Loaded sweep of {0} images.".format(len(sweep)))
+    # Load the sequence
+    print("Loading sequence")
+    sequence = SequenceFactory.sequence(filenames)
+    print("Loaded sequence of {0} images.".format(len(sequence)))
 
     from dials.algorithms.peak_finding.spot_finder import SpotFinder
 
-    sweep.reader().set_max_cache(1)
-    sweep.get_detector().set_trusted_range((0, 20000))
+    sequence.reader().set_max_cache(1)
+    sequence.get_detector().set_trusted_range((0, 20000))
     find_spots = SpotFinder()
 
-    observed = find_spots(sweep)
+    observed = find_spots(sequence)
 
     from divergence_and_mosaicity import BeamDivergenceAndMosaicity
 
-    calculate_params = BeamDivergenceAndMosaicity(sweep)
+    calculate_params = BeamDivergenceAndMosaicity(sequence)
     calculate_params(observed, predicted)

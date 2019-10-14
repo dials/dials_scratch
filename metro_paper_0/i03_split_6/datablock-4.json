@@ -3,7 +3,7 @@
     "__id__": "DataBlock", 
     "imageset": [
       {
-        "__id__": "ImageSweep", 
+        "__id__": "ImageSequence", 
         "template": "/dls/mx-scratch/gw56/metrology_paper/i03/data0/4/thaum_3_####.cbf.gz", 
         "mask": null, 
         "gain": null, 

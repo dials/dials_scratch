@@ -4,7 +4,7 @@ from __future__ import print_function
 from dials.scratch.luiso_s.tree_folder_call_test.function01 import *
 import numpy
 import time
-from dxtbx.sweep import SweepFactory
+from dxtbx.sequence import SequenceFactory
 import libtbx.load_env
 
 #### Try to find the dials regression directory
@@ -32,8 +32,8 @@ filenames = [
 #             "/scratch/my_code/dials/dials_data/data_from__dls__i02__data__2013__nt5964-1__2013_02_08_GW__DNA__P1__X4/X4_lots_M1S4_1_0009.cbf"]
 #
 
-sweep = SweepFactory.sweep(filenames)
-array_01 = sweep.to_array()
+sequence = SequenceFactory.sequence(filenames)
+array_01 = sequence.to_array()
 
 data3d_ini = array_01.as_numpy_array()
 n_frm = numpy.size(data3d_ini[:, 0:1, 0:1])

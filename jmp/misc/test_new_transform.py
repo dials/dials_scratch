@@ -4,11 +4,11 @@ import os
 
 path = "/home/upc86896/Projects/cctbx/sources/dials_regression/centroid_test_data"
 
-sweep = load.sweep(os.path.join(path, "sweep.json"))
+sequence = load.sequence(os.path.join(path, "sequence.json"))
 crystal = load.crystal(os.path.join(path, "crystal.json"))
 
 extract = ReflectionExtractor(3)
-refl = extract(sweep, crystal)
+refl = extract(sequence, crystal)
 
 
 import copy
@@ -20,7 +20,7 @@ from dials.algorithms.reflection_basis import transform
 from dials.util.command_line import Command
 
 Command.start("Init transform")
-trans = transform.Forward(sweep, crystal, 3, 4)
+trans = transform.Forward(sequence, crystal, 3, 4)
 Command.end("Init transform")
 
 Command.start("Transform")
@@ -29,7 +29,7 @@ for i in range(1):
 Command.end("Transform")
 
 Command.start("Init Transform")
-spec = transform.TransformSpec(sweep, crystal, 3, 4)
+spec = transform.TransformSpec(sequence, crystal, 3, 4)
 Command.end("Init Transform")
 
 Command.start("Transform")

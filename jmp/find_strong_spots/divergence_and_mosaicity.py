@@ -230,23 +230,23 @@ class ComputeEsdBeamDivergence(object):
 class FractionOfObservedIntensity(object):
     """Calculate the fraction of observed intensity for different sigma_m."""
 
-    def __init__(self, reflections, sweep):
+    def __init__(self, reflections, sequence):
         """Initialise the algorithm. Calculate the list of tau and zetas.
 
     Params:
         reflections The list of reflections
-        sweep The sweep object
+        sequence The sequence object
 
     """
-        self.dphi = sweep.get_scan().get_oscillation(deg=False)[1]
-        self.tau, self.zeta = self._calculate_tau_and_zeta(reflections, sweep)
+        self.dphi = sequence.get_scan().get_oscillation(deg=False)[1]
+        self.tau, self.zeta = self._calculate_tau_and_zeta(reflections, sequence)
 
-    def _calculate_tau_and_zeta(self, reflections, sweep):
+    def _calculate_tau_and_zeta(self, reflections, sequence):
         """Calculate the list of tau and zeta needed for the calculation.
 
     Params:
         reflections The list of reflections
-        sweep The sweep object.
+        sequence The sequence object.
 
     Returns:
         (list of tau, list of zeta)
@@ -261,14 +261,14 @@ class FractionOfObservedIntensity(object):
         phi = [r.rotation_angle for r in reflections]
 
         # Calculate the zeta list
-        s0 = sweep.get_beam().get_s0()
-        m2 = sweep.get_goniometer().get_rotation_axis()
+        s0 = sequence.get_beam().get_s0()
+        m2 = sequence.get_goniometer().get_rotation_axis()
         zeta = [zeta_factor(s0, r.beam_vector, m2) for r in reflections]
 
         # Calculate the list of tau values
         tau = []
         zeta2 = []
-        scan = sweep.get_scan()
+        scan = sequence.get_scan()
         for rf, p, z in zip(frames, phi, zeta):
             for f in rf:
                 phi0 = scan.get_angle_from_array_index(int(f), deg=False)
@@ -327,7 +327,7 @@ class FractionOfObservedIntensity(object):
 class MaximumLikelihoodEstimator(object):
     """Estimate E.s.d reflecting range by maximum likelihood estimation."""
 
-    def __init__(self, reflections, sweep):
+    def __init__(self, reflections, sequence):
         """Initialise the optmization."""
         from scitbx import simplex
         from scitbx.array_family import flex
@@ -335,7 +335,7 @@ class MaximumLikelihoodEstimator(object):
         import random
 
         # Initialise the function used in likelihood estimation.
-        self._R = FractionOfObservedIntensity(reflections, sweep)
+        self._R = FractionOfObservedIntensity(reflections, sequence)
 
         # Set the starting values to try
         start = 0.1 * random.random() * pi / 180
@@ -386,14 +386,14 @@ class MaximumLikelihoodEstimator(object):
 class ComputeEsdReflectingRange(object):
     """Calculate the E.s.d of the reflecting range (mosaicity)."""
 
-    def __init__(self, sweep):
+    def __init__(self, sequence):
         """Initialise the algorithm with the scan.
 
     Params:
         scan The scan object
 
     """
-        self._sweep = sweep
+        self._sequence = sequence
 
     def __call__(self, reflections):
         """Calculate the value for the reflecting range (mosaicity).
@@ -405,25 +405,25 @@ class ComputeEsdReflectingRange(object):
         The calculated value of sigma_m
 
     """
-        maximum_likelihood = MaximumLikelihoodEstimator(reflections, self._sweep)
+        maximum_likelihood = MaximumLikelihoodEstimator(reflections, self._sequence)
         return maximum_likelihood()
 
 
 class BeamDivergenceAndMosaicity(object):
     """An algorithm to calculate the beam divergence and mosaicity params."""
 
-    def __init__(self, sweep, max_separation=2):
+    def __init__(self, sequence, max_separation=2):
         """Initialise the algorithm.
 
     Params:
-        sweep The sweep object
+        sequence The sequence object
         max_separation Max pixel dist between predicted and observed spot
 
     """
         # Setup the algorithm objects
         self._match_spots = SpotMatcher(max_separation)
-        self._compute_sigma_d = ComputeEsdBeamDivergence(sweep.get_detector())
-        self._compute_sigma_m = ComputeEsdReflectingRange(sweep)
+        self._compute_sigma_d = ComputeEsdBeamDivergence(sequence.get_detector())
+        self._compute_sigma_m = ComputeEsdReflectingRange(sequence)
 
         # Set the internal reflection list to None
         self._data = None

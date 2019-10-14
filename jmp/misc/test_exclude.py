@@ -10,14 +10,14 @@ from scitbx.array_family import flex
 from scitbx import matrix
 from math import pi, sqrt, atan
 
-sweep = load.sweep(
-    "/home/upc86896/Projects/cctbx/sources/dials_regression/centroid_test_data/sweep.json"
+sequence = load.sequence(
+    "/home/upc86896/Projects/cctbx/sources/dials_regression/centroid_test_data/sequence.json"
 )
 
-beam = sweep.get_beam()
-gonio = sweep.get_goniometer()
-detector = sweep.get_detector()
-scan = sweep.get_scan()
+beam = sequence.get_beam()
+gonio = sequence.get_goniometer()
+detector = sequence.get_detector()
+scan = sequence.get_scan()
 
 m2 = matrix.col(gonio.get_rotation_axis())
 s0 = matrix.col(beam.get_s0())

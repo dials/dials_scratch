@@ -36,7 +36,7 @@ rotation_angle = 90
 
 
 class gen_lattice_points(object):
-    def __init__(self, sweep, params):
+    def __init__(self, sequence, params):
         self.params = params
         flex.set_random_seed(params.random_seed)
         unit_cell = params.unit_cell
@@ -53,27 +53,27 @@ class gen_lattice_points(object):
             direct_matrix[6:9],
             space_group=sgi.group(),
         )
-        scan = sweep.get_scan()
+        scan = sequence.get_scan()
         angle = self.params.rotation_angle
         scan.set_image_range((1, iceil(angle / scan.get_oscillation()[1])))
-        predicted = predict_reflections(sweep, crystal_model)
+        predicted = predict_reflections(sequence, crystal_model)
         beam_vectors = predicted.beam_vector()
-        S = beam_vectors - sweep.get_beam().get_s0()
+        S = beam_vectors - sequence.get_beam().get_s0()
         centroids = S.rotate_around_origin(
-            sweep.get_goniometer().get_rotation_axis(), -predicted.rotation_angle()
+            sequence.get_goniometer().get_rotation_axis(), -predicted.rotation_angle()
         )
         self.d_min = self.params.reciprocal_space_grid.d_min
         self.gridding = tuple([self.params.reciprocal_space_grid.n_points] * 3)
         centroids = centroids.select((1 / centroids.norms()) >= self.d_min)
         assert len(centroids) > 0
-        self.map_to_grid(sweep, centroids)
+        self.map_to_grid(sequence, centroids)
         self.fft()
         debug_write_reciprocal_lattice_points_as_pdb(centroids)
         self.debug_write_ccp4_map(self.grid_real, "fft.map")
 
-    def map_to_grid(self, sweep, centroids):
+    def map_to_grid(self, sequence, centroids):
         b_iso = 200
-        beam = sweep.get_beam()
+        beam = sequence.get_beam()
         wavelength = beam.get_wavelength()
         d_min = self.d_min
 
@@ -158,11 +158,11 @@ def debug_write_reciprocal_lattice_points_as_pdb(
         print(xs.as_pdb_file(), file=f)
 
 
-def predict_reflections(sweep, crystal_model):
+def predict_reflections(sequence, crystal_model):
     from dials.algorithms.integration import ReflectionPredictor
 
     predictor = ReflectionPredictor()
-    reflections = predictor(sweep, crystal_model)
+    reflections = predictor(sequence, crystal_model)
     return reflections
 
 
@@ -173,21 +173,21 @@ def run(args):
     args = sys.argv[1:]
     importer = Importer(args)
     if len(importer.imagesets) == 0:
-        print("No sweep object could be constructed")
+        print("No sequence object could be constructed")
         return
     elif len(importer.imagesets) > 1:
         raise RuntimeError("Only one imageset can be processed at a time")
-    sweeps = importer.imagesets
+    sequences = importer.imagesets
     args = importer.unhandled_arguments
 
-    sweep = sweeps[0]
+    sequence = sequences[0]
     cmd_line = command_line.argument_interpreter(master_params=master_phil_scope)
     working_phil, args = cmd_line.process_and_fetch(
         args=args, custom_processor="collect_remaining"
     )
     working_phil.show()
 
-    result = gen_lattice_points(sweep, params=working_phil.extract())
+    result = gen_lattice_points(sequence, params=working_phil.extract())
 
 
 if __name__ == "__main__":

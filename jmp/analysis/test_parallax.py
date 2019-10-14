@@ -10,13 +10,13 @@ from matplotlib import pylab
 convert = ParallaxCorrectedPxMmStrategy(0.252500934883)
 convert2 = SimplePxMmStrategy()
 
-sweep = load.imageset(sys.argv[1])
+sequence = load.imageset(sys.argv[1])
 
-detector = sweep.get_detector()
+detector = sequence.get_detector()
 
 # print detector[0].pixel_to_millimeter((0, 1))
 
-image_size = sweep[0].all()
+image_size = sequence[0].all()
 image = flex.double(flex.grid(image_size))
 for j in range(image_size[0]):
     for i in range(image_size[1]):

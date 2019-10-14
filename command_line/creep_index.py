@@ -13,9 +13,9 @@
 
 
 """
-Script to attempt to index a full sweep in cases where large changes in the
+Script to attempt to index a full sequence in cases where large changes in the
 model during data collection (such as beam centre drift) makes it difficult
-to index the sweep in one pass.
+to index the sequence in one pass.
 
 We assume an experiments.json is available that can be used to index the first
 image. One this is indexed, a new experiments.json is produced with a refined

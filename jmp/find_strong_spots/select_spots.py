@@ -12,7 +12,7 @@ from __future__ import print_function
 
 
 class SpotFinder(object):
-    """A class to perform spot finding operations on a sweep of images."""
+    """A class to perform spot finding operations on a sequence of images."""
 
     def __init__(self, min_spot_size=6, max_separation=2):
         """Initialise the algorithm with some parameters.
@@ -25,13 +25,13 @@ class SpotFinder(object):
         self._min_spot_size = min_spot_size
         self._max_separation = max_separation
 
-    def __call__(self, sweep):
+    def __call__(self, sequence):
         """The main function of the spot finder. Select the pixels from
-    the sweep and then group the pixels into spots. Return the data
+    the sequence and then group the pixels into spots. Return the data
     in the form of a reflection list.
 
     Params:
-        sweep The sweep object
+        sequence The sequence object
 
     Returns:
         The reflection list
@@ -41,16 +41,16 @@ class SpotFinder(object):
 
         # Set a command indent to 4
         Command.indent = 4
-        print("\nFinding spot in {0} images...".format(len(sweep)))
+        print("\nFinding spot in {0} images...".format(len(sequence)))
 
-        # Extract the image pixels from the sweep
-        Command.start("Extracting pixels from sweep")
-        coords, intensity = self._extract_pixels(sweep)
+        # Extract the image pixels from the sequence
+        Command.start("Extracting pixels from sequence")
+        coords, intensity = self._extract_pixels(sequence)
         Command.end("Extracted {0} strong pixels".format(len(coords)))
 
         # Label the pixels and group into spots
         Command.start("Labelling connected components")
-        labels = self._label_pixels(coords, sweep)
+        labels = self._label_pixels(coords, sequence)
         Command.end("Found {0} connected components".format(max(labels) + 1))
 
         # Filter spots that are too small
@@ -60,7 +60,7 @@ class SpotFinder(object):
 
         # Calculate the bounding box for each spot
         Command.start("Calculating bounding boxes")
-        bbox = self._calculate_bbox(coords, spots, sweep)
+        bbox = self._calculate_bbox(coords, spots, sequence)
         Command.end("Calculated {0} bounding boxes".format(len(bbox)))
 
         # Calculate the spot centroids
@@ -78,11 +78,11 @@ class SpotFinder(object):
             coords, intensity, spots, bbox, cpos, cvar, index
         )
 
-    def _extract_pixels(self, sweep):
-        """Extract the pixels from the sweep
+    def _extract_pixels(self, sequence):
+        """Extract the pixels from the sequence
 
     Params:
-        sweep The sweep object
+        sequence The sequence object
 
     Returns:
         The list of selected pixels
@@ -96,18 +96,18 @@ class SpotFinder(object):
         coords = flex_vec3_int()
         intensity = flex.int()
 
-        # Get the start index and trusted range from the sweep
-        start = sweep.get_array_range()[0]
-        trusted_range = sweep.get_detector().get_trusted_range()
+        # Get the start index and trusted range from the sequence
+        start = sequence.get_array_range()[0]
+        trusted_range = sequence.get_detector().get_trusted_range()
 
-        # Loop through all the images in the sweep and extract the pixels
+        # Loop through all the images in the sequence and extract the pixels
         # from each of the images
         progress = ProgressBar()
-        for frame, image in enumerate(sweep):
+        for frame, image in enumerate(sequence):
             c, i = self._extract_image_pixels(image, frame + start, trusted_range)
             coords.extend(c)
             intensity.extend(i)
-            progress.update(100.0 * float(frame + 1) / len(sweep))
+            progress.update(100.0 * float(frame + 1) / len(sequence))
 
         progress.finished()
 
@@ -176,13 +176,13 @@ class SpotFinder(object):
         # Calculate the threshold and add to list
         return maximum_deviation(p)
 
-    def _label_pixels(self, pixels, sweep):
+    def _label_pixels(self, pixels, sequence):
         """Do a connected component labelling of the pixels to get
     groups of spots.
 
     Params:
         pixels The pixel coordinates
-        sweep The sweep object
+        sequence The sequence object
 
     Returns:
         The pixel-spot mapping.
@@ -191,8 +191,8 @@ class SpotFinder(object):
         from dials.algorithms.peak_finding import LabelPixels
 
         # Get the grid size needed by the labelling algorithm
-        image_size = sweep.get_image_size()
-        scan_size = sweep.get_array_range()[1]
+        image_size = sequence.get_image_size()
+        scan_size = sequence.get_array_range()[1]
         grid_size = (image_size[0], image_size[1], scan_size)
 
         # Label the pixels
@@ -220,21 +220,21 @@ class SpotFinder(object):
         # Filter by spot size
         return [s for s in spots if len(s) >= self._min_spot_size]
 
-    def _calculate_bbox(self, coords, spots, sweep):
+    def _calculate_bbox(self, coords, spots, sequence):
         """Calculate the bounding boxes for each spot.
 
     Params:
         coords The pixel coordinates
         spots The pixel-spot mapping
-        sweep The sweep object
+        sequence The sequence object
 
     Returns:
         The bounding boxes for each spot
 
     """
         # Get the image dimensions
-        height, width = sweep.get_image_size()
-        length = sweep.get_array_range()[1]
+        height, width = sequence.get_image_size()
+        length = sequence.get_array_range()[1]
 
         # Loop through all spots
         bbox = []

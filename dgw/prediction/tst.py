@@ -240,7 +240,7 @@ UB = mycrystal.get_U() * mycrystal.get_B()
 
 # generate angles within a range, i.e. the analogue of
 # the observed_indices_and_angles_from_angle_range method
-sweep_range = (0.0, math.pi)
+sequence_range = (0.0, math.pi)
 dials_angles = flex.double()
 dials_obs_indices = flex.miller_index()
 for h in indices:
@@ -249,7 +249,7 @@ for h in indices:
     except RuntimeError as e:
         continue
     for ang in angles:
-        if sweep_range[0] < ang < sweep_range[1]:
+        if sequence_range[0] < ang < sequence_range[1]:
             dials_obs_indices.append(h)
             dials_angles.append(ang)
 
@@ -295,7 +295,7 @@ dials_panel = Panel(
 # get the bits needed to make a RayPredictor
 s0 = mybeam.get_s0()
 spindle = mygonio.get_rotation_axis()
-ray_predictor = RayPredictor(s0, spindle, UB, sweep_range)
+ray_predictor = RayPredictor(s0, spindle, UB, sequence_range)
 
 # also make a reflection_prediction object
 from rstbx.diffraction import reflection_prediction

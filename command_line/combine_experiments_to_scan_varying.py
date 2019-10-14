@@ -14,7 +14,7 @@ This script supports pseudo-scan-varying refinement of a crystal model with
 a protocol like this:
 
 # Chunk a scan into equal-width blocks
-dials.slice_sweep static.json static.pickle block_size=5.0
+dials.slice_sequence static.json static.pickle block_size=5.0
 
 dials.combine_experiments static_sliced.json static_sliced.pickle \
   reference_from_experiment.beam=0 \

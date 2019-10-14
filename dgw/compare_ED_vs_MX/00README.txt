@@ -9,7 +9,7 @@ electron diffraction geometry compared with X-ray MX. Start where the previous
 investigation, performed for the CCP-EM Spring Symposium, left off. From that
 take two files:
 
-* ``observed.pickle`` - 55.8 degree sweep of indexed reflections for a lysozyme
+* ``observed.pickle`` - 55.8 degree sequence of indexed reflections for a lysozyme
   electron diffraction dataset. The original images were provided by Taimin
   Yang at Stockholm University.
 * ``experiments_ED.json`` - the associated experimental geometry for the real

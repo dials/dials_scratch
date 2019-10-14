@@ -40,9 +40,9 @@ def run(args):
     print(args)
     importer = Importer(args, check_format=False)
     assert len(importer.datablocks) == 1
-    sweeps = importer.datablocks[0].extract_imagesets()
-    assert len(sweeps) == 1
-    sweep = sweeps[0]
+    sequences = importer.datablocks[0].extract_imagesets()
+    assert len(sequences) == 1
+    sequence = sequences[0]
 
     cmd_line = command_line.argument_interpreter(master_params=master_phil_scope)
     working_phil = cmd_line.process_and_fetch(args=importer.unhandled_arguments)
@@ -82,11 +82,11 @@ def run(args):
             space_group=space_group,
         )
         experiment = Experiment(
-            imageset=sweep,
-            beam=sweep.get_beam(),
-            detector=sweep.get_detector(),
-            goniometer=sweep.get_goniometer(),
-            scan=sweep.get_scan(),
+            imageset=sequence,
+            beam=sequence.get_beam(),
+            detector=sequence.get_detector(),
+            goniometer=sequence.get_goniometer(),
+            scan=sequence.get_scan(),
             crystal=cryst_model,
         )
         predicted_reflections = flex.reflection_table.from_predictions(experiment)

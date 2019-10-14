@@ -3,7 +3,7 @@
     "__id__": "DataBlock", 
     "imageset": [
       {
-        "__id__": "ImageSweep", 
+        "__id__": "ImageSequence", 
         "template": "/dls/i03/data/2016/cm14451-4/processing/gw/metro/1/data/7/INS3_1_####.cbf", 
         "mask": null, 
         "gain": null, 

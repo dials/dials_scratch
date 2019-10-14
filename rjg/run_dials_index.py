@@ -25,7 +25,7 @@ run_xds = False
   .type = bool
 run_mosflm = False
   .type = bool
-min_sweep_length = 1
+min_sequence_length = 1
   .type = int(value_min=1)
 xds {
   include_resolution_range = (40, 0)
@@ -65,18 +65,18 @@ def run(args):
         print(t)
         filenames.extend(glob.glob(t))
     print(filenames)
-    from dxtbx.imageset import ImageSetFactory, ImageSweep
+    from dxtbx.imageset import ImageSetFactory, ImageSequence
     from dxtbx.datablock import DataBlockFactory
 
     datablocks = DataBlockFactory.from_args(filenames, verbose=True)
 
     i = 0
     for i, datablock in enumerate(datablocks):
-        sweeps = datablock.extract_sweeps()
-        for imageset in sweeps:
+        sequences = datablock.extract_sequences()
+        for imageset in sequences:
             if (
-                isinstance(imageset, ImageSweep)
-                and len(imageset) >= params.min_sweep_length
+                isinstance(imageset, ImageSequence)
+                and len(imageset) >= params.min_sequence_length
             ):
                 i += 1
                 print(imageset)
@@ -100,18 +100,18 @@ def run(args):
 
 
 def run_once(args):
-    filenames, sweep_id, params = args
+    filenames, sequence_id, params = args
     # print filenames
 
     orig_dir = os.path.abspath(os.curdir)
 
-    sweep_dir = os.path.join(orig_dir, "sweep_%03i" % sweep_id)
-    print(sweep_dir)
-    if not os.path.exists(sweep_dir):
-        os.mkdir(sweep_dir)
-    os.chdir(sweep_dir)
+    sequence_dir = os.path.join(orig_dir, "sequence_%03i" % sequence_id)
+    print(sequence_dir)
+    if not os.path.exists(sequence_dir):
+        os.mkdir(sequence_dir)
+    os.chdir(sequence_dir)
 
-    log = open("%s/sweep_%03i.log" % (sweep_dir, sweep_id), "wb")
+    log = open("%s/sequence_%03i.log" % (sequence_dir, sequence_id), "wb")
     print(filenames, file=log)
 
     cmd = "dials.import -i"
@@ -160,7 +160,7 @@ def run_once(args):
 
         g = [os.path.abspath(p) for p in g]
 
-        sweep_dir_full = os.path.abspath(".")
+        sequence_dir_full = os.path.abspath(".")
 
         for xds_dir in g:
             os.chdir(xds_dir)
@@ -264,7 +264,7 @@ def run_once(args):
 
         g = [os.path.abspath(p) for p in g]
 
-        sweep_dir_full = os.path.abspath(".")
+        sequence_dir_full = os.path.abspath(".")
 
         for mosflm_dir in g:
             os.chdir(mosflm_dir)

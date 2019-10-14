@@ -9,7 +9,7 @@
 #  included in the root directory of this package.
 
 """This script has the single purpose of aligning a detector from a multipanel
-sweep with a single panel detector, for a refinement test.
+sequence with a single panel detector, for a refinement test.
 
 The multipanel detector has been created by the FormatCBFMiniPilatusSplit6M
 class. It has 60 co-planar panels in the plane formed by its fast, slow axes.
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     from optparse import OptionParser
 
     # Specify the command line options
-    usage = "usage: %prog [options] sweep.json"
+    usage = "usage: %prog [options] sequence.json"
 
     # Create an option parser
     parser = OptionParser(usage)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         dest="output_file",
         type="string",
         default=None,
-        help="Destination filename for sweep with aligned detector",
+        help="Destination filename for sequence with aligned detector",
     )
 
     # Parse the arguments
@@ -60,8 +60,8 @@ if __name__ == "__main__":
     print("Loading detector from {0}".format(args[0]))
 
     with open(args[0], "r") as f:
-        sweep = load.sweep(f)
-    detector = sweep.get_detector()
+        sequence = load.sequence(f)
+    detector = sequence.get_detector()
 
     # calculate offsets
     from scitbx import matrix
@@ -96,4 +96,4 @@ if __name__ == "__main__":
     print("detector aligned")
     if options.output_file:
         print("Saving aligned detector geometry to {0}".format(options.output_file))
-        dump.sweep(sweep, open(options.output_file, "w"))
+        dump.sequence(sequence, open(options.output_file, "w"))

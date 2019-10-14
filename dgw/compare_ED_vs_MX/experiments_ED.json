@@ -13,7 +13,7 @@
   ], 
   "imageset": [
     {
-      "__id__": "ImageSweep", 
+      "__id__": "ImageSequence", 
       "template": "/home/david/xray/Taimin_ED/SMV_images/1_######.img", 
       "mask": null, 
       "gain": null, 

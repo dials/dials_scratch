@@ -20,9 +20,9 @@ def write_expt(experiments, filename):
 expts = read_expt(sys.argv[1])
 expt = expts[0]
 
-sweeps = expt.extract_sweeps()
+sequences = expt.extract_sequences()
 
-expt = sweeps[0]
+expt = sequences[0]
 
 gonio = expt.get_goniometer()
 

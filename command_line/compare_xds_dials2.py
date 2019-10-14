@@ -62,11 +62,14 @@ def get_dials_matrix(crystal_json):
     return crystal.get_A()
 
 
-def get_dials_coordinate_frame(sweep_json):
+def get_dials_coordinate_frame(sequence_json):
     from dials.model.serialize import load
 
-    sweep = load.sweep(sweep_json)
-    return sweep.get_beam().get_direction(), sweep.get_goniometer().get_rotation_axis()
+    sequence = load.sequence(sequence_json)
+    return (
+        sequence.get_beam().get_direction(),
+        sequence.get_goniometer().get_rotation_axis(),
+    )
 
 
 def get_xds_coordinate_frame(integrate_hkl):
@@ -216,14 +219,16 @@ def meansd(values):
     return mean, math.sqrt(var)
 
 
-def compare_chunks(integrate_hkl, integrate_pkl, crystal_json, sweep_json, d_min=0.0):
+def compare_chunks(
+    integrate_hkl, integrate_pkl, crystal_json, sequence_json, d_min=0.0
+):
 
     from annlib_ext import AnnAdaptor as ann_adaptor
     from dials.model.serialize import load
 
-    sweep = load.sweep(sweep_json)
+    sequence = load.sequence(sequence_json)
 
-    rdx = derive_reindex_matrix(crystal_json, sweep_json, integrate_hkl)
+    rdx = derive_reindex_matrix(crystal_json, sequence_json, integrate_hkl)
 
     print("Reindex matrix:\n%d %d %d\n%d %d %d\n%d %d %d" % (rdx.elems))
 
@@ -274,7 +279,7 @@ def compare_chunks(integrate_hkl, integrate_pkl, crystal_json, sweep_json, d_min
     print("Found %d matches" % len(XDS))
 
     compare = CompareIntensity(
-        sweep, uc, HKL, XYZ, XDS, DIALS, SIGMA_XDS, SIGMA_DIALS, XLP, DLP
+        sequence, uc, HKL, XYZ, XDS, DIALS, SIGMA_XDS, SIGMA_DIALS, XLP, DLP
     )
     #  compare.plot_scale_factor_vs_resolution()
     #  compare.plot_scale_factor_vs_frame_number()
@@ -288,12 +293,12 @@ def compare_chunks(integrate_hkl, integrate_pkl, crystal_json, sweep_json, d_min
     compare.plot_scale_vs_i_over_sigma()
 
 
-def derive_reindex_matrix(crystal_json, sweep_json, integrate_hkl):
+def derive_reindex_matrix(crystal_json, sequence_json, integrate_hkl):
     """Derive a reindexing matrix to go from the orientation matrix used
     for XDS integration to the one used for DIALS integration."""
 
     dA = get_dials_matrix(crystal_json)
-    dbeam, daxis = get_dials_coordinate_frame(sweep_json)
+    dbeam, daxis = get_dials_coordinate_frame(sequence_json)
     xbeam, xaxis = get_xds_coordinate_frame(integrate_hkl)
 
     # want to align XDS -s0 vector...
@@ -312,9 +317,9 @@ def derive_reindex_matrix(crystal_json, sweep_json, integrate_hkl):
 
 class CompareIntensity(object):
     def __init__(
-        self, sweep, uc, hkl, xyz, i_xds, i_dials, sigma_xds, sigma_dials, xlp, dlp
+        self, sequence, uc, hkl, xyz, i_xds, i_dials, sigma_xds, sigma_dials, xlp, dlp
     ):
-        self.sweep = sweep
+        self.sequence = sequence
         self.hkl = hkl
         self.xyz = xyz
         self.i_xds = i_xds
@@ -668,7 +673,7 @@ class CompareIntensity(object):
         scale = [x / d for x, d in zip(self.i_xds, self.i_dials)]
 
         print("Creating Grid")
-        image_size = self.sweep.get_detector()[0].get_image_size()[::-1]
+        image_size = self.sequence.get_detector()[0].get_image_size()[::-1]
         image_size = (int(ceil(image_size[0] / 8)), int(ceil(image_size[1] / 8)))
         grid = flex.double(flex.grid(image_size))
         count = flex.int(flex.grid(image_size))
@@ -698,7 +703,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 5:
         raise RuntimeError(
-            "%s INTEGRATE.HKL integrate.refl crystal.expt sweep.expt [dmin]"
+            "%s INTEGRATE.HKL integrate.refl crystal.expt sequence.expt [dmin]"
             % sys.argv[0]
         )
 

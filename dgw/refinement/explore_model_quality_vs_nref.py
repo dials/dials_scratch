@@ -27,7 +27,7 @@ class Script(ScriptRunner):
         # The script usage
         usage = (
             "usage: %prog [options] [param.phil] "
-            "sweep.json crystal.json reflections.pickle"
+            "sequence.json crystal.json reflections.pickle"
         )
 
         # Initialise the base class
@@ -35,10 +35,10 @@ class Script(ScriptRunner):
 
         # Output filename option
         self.config().add_option(
-            "--output-sweep-filename",
-            dest="output_sweep_filename",
+            "--output-sequence-filename",
+            dest="output_sequence_filename",
             type="string",
-            default="refined_sweep.json",
+            default="refined_sequence.json",
             help="Set the filename for refined experimental models.",
         )
 
@@ -93,14 +93,14 @@ class Script(ScriptRunner):
             refine = RefinerFactory.from_parameters(params, options.verbosity)
 
             # Try to load the models
-            sweep = load.sweep(args[0])
+            sequence = load.sequence(args[0])
             crystal = load.crystal(args[1])
             reflections = pickle.load(open(args[2], "rb"))
 
             # Refine the geometry
             start_time = time()
             try:
-                refined = refine(sweep, crystal, reflections)
+                refined = refine(sequence, crystal, reflections)
             except Exception as e:
                 print("ERROR occurred")
                 continue

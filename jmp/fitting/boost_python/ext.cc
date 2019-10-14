@@ -51,7 +51,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   /* using dxtbx::model::Goniometer; */
   /* using dxtbx::model::Scan; */
 
-  /* using dxtbx::ImageSweep; */
+  /* using dxtbx::ImageSequence; */
   /* using dxtbx::format::Image; */
   /* using dxtbx::format::ImageTile; */
 
@@ -1606,7 +1606,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   /*    *1/ */
   /*   Integrator( */
   /*         af::reflection_table reflections, */
-  /*         ImageSweep imageset, */
+  /*         ImageSequence imageset, */
   /*         const MaskCalculatorIface &compute_mask, */
   /*         const BackgroundCalculatorIface &compute_background, */
   /*         const IntensityCalculatorIface &compute_intensity, */
@@ -1717,7 +1717,7 @@ namespace dials { namespace algorithms { namespace boost_python {
   /*       Buffer &buffer, */
   /*       af::ref< af::Reflection > reflections, */
   /*       const AdjacencyList &overlaps, */
-  /*       ImageSweep imageset, */
+  /*       ImageSequence imageset, */
   /*       af::const_ref<int6> bbox, */
   /*       af::const_ref<std::size_t> flags, */
   /*       std::size_t nthreads) const { */
@@ -1852,7 +1852,7 @@ namespace dials { namespace algorithms { namespace boost_python {
     /* class_<ParallelIntegrator>("Integrator", no_init) */
     /*   .def(init< */
     /*       const af::reflection_table&, */
-    /*       ImageSweep, */
+    /*       ImageSequence, */
     /*       const MaskCalculatorIface&, */
     /*       const BackgroundCalculatorIface&, */
     /*       const IntensityCalculatorIface&, */

@@ -156,7 +156,7 @@ def centroid(image, mask, detector):
 
 
 if __name__ == "__main__":
-    from dxtbx.sweep import SweepFactory
+    from dxtbx.sequence import SequenceFactory
     from glob import glob
     from scipy.ndimage.measurements import histogram
     import numpy
@@ -169,14 +169,14 @@ if __name__ == "__main__":
     filenames = glob(
         "/home/upc86896/Projects/cctbx/sources/dials_regression/centroid_test_data/centroid_000*.cbf"
     )
-    sweep = SweepFactory.sweep(filenames)
+    sequence = SequenceFactory.sequence(filenames)
     trusted_range = (0, 20000)
 
     histo = []
     threshold_list = []
     start = 0
     stop = 3
-    for i, flex_image in enumerate(sweep[start:stop]):
+    for i, flex_image in enumerate(sequence[start:stop]):
 
         image = flex_image.as_numpy_array()
 
@@ -214,21 +214,21 @@ if __name__ == "__main__":
 
     mean_thresh = numpy.mean(threshold_list)
 
-    image = sweep[start:stop].to_array().as_numpy_array()
+    image = sequence[start:stop].to_array().as_numpy_array()
     mask = image > mean_thresh
-    centroid(image, mask, sweep.get_detector())
+    centroid(image, mask, sequence.get_detector())
 #    for i in range(1):
 
 # from matplotlib import pylab, cm
 # pylab.plot(histo[i])
 # pylab.show()
 
-# pylab.imshow(sweep[i].as_numpy_array(), cmap=cm.Greys_r, vmax=mean_thresh)
+# pylab.imshow(sequence[i].as_numpy_array(), cmap=cm.Greys_r, vmax=mean_thresh)
 # pylab.show()
 
-# mask = sweep[i].as_numpy_array() > mean_thresh
+# mask = sequence[i].as_numpy_array() > mean_thresh
 
-# centroid(sweep[i].as_numpy_array(), mask, sweep.get_detector())
+# centroid(sequence[i].as_numpy_array(), mask, sequence.get_detector())
 
 # pylab.imshow(mask, cmap=cm.Greys_r)
 # pylab.show()
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 #    mean = 0
 #    M2 = 0
 #    histo = numpy.zeros(shape=(trusted_range[1]+1), dtype=numpy.int32)
-#    for i, image in enumerate(sweep[0:1]):
+#    for i, image in enumerate(sequence[0:1]):
 #        np_image = image.as_numpy_array()
 #        np_image.shape = -1
 #        ind = numpy.where(np_image < trusted_range[0])

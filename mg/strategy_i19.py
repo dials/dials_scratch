@@ -31,7 +31,7 @@ phil_scope = parse(
   {
 
     reflections_per_degree = 50
-      .help = "The number of predicted reflections per degree of the sweep "
+      .help = "The number of predicted reflections per degree of the sequence "
               "to integrate."
       .type = float(value_min=0.)
 
@@ -372,8 +372,8 @@ class Script(object):
             return m
 
         def evaluate_concrete_strategy(hkls, evaluation_function):
-            print("%5d reflections fall on detector during sweep" % len(hkls))
-            #      print "%5d unique reflections fall on detector during sweep (without symmetry relations)" % len(set(list(hkls)))
+            print("%5d reflections fall on detector during sequence" % len(hkls))
+            #      print "%5d unique reflections fall on detector during sequence (without symmetry relations)" % len(set(list(hkls)))
             #      for r in detectable_rays.rows():
             #        hkl = r['miller_index']
             #        if (abs(hkl[0]) == 11) and (abs(hkl[1]) == 5) and (abs(hkl[2]) < 5):
@@ -381,14 +381,14 @@ class Script(object):
             #                                                                       expt.scan.get_image_index_from_angle(r['phi'] - (2 * 3.1415926535), deg=False))
             symmetry_mapped_hkls = set([map_hkl_to_symmhkl[hkl] for hkl in hkls])
             print(
-                "%5d unique reflections fall on detector during sweep (including symmetry relations)"
+                "%5d unique reflections fall on detector during sequence (including symmetry relations)"
                 % len(symmetry_mapped_hkls)
             )
             completeness = 100 * len(symmetry_mapped_hkls) / completeness_limit
             multiplicity = len(hkls) / len(symmetry_mapped_hkls)
             score = evaluation_function(hkls)
             print(
-                "Estimated sweep completeness: %5.1f %%   sweep multiplicity : %.1f   sweep score: %.1f"
+                "Estimated sequence completeness: %5.1f %%   sequence multiplicity : %.1f   sequence score: %.1f"
                 % (completeness, multiplicity, score)
             )
             return {
@@ -451,7 +451,7 @@ class Script(object):
         )
         print()
 
-        # Determine the detectable reflections given some data collection sweep
+        # Determine the detectable reflections given some data collection sequence
         s0 = expt.beam.get_s0()
         rotation_axis = expt.goniometer.get_rotation_axis()
 
@@ -470,7 +470,7 @@ class Script(object):
 
             for (run, strategy) in izip(count(1), strategies):
                 print()
-                print("Sweep %d:" % run)
+                print("Sequence %d:" % run)
                 evaluation_function = evaluation_function_factory(
                     possible_hkl, observed_hkls, map_hkl_to_symmhkl, map_symmhkl_to_hkl
                 )
@@ -499,7 +499,7 @@ class Script(object):
                         radians(strategy["phi"] + strategy["scan"]),
                     )
 
-                # repeat sweep: expt.goniometer
+                # repeat sequence: expt.goniometer
                 proposed_hkls = calculate_observations(
                     expt.detector, goniometer, oscillation_range
                 )
@@ -528,7 +528,7 @@ class Script(object):
                     % (completeness, multiplicity, total_score)
                 )
 
-                # keep the repeat sweep and continue
+                # keep the repeat sequence and continue
                 observed_hkls = combined_observations
             export_mtz(observed_hkls, expt, "mtzout.mtz")
             return {
@@ -1241,7 +1241,7 @@ class Script(object):
         if (params.prediction.dmin is None) or (params.prediction.dmax is None):
             integrated = pickle.load(
                 open(
-                    "/home/wra62962/local/testsets/Ni_dppe_NO2_2.dials.sweep3/integrated.pickle",
+                    "/home/wra62962/local/testsets/Ni_dppe_NO2_2.dials.sequence3/integrated.pickle",
                     "rb",
                 )
             )
@@ -1274,7 +1274,7 @@ class Script(object):
             quality["name"] = strategy["name"]
             results.append(quality)
 
-        print("%30s   Comp   Mul  Score  Sweep  Sc/deg" % "Strategy")
+        print("%30s   Comp   Mul  Score  Sequence  Sc/deg" % "Strategy")
         for r in sorted(results, key=(lambda x: x["score"]), reverse=True):
             print(
                 "%30s: %5.1f  %4.1f  %5d  %4d%s  %5.1f"

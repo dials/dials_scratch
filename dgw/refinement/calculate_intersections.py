@@ -20,12 +20,12 @@ from __future__ import print_function
 class ScriptRunner(object):
     """Class to run script."""
 
-    def __init__(self, options, sweep_filename, reflections_filename):
+    def __init__(self, options, sequence_filename, reflections_filename):
         """Setup the script."""
 
         # Filename data
         self.output_filename = options.output_file
-        self.sweep_filename = sweep_filename
+        self.sequence_filename = sequence_filename
         self.reflections_filename = reflections_filename
 
     def __call__(self):
@@ -40,12 +40,12 @@ class ScriptRunner(object):
         rlist = pickle.load(open(self.reflections_filename, "r"))
 
         # Try to load the models
-        print("Loading models from {0}".format(self.sweep_filename))
+        print("Loading models from {0}".format(self.sequence_filename))
 
-        sweep = load.sweep(open(self.sweep_filename, "r"))
-        beam = sweep.get_beam()
+        sequence = load.sequence(open(self.sequence_filename, "r"))
+        beam = sequence.get_beam()
         wavelength = beam.get_wavelength()
-        detector = sweep.get_detector()
+        detector = sequence.get_detector()
 
         # get the intersections
         observations = ray_intersection(detector, rlist)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     from optparse import OptionParser
 
     # Specify the command line options
-    usage = "usage: %prog [options] sweep.json reflections.pickle"
+    usage = "usage: %prog [options] sequence.json reflections.pickle"
 
     # Create an option parser
     parser = OptionParser(usage)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     else:
         # Initialise the script runner
         runner = ScriptRunner(
-            options, sweep_filename=args[0], reflections_filename=args[1]
+            options, sequence_filename=args[0], reflections_filename=args[1]
         )
 
         # Run the script

@@ -203,7 +203,7 @@ def simulate_dataset(ms):
         miller_indices_list.extend(miller_indices)
         spot_vectors_list.extend(spot_vectors)
     print(
-        "calculated which spots would be detected during sweep - found %s instances"
+        "calculated which spots would be detected during sequence - found %s instances"
         % (len(reflections_list))
     )
     Ilist = []

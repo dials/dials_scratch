@@ -111,7 +111,7 @@ if __name__ == "__main__":
     )
     rlist = rlist.select(indices)
 
-    sweep = exlist[0].imageset
+    sequence = exlist[0].imageset
 
     sbox = flex.shoebox(rlist["panel"], rlist["bbox"])
     s1 = rlist["s1"]
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     for i in range(len(sbox)):
         print(i)
         x0, x1, y0, y1, z0, z1 = sbox[i].bbox
-        data = sweep.to_array((z0, z1, y0, y1, x0, x1))
+        data = sequence.to_array((z0, z1, y0, y1, x0, x1))
         sbox[i].data = data.as_double()
 
     profile = drizzle_test(sbox, s1, phi, exlist[0])

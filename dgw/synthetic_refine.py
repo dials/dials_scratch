@@ -221,7 +221,7 @@ def generate_reflections(experiments, xyzvar=(0.0, 0.0, 0.0)):
         )
         indices = index_generator.to_array()
 
-        # Predict rays within the sweep range
+        # Predict rays within the sequence range
         ray_predictor = ScansRayPredictor(
             experiments, exp.scan.get_oscillation_range(deg=False)
         )

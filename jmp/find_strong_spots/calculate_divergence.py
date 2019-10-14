@@ -3,13 +3,13 @@ from __future__ import print_function
 from functools import reduce
 
 
-def calculate_threshold(sweep, trusted_range):
+def calculate_threshold(sequence, trusted_range):
     from scipy.ndimage.measurements import histogram
     from thresholding import maximum_deviation
     import numpy
 
     threshold_list = []
-    for i, flex_image in enumerate(sweep):
+    for i, flex_image in enumerate(sequence):
 
         # Get image as numpy array
         image = flex_image.as_numpy_array()
@@ -33,18 +33,18 @@ def calculate_threshold(sweep, trusted_range):
     return numpy.mean(threshold_list)
 
 
-def select_strong_pixels(sweep, trusted_range):
+def select_strong_pixels(sequence, trusted_range):
 
     import numpy
 
     # Calculate the threshold
     print("Calculating a threshold.")
-    threshold = calculate_threshold(sweep, trusted_range)
+    threshold = calculate_threshold(sequence, trusted_range)
     print("Threshold Value: {0}".format(threshold))
 
     # Select only those pixels with counts > threshold
     print("Selecting pixels")
-    image = sweep.to_array().as_numpy_array()
+    image = sequence.to_array().as_numpy_array()
     mask = image >= threshold
 
     #    from matplotlib import pylab, cm
@@ -298,13 +298,13 @@ class Likelihood:
 
 
 class Minimize:
-    def __init__(self, frames, z, zeta, sweep):
+    def __init__(self, frames, z, zeta, sequence):
         from scitbx import simplex
         from scitbx.array_family import flex
         import numpy
 
         self.L = Likelihood(
-            FractionOfObservedIntensity(frames, z, zeta, sweep.get_scan())
+            FractionOfObservedIntensity(frames, z, zeta, sequence.get_scan())
         )
 
         x = 0.1 + numpy.arange(1000) / 2000.0
@@ -337,15 +337,15 @@ class Minimize:
         return self.optimizer.get_solution()[0]
 
 
-def calculate_sigma_mosaicity(frames, z, zeta, sweep):
+def calculate_sigma_mosaicity(frames, z, zeta, sequence):
 
     # from scipy.optimize import minimize
 
-    # L = Likelihood(FractionOfObservedIntensity(z, zeta, sweep.get_scan()))
+    # L = Likelihood(FractionOfObservedIntensity(z, zeta, sequence.get_scan()))
 
     # return minimize(L, 1.0, method=Nelder-Mead)
 
-    minimizer = Minimize(frames, z, zeta, sweep)
+    minimizer = Minimize(frames, z, zeta, sequence)
     return minimizer()
 
 
@@ -402,7 +402,7 @@ if __name__ == "__main__":
     import libtbx.load_env
     from dials.util.nexus import NexusFile
     from glob import glob
-    from dxtbx.sweep import SweepFactory
+    from dxtbx.sequence import SequenceFactory
     from math import pi
     from scitbx import matrix
 
@@ -431,15 +431,15 @@ if __name__ == "__main__":
     # template = os.path.join('/home/upc86896/Data/X1_strong_M1S1_1_', 'X1_strong_M1S1_1_*.cbf')
     filenames = glob(template)
 
-    # Load the sweep
-    print("Loading sweep")
-    sweep = SweepFactory.sweep(filenames)[0:10]
-    print("Loaded sweep of {0} images.".format(len(sweep)))
+    # Load the sequence
+    print("Loading sequence")
+    sequence = SequenceFactory.sequence(filenames)[0:10]
+    print("Loaded sequence of {0} images.".format(len(sequence)))
 
     # Select the strong pixels to use in the divergence calculation
     print("Select the strong pixels from the images.")
     trusted_range = (0, 20000)
-    image, mask = select_strong_pixels(sweep, trusted_range)
+    image, mask = select_strong_pixels(sequence, trusted_range)
 
     # Putting pixels into groups
     print("Putting pixels into groups")
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     print("{0} remaining objects".format(len(objects)))
 
     print("Calculating centroid and variance.")
-    cent, var = centroid(image, mask, sweep.get_detector())
+    cent, var = centroid(image, mask, sequence.get_detector())
 
     print("Find object nearest predicted reflection")
     ref_index, distance2 = find_nearest_neighbour(cent, reflections)
@@ -484,11 +484,11 @@ if __name__ == "__main__":
     #            frames[i] = [f[int(len(f)/2)]]
 
     # Calculate the zetas
-    s0 = matrix.col(sweep.get_beam().get_s0())
-    m2 = matrix.col(sweep.get_goniometer().get_rotation_axis())
+    s0 = matrix.col(sequence.get_beam().get_s0())
+    m2 = matrix.col(sequence.get_goniometer().get_rotation_axis())
     zeta = []
     #    for x, y, z in cent[indices]:
-    #        s1 = sweep.get_detector().get_pixel_lab_coord((x, y))
+    #        s1 = sequence.get_detector().get_pixel_lab_coord((x, y))
     #        s1 = matrix.col(s1).normalize() * s0.length()
     #        e1 = s1.cross(s0).normalize()
     #        zeta.append(m2.dot(e1))
@@ -502,7 +502,7 @@ if __name__ == "__main__":
         diffxy.append(sqrt((x - xc) ** 2 + (y - yc) ** 2))
         diffz.append(abs(z - zc))
 
-        s1 = sweep.get_detector().get_pixel_lab_coord((x, y))
+        s1 = sequence.get_detector().get_pixel_lab_coord((x, y))
         s1 = matrix.col(s1).normalize() * s0.length()
         e1 = s1.cross(s0).normalize()
         zeta.append(m2.dot(e1))
@@ -511,6 +511,6 @@ if __name__ == "__main__":
     print("Mean Z centroid diff: {0}".format(numpy.mean(diffz)))
 
     print("Calculate the e.s.d of the mosaicity.")
-    sigma_m = calculate_sigma_mosaicity(frames, z_coord, zeta, sweep)
+    sigma_m = calculate_sigma_mosaicity(frames, z_coord, zeta, sequence)
     print("Sigma_m = {0} deg".format(sigma_m))
     print("XDS Sigma_m = {0} deg".format(xds_sigma_m))

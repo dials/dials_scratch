@@ -15,8 +15,8 @@ from cctbx import crystal
 def run_once(directory):
     from dxtbx.serialize import load
 
-    sweep_dir = os.path.basename(directory)
-    print(sweep_dir)
+    sequence_dir = os.path.basename(directory)
+    print(sequence_dir)
 
     datablock_name = os.path.join(directory, "datablock.json")
     if not os.path.exists(datablock_name):
@@ -31,11 +31,11 @@ def run_once(directory):
 
     datablock = load.datablock(datablock_name)
     assert len(datablock) == 1
-    if len(datablock[0].extract_sweeps()) == 0:
+    if len(datablock[0].extract_sequences()) == 0:
         print("Skipping %s" % directory)
         return
-    sweep = datablock[0].extract_sweeps()[0]
-    template = sweep.get_template()
+    sequence = datablock[0].extract_sequences()[0]
+    template = sequence.get_template()
 
     strong_spots = easy_pickle.load(strong_spots_name)
     n_strong_spots = len(strong_spots)
@@ -67,13 +67,13 @@ def run_once(directory):
     else:
         n_unindexed_spots = 0
 
-    # calculate estimated d_min for sweep based on 95th percentile
+    # calculate estimated d_min for sequence based on 95th percentile
     from dials.algorithms.indexing import indexer
 
-    detector = sweep.get_detector()
-    scan = sweep.get_scan()
-    beam = sweep.get_beam()
-    goniometer = sweep.get_goniometer()
+    detector = sequence.get_detector()
+    scan = sequence.get_scan()
+    beam = sequence.get_beam()
+    goniometer = sequence.get_goniometer()
     if len(strong_spots) == 0:
         d_strong_spots_99th_percentile = 0
         d_strong_spots_95th_percentile = 0
@@ -101,10 +101,10 @@ def run_once(directory):
     n_indexed = flex.double()
     d_min_indexed = flex.double()
     rmsds = flex.vec3_double()
-    sweep_dir_cryst = flex.std_string()
+    sequence_dir_cryst = flex.std_string()
     if experiments is not None:
         for i, experiment in enumerate(experiments):
-            sweep_dir_cryst.append(sweep_dir)
+            sequence_dir_cryst.append(sequence_dir)
             crystal_model = experiment.crystal
             unit_cell = crystal_model.get_unit_cell()
             space_group = crystal_model.get_space_group()
@@ -139,7 +139,7 @@ def run_once(directory):
                 continue
 
     return group_args(
-        sweep_dir=sweep_dir,
+        sequence_dir=sequence_dir,
         template=template,
         n_strong_spots=n_strong_spots,
         n_strong_spots_dmin_4=n_strong_spots_dmin_4,
@@ -153,7 +153,7 @@ def run_once(directory):
         n_indexed=n_indexed,
         d_min_indexed=d_min_indexed,
         rmsds=rmsds,
-        sweep_dir_cryst=sweep_dir_cryst,
+        sequence_dir_cryst=sequence_dir_cryst,
     )
 
 
@@ -184,7 +184,7 @@ def get_rmsds_obs_pred(observations, experiment):
 
 
 def run(args):
-    sweep_directories = []
+    sequence_directories = []
     templates = []
     n_strong_spots = flex.int()
     n_strong_spots_dmin_4 = flex.int()
@@ -194,7 +194,7 @@ def run(args):
     n_unindexed_spots = flex.int()
     n_indexed_lattices = flex.int()
     n_integrated_lattices = flex.int()
-    sweep_dir_cryst = flex.std_string()
+    sequence_dir_cryst = flex.std_string()
 
     orig_dir = os.path.abspath(os.curdir)
 
@@ -219,7 +219,7 @@ def run(args):
     for result in results:
         if result is None:
             continue
-        sweep_directories.append(result.sweep_dir)
+        sequence_directories.append(result.sequence_dir)
         templates.append(result.template)
         n_strong_spots.append(result.n_strong_spots)
         n_strong_spots_dmin_4.append(result.n_strong_spots_dmin_4)
@@ -233,11 +233,11 @@ def run(args):
         n_indexed.extend(result.n_indexed)
         d_min_indexed.extend(result.d_min_indexed)
         rmsds.extend(result.rmsds)
-        sweep_dir_cryst.extend(result.sweep_dir_cryst)
+        sequence_dir_cryst.extend(result.sequence_dir_cryst)
 
     table_data = [
         (
-            "sweep_dir",
+            "sequence_dir",
             "template",
             "#strong_spots",
             "#unindexed_spots",
@@ -247,10 +247,10 @@ def run(args):
             "d_spacing_99th_percentile",
         )
     ]
-    for i in range(len(sweep_directories)):
+    for i in range(len(sequence_directories)):
         table_data.append(
             (
-                sweep_directories[i],
+                sequence_directories[i],
                 templates[i],
                 str(n_strong_spots[i]),
                 str(n_unindexed_spots[i]),
@@ -266,7 +266,7 @@ def run(args):
 
     table_data = [
         (
-            "sweep_dir",
+            "sequence_dir",
             "cell_a",
             "cell_b",
             "cell_c",
@@ -283,7 +283,7 @@ def run(args):
     for i in range(len(cell_params)):
         table_data.append(
             (
-                sweep_dir_cryst[i],
+                sequence_dir_cryst[i],
                 str(cell_params[i][0]),
                 str(cell_params[i][1]),
                 str(cell_params[i][2]),

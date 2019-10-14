@@ -19,7 +19,7 @@ class Script(object):
 
         self.cmds = [
             (
-                "dials.index stills.indexer=sweeps imported.expt "
+                "dials.index stills.indexer=sequences imported.expt "
                 "strong.refl unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 "
                 "space_group=P43212 indexing.method=real_space_grid_search "
                 "n_macro_cycles=2 detector.fix_list=Dist"
@@ -28,13 +28,13 @@ class Script(object):
                 "dials.index imported.expt strong.refl "
                 "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 "
                 "space_group=P43212 indexing.method=low_res_spot_match "
-                "stills.indexer=sweeps n_macro_cycles=2 detector.fix_list=Dist "
+                "stills.indexer=sequences n_macro_cycles=2 detector.fix_list=Dist "
             ),  # indigo
             (
                 "dials.index imported.expt strong.refl "
                 "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000 "
                 "space_group=P43212 indexing.method=low_res_spot_match "
-                "stills.indexer=sweeps n_macro_cycles=2 detector.fix_list=Dist "
+                "stills.indexer=sequences n_macro_cycles=2 detector.fix_list=Dist "
                 "bootstrap_crystal=True "
             ),  # indigo + bootstrap crystal
         ]

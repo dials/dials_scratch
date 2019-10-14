@@ -13,7 +13,7 @@ from dials_scratch.jbe.sys_abs.laue_groups_info import (
 
 def test_systematic_absences_script(dials_data, run_in_tmpdir):
     """Test the command line script with real data. Proteinase K in P41"""
-    location = dials_data("vmxi_proteinase_k_sweeps")
+    location = dials_data("vmxi_proteinase_k_sequences")
 
     command = [
         "dials_scratch.systematic_absences",

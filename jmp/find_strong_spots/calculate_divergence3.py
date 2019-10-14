@@ -23,7 +23,7 @@ def calculate_threshold(image, trusted_range):
     return maximum_deviation(histo)
 
 
-def select_strong_pixels(sweep, trusted_range):
+def select_strong_pixels(sequence, trusted_range):
     from dials.util.command_line import ProgressBar
     import numpy
 
@@ -31,7 +31,7 @@ def select_strong_pixels(sweep, trusted_range):
     coordinate = []
     intensity = []
     progress = ProgressBar()
-    for i, flex_image in enumerate(sweep):
+    for i, flex_image in enumerate(sequence):
         image = flex_image.as_numpy_array()
         height, width = image.shape
         threshold = calculate_threshold(image, trusted_range)
@@ -45,7 +45,7 @@ def select_strong_pixels(sweep, trusted_range):
         coords = zip(x, y, z)
         coordinate.extend(coords)
         intensity.extend(list(image[ind]))
-        progress.update(100.0 * float(i) / len(sweep))
+        progress.update(100.0 * float(i) / len(sequence))
     progress.finished()
 
     return coordinate, intensity
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     import libtbx.load_env
     from dials.util.nexus import NexusFile
     from glob import glob
-    from dxtbx.sweep import SweepFactory
+    from dxtbx.sequence import SequenceFactory
     from math import pi
     from scitbx import matrix
 
@@ -241,15 +241,15 @@ if __name__ == "__main__":
     # template = os.path.join('/home/upc86896/Data/X1_strong_M1S1_1_', 'X1_strong_M1S1_1_*.cbf')
     filenames = glob(template)
 
-    # Load the sweep
-    print("Loading sweep")
-    sweep = SweepFactory.sweep(filenames)
-    print("Loaded sweep of {0} images.".format(len(sweep)))
+    # Load the sequence
+    print("Loading sequence")
+    sequence = SequenceFactory.sequence(filenames)
+    print("Loaded sequence of {0} images.".format(len(sequence)))
 
     # Select the strong pixels to use in the divergence calculation
     print("Select the strong pixels from the images.")
     trusted_range = (0, 20000)
-    coordinate, intensity = select_strong_pixels(sweep, trusted_range)
+    coordinate, intensity = select_strong_pixels(sequence, trusted_range)
     print("Selected {0} pixels".format(len(coordinate)))
 
     print("Finding pixel nearest neighbours.")
@@ -267,7 +267,7 @@ if __name__ == "__main__":
 
     print("Find centroid and variance")
     index, centroid, variance = find_centroid_and_variance(
-        index, owner, coordinate, intensity, sweep.get_detector()
+        index, owner, coordinate, intensity, sequence.get_detector()
     )
 
     print("Filter objects by distance from nearest reflection.")

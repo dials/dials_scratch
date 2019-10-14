@@ -32,7 +32,7 @@ pgram <- function (x, spans = NULL, kernel = NULL, taper = 0.1, pad = 0,
             sum(x[, i] * t) * t/sumt2
     }
     else if (demean) {
-        x <- sweep(x, 2, colMeans(x), check.margin = FALSE)
+        x <- sequence(x, 2, colMeans(x), check.margin = FALSE)
     }
     x <- spec.taper(x, taper)
     u2 <- (1 - (5/8) * taper * 2)

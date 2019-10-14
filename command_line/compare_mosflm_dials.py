@@ -154,13 +154,13 @@ def R(calc, obs, scale=None):
     )
 
 
-def compare_chunks(integrate_mtz, integrate_pkl, crystal_json, sweep_json):
+def compare_chunks(integrate_mtz, integrate_pkl, crystal_json, sequence_json):
 
     from annlib_ext import AnnAdaptor as ann_adaptor
 
     uc = integrate_mtz_to_unit_cell(integrate_mtz)
 
-    rdx = derive_reindex_matrix(crystal_json, sweep_json, integrate_mtz)
+    rdx = derive_reindex_matrix(crystal_json, sequence_json, integrate_mtz)
 
     print(rdx)
 
@@ -268,11 +268,14 @@ def get_dials_matrix(crystal_json):
     return crystal.get_A()
 
 
-def get_dials_coordinate_frame(sweep_json):
+def get_dials_coordinate_frame(sequence_json):
     from dials.model.serialize import load
 
-    sweep = load.sweep(sweep_json)
-    return sweep.get_beam().get_direction(), sweep.get_goniometer().get_rotation_axis()
+    sequence = load.sequence(sequence_json)
+    return (
+        sequence.get_beam().get_direction(),
+        sequence.get_goniometer().get_rotation_axis(),
+    )
 
 
 def get_mosflm_coordinate_frame(integrate_mtz):
@@ -298,12 +301,12 @@ def integrate_mtz_to_A_matrix(integrate_mtz):
     return u * f
 
 
-def derive_reindex_matrix(crystal_json, sweep_json, integrate_mtz):
+def derive_reindex_matrix(crystal_json, sequence_json, integrate_mtz):
     """Derive a reindexing matrix to go from the orientation matrix used
     for MOSFLM integration to the one used for DIALS integration."""
 
     dA = get_dials_matrix(crystal_json)
-    dbeam, daxis = get_dials_coordinate_frame(sweep_json)
+    dbeam, daxis = get_dials_coordinate_frame(sequence_json)
     mbeam, maxis = get_mosflm_coordinate_frame(integrate_mtz)
 
     from rstbx.cftbx.coordinate_frame_helpers import align_reference_frame

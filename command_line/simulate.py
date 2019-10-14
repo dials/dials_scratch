@@ -19,7 +19,7 @@ class Script(object):
 
         usage = (
             "usage: %prog [options] [param.phil] "
-            "sweep.expt crystal.expt intensities.mtz"
+            "sequence.expt crystal.expt intensities.mtz"
         )
 
         phil_scope = parse(
@@ -72,17 +72,17 @@ class Script(object):
             self.config().print_help()
             return
         if len(importer.imagesets) != 1:
-            raise Sorry("need 1 sweep: %d given" % len(importer.imagesets))
+            raise Sorry("need 1 sequence: %d given" % len(importer.imagesets))
         if len(importer.crystals) != 1:
             raise Sorry("need 1 crystal: %d given" % len(importer.crystals))
-        sweep = importer.imagesets[0]
+        sequence = importer.imagesets[0]
         crystal = importer.crystals[0]
 
         # generate predictions for possible reflections => generate a
         # reflection list
 
         predict = ReflectionPredictor()
-        predicted = predict(sweep, crystal)
+        predicted = predict(sequence, crystal)
 
         # sort with James's reflection table: should this not go somewhere central?
         from dials.scratch.jmp.container.reflection_table import ReflectionTable

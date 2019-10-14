@@ -72,7 +72,7 @@ def run(args):
         print(file_name)
         wedge_number_ = None
         for s in file_name.split(os.path.sep):
-            if s.startswith("sweep_"):
+            if s.startswith("sequence_"):
                 wedge_number_ = int(os.path.splitext(s)[0][-3:])
                 print("wedge_number:", wedge_number_)
                 break

@@ -17,13 +17,13 @@ from __future__ import print_function
 
 from dials.model.serialize import load
 
-sweep = load.sweep("/home/upc86896/Data/TRP_M1S3_2_/sweep.json")
+sequence = load.sequence("/home/upc86896/Data/TRP_M1S3_2_/sequence.json")
 crystal = load.crystal("/home/upc86896/Data/TRP_M1S3_2_/crystal.json")
 reference = load.reference("/home/upc86896/Data/TRP_M1S3_2_/reference.pickle")
 # from dials.algorithms.integration import ReflectionExtractor
 
 # extract = ReflectionExtractor(3)
-# refl = extract(sweep, crystal)
+# refl = extract(sequence, crystal)
 # index = 104786
 # print refl[index].miller_index
 
@@ -40,7 +40,7 @@ ref_list[0] = refl
 from dials.algorithms.background import XdsSubtractor
 
 background = XdsSubtractor(min_data=10, n_sigma=3)
-background(sweep, crystal, ref_list)
+background(sequence, crystal, ref_list)
 
 r = ref_list[0]
 print(r.bounding_box)
@@ -63,12 +63,12 @@ import numpy
 from dials.algorithms.integration import Summation3d, ProfileFittingReciprocalSpace
 
 # integrate = Summation3d()
-# integrate(sweep, crystal, ref_list)
+# integrate(sequence, crystal, ref_list)
 
 from dials.algorithms.reflection_basis import transform as rbt
 from dials.algorithms.integration import ProfileFittingReciprocalSpaceAlgorithm
 
-spec = rbt.TransformSpec(sweep, crystal, 3, 4)
+spec = rbt.TransformSpec(sequence, crystal, 3, 4)
 rbt.forward_batch(spec, ref_list)
 
 prof = ref_list[0].transformed_shoebox
@@ -147,7 +147,7 @@ ref_list[0].variance = fit.variance()
 
 from dials.algorithms.integration.lp_correction import correct_intensity
 
-correct_intensity(sweep, crystal, ref_list)
+correct_intensity(sequence, crystal, ref_list)
 print("Intensity: ", ref_list[0].intensity)
 print("Corrected Intensity: ", ref_list[0].corrected_intensity)
 print("XDS Intensity: ", 2688.0)

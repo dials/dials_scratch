@@ -13,7 +13,7 @@
   ], 
   "imageset": [
     {
-      "__id__": "ImageSweep", 
+      "__id__": "ImageSequence", 
       "template": "/home/upc86896/Data/bag_training/data/th_8_2_####.cbf", 
       "mask": "", 
       "gain": "", 

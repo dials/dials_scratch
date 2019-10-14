@@ -2,13 +2,13 @@ from __future__ import division
 from __future__ import print_function
 
 
-def calculate_threshold(sweep, trusted_range):
+def calculate_threshold(sequence, trusted_range):
     from scipy.ndimage.measurements import histogram
     from thresholding import maximum_deviation
     import numpy
 
     threshold_list = []
-    for i, flex_image in enumerate(sweep):
+    for i, flex_image in enumerate(sequence):
 
         # Get image as numpy array
         image = flex_image.as_numpy_array()
@@ -32,18 +32,18 @@ def calculate_threshold(sweep, trusted_range):
     return numpy.mean(threshold_list)
 
 
-def select_strong_pixels(sweep, trusted_range):
+def select_strong_pixels(sequence, trusted_range):
 
     import numpy
 
     # Calculate the threshold
     print("Calculating a threshold.")
-    threshold = calculate_threshold(sweep, trusted_range)
+    threshold = calculate_threshold(sequence, trusted_range)
     print("Threshold Value: {0}".format(threshold))
 
     # Select only those pixels with counts > threshold
     print("Selecting pixels")
-    image = sweep.to_array().as_numpy_array()
+    image = sequence.to_array().as_numpy_array()
     mask = image >= threshold
     return image, mask
 
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     import libtbx.load_env
     from dials.util.nexus import NexusFile
     from glob import glob
-    from dxtbx.sweep import SweepFactory
+    from dxtbx.sequence import SequenceFactory
     from math import pi
     from scitbx import matrix
 
@@ -250,15 +250,15 @@ if __name__ == "__main__":
     template = os.path.join(dials_regression, "centroid_test_data", "centroid_*.cbf")
     filenames = glob(template)
 
-    # Load the sweep
-    print("Loading sweep")
-    sweep = SweepFactory.sweep(filenames)
-    print("Loaded sweep of {0} images.".format(len(sweep)))
+    # Load the sequence
+    print("Loading sequence")
+    sequence = SequenceFactory.sequence(filenames)
+    print("Loaded sequence of {0} images.".format(len(sequence)))
 
     # Select the strong pixels to use in the divergence calculation
     print("Select the strong pixels from the images.")
     trusted_range = (0, 20000)
-    image, mask = select_strong_pixels(sweep, trusted_range)
+    image, mask = select_strong_pixels(sequence, trusted_range)
 
     print("Find pixel nearest predicted reflection")
     owner = find_nearest_neighbour(image, mask, reflections)
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     print("{0} remaining objects".format(len(objects)))
 
     print("Calculating centroid and variance.")
-    cent, var = centroid(objects, image, mask, sweep.get_detector())
+    cent, var = centroid(objects, image, mask, sequence.get_detector())
 
     print("Filter objects by distance from nearest reflection.")
     max_distance = 2
