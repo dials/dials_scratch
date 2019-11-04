@@ -16,7 +16,7 @@ def ice_background(j, i, height, width):
     rc = 20
     rs = 1
 
-    g = A * exp(-(r - rc) ** 2 / (2 * rs ** 2))
+    g = A * exp(-((r - rc) ** 2) / (2 * rs ** 2))
     return poisson(g)
 
 
@@ -37,7 +37,7 @@ def update(image, x0, x1, y0, y1):
     C = flex.double(flex.grid(height, width))
     for j in range(height):
         for i in range(width):
-            C[j, i] = exp(-(abs(del_I[j, i]) / K) ** 2)
+            C[j, i] = exp(-((abs(del_I[j, i]) / K) ** 2))
 
     delta_I = flex.double(flex.grid(height, width))
     for j in range(height):

@@ -86,7 +86,7 @@ def save_plots(params, raw, smoothed, suffix=""):
             continue
         sample_freq = 1.0 / dat["block_size"]
         freq = px.freq * sample_freq
-        line, = plt.semilogy(freq, px.spec)
+        (line,) = plt.semilogy(freq, px.spec)
     for vline in vlines:
         plt.axvline(x=vline, color="r")
     x_interval = smoothed["x_interval"]
@@ -123,7 +123,7 @@ def save_plots(params, raw, smoothed, suffix=""):
             continue
         sample_freq = 1.0 / dat["block_size"]
         freq = py.freq * sample_freq
-        line, = plt.semilogy(freq, py.spec)
+        (line,) = plt.semilogy(freq, py.spec)
     for vline in vlines:
         plt.axvline(x=vline, color="r")
     y_interval = smoothed["y_interval"]
@@ -160,7 +160,7 @@ def save_plots(params, raw, smoothed, suffix=""):
             continue
         sample_freq = 1.0 / dat["block_size"]
         freq = pz.freq * sample_freq
-        line, = plt.semilogy(freq, pz.spec)
+        (line,) = plt.semilogy(freq, pz.spec)
     for vline in vlines:
         plt.axvline(x=vline, color="r")
     phi_interval = smoothed["phi_interval"]

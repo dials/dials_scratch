@@ -117,7 +117,7 @@ def run(args):
                 writer = ImagemagickWriter(fps=15, metadata=metadata)
 
             fig = plt.figure()
-            l, = plt.plot([], [], c="r", marker=None)
+            (l,) = plt.plot([], [], c="r", marker=None)
             plt.axes().set_aspect("equal")
             plt.xlim(0, detector[0].get_image_size()[0])
             plt.ylim(0, detector[0].get_image_size()[0])

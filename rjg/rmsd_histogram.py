@@ -86,8 +86,8 @@ def run(args):
     varx, vary, varz = mean_var.parts()
     fig = pyplot.figure()
     ax = fig.add_subplot(111)
-    linex, = ax.plot(n_pixels, rmsdx, label="rmsd_x")
-    liney, = ax.plot(n_pixels, rmsdy, label="rmsd_y")
+    (linex,) = ax.plot(n_pixels, rmsdx, label="rmsd_x")
+    (liney,) = ax.plot(n_pixels, rmsdy, label="rmsd_y")
     ax.plot(
         n_pixels, flex.sqrt(varx), label="sd_x", color=linex.get_color(), linestyle="-."
     )

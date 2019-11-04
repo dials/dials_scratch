@@ -21,9 +21,13 @@ def start(data2d, xcoord, ycoord, x_cm, y_cm, x_sigma, y_sigma):
 
         # Next line should be used as template when you want to calculate centoids and sigmas from a 2D portion of image
 
-        x_cm[pos], y_cm[pos], x_sigma[pos], y_sigma[
-            pos
-        ], tot_itst = single_spot_integrate_2d(data2d[from_y:y_to, from_x:x_to])
+        (
+            x_cm[pos],
+            y_cm[pos],
+            x_sigma[pos],
+            y_sigma[pos],
+            tot_itst,
+        ) = single_spot_integrate_2d(data2d[from_y:y_to, from_x:x_to])
 
         x_cm[pos] = float(from_x) + x_cm[pos]
         y_cm[pos] = float(from_y) + y_cm[pos]

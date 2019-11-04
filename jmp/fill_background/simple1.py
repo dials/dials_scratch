@@ -15,7 +15,11 @@ def normal_background(j, i, height, width):
     ys = yc / 4.0
 
     gc = 1.0 / (2 * pi * xs * ys)
-    g = A * exp(-(x - xc) ** 2 / (2 * xs ** 2)) * exp(-(y - yc) ** 2 / (2 * ys ** 2))
+    g = (
+        A
+        * exp(-((x - xc) ** 2) / (2 * xs ** 2))
+        * exp(-((y - yc) ** 2) / (2 * ys ** 2))
+    )
     return poisson(g)
 
 

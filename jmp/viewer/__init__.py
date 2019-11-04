@@ -130,9 +130,9 @@ if __name__ == "__main__":
     for k in range(15):
         for j in range(15):
             for i in range(15):
-                A = exp(-(k - 7) ** 2 / (2 * 1 ** 2))
-                B = exp(-(j - 7) ** 2 / (2 * 2 ** 2))
-                C = exp(-(i - 7) ** 2 / (2 * 3 ** 2))
+                A = exp(-((k - 7) ** 2) / (2 * 1 ** 2))
+                B = exp(-((j - 7) ** 2) / (2 * 2 ** 2))
+                C = exp(-((i - 7) ** 2) / (2 * 3 ** 2))
                 data[k, j, i] = A * B * C
 
     show_image_stack(data.as_numpy_array(), vmax=max(data))

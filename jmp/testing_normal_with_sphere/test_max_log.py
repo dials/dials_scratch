@@ -6,7 +6,7 @@ def f(x, mu, s):
     A = mu
     B = 1 - s ** 2
     C = -(1 + mu)
-    D = -s ** 2
+    D = -(s ** 2)
     return A * x ** 3 + B * x ** 2 + C * x + D
 
 

@@ -389,8 +389,8 @@ def plot_statistics(
         plt.style.use("ggplot")
     except AttributeError:
         pass
-    line1, = plt.plot(x, statistics.ieither_completeness, label="Unique reflections")
-    line2, = plt.plot(x, statistics.iboth_completeness, label="Bijvoet pairs")
+    (line1,) = plt.plot(x, statistics.ieither_completeness, label="Unique reflections")
+    (line2,) = plt.plot(x, statistics.iboth_completeness, label="Bijvoet pairs")
     if cutoff_non_anom is not None:
         plt.plot(
             [cutoff_non_anom, cutoff_non_anom],
@@ -413,8 +413,10 @@ def plot_statistics(
     plt.savefig("%scompleteness_vs_scan_angle.png" % prefix, dpi=dpi)
     plt.clf()
 
-    line1, = plt.plot(x[1:], 100 * statistics.frac_new_ref, label="Unique reflections")
-    line2, = plt.plot(x[1:], 100 * statistics.frac_new_pairs, label="Bijvoet pairs")
+    (line1,) = plt.plot(
+        x[1:], 100 * statistics.frac_new_ref, label="Unique reflections"
+    )
+    (line2,) = plt.plot(x[1:], 100 * statistics.frac_new_pairs, label="Bijvoet pairs")
     ylim = plt.ylim()
     if cutoff_non_anom is not None:
         plt.plot(

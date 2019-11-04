@@ -15,7 +15,7 @@ def gen_shapes(N):
     fg = [0] * N
     mk = [False] * N
     for i in range(N):
-        fg[i] = exp(-(i - mid) ** 2 / (2 * sigma ** 2))
+        fg[i] = exp(-((i - mid) ** 2) / (2 * sigma ** 2))
         mk[i] = abs(i - mid) < 3 * sigma
     bg = [b / sum(bg) for b in bg]
     fg = [f / sum(fg) for f in fg]

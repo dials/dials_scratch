@@ -78,7 +78,7 @@ class Simple1MosaicityParameterisation(object):
     Compute the first derivatives of Sigma w.r.t the parameters
 
     """
-        b1, = self.params
+        (b1,) = self.params
 
         dSdb1 = (2 * b1, 0, 0, 0, 2 * b1, 0, 0, 0, 2 * b1)
 
