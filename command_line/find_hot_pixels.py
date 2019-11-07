@@ -28,6 +28,7 @@ def main():
     total = None
 
     for idx in images:
+        print(idx)
         hot = signal(imageset, idx).as_1d().as_int()
         if total is None:
             total = hot
@@ -36,7 +37,7 @@ def main():
 
     nslow, nfast = imageset.get_raw_data(0)[0].focus()
 
-    hot = (total == len(imageset)).iselection()
+    hot = (total >= (len(imageset) // 2)).iselection()
 
     for h in hot:
         print("%d %d" % (h % nfast, h // nfast))
