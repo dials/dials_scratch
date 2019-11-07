@@ -3,32 +3,26 @@ from __future__ import division, print_function
 
 def main():
     from dials.util.options import OptionParser
-    from dials.util.options import flatten_datablocks
+    from dials.util.options import flatten_experiments
     import libtbx.load_env
-    from dials.array_family import flex
 
     usage = "%s [options] image_*.cbf" % (libtbx.env.dispatcher_name)
 
     parser = OptionParser(
-        usage=usage, read_datablocks=True, read_datablocks_from_images=True
+        usage=usage, read_experiments=True, read_experiments_from_images=True
     )
 
     params, options = parser.parse_args()
-    datablocks = flatten_datablocks(params.input.datablock)
+    experiments = flatten_experiments(params.input.experiments)
 
-    if len(datablocks) == 0:
+    if len(experiments) == 0:
         parser.print_help()
         exit()
 
-    assert len(datablocks) == 1
+    assert len(experiments) == 1
 
-    datablock = datablocks[0]
-    imagesets = datablock.extract_imagesets()
-
-    assert len(imagesets) == 1
-
-    imageset = imagesets[0]
-
+    experiment = experiments[0]
+    imageset = experiment.imageset
     images = imageset.indices()
 
     total = None
@@ -49,7 +43,6 @@ def main():
 
 
 def signal(imageset, indx):
-    from dials.array_family import flex
     from libtbx.phil import parse
 
     detectors = imageset.get_detector()
