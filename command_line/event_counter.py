@@ -76,11 +76,6 @@ def run(args):
     detector = detectors[0]
     trusted = detector.get_trusted_range()
 
-    # construct an integer array same shape as image; accumulate number of
-    # "signal" pixels in each pixel across data
-
-    total = None
-
     from dials.util.command_line import ProgressBar
 
     p = ProgressBar(title="Counting events")
@@ -95,8 +90,9 @@ def run(args):
         assert len(pixels) == 1
         mask = ~imageset.get_mask(idx)[0].as_1d()
         data = pixels[0].as_1d()
-
         data.set_selected(mask, 0)
+        hot = data >= int(round(trusted[1]))
+        data.set_selected(hot, 0)
         events_per_image[idx] = flex.sum(data)
 
     for idx in images:
