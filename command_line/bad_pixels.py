@@ -161,7 +161,7 @@ def run(args):
     for h in hot_pixels:
         print("Pixel %d at %d %d" % (total[h], h // nfast, h % nfast))
         for value in sorted(set(twinkies[h])):
-            print("  %d %d" % (value, twinkies[h].count(value)))
+            print("  %s %d" % (bin(value), twinkies[h].count(value)))
     hot_mask.reshape(flex.grid(data.focus()))
 
     easy_pickle.dump(params.output.mask, (~hot_mask,))
