@@ -168,8 +168,10 @@ def run(args):
         if len(set(twinkies[h])) >= len(twinkies[h]) // 2:
             print("  ... many possible values")
             continue
-        for value in sorted(set(twinkies[h])):
-            print("  %s %d" % (hex(value), twinkies[h].count(value)))
+        values = set(twinkies[h])
+        result = [(twinkies[h].count(value), value) for value in values]
+        for count, value in reversed(sorted(result)):
+            print("  %08x %d" % (value, count))
 
     print("Also found %d very hot pixels" % ffff)
     hot_mask.reshape(flex.grid(data.focus()))
