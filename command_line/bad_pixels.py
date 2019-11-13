@@ -27,6 +27,10 @@ phil_scope = iotbx.phil.parse(
 images = None
   .type = ints
   .help = "Images on which to perform the analysis (otherwise use all images)"
+image_range = None
+  .type = ints(value_min=0, size=2)
+  .help = "Image range for analysis e.g. 1,1800"
+
 output {
     mask = pixels.mask
         .type = path
@@ -40,6 +44,7 @@ def run(args):
 
     from dials.util.options import OptionParser
     from dials.util.options import flatten_experiments
+    from dials.util.command_line import ProgressBar
 
     usage = "%s [options] data_master.h5" % (libtbx.env.dispatcher_name)
 
@@ -69,6 +74,10 @@ def run(args):
     first, last = imageset.get_scan().get_image_range()
     images = range(first, last + 1)
 
+    if params.images is None and params.image_range is not None:
+        start, end = params.image_range
+        params.images = list(range(start, end + 1))
+
     if params.images:
         if min(params.images) < first or max(params.images) > last:
             raise Sorry("image outside of scan range")
@@ -83,8 +92,6 @@ def run(args):
     # "signal" pixels in each pixel across data
 
     total = None
-
-    from dials.util.command_line import ProgressBar
 
     p = ProgressBar(title="Finding hot pixels")
 
@@ -126,11 +133,35 @@ def run(args):
         else:
             total += peak_pixels.as_1d().as_int()
 
-    p.finished(
-        "Found %d hot pixels on %d images" % (total.count(len(images)), len(images))
-    )
+    p.finished("Finished finding hot pixels on %d images" % len(images))
 
-    hot_mask = total == len(images)
+    hot_mask = total >= (len(images) // 2)
+    hot_pixels = hot_mask.iselection()
+
+    p = ProgressBar(title="Finding twinkies")
+
+    twinkies = {}
+    for h in hot_pixels:
+        twinkies[h] = []
+
+    for idx in images:
+
+        p.update(idx * 100.0 / len(images))
+
+        pixels = imageset.get_raw_data(idx - 1)
+        data = pixels[0]
+
+        for h in hot_pixels:
+            twinkies[h].append(data[h])
+
+    p.finished("Finished hunting for twinkies on %d images" % len(images))
+
+    nslow, nfast = data.focus()
+
+    for h in hot_pixels:
+        print("Pixel %d at %d %d" % (total[h], h // nfast, h % nfast))
+        for value in sorted(set(twinkies[h])):
+            print("  %d %d" % (value, twinkies[h].count(value)))
     hot_mask.reshape(flex.grid(data.focus()))
 
     easy_pickle.dump(params.output.mask, (~hot_mask,))
