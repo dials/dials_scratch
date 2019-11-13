@@ -158,13 +158,20 @@ def run(args):
 
     nslow, nfast = data.focus()
 
+    ffff = 0
+
     for h in hot_pixels:
+        if total[h] == len(images) and data[h] >= trusted[1]:
+            ffff += 1
+            continue
         print("Pixel %d at %d %d" % (total[h], h // nfast, h % nfast))
         if len(set(twinkies[h])) >= len(twinkies[h]) // 2:
             print("  ... many possible values")
             continue
         for value in sorted(set(twinkies[h])):
-            print("  %s %d" % (bin(value), twinkies[h].count(value)))
+            print("  %s %d" % (hex(value), twinkies[h].count(value)))
+
+    print("Also found %d very hot pixels" % ffff)
     hot_mask.reshape(flex.grid(data.focus()))
 
     easy_pickle.dump(params.output.mask, (~hot_mask,))
