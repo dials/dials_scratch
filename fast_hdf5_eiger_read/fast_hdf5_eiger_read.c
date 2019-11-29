@@ -90,7 +90,7 @@ void* worker(void* nonsense) {
 
   /* alias the buffer as a short and long also, for ease of access */
 
-   uint16_t * shortbuffer = (uint16_t *) buffer;
+  uint16_t * shortbuffer = (uint16_t *) buffer;
   unsigned char * charbuffer = (unsigned char *) buffer;
 
   /* while there is work to do, do work */
