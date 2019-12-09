@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 import concurrent.futures
-import functools
 import gzip
 import iotbx.cif
 import itertools
@@ -98,13 +97,13 @@ def print_temperature_summary(temperature_dict):
         print("-" * 31)
 
 
-def read_directory(dirname, reader_function):
-    """Function finding files in directories and passing them to an executor function"""
+def read_directory(dirname):
+    """Function finding files in directories"""
 
     files = filter(
         os.path.isfile, (os.path.join(dirname, f) for f in os.listdir(dirname))
     )
-    return [reader_function(f) for f in files]
+    return tuple(files)
 
 
 def read_file(filename):
@@ -116,9 +115,9 @@ def read_file(filename):
     return db[pdb_code]
 
 
-print("Starting worker threads")
-with concurrent.futures.ThreadPoolExecutor(max_workers=20) as file_reader:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as directory_reader:
+def find_all_files():
+    print("Reading directories directory...")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as directory_reader:
         print("Reading top-level directory...")
         directories = list(os.listdir(pdb))
         all_directories = []
@@ -129,50 +128,70 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=20) as file_reader:
                 if not os.path.isdir(full_directory_path):
                     continue
                 all_directories.append(
-                    directory_reader.submit(
-                        read_directory,
-                        full_directory_path,
-                        functools.partial(file_reader.submit, read_file),
-                    )
+                    directory_reader.submit(read_directory, full_directory_path)
                 )
         print("Done. Reading subdirectories...")
         with tqdm(total=len(all_directories)) as pbar:
             for result in concurrent.futures.as_completed(all_directories):
                 pbar.update()
-    print("Done. Reading files...")
-    results = tuple(itertools.chain.from_iterable(d.result() for d in all_directories))
-    print("%d files to be read" % len(results))
+    print("Done.")
+    return list(itertools.chain.from_iterable(d.result() for d in all_directories))
 
+
+files = find_all_files()
+num_files = len(files)
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=10) as file_reader:
     resultcounter = 0
     temperatures = collections.defaultdict(list)
     start = time.time()
     next_update = start + 15
+    active_futures = set()
+    print("Creating 50 futures")
+    with tqdm(total=50) as pbar:
+        for n in range(50):
+            if files:
+                active_futures.add(file_reader.submit(read_file, files.pop()))
+            pbar.update()
 
+    print("Reading %d files" % num_files)
     try:
-        with tqdm(total=len(results)) as pbar:
-            for result in concurrent.futures.as_completed(results):
-                pbar.update()
-                year, temperature = result.result()
-                resultcounter = resultcounter + 1
-                if year is False and temperature is False:
-                    continue
+        with tqdm(total=num_files) as pbar:
+            while active_futures:
+                for result in concurrent.futures.as_completed(active_futures):
+                    pbar.update()
+                    year, temperature = result.result()
+                    resultcounter = resultcounter + 1
+                    active_futures.remove(result)
+                    if files:
+                        active_futures.add(file_reader.submit(read_file, files.pop()))
+                    if year is False and temperature is False:
+                        continue
 
-                temperatures[year].append(temperature)
-                if time.time() > next_update:
-                    print("\n")
-                    print_temperature_summary(temperatures)
-                    print("\n")
-                    with db_lock:
-                        json_string = json.dumps(db)
-                    with open(dbjson, "w") as fh:
-                        fh.write(json_string)
-                    next_update = time.time() + 15
+                    temperatures[year].append(temperature)
+                    if time.time() > next_update:
+                        print("\n")
+                        print_temperature_summary(temperatures)
+                        print("")
+                        with db_lock:
+                            json_string = json.dumps(db)
+                        with open(dbjson, "w") as fh:
+                            fh.write(json_string)
+                        json_string = None
+                        next_update = time.time() + 60
 
         print("All results aggregated")
         print_temperature_summary(temperatures)
+        with db_lock:
+            with open(dbjson, "w") as fh:
+                json.dump(db, fh)
     except KeyboardInterrupt:
-        print("Cancelling jobs...")
-        for r in results:
-            r.cancel()
+        print("Cancelling processes...")
+        for f in active_futures:
+            f.cancel()
+        print("Saving progress...")
+        with db_lock:
+            with open(dbjson, "w") as fh:
+                json.dump(db, fh)
         print("Waiting for processes to finish...")
         sys.exit(1)
