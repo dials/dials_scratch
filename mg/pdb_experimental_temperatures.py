@@ -9,7 +9,6 @@ import json
 import os
 import sys
 import time
-import threading
 from tqdm import tqdm
 
 # Disable output buffering
@@ -22,7 +21,6 @@ try:
         db = json.load(fh)
 except IOError:
     db = {}
-db_lock = threading.Lock()
 
 
 def parse_temperature(string):
@@ -74,7 +72,8 @@ def print_temperature_summary(temperature_dict):
     while years:
         all_years = all_years[8:]
         print(
-            "{:^17s}:".format("Year") + "         ".join("{:6d}".format(year) for year in years)
+            "{:^17s}:".format("Year")
+            + "         ".join("{:6d}".format(year) for year in years)
         )
 
         total = {year: len(temperature_dict[year]) for year in years}
@@ -99,7 +98,8 @@ def print_temperature_summary(temperature_dict):
                     percentage = 100 * c / tempgiven[year]
                 else:
                     percentage = 0
-                if percentage > 99.9: percentage = 99.9
+                if percentage > 99.9:
+                    percentage = 99.9
                 args.append(c)
                 args.append(percentage)
             print(line.format(*args))
@@ -135,11 +135,10 @@ def read_directory(dirname):
 
 def read_file(filename):
     pdb_code = os.path.basename(filename)
-    if pdb_code not in db:
-        year_temp = get_year_temperature(filename)
-        with db_lock:
-            db[pdb_code] = year_temp
-    return db[pdb_code]
+    if pdb_code in db:
+        return pdb_code, db[pdb_code]
+    else:
+        return pdb_code, get_year_temperature(filename)
 
 
 def find_all_files():
@@ -168,7 +167,7 @@ def find_all_files():
 files = find_all_files()
 num_files = len(files)
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=10) as file_reader:
+with concurrent.futures.ProcessPoolExecutor(max_workers=5) as file_reader:
     resultcounter = 0
     temperatures = collections.defaultdict(list)
     start = time.time()
@@ -187,7 +186,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as file_reader:
             while active_futures:
                 for result in concurrent.futures.as_completed(active_futures):
                     pbar.update()
-                    year, temperature = result.result()
+                    pdb_code, y_t = result.result()
+                    db[pdb_code] = y_t
+                    year, temperature = y_t
                     resultcounter = resultcounter + 1
                     active_futures.remove(result)
                     if files:
@@ -200,8 +201,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as file_reader:
                         print("\n")
                         print_temperature_summary(temperatures)
                         print("")
-                        with db_lock:
-                            json_string = json.dumps(db)
+                        json_string = json.dumps(db)
                         with open(dbjson, "w") as fh:
                             fh.write(json_string)
                         json_string = None
@@ -209,16 +209,14 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as file_reader:
 
         print("All results aggregated")
         print_temperature_summary(temperatures)
-        with db_lock:
-            with open(dbjson, "w") as fh:
-                json.dump(db, fh)
+        with open(dbjson, "w") as fh:
+            json.dump(db, fh)
     except KeyboardInterrupt:
         print("Cancelling processes...")
         for f in active_futures:
             f.cancel()
         print("Saving progress...")
-        with db_lock:
-            with open(dbjson, "w") as fh:
-                json.dump(db, fh)
+        with open(dbjson, "w") as fh:
+            json.dump(db, fh)
         print("Waiting for processes to finish...")
         sys.exit(1)
