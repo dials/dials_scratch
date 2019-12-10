@@ -26,13 +26,17 @@ db_lock = threading.Lock()
 
 
 def parse_temperature(string):
-    if string in ("", "?", "None"):
+    if string in ("", "?", "None", "."):
         return None
     if string == "False":
         return False
     if "e" in string or "E" in string:
         sys.stderr.write("PARSE PROBLEM: " + string + "\n")
-    return float(string)
+    try:
+        return float(string)
+    except ValueError:
+        sys.stderr.write("Can not parse temperature: " + string + "\n")
+        return False
 
 
 def get_year_temperature(filename):
@@ -41,14 +45,14 @@ def get_year_temperature(filename):
     model = cif.model()
     assert len(model) == 1, list(model)
     entry = model[list(model)[0]]
-    if entry.get("_exptl.method") != "X-RAY DIFFRACTION":
-        return False, False
+
     year = entry.get("_pdbx_database_status.recvd_initial_deposition_date")
     if year and "-" in year:
         year = int(year.split("-")[0])
     else:
         year = False
-
+    if entry.get("_exptl.method") != "X-RAY DIFFRACTION":
+        return year, False
     temp = entry.get("_diffrn.ambient_temp")
     if not temp:
         return year, None
@@ -64,24 +68,41 @@ def get_year_temperature(filename):
 
 
 def print_temperature_summary(temperature_dict):
-    for year in sorted(temperature_dict):
-        temperatures = temperature_dict[year]
-        total = len(temperatures)
-        print("-" * 31)
-        print("{year:^17s}:{yearno:6d}".format(year="Year", yearno=year))
-        line = "{range:17s}:{count:6d} ({percentage:4.1f}%)"
-        filtered = filter(None, temperatures)
-        tempgiven = len(filtered)
-        noxray = len(filter(lambda t: t is False, temperatures))
-        notemp = total - tempgiven - noxray
+    all_years = sorted(temperature_dict)
+    years = all_years[0:8]
+    print("-" * (17 + 15 * len(years)))
+    while years:
+        all_years = all_years[8:]
+        print(
+            "{:^17s}:".format("Year") + "         ".join("{:6d}".format(year) for year in years)
+        )
+
+        total = {year: len(temperature_dict[year]) for year in years}
+        noxray = {
+            year: len([t for t in temperature_dict[year] if t is False])
+            for year in years
+        }
+        filtered = {
+            year: [t for t in temperature_dict[year] if t not in (False, None)]
+            for year in years
+        }
+        tempgiven = {year: len(filtered[year]) for year in years}
+        notemp = {year: total[year] - tempgiven[year] - noxray[year] for year in years}
+
+        line = "{:17s}:" + " ".join("{:6d} ({:4.1f}%)" for year in years)
 
         def write_line(rangestr, filterfn):
-            c = len(filter(filterfn, filtered))
-            if tempgiven > 0:
-                percentage = 100 * c / tempgiven
-            else:
-                percentage = 0
-            print(line.format(range=rangestr, count=c, percentage=percentage))
+            args = [rangestr]
+            for year in years:
+                c = len(filter(filterfn, filtered[year]))
+                if tempgiven[year] > 0:
+                    percentage = 100 * c / tempgiven[year]
+                else:
+                    percentage = 0
+                if percentage > 99.9: percentage = 99.9
+                args.append(c)
+                args.append(percentage)
+            print(line.format(*args))
 
         write_line("       T <=   0K", lambda t: t <= 0 and t is not False)
         write_line("  0K < T <=  70K", lambda t: 0 < t <= 70)
@@ -91,10 +112,16 @@ def print_temperature_summary(temperature_dict):
         write_line("160K < T <= 265K", lambda t: 160 < t <= 265)
         write_line("265K < T <= 295K", lambda t: 265 < t <= 295)
         write_line("295K < T        ", lambda t: 295 < t)
-        print("{range:^17s}:{count:6d}".format(range="T not given", count=notemp))
-        print("{range:^17s}:{count:6d}".format(range="not xray", count=noxray))
-        print("{range:^17s}:{count:6d}".format(range="total", count=total))
-        print("-" * 31)
+
+        line = "{:17s}:" + "         ".join("{:6d}" for year in years)
+        args = ["T not given"] + [notemp[y] for y in years]
+        print(line.format(*args))
+        args = ["not xray"] + [noxray[y] for y in years]
+        print(line.format(*args))
+        args = ["total"] + [total[y] for y in years]
+        print(line.format(*args))
+        print("-" * (17 + 15 * len(years)))
+        years = all_years[0:8]
 
 
 def read_directory(dirname):
