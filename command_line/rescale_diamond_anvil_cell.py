@@ -44,22 +44,26 @@ logger = logging.getLogger("dials.rescale_diamond_anvil_cell")
 
 phil_scope = libtbx.phil.parse(
     u"""
-    density = 3510
-        .type = float
-        .help = "The density in kg·m⁻³ of the anvil material.  "
-                "The default is the typical density of diamond."
+    anvil
+        .caption = "Properties of the mounted diamond anvils"
+    {
+        density = 3510
+            .type = float
+            .help = "The density in kg·m⁻³ of the anvil material.  "
+                    "The default is the typical density of diamond."
 
-    anvil_thickness = 1.5925
-        .type = float
-        .help = "The thickness in mm of each anvil in the pressure cell.\n"
-                "The default is the thickness of the pressure cells in use on beamline "
-                "I19 at Diamond Light Source."
+        thickness = 1.5925
+            .type = float
+            .help = "The thickness in mm of each anvil in the pressure cell.\n"
+                    "The default is the thickness of the pressure cells in use on "
+                    "beamline I19 at Diamond Light Source."
 
-    anvil_normal = 0, 1, 0
-        .type = floats(size=3)
-        .help = "A 3-vector representing the normal to the anvil surfaces in the "
-                "laboratory frame when the goniometer is at zero datum, i.e. the axes "
-                "are all at 0°.  The vector may be given un-normalised."
+        normal = 0, 1, 0
+            .type = floats(size=3)
+            .help = "A 3-vector representing the normal to the anvil surfaces in the "
+                    "laboratory frame when the goniometer is at zero datum, i.e. the "
+                    "axes are all at 0°.  The vector may be given un-normalised."
+    }
 
     output {
         experiments = corrected.expt
@@ -251,13 +255,13 @@ def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> 
 
     # Check that the anvil surface normal really is normalised.
     try:
-        dac_norm = params.anvil_normal / np.linalg.norm(params.anvil_normal)
+        dac_norm = params.anvil.normal / np.linalg.norm(params.anvil.normal)
     except ZeroDivisionError:
         sys.exit("It seems you have provided a surface normal vector with zero length.")
 
     # Record the density of diamond in g·cm⁻³ (for consistency with NIST tables,
     # https://dx.doi.org/10.18434/T4D01F).
-    density = params.density / 1000  # g·cm⁻³
+    density = params.anvil.density / 1000  # g·cm⁻³
 
     # Correct for the attenuation of the incident and diffracted beams by the diamond
     # anvil cell.
@@ -266,7 +270,7 @@ def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> 
         "anvil cell."
     )
     correct_intensities_for_dac_attenuation(
-        experiments, reflections, dac_norm, params.anvil_thickness, density
+        experiments, reflections, dac_norm, params.anvil.thickness, density
     )
     logger.info("Done.")
 
