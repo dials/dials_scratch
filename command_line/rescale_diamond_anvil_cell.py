@@ -115,8 +115,13 @@ def correct_intensities_for_dac_attenuation(
         # Get the linear attenuation coefficient in mm⁻¹.
         linear_atten_coeff = density * mass_atten_coeff / 10  # mm⁻¹
 
+        # Get the setting rotation.
+        # In the notation of dxtbx/model/goniometer.h, this is S.
+        set_rotation = np.array(expt.goniometer.get_setting_rotation()).reshape(3, 3)
+        set_rotation = Rotation.from_dcm(set_rotation)
+
         # Get the axis of the scan rotation.
-        rotation_axis = expt.goniometer.get_rotation_axis()
+        rotation_axis = expt.goniometer.get_rotation_axis_datum()
         # Select the reflections with the correct experiment ID and only those whose
         # intensities after integration ought to be meaningful.
         sel = rtable["id"] == i
@@ -129,19 +134,20 @@ def correct_intensities_for_dac_attenuation(
         # magnitude equal to the rotation angle) for each reflection.
         # The shape of this array is (N, 3), where N is the number of reflections.
         rotvecs = np.outer(angles, rotation_axis)
-
         # Create a rotation operator for each scan rotation (i.e. one per reflection).
-        # In the notation of dxtbx/model/goniometer.h, this is S × R.
+        # In the notation of dxtbx/model/goniometer.h, this is R.
         scan_rotation = Rotation.from_rotvec(rotvecs)
         # Remove redundant things that scale with N.
         del angles, rotvecs
+
         # Create a rotation operator for those axes that are fixed throughout the scan.
         # In the notation of dxtbx/model/goniometer.h, this is F.
         fixed_rotation = np.array(expt.goniometer.get_fixed_rotation()).reshape(3, 3)
         fixed_rotation = Rotation.from_dcm(fixed_rotation)
+
         # Get the rotation operator representing the goniometer orientation for each
         # reflection.  In the notation of dxtbx/model/goniometer.h this is S × R × F.
-        rotation = scan_rotation * fixed_rotation
+        rotation = set_rotation * scan_rotation * fixed_rotation
         # Remove redundant things that scale with N.
         del scan_rotation
 
