@@ -180,14 +180,16 @@ def correct_intensities_for_dac_attenuation(
         del l0, l1
 
         # Correct the measured intensities for this attenuation.
-        for col in (
-            "intensity.prf.value",
-            "intensity.prf.variance",
-            "intensity.sum.value",
-            "intensity.sum.variance",
-        ):
+        for col in "intensity.prf.value", "intensity.sum.value":
             try:
                 rtable[col].set_selected(sel, refls[col] / flex.double(transmission))
+            except KeyError:
+                pass
+        for col in "intensity.prf.variance", "intensity.sum.variance":
+            try:
+                rtable[col].set_selected(
+                    sel, refls[col] / flex.double(np.square(transmission))
+                )
             except KeyError:
                 pass
 
