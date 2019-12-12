@@ -115,6 +115,13 @@ def correct_intensities_for_dac_attenuation(
         # Get the linear attenuation coefficient in mm⁻¹.
         linear_atten_coeff = density * mass_atten_coeff / 10  # mm⁻¹
 
+        # Select the reflections with the correct experiment ID and only those whose
+        # intensities after integration ought to be meaningful.
+        sel = rtable["id"] == i
+        sel &= rtable.get_flags(rtable.flags.integrated, all=False)
+        sel = sel.iselection()
+        refls = rtable.select(sel)
+
         # Get the setting rotation.
         # In the notation of dxtbx/model/goniometer.h, this is S.
         set_rotation = np.array(expt.goniometer.get_setting_rotation()).reshape(3, 3)
@@ -122,23 +129,19 @@ def correct_intensities_for_dac_attenuation(
 
         # Get the axis of the scan rotation.
         rotation_axis = expt.goniometer.get_rotation_axis_datum()
-        # Select the reflections with the correct experiment ID and only those whose
-        # intensities after integration ought to be meaningful.
-        sel = rtable["id"] == i
-        sel &= rtable.get_flags(rtable.flags.integrated, all=False)
-        sel = sel.iselection()
-        refls = rtable.select(sel)
         # For each reflection, get the angle of the scan rotation.
         angles = refls["xyzobs.mm.value"].parts()[2]
         # Construct a rotation vector (parallel with the rotation axis and with
         # magnitude equal to the rotation angle) for each reflection.
         # The shape of this array is (N, 3), where N is the number of reflections.
         rotvecs = np.outer(angles, rotation_axis)
+        # Remove redundant things that scale with N.
+        del angles
         # Create a rotation operator for each scan rotation (i.e. one per reflection).
         # In the notation of dxtbx/model/goniometer.h, this is R.
         scan_rotation = Rotation.from_rotvec(rotvecs)
         # Remove redundant things that scale with N.
-        del angles, rotvecs
+        del rotvecs
 
         # Create a rotation operator for those axes that are fixed throughout the scan.
         # In the notation of dxtbx/model/goniometer.h, this is F.
@@ -191,6 +194,7 @@ def correct_intensities_for_dac_attenuation(
                 rtable[col].set_selected(sel, refls[col] / flex.double(transmission))
             except KeyError:
                 pass
+        # Correct the measured variances accordingly.
         for col in "intensity.prf.variance", "intensity.sum.variance":
             try:
                 rtable[col].set_selected(
