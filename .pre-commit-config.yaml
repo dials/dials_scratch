@@ -1,11 +1,13 @@
 repos:
 
 # Automatic source code formatting
-- repo: https://github.com/ambv/black
+- repo: https://github.com/psf/black
   rev: stable
   hooks:
   - id: black
     args: [--safe, --quiet]
+    files: \.pyi?$|^libtbx_config$
+    types: [file]
 
 # Syntax check and some basic flake8
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -14,3 +16,4 @@ repos:
   - id: check-ast
   - id: flake8
     args: ['--max-line-length=88', '--select=W291,W292,W293,F401']
+  - id: check-merge-conflict
