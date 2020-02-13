@@ -56,7 +56,6 @@ class Script(object):
         """ Initialise the script. """
 
         from dials.util.options import OptionParser
-        import libtbx.load_env
 
         # The script usage
         usage = (
@@ -196,10 +195,8 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
+    import dials.util
 
-    try:
+    with dials.util.show_mail_on_error():
         script = Script()
         script.run()
-    except Exception as e:
-        halraiser(e)
