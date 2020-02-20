@@ -155,7 +155,7 @@ class Script(object):
         )
 
         # Extract the shoeboxes
-        reflections.extract_shoeboxes(imageset, verbose=True)
+        reflections.extract_shoeboxes(imageset)
 
         # Preserve masking
         if old_shoebox is not None:
