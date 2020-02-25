@@ -1,13 +1,30 @@
+"""Experimental simple viewer to plot intensities of symmetry equivalents.
+
+Requires a scaled reflection table and experiments file (can be multi-dataset)
+
+Plots as a function of image number/"dose".
+"""
 import sys
-import numpy as np
 import collections
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons, CheckButtons, TextBox
+from matplotlib.widgets import Slider, CheckButtons, TextBox
+from dials.util.options import OptionParser, reflections_and_experiments_from_files
 from dials.array_family import flex
 from dials.util.filter_reflections import filter_reflection_table
-from dxtbx.serialize import load
-import matplotlib
 from orderedset import OrderedSet
+from cctbx import miller, crystal
+
+def map_indices_to_asu(miller_indices, space_group, uc):
+    """Map the indices to the asymmetric unit."""
+    crystal_symmetry = crystal.symmetry(
+        space_group=space_group,
+        unit_cell=uc,
+    )
+    miller_set = miller.set(
+        crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=False
+    )
+    miller_set_in_asu = miller_set.map_to_asu()
+    return miller_set_in_asu.indices(), miller_set_in_asu.d_spacings().data()
 
 class Model(object):
 
@@ -16,65 +33,36 @@ class Model(object):
         dose = flex.ceil(refls["xyzobs.px.value"].parts()[2])
         refls["dose"] = dose.iround()
 
-        scaled_refls = filter_reflection_table(refls, intensity_choice=["scale"], partiality_threshold=0.4)
+        scaled_refls = filter_reflection_table(
+            refls,
+            intensity_choice=["scale", "profile", "sum"],
+            partiality_threshold=0.4,
+        )
         intensity_s = scaled_refls["intensity.scale.value"]
         sigma_s = scaled_refls["intensity.scale.variance"] ** 0.5
         dose_s = scaled_refls["dose"]
-
-        from cctbx import miller, crystal, uctbx
-
-        def map_indices_to_asu(miller_indices, space_group, uc):
-            """Map the indices to the asymmetric unit."""
-            crystal_symmetry = crystal.symmetry(
-                space_group=space_group,
-                unit_cell=uc,
-            )
-            miller_set = miller.set(
-                crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=False
-            )
-            miller_set_in_asu = miller_set.map_to_asu()
-            return miller_set_in_asu.indices(), miller_set_in_asu.d_spacings().data()
 
         sg = expts[0].crystal.get_space_group()
         uc = expts[0].crystal.get_unit_cell()
 
         asu_index_s, d_s = map_indices_to_asu(scaled_refls["miller_index"], sg, uc)
 
-        integrated_refls = filter_reflection_table(refls, intensity_choice=["profile"], partiality_threshold=0.4)
+        integrated_refls = scaled_refls
         intensity_u = integrated_refls["intensity.prf.value"]
-        sigma_u = integrated_refls["intensity.prf.variance"] ** 0.5
-        dose_u = integrated_refls["dose"]
-
-        asu_index_u, d_u = map_indices_to_asu(integrated_refls["miller_index"], sg, uc)
+        sigma_u = flex.sqrt(integrated_refls["intensity.prf.variance"])
 
         isel_s = flex.sort_permutation(d_s, reverse=True)
         sorted_asu_s = asu_index_s.select(isel_s)
         scaled_groups = list(OrderedSet(sorted_asu_s))
 
         # use sorted indices
-        crystal_symmetry = crystal.symmetry(space_group=sg, unit_cell=uc, )
+        crystal_symmetry = crystal.symmetry(space_group=sg, unit_cell=uc)
         miller_set = miller.set(
-            crystal_symmetry=crystal_symmetry, indices=flex.miller_index(scaled_groups), anomalous_flag=False
+            crystal_symmetry=crystal_symmetry,
+            indices=flex.miller_index(scaled_groups),
+            anomalous_flag=False,
         )
         d_spacings = miller_set.d_spacings().data()
-
-        isel_u = flex.sort_permutation(d_u, reverse=True)
-        sorted_asu_u = asu_index_u.select(isel_u)
-
-
-        sel = flex.bool(len(sorted_asu_u), True)
-        current_idx = sorted_asu_u[0]
-        for i, v in enumerate(sorted_asu_u):
-            if v == current_idx:
-                continue
-            elif v not in scaled_groups:
-                sel[i] = False
-            else:
-                current_idx = v
-
-        unscaled_groups = list(OrderedSet(sorted_asu_u.select(sel)))
-
-        assert len(unscaled_groups) == len(scaled_groups)
 
         Data = collections.namedtuple("Data",
             ["intensity", "sigma", "dose", "asu_index"])
@@ -86,20 +74,19 @@ class Model(object):
             asu_index=sorted_asu_s,
         )
         self.unscaled_data = Data(
-            intensity=intensity_u.select(isel_u).select(sel),
-            sigma=sigma_u.select(isel_u).select(sel),
-            dose=dose_u.select(isel_u).select(sel),
-            asu_index=sorted_asu_u.select(sel),
+            intensity=intensity_u.select(isel_s),
+            sigma=sigma_u.select(isel_s),
+            dose=dose_s.select(isel_s),
+            asu_index=sorted_asu_s,
         )
 
-        self.scaled_groups = scaled_groups
+        self.scaled_groups = flex.miller_index(scaled_groups)
         self.d_spacings = d_spacings
         self.visibility = [True, False]
         self.current_miller_index = self.scaled_groups[0]
 
     def get_scaled_data(self, idx=0):
         miller_idx = self.scaled_groups[idx]
-        print(miller_idx)
         sel = self.scaled_data.asu_index == miller_idx
         I = self.scaled_data.intensity.select(sel)
         s = self.scaled_data.sigma.select(sel)
@@ -169,7 +156,7 @@ class Viewer(object):
 
     def change_type(self, label):
         self.data.set_visible(label)
-        idx = self.data.scaled_groups.index(self.data.current_miller_index)
+        idx = (self.data.scaled_groups == self.data.current_miller_index).iselection()[0]
         self.update_via_textbox(idx)
         self.fig.canvas.draw_idle()
 
@@ -203,8 +190,8 @@ class Viewer(object):
     def submit(self, text):
         miller_index = eval(text)
         try:
-            idx = self.data.scaled_groups.index(miller_index)
-        except ValueError:
+            idx = (self.data.scaled_groups == miller_index).iselection()[0]
+        except IndexError:
             self.text_box.text_disp.set_color('r')
         else:
             self.text_box.text_disp.set_color('g')
@@ -212,13 +199,28 @@ class Viewer(object):
 
 
 
-def run_viewer(args):
+def run_viewer():
+    """Run the intensity explorer"""
 
-    refls = flex.reflection_table.from_file(args[0])
-    expts = load.experiment_list(args[1], check_format=False)
-    data = Model(refls, expts)
+    parser = OptionParser(
+        read_experiments=True,
+        read_reflections=True,
+        check_format=False,
+        epilog=__doc__,
+    )
+    params, _ = parser.parse_args(show_diff_phil=False)
+
+    if not params.input.experiments or not params.input.reflections:
+        parser.print_help()
+        sys.exit()
+
+    reflections, experiments = reflections_and_experiments_from_files(
+        params.input.reflections, params.input.experiments
+    )
+
+    data = Model(reflections[0], experiments)
     _ = Viewer(data)
 
 
 if __name__ == "__main__":
-    run_viewer(sys.argv[1:])
+    run_viewer()
