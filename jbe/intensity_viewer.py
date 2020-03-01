@@ -14,20 +14,18 @@ from dials.util.filter_reflections import filter_reflection_table
 from orderedset import OrderedSet
 from cctbx import miller, crystal
 
+
 def map_indices_to_asu(miller_indices, space_group, uc):
     """Map the indices to the asymmetric unit."""
-    crystal_symmetry = crystal.symmetry(
-        space_group=space_group,
-        unit_cell=uc,
-    )
+    crystal_symmetry = crystal.symmetry(space_group=space_group, unit_cell=uc,)
     miller_set = miller.set(
         crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=False
     )
     miller_set_in_asu = miller_set.map_to_asu()
     return miller_set_in_asu.indices(), miller_set_in_asu.d_spacings().data()
 
-class Model(object):
 
+class Model(object):
     def __init__(self, refls, expts):
 
         dose = flex.ceil(refls["xyzobs.px.value"].parts()[2])
@@ -64,8 +62,9 @@ class Model(object):
         )
         d_spacings = miller_set.d_spacings().data()
 
-        Data = collections.namedtuple("Data",
-            ["intensity", "sigma", "dose", "asu_index"])
+        Data = collections.namedtuple(
+            "Data", ["intensity", "sigma", "dose", "asu_index"]
+        )
 
         self.scaled_data = Data(
             intensity=intensity_s.select(isel_s),
@@ -107,8 +106,8 @@ class Model(object):
         elif label == "scaled":
             self.visibility[0] = not self.visibility[0]
 
-class Viewer(object):
 
+class Viewer(object):
     def __init__(self, data):
         fig, self.ax = plt.subplots()
         plt.subplots_adjust(left=0.3, bottom=0.40)
@@ -118,25 +117,33 @@ class Viewer(object):
         self.plot_main_chart()
         self.messages = []
 
-        axcolor = 'blanchedalmond'
-        axgroupno = plt.axes([0.05, 0.1, 0.70, 0.06], facecolor=axcolor, title='Resolution slider')
+        axcolor = "blanchedalmond"
+        axgroupno = plt.axes(
+            [0.05, 0.1, 0.70, 0.06], facecolor=axcolor, title="Resolution slider"
+        )
 
-        msg = axgroupno.text((len(self.data.scaled_groups) // 2) * 0.85, 0.25, "(click me)")
+        msg = axgroupno.text(
+            (len(self.data.scaled_groups) // 2) * 0.85, 0.25, "(click me)"
+        )
         self.messages.append(msg)
         self.gno = Slider(
-            axgroupno, '', 0, len(data.scaled_groups)-1, valinit=0, valstep=1)
+            axgroupno, "", 0, len(data.scaled_groups) - 1, valinit=0, valstep=1
+        )
 
-        self.gno.valtext.set_text('')
+        self.gno.valtext.set_text("")
 
         self.gno.on_changed(self.update)
 
         rax = plt.axes([0.05, 0.75, 0.15, 0.10], facecolor=axcolor)
-        self.check = CheckButtons(rax, ('scaled', 'unscaled'), self.data.visibility)
+        self.check = CheckButtons(rax, ("scaled", "unscaled"), self.data.visibility)
         self.check.on_clicked(self.change_type)
 
-        axbox = plt.axes([0.8, 0.1, 0.15, 0.06], title='Go to Miller index', facecolor=axcolor)
-        self.text_box = TextBox(axbox, '',
-            initial=str(self.data.scaled_groups[0]), color=axcolor)
+        axbox = plt.axes(
+            [0.8, 0.1, 0.15, 0.06], title="Go to Miller index", facecolor=axcolor
+        )
+        self.text_box = TextBox(
+            axbox, "", initial=str(self.data.scaled_groups[0]), color=axcolor
+        )
         self.text_box.on_submit(self.submit)
 
         plt.show()
@@ -145,10 +152,14 @@ class Viewer(object):
         self.ax.set_title("Scaled intensity explorer")
         x, y, err, vis = self.data.get_scaled_data(n)
         if vis:
-            self.ax.errorbar(x, y, yerr=err, fmt="o", visible=vis, color='k', label="scaled")
+            self.ax.errorbar(
+                x, y, yerr=err, fmt="o", visible=vis, color="k", label="scaled"
+            )
         x1, y1, err1, vis = self.data.get_unscaled_data(n)
         if vis:
-            self.ax.errorbar(x1, y1, yerr=err1, fmt="o", visible=vis, color='b', label="unscaled")
+            self.ax.errorbar(
+                x1, y1, yerr=err1, fmt="o", visible=vis, color="b", label="unscaled"
+            )
         self.ax.margins(x=0.1)
         self.ax.set_xlabel("Image number/dose")
         self.ax.set_ylabel("Intensity")
@@ -156,7 +167,9 @@ class Viewer(object):
 
     def change_type(self, label):
         self.data.set_visible(label)
-        idx = (self.data.scaled_groups == self.data.current_miller_index).iselection()[0]
+        idx = (self.data.scaled_groups == self.data.current_miller_index).iselection()[
+            0
+        ]
         self.update_via_textbox(idx)
         self.fig.canvas.draw_idle()
 
@@ -170,10 +183,11 @@ class Viewer(object):
         self.fig.canvas.draw_idle()
         self.data.current_miller_index = self.data.scaled_groups[n]
         self.gno.ax.set_xlabel(
-            str(self.data.scaled_groups[n]) +", d = %.2f" % self.data.d_spacings[n],
-            color='g')
-        self.gno.valtext.set_text('')
-        self.text_box.text_disp.set_color('k')
+            str(self.data.scaled_groups[n]) + ", d = %.2f" % self.data.d_spacings[n],
+            color="g",
+        )
+        self.gno.valtext.set_text("")
+        self.text_box.text_disp.set_color("k")
         # remove any help messages
         for _ in range(0, len(self.messages)):
             m = self.messages.pop()
@@ -184,7 +198,7 @@ class Viewer(object):
         self.clear()
         self.plot_main_chart(n)
         self.data.current_miller_index = self.data.scaled_groups[n]
-        self.gno.ax.xaxis.label.set_color('k')
+        self.gno.ax.xaxis.label.set_color("k")
         self.fig.canvas.draw_idle()
 
     def submit(self, text):
@@ -192,11 +206,10 @@ class Viewer(object):
         try:
             idx = (self.data.scaled_groups == miller_index).iselection()[0]
         except IndexError:
-            self.text_box.text_disp.set_color('r')
+            self.text_box.text_disp.set_color("r")
         else:
-            self.text_box.text_disp.set_color('g')
+            self.text_box.text_disp.set_color("g")
             self.update_via_textbox(idx)
-
 
 
 def run_viewer():
