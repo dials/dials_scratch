@@ -4,6 +4,7 @@ from dials.array_family import flex
 from annlib_ext import AnnAdaptor as ann_adaptor
 import math
 
+
 def data_from_mtz(filename):
 
     miller_arrays = mtz.object(file_name=filename).as_miller_arrays(
@@ -60,9 +61,11 @@ def data_from_mtz(filename):
         table["scale_factor"] = g.data()
     return table
 
+
 max_allowable_distance = 15
 max_z_diff = 7
 dmin = 12
+
 
 def report_on_non_matches(table1, table2, dmin=5.0):
     # First set up binning
@@ -72,15 +75,18 @@ def report_on_non_matches(table1, table2, dmin=5.0):
     print("Reflections in table1 and not table2, with d > %s:" % dmin)
     print("Miller index, d, intensity, sigma, xyz")
     for i in range(0, no_matches.size()):
-        print("%s, %.3f, %.4f, %.4f, (%.2f, %.2f, %.2f)" % (
-            no_matches["miller_index"][i],
-            no_matches["d"][i],
-            no_matches["intensity"][i],
-            no_matches["variance"][i]**0.5,
-            no_matches["x"][i],
-            no_matches["y"][i],
-            no_matches["z"][i],
-        ))
+        print(
+            "%s, %.3f, %.4f, %.4f, (%.2f, %.2f, %.2f)"
+            % (
+                no_matches["miller_index"][i],
+                no_matches["d"][i],
+                no_matches["intensity"][i],
+                no_matches["variance"][i] ** 0.5,
+                no_matches["x"][i],
+                no_matches["y"][i],
+                no_matches["z"][i],
+            )
+        )
     matching_indices = set(table1["match_idx"])
     all_indices = set(range(0, table2.size()))
     no_matching_indices = all_indices.difference(matching_indices)
@@ -91,15 +97,19 @@ def report_on_non_matches(table1, table2, dmin=5.0):
     print("Reflections in table2 and not table1, with d > %s:" % dmin)
     print("Miller index, d, intensity, sigma, xyz")
     for i in range(0, no_match.size()):
-        print("%s, %.3f, %.4f, %.4f, (%.2f, %.2f, %.2f)" % (
-            no_match["miller_index"][i],
-            no_match["d"][i],
-            no_match["intensity"][i],
-            no_match["variance"][i]**0.5,
-            no_match["x"][i],
-            no_match["y"][i],
-            no_match["z"][i],
-        ))
+        print(
+            "%s, %.3f, %.4f, %.4f, (%.2f, %.2f, %.2f)"
+            % (
+                no_match["miller_index"][i],
+                no_match["d"][i],
+                no_match["intensity"][i],
+                no_match["variance"][i] ** 0.5,
+                no_match["x"][i],
+                no_match["y"][i],
+                no_match["z"][i],
+            )
+        )
+
 
 def plot_scales(table1, table2):
     import matplotlib.pyplot as plt
@@ -119,11 +129,12 @@ def plot_scales(table1, table2):
     ax = plt.gca()
     ax.scatter(intensities_1, intensities_2, s=0.5)
     ax.grid()
-    ax.set_xscale('log')
-    ax.set_yscale('log')
+    ax.set_xscale("log")
+    ax.set_yscale("log")
     ax.set_xlabel("Intensity, dataset 1")
     ax.set_ylabel("Intensity, dataset 2")
     plt.show()
+
 
 def run(args):
     table_1 = data_from_mtz(args[0])
@@ -131,22 +142,26 @@ def run(args):
 
     zr1 = max(table_1["z"]) - min(table_1["z"])
     zr2 = max(table_2["z"]) - min(table_2["z"])
-    if zr1/zr2 > 1.2:
-        table_2["z"] *= int(zr1/zr2)
-        print("scaled ROT values of dataset 2 by %s to match dataset 1" % int(zr1/zr2))
-    elif zr2/zr1 > 1.2:
-        table_1["z"] *= int(zr2/zr1)
-        print("scaled ROT values of dataset 1 by %s to match dataset 2" % int(zr2/zr1))
+    if zr1 / zr2 > 1.2:
+        table_2["z"] *= int(zr1 / zr2)
+        print(
+            "scaled ROT values of dataset 2 by %s to match dataset 1" % int(zr1 / zr2)
+        )
+    elif zr2 / zr1 > 1.2:
+        table_1["z"] *= int(zr2 / zr1)
+        print(
+            "scaled ROT values of dataset 1 by %s to match dataset 2" % int(zr2 / zr1)
+        )
 
-    #print(br1, br2)
-    #print(max(br1/br2, br2/br1))
+    # print(br1, br2)
+    # print(max(br1/br2, br2/br1))
 
     table_1["match_idx"] = flex.int(table_1.size(), -1)
 
     xy0 = flex.vec2_double(table_1["x"], table_1["y"])
     # add 1e-6 as if the values are exactly the same then not found as nearest
     # neighbour! e.g. trying to compare dials vs aimless
-    xy1 = flex.vec2_double(table_2["x"]+1e-2, table_2["y"])
+    xy1 = flex.vec2_double(table_2["x"] + 1e-2, table_2["y"])
 
     z0 = table_1["z"]
     z1 = table_2["z"]
@@ -154,23 +169,28 @@ def run(args):
     zs = range(int(flex.min(z0)), int(flex.max(z0)) + 1)
     matches = 0
     for z in zs:
-        sel = (z0 < z+max_z_diff) & (z0 > z-max_z_diff)
+        sel = (z0 < z + max_z_diff) & (z0 > z - max_z_diff)
         xy = xy0.select(sel)
         table1_indices = sel.iselection()
         ann = ann_adaptor(xy.as_double().as_1d(), 2)
-        sel2 = (z1 < z+max_z_diff) & (z1 > z-max_z_diff)
+        sel2 = (z1 < z + max_z_diff) & (z1 > z - max_z_diff)
         xy = xy1.select(sel2)
         table2_indices = sel2.iselection()
         xy1d = xy.as_double().as_1d()
         ann.query(xy1d)
-        for i, nn_idx in enumerate(ann.nn):# nn_idx is index of table1, i index of table 2
+        for i, nn_idx in enumerate(
+            ann.nn
+        ):  # nn_idx is index of table1, i index of table 2
             if math.sqrt(ann.distances[i]) < max_allowable_distance:
                 table_1["match_idx"][table1_indices[nn_idx]] = table2_indices[i]
                 matches += 1
 
     print("Table 1 size:%s" % table_1.size())
     print("Table 2 size:%s" % table_2.size())
-    print("Found %s matches (searching for matches to table1 in table2)" % str((table_1["match_idx"] != -1).count(True)))
+    print(
+        "Found %s matches (searching for matches to table1 in table2)"
+        % str((table_1["match_idx"] != -1).count(True))
+    )
     indices = set(table_1["match_idx"])
     n_unique = len(indices)
     if -1 in indices:
@@ -181,17 +201,21 @@ def run(args):
     incorrectly_matched = 0
     for i in range(len(table_1)):
         if table_1["match_idx"][i] != -1:
-            if table_1["miller_index"][i] == table_2["miller_index"][table_1["match_idx"][i]]:
+            if (
+                table_1["miller_index"][i]
+                == table_2["miller_index"][table_1["match_idx"][i]]
+            ):
                 correctly_matched += 1
             else:
-                #pass
+                # pass
                 incorrectly_matched += 1
-                #print("Incorrectly matched %s, %s" % (table_1["miller_index"][i], table_2["miller_index"][table_1["match_idx"][i]]))
+                # print("Incorrectly matched %s, %s" % (table_1["miller_index"][i], table_2["miller_index"][table_1["match_idx"][i]]))
                 table_1["match_idx"][i] = -1
     print("N correctly matched %s" % correctly_matched)
     print("N incorrectly matched %s" % incorrectly_matched)
     report_on_non_matches(table_1, table_2, dmin)
     plot_scales(table_1, table_2)
+
 
 if __name__ == "__main__":
     run(sys.argv[1:])
