@@ -51,9 +51,9 @@ from rstbx.symmetry.constraints.parameter_reduction import symmetrize_reduce_enl
 
 # Reflection prediction
 from dials.algorithms.spot_prediction import IndexGenerator
-from dials.algorithms.refinement.prediction import (
+from dials.algorithms.refinement.prediction.managed_predictors import (
     ScansRayPredictor,
-    ExperimentsPredictor,
+    ScansExperimentsPredictor,
 )
 from dials.algorithms.spot_prediction import ray_intersection
 from cctbx.sgtbx import space_group, space_group_symbols
@@ -126,11 +126,6 @@ det_param = DetectorParameterisationSinglePanel(mydetector)
 s0_param = BeamParameterisation(mybeam, mygonio)
 xlo_param = CrystalOrientationParameterisation(mycrystal)
 xluc_param = CrystalUnitCellParameterisation(mycrystal)
-
-# TEMPORARY TESTING HERE
-from dials.algorithms.refinement.restraints.restraints import SingleUnitCellTie
-
-uct = SingleUnitCellTie(xluc_param, [None] * 6, [None] * 6)
 
 # Fix beam to the X-Z plane (imgCIF geometry), fix wavelength
 s0_param.set_fixed([True, False, True])
@@ -214,8 +209,8 @@ obs_refs = obs_refs.select(intersects)
 
 # Make a reflection predictor and re-predict for all these reflections. The
 # result is the same, but we gain also the flags and xyzcal.px columns
-ref_predictor = ExperimentsPredictor(experiments)
-obs_refs["id"] = flex.size_t(len(obs_refs), 0)
+ref_predictor = ScansExperimentsPredictor(experiments)
+obs_refs["id"] = flex.int(len(obs_refs), 0)
 obs_refs = ref_predictor(obs_refs)
 
 # Set 'observed' centroids from the predicted ones
@@ -325,8 +320,6 @@ print(p12m[0])
 # hierarchical parameterisation
 from dials.algorithms.refinement.parameterisation.detector_parameters import (
     DetectorParameterisationHierarchical,
-    get_panel_groups_at_depth,
-    get_panel_ids_at_root,
 )
 
 # parameterise
