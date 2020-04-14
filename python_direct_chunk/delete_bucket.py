@@ -6,10 +6,11 @@ try:
 except:
     dcid = 12345
 
+key = "hello"
+pwd = "k1tty-pass"
+
 # create a connection to minio service
-client = minio.Minio(
-    "localhost:9000", access_key="minioadmin", secret_key="minioadmin", secure=False
-)
+client = minio.Minio("localhost:9000", access_key=key, secret_key=pwd, secure=False)
 
 # remove everything from the bucket
 for o in client.list_objects("%d" % dcid):

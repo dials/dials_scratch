@@ -10,13 +10,15 @@ try:
 except:
     dcid = 12345
 
+key = "hello"
+pwd = "k1tty-pass"
+
 # create a connection to minio service
-client = minio.Minio(
-    "localhost:9000", access_key="minioadmin", secret_key="minioadmin", secure=False
-)
+client = minio.Minio("localhost:9000", access_key=key, secret_key=pwd, secure=False)
 
 # create a bucket for this DCID - if it already exists, will throw exception
-client.make_bucket("%d" % dcid, location="right-here-1")
+bucket = "%d" % dcid
+client.make_bucket(bucket, location="right-here-1")
 
 with h5py.File(master, "r") as f:
     idx = 0
@@ -36,14 +38,30 @@ with h5py.File(master, "r") as f:
 
             # increment counter - we push this in people numbers
             idx += 1
+            name = "%06d" % idx
+
             total_read += chunk_size
 
             # push chunk to object store
-            etag = client.put_object(
-                "%d" % dcid, "%d" % idx, io.BytesIO(chunk), chunk_size
-            )
-            print(etag, chunk_size)
+            etag = client.put_object(bucket, name, io.BytesIO(chunk), chunk_size)
 
     t1 = time.time()
 
 print("{0} GB read in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
+
+# now read back every object from the bucket
+total_read = 0
+t0 = time.time()
+for o in client.list_objects(bucket):
+    back = client.get_object(o.bucket_name, o.object_name).read()
+    total_read += len(back)
+t1 = time.time()
+
+print("{0} GB read back in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
+
+# now clean up
+for o in client.list_objects(bucket):
+    client.remove_object(o.bucket_name, o.object_name)
+
+# remove the bucket
+client.remove_bucket("%d" % dcid)
