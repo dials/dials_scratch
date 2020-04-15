@@ -5,6 +5,13 @@ import sys
 import time
 
 master = sys.argv[1]
+meta = sys.argv[1].replace("_master.h5", "_meta.h5")
+
+config = ""
+with h5py.File(meta, "r") as f:
+    config = f["config"][()]
+    print(config)
+
 try:
     dcid = int(sys.argv[2])
 except:
@@ -19,6 +26,8 @@ client = minio.Minio("localhost:9000", access_key=key, secret_key=pwd, secure=Fa
 # create a bucket for this DCID - if it already exists, will throw exception
 bucket = "%d" % dcid
 client.make_bucket(bucket, location="right-here-1")
+
+etag = client.put_object(bucket, "header", io.BytesIO(config), len(config))
 
 with h5py.File(master, "r") as f:
     idx = 0
@@ -60,8 +69,8 @@ t1 = time.time()
 print("{0} GB read back in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
 
 # now clean up
-for o in client.list_objects(bucket):
-    client.remove_object(o.bucket_name, o.object_name)
+# for o in client.list_objects(bucket):
+#    client.remove_object(o.bucket_name, o.object_name)
 
 # remove the bucket
-client.remove_bucket("%d" % dcid)
+# client.remove_bucket("%d" % dcid)
