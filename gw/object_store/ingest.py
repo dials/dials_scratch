@@ -70,8 +70,6 @@ def ingest(master, dcid):
 
 
 if __name__ == "__main__":
-    import sys
-
     master = sys.argv[1]
     dcid = int(sys.argv[2])
     ingest(master, dcid)

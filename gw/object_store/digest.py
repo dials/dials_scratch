@@ -64,7 +64,6 @@ class Digester(object):
             if item.object_name == "header":
                 continue
             image_number = int(item.object_name)
-            print(item.object_name)
             chunk = self._client.get_object(item.bucket_name, item.object_name).read()
             image = self.chunk_to_image(chunk)
             shoeboxes = image_to_shoeboxes(image)
@@ -82,7 +81,5 @@ def digest(dcid):
 
 
 if __name__ == "__main__":
-    import sys
-
     dcid = int(sys.argv[1])
     digest(dcid)
