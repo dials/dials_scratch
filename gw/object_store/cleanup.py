@@ -8,7 +8,7 @@ class Cleaner(object):
             "localhost:9000", access_key=username, secret_key=password, secure=False
         )
 
-    def clean(self, bucket):
+    def cleanup(self, bucket):
         """Remove every item from the bucket before removing the bucket"""
 
         for item in self._client.list_objects(bucket):
@@ -17,9 +17,9 @@ class Cleaner(object):
         self._client.remove_bucket(bucket)
 
 
-def cleanup(bucket):
+def cleanup(dcid):
     cleaner = Cleaner("localhost:9000", "hello", "k1tty-pass")
-    cleaner.cleanup(bucket)
+    cleaner.cleanup(str(dcid))
 
 
 if __name__ == "__main__":
