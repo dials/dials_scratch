@@ -13,9 +13,7 @@ def strip_not_integrated(integrated_data):
 
 def saturation_analysis(data_files, value_column):
     import six.moves.cPickle as pickle
-    import math
     from dials.array_family import flex
-    from dials.util.add_hash import add_hash, dehash
     from annlib_ext import AnnAdaptor as ann_adaptor
 
     reference = data_files[0]
