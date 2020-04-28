@@ -1,6 +1,4 @@
+Import("env")
 
-Import('env')
-
-env.SConscript('profile_model/SConscript', exports={ 'env' : env })
-env.SConscript('integration/SConscript', exports={ 'env' : env })
-
+env.SConscript("profile_model/SConscript", exports={"env": env})
+env.SConscript("integration/SConscript", exports={"env": env})

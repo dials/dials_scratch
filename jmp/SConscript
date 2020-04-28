@@ -1,37 +1,39 @@
-
-Import('env')
-
-env.SharedLibrary(
- target='#/lib/dials_scratch_jmp_stills_ext',
- source=['stills/boost_python/ext.cc'],
- LIBS=env["LIBS"])
+Import("env")
 
 env.SharedLibrary(
- target='#/lib/dials_scratch_jmp_potato_ext',
- source=['potato/boost_python/ext.cc'],
- LIBS=env["LIBS"])
+    target="#/lib/dials_scratch_jmp_stills_ext",
+    source=["stills/boost_python/ext.cc"],
+    LIBS=env["LIBS"],
+)
 
 env.SharedLibrary(
- target='#/lib/dials_scratch_jmp_merge_ext',
- source=['merge/boost_python/ext.cc'],
- LIBS=env["LIBS"])
+    target="#/lib/dials_scratch_jmp_potato_ext",
+    source=["potato/boost_python/ext.cc"],
+    LIBS=env["LIBS"],
+)
 
-#env.SharedLibrary(
+env.SharedLibrary(
+    target="#/lib/dials_scratch_jmp_merge_ext",
+    source=["merge/boost_python/ext.cc"],
+    LIBS=env["LIBS"],
+)
+
+# env.SharedLibrary(
 # target='#/lib/dials_scratch_jmp_stills_potato_ext',
 # source=['stills/potato/boost_python/ext.cc'],
 # LIBS=env["LIBS"])
 
-#env.SharedLibrary(
+# env.SharedLibrary(
 # target='#/lib/dials_scratch_jmp_fitting_ext',
 # source=['fitting/boost_python/ext.cc'],
 # LIBS=env["LIBS"])
 
-#env.SharedLibrary(
+# env.SharedLibrary(
 # target='#/lib/dials_scratch_jmp_sim_ext',
 # source=['sim/boost_python/ext.cc'],
 # LIBS=env["LIBS"])
 
-#env.SharedLibrary(
+# env.SharedLibrary(
 #  target='#/lib/dials_scratch_jmp_profile_modelling_ext',
 #  source=['profile_modelling/boost_python/ext.cc'],
 #  LIBS=env["LIBS"])
