@@ -1,11 +1,12 @@
-import minio
-import sys
 import ast
-import numpy
-import bitshuffle
+from argparse import ArgumentParser
 
-from dials.array_family import flex
+import bitshuffle
+import minio
+import numpy
+
 from dials.algorithms.spot_finding.threshold import DispersionThresholdStrategy
+from dials.array_family import flex
 from dials.model.data import PixelList, PixelListLabeller
 
 
@@ -81,5 +82,7 @@ def digest(dcid):
 
 
 if __name__ == "__main__":
-    dcid = int(sys.argv[1])
-    digest(dcid)
+    parser = ArgumentParser(description="Loads h5 images to object store")
+    parser.add_argument("dcid", metavar="DCID", type=int)
+    args = parser.parse_args()
+    digest(args.dcid)

@@ -1,8 +1,9 @@
-import minio
 import io
-import h5py
-import sys
 import time
+from argparse import ArgumentParser
+
+import h5py
+import minio
 
 
 class Ingester(object):
@@ -70,6 +71,8 @@ def ingest(master, dcid):
 
 
 if __name__ == "__main__":
-    master = sys.argv[1]
-    dcid = int(sys.argv[2])
-    ingest(master, dcid)
+    parser = ArgumentParser(description="Loads h5 images to object store")
+    parser.add_argument("filename", metavar="MASTER_FILE")
+    parser.add_argument("dcid", metavar="DCID", type=int)
+    args = parser.parse_args()
+    ingest(args.filename, args.dcid)

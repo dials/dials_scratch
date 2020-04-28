@@ -1,5 +1,6 @@
+from argparse import ArgumentParser
+
 import minio
-import sys
 
 
 class Cleaner(object):
@@ -23,5 +24,7 @@ def cleanup(dcid):
 
 
 if __name__ == "__main__":
-    dcid = int(sys.argv[1])
-    cleanup(dcid)
+    parser = ArgumentParser(description="Cleanup DCID from object store")
+    parser.add_argument("dcid", metavar="DCID", type=int)
+    args = parser.parse_args()
+    cleanup(args.dcid)
