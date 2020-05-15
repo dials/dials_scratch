@@ -19,7 +19,8 @@ class Ingester(object):
         images numbered from 1 as "000001" etc."""
 
         # FIXME add error trapping etc.
-        self._client.make_bucket(bucket, location="right-here-1")
+        self._client.make_bucket(bucket)
+        # if location is required: , location="right-here-1")
 
         with h5py.File(meta, "r") as f:
             config = f["config"][()]
