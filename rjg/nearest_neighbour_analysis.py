@@ -1,35 +1,28 @@
 from __future__ import absolute_import, division, print_function
 
-import libtbx.load_env
+import matplotlib
 import logging
+import sys
 
-logger = logging.getLogger(libtbx.env.dispatcher_name)
-
-try:
-    # try importing scipy.linalg before any cctbx modules, otherwise we
-    # sometimes get a segmentation fault/core dump if it is imported after
-    # scipy.linalg is a dependency of sklearn.cluster.DBSCAN
-    import scipy.linalg  # import dependency
-except ImportError as e:
-    pass
-
-import copy
-
-from libtbx.phil import command_line
 import iotbx.phil
+from cctbx import miller, sgtbx, uctbx
+
+from dials.algorithms.indexing.indexer import find_max_cell
+from dials.algorithms.indexing.indexer import max_cell_phil_str
+from dials.array_family import flex
+from dials.util import log
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections
 from dials.util.options import flatten_experiments
-from dials.array_family import flex
+from dials.util.version import dials_version
 
-import matplotlib
+
+logger = logging.getLogger(__name__)
 
 matplotlib.use("Agg")
 
 help_message = """
 """
-
-from dials.algorithms.indexing.indexer import max_cell_phil_str
 
 phil_scope = iotbx.phil.parse(
     """\
@@ -42,11 +35,9 @@ figsize = 12, 8
 
 
 def run(args):
-    import libtbx.load_env
-    from libtbx.utils import Sorry
-    from dials.util import log
-
-    usage = "%s [options] datablock.json strong.pickle" % libtbx.env.dispatcher_name
+    usage = (
+        "dev.dials.nearest_neighbour_analysis [options] datablock.json strong.pickle"
+    )
 
     parser = OptionParser(
         usage=usage,
@@ -60,12 +51,11 @@ def run(args):
     params, options = parser.parse_args(show_diff_phil=False)
 
     # Configure the logging
-    # log.config(
-    # params.verbosity,
-    # info=params.output.log,
-    # debug=params.output.debug_log)
-
-    from dials.util.version import dials_version
+    log.config(
+        options.verbose,
+        # info=params.output.log,
+        # debug=params.output.debug_log
+    )
 
     logger.info(dials_version())
 
@@ -83,19 +73,17 @@ def run(args):
         return
 
     if len(reflections) == 0:
-        raise Sorry("No reflection lists found in input")
+        raise sys.exit("No reflection lists found in input")
     if len(reflections) > 1:
-        # raise Sorry("Multiple reflections lists provided in input")
         assert len(reflections) == len(imagesets)
         for i in range(len(reflections)):
             reflections[i]["imageset_id"] = flex.int(len(reflections[i]), i)
             if i > 0:
                 reflections[0].extend(reflections[i])
 
-    # assert(len(reflections) == 1)
-    reflections_input = reflections[0]
-    if "imageset_id" not in reflections_input:
-        reflections_input["imageset_id"] = reflections_input["id"]
+    reflections = reflections[0]
+    if "imageset_id" not in reflections:
+        reflections["imageset_id"] = reflections["id"]
 
     for expt in experiments:
         if (
@@ -106,22 +94,9 @@ def run(args):
             expt.goniometer = None
             expt.scan = None
 
-    from dials.algorithms.indexing.indexer import Indexer
-
-    reflections = flex.reflection_table()
-
-    for i, expt in enumerate(experiments):
-        refl = reflections_input.select(reflections_input["imageset_id"] == i)
-        refl.centroid_px_to_mm(expt.detector, expt.scan)
-        refl.map_centroids_to_reciprocal_space(
-            expt.detector, expt.beam, expt.goniometer
-        )
-        refl["entering"] = Indexer.calculate_entering_flags(
-            refl, beam=expt.beam, goniometer=expt.goniometer
-        )
-        reflections.extend(refl)
-
-    from dials.algorithms.indexing.indexer import find_max_cell
+    reflections.centroid_px_to_mm(experiments)
+    reflections.map_centroids_to_reciprocal_space(experiments)
+    reflections.calculate_entering_flags(experiments)
 
     result = find_max_cell(
         reflections,
@@ -148,7 +123,6 @@ def run(args):
 
 
 def plot_d_spacings(reflections, figsize=(12, 8)):
-    from cctbx import miller, sgtbx, uctbx
     from matplotlib import pyplot as plt
 
     d_spacings = 1 / reflections["rlp"].norms()
@@ -336,7 +310,6 @@ def plot_d_spacings(reflections, figsize=(12, 8)):
 
 
 def plot_direct_space_distances(direct, d_spacings, figsize=(12, 8)):
-    from cctbx import uctbx
     from matplotlib import pyplot as plt
 
     plt.plot(direct, flex.double_range(direct.size()) / direct.size())
@@ -365,6 +338,4 @@ def plot_direct_space_distances(direct, d_spacings, figsize=(12, 8)):
 
 
 if __name__ == "__main__":
-    import sys
-
     run(sys.argv[1:])
