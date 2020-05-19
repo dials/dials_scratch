@@ -9,18 +9,17 @@ from __future__ import absolute_import, division, print_function
 import logging
 import sys
 
+import networkx as nx
+
+from annlib_ext import AnnAdaptor
 from cctbx import uctbx
 import libtbx.phil
 
-from dials.array_family import flex
-
-import dials.util
-
-import dials.util.log
-
-from dials.util.options import OptionParser, flatten_experiments, flatten_reflections
-
 from dxtbx.model import ExperimentList
+import dials.util.log
+from dials.array_family import flex
+from dials.report.analysis import scaled_data_as_miller_array
+from dials.util.options import OptionParser, flatten_experiments, flatten_reflections
 
 from typing import List
 
@@ -31,10 +30,8 @@ logger = logging.getLogger("dials.boilerplate")
 # Define the master PHIL scope for this program.
 phil_scope = libtbx.phil.parse(
     """
-    anomalous = True
-        .type = bool
-    expand_to_p1 = True
-        .type = bool
+    min_component_size = 50
+      .type = int(value_min=0)
     """
 )
 
@@ -42,8 +39,7 @@ phil_scope = libtbx.phil.parse(
 def do_connected_components(
     experiments,  # type: ExperimentList
     reflection_tables,  # type: flex.reflection_table
-    expand_to_p1=True,  # type: bool
-    anomalous=True, # type: bool
+    min_component_size=50, # type: int
 ):  # type: (...) -> [{}]
     """
     Write the behaviour of the program as functions and classes outside run().
@@ -58,29 +54,20 @@ def do_connected_components(
     Args:
         experiments:  An experiment list.
         reflections:  A reflection table.
-        params:       Some parameters, in the form of a scope_extract object,
-                      which is the usable form of a parsed PHIL scope.
     """
 
-    from dials.report.analysis import scaled_data_as_miller_array
-
-    miller_array = scaled_data_as_miller_array(reflection_tables, experiments).primitive_setting()
+    miller_array = scaled_data_as_miller_array(reflection_tables, experiments, anomalous_flag=False).primitive_setting()
     unique = miller_array.unique_under_symmetry().map_to_asu()
-    missing_set = unique.complete_set().lone_set(unique)
-    if anomalous:
-        missing_set = missing_set.as_anomalous_set()
-    else:
-        missing_set = missing_set.as_non_anomalous_set()
-    if expand_to_p1:
-        missing_set = missing_set.expand_to_p1()
+    unique = unique.generate_bijvoet_mates()
+    complete_set = unique.complete_set()
+    missing_set = complete_set.lone_set(unique)
+    missing_set = missing_set.expand_to_p1().customized_copy(crystal_symmetry=missing_set.crystal_symmetry())
 
-    from annlib_ext import AnnAdaptor
     mi = missing_set.indices().as_vec3_double().as_double()
     k = 6
     ann = AnnAdaptor(data=mi, dim=3, k=k)
     ann.query(mi)
 
-    import networkx as nx
     G = nx.Graph()
     distance_cutoff = 2**0.5
     for i in range(missing_set.size()):
@@ -91,12 +78,26 @@ def do_connected_components(
                 G.add_edge(i, j)
 
     conn = sorted(nx.connected_components(G), key=len, reverse=True)
-    conn = [c for c in conn if len(c) > 25]
-    for c in conn:
-        c_ms = missing_set.select(flex.size_t(list(c)))
-        d_max, d_min = (uctbx.d_star_sq_as_d(ds2) for ds2 in c_ms.min_max_d_star_sq())
-        logger.info("%s reflections: %.2f-%.2f Å" % (len(c), d_max, d_min))
-    return conn
+    unique_mi = []
+    unique_ms = []
+    for i, c in enumerate(conn):
+        ms = missing_set.select(flex.size_t(list(c))).customized_copy(
+            crystal_symmetry=miller_array
+        ).as_non_anomalous_set().map_to_asu()
+        ms = ms.unique_under_symmetry()
+        mi = set(ms.indices())
+        if mi not in unique_mi:
+            unique_ms.append(ms)
+            unique_mi.append(mi)
+
+    n_expected = unique.as_non_anomalous_set().complete_set().size()
+    unique_ms = sorted(unique_ms, key=lambda ms: ms.size(), reverse=True)
+    unique_ms = [ms for ms in unique_ms if ms.size() > min_component_size]
+    for ms in unique_ms:
+        d_max, d_min = (uctbx.d_star_sq_as_d(ds2) for ds2 in ms.min_max_d_star_sq())
+        logger.info("%i reflections (%.1f%%): %.2f-%.2f Å" % (ms.size(), 100 * ms.size()/n_expected, d_max, d_min))
+    return unique_ms
+
 
 def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> None
     """
@@ -150,8 +151,8 @@ def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> 
 
     # Do whatever this program is supposed to do.
     do_connected_components(experiments, reflections,
-                            anomalous=params.anomalous,
-                            expand_to_p1=params.expand_to_p1)
+                            min_component_size=params.min_component_size,
+                            )
 
 
 if __name__ == "__main__":
