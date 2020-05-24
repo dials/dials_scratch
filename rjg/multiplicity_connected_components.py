@@ -39,7 +39,7 @@ phil_scope = libtbx.phil.parse(
 def do_connected_components(
     experiments,  # type: ExperimentList
     reflection_tables,  # type: flex.reflection_table
-    min_component_size=50, # type: int
+    min_component_size=50,  # type: int
 ):  # type: (...) -> [{}]
     """
     Write the behaviour of the program as functions and classes outside run().
@@ -56,12 +56,16 @@ def do_connected_components(
         reflections:  A reflection table.
     """
 
-    miller_array = scaled_data_as_miller_array(reflection_tables, experiments, anomalous_flag=False).primitive_setting()
+    miller_array = scaled_data_as_miller_array(
+        reflection_tables, experiments, anomalous_flag=False
+    ).primitive_setting()
     unique = miller_array.unique_under_symmetry().map_to_asu()
     unique = unique.generate_bijvoet_mates()
     complete_set = unique.complete_set()
     missing_set = complete_set.lone_set(unique)
-    missing_set = missing_set.expand_to_p1().customized_copy(crystal_symmetry=missing_set.crystal_symmetry())
+    missing_set = missing_set.expand_to_p1().customized_copy(
+        crystal_symmetry=missing_set.crystal_symmetry()
+    )
 
     mi = missing_set.indices().as_vec3_double().as_double()
     k = 6
@@ -69,7 +73,7 @@ def do_connected_components(
     ann.query(mi)
 
     G = nx.Graph()
-    distance_cutoff = 2**0.5
+    distance_cutoff = 2 ** 0.5
     for i in range(missing_set.size()):
         ik = i * k
         for i_ann in range(k):
@@ -81,9 +85,12 @@ def do_connected_components(
     unique_mi = []
     unique_ms = []
     for i, c in enumerate(conn):
-        ms = missing_set.select(flex.size_t(list(c))).customized_copy(
-            crystal_symmetry=miller_array
-        ).as_non_anomalous_set().map_to_asu()
+        ms = (
+            missing_set.select(flex.size_t(list(c)))
+            .customized_copy(crystal_symmetry=miller_array)
+            .as_non_anomalous_set()
+            .map_to_asu()
+        )
         ms = ms.unique_under_symmetry()
         mi = set(ms.indices())
         if mi not in unique_mi:
@@ -95,7 +102,10 @@ def do_connected_components(
     unique_ms = [ms for ms in unique_ms if ms.size() > min_component_size]
     for ms in unique_ms:
         d_max, d_min = (uctbx.d_star_sq_as_d(ds2) for ds2 in ms.min_max_d_star_sq())
-        logger.info("%i reflections (%.1f%%): %.2f-%.2f Å" % (ms.size(), 100 * ms.size()/n_expected, d_max, d_min))
+        logger.info(
+            "%i reflections (%.1f%%): %.2f-%.2f Å"
+            % (ms.size(), 100 * ms.size() / n_expected, d_max, d_min)
+        )
     return unique_ms
 
 
@@ -146,13 +156,14 @@ def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> 
         assign_unique_identifiers,
         parse_multiple_datasets,
     )
+
     reflections = parse_multiple_datasets(reflections)
     experiments, reflections = assign_unique_identifiers(experiments, reflections)
 
     # Do whatever this program is supposed to do.
-    do_connected_components(experiments, reflections,
-                            min_component_size=params.min_component_size,
-                            )
+    do_connected_components(
+        experiments, reflections, min_component_size=params.min_component_size,
+    )
 
 
 if __name__ == "__main__":
