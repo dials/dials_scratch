@@ -1,0 +1,21 @@
+@startuml
+
+participant DAQ
+participant TOM
+database GPFS
+participant FileWatcher
+participant Spotfinder
+
+group each image
+    [->DAQ: Det
+    DAQ -> TOM: zmq
+    FileWatcher --> GPFS: poll
+    TOM -> GPFS: single file
+    GPFS --> FileWatcher
+    FileWatcher -> Spotfinder
+    Spotfinder -> GPFS
+    GPFS --> Spotfinder
+    Spotfinder ->]: result
+end
+@enduml
+

@@ -1,0 +1,23 @@
+@startuml
+
+participant DAQ
+participant CephWriter
+database CEPH
+control Zocalo
+participant Spotfinder
+
+Spotfinder --> Zocalo: subscribe
+group each image
+   [->DAQ: Det
+    DAQ -> CephWriter: zmq
+    CephWriter -> CEPH: image
+    CephWriter -> Zocalo: notify
+
+    ' Spotfinder -> Zocalo
+    Zocalo --> Spotfinder: notify
+    Spotfinder -> CEPH: fetch image
+    CEPH --> Spotfinder
+    Spotfinder ->]
+end
+@enduml
+
