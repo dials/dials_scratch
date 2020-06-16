@@ -15,11 +15,12 @@ from orderedset import OrderedSet
 from cctbx import miller, crystal
 
 
-def map_indices_to_asu(miller_indices, space_group, uc):
+def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     """Map the indices to the asymmetric unit."""
+    assert anom in (False, True)
     crystal_symmetry = crystal.symmetry(space_group=space_group, unit_cell=uc,)
     miller_set = miller.set(
-        crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=False
+        crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=anom
     )
     miller_set_in_asu = miller_set.map_to_asu()
     return miller_set_in_asu.indices(), miller_set_in_asu.d_spacings().data()
@@ -35,6 +36,7 @@ class Model(object):
             refls,
             intensity_choice=["scale", "profile", "sum"],
             partiality_threshold=0.4,
+            combine_partials=True,
         )
         intensity_s = scaled_refls["intensity.scale.value"]
         sigma_s = scaled_refls["intensity.scale.variance"] ** 0.5
@@ -44,6 +46,7 @@ class Model(object):
         uc = expts[0].crystal.get_unit_cell()
 
         asu_index_s, d_s = map_indices_to_asu(scaled_refls["miller_index"], sg, uc)
+        anom_index_s, _ = map_indices_to_asu(scaled_refls["miller_index"], sg, uc, anom=True)
 
         integrated_refls = scaled_refls
         intensity_u = integrated_refls["intensity.prf.value"]
@@ -51,6 +54,7 @@ class Model(object):
 
         isel_s = flex.sort_permutation(d_s, reverse=True)
         sorted_asu_s = asu_index_s.select(isel_s)
+        sorted_anom_s = anom_index_s.select(isel_s)
         scaled_groups = list(OrderedSet(sorted_asu_s))
 
         # use sorted indices
@@ -63,7 +67,7 @@ class Model(object):
         d_spacings = miller_set.d_spacings().data()
 
         Data = collections.namedtuple(
-            "Data", ["intensity", "sigma", "dose", "asu_index"]
+            "Data", ["intensity", "sigma", "dose", "asu_index", "anom_index"]
         )
 
         self.scaled_data = Data(
@@ -71,12 +75,14 @@ class Model(object):
             sigma=sigma_s.select(isel_s),
             dose=dose_s.select(isel_s),
             asu_index=sorted_asu_s,
+            anom_index=sorted_anom_s,
         )
         self.unscaled_data = Data(
             intensity=intensity_u.select(isel_s),
             sigma=sigma_u.select(isel_s),
             dose=dose_s.select(isel_s),
             asu_index=sorted_asu_s,
+            anom_index=sorted_anom_s,
         )
 
         self.scaled_groups = flex.miller_index(scaled_groups)
@@ -90,7 +96,9 @@ class Model(object):
         I = self.scaled_data.intensity.select(sel)
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
-        return d, I, s, self.visibility[0]
+        pairs = self.scaled_data.anom_index.select(sel)
+        anom = (pairs == pairs[0])
+        return d, I, s, self.visibility[0], anom
 
     def get_unscaled_data(self, idx=0):
         miller_idx = self.scaled_groups[idx]
@@ -98,7 +106,9 @@ class Model(object):
         I = self.unscaled_data.intensity.select(sel)
         s = self.unscaled_data.sigma.select(sel)
         d = self.unscaled_data.dose.select(sel)
-        return d, I, s, self.visibility[1]
+        pairs = self.unscaled_data.anom_index.select(sel)
+        anom = (pairs == pairs[0])
+        return d, I, s, self.visibility[1], anom
 
     def set_visible(self, label):
         if label == "unscaled":
@@ -150,15 +160,23 @@ class Viewer(object):
 
     def plot_main_chart(self, n=0):
         self.ax.set_title("Scaled intensity explorer")
-        x, y, err, vis = self.data.get_scaled_data(n)
+        x, y, err, vis, anom = self.data.get_scaled_data(n)
+        neg = ~anom
         if vis:
             self.ax.errorbar(
-                x, y, yerr=err, fmt="o", visible=vis, color="k", label="scaled"
+                x.select(anom), y.select(anom), yerr=err.select(anom), fmt="o", visible=vis, color="k", label="scaled"
             )
-        x1, y1, err1, vis = self.data.get_unscaled_data(n)
+            self.ax.errorbar(
+                x.select(neg), y.select(neg), yerr=err.select(neg), fmt="v", visible=vis, color="k",
+            )
+        x1, y1, err1, vis, anom = self.data.get_unscaled_data(n)
+        neg = ~anom
         if vis:
             self.ax.errorbar(
-                x1, y1, yerr=err1, fmt="o", visible=vis, color="b", label="unscaled"
+                x1.select(anom), y1.select(anom), yerr=err1.select(anom), fmt="o", visible=vis, color="b", label="unscaled",
+            )
+            self.ax.errorbar(
+                x1.select(neg), y1.select(neg), yerr=err1.select(neg), fmt="v", visible=vis, color="b",
             )
         self.ax.margins(x=0.1)
         self.ax.set_xlabel("Image number/dose")
