@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, CheckButtons, TextBox
 from dials.util.options import OptionParser, reflections_and_experiments_from_files
 from dials.array_family import flex
-from dials.util.filter_reflections import filter_reflection_table
+from dials.util.filter_reflections import SumAndPrfIntensityReducer, ScaleIntensityReducer
 from orderedset import OrderedSet
 from cctbx import miller, crystal
 
@@ -32,12 +32,14 @@ class Model(object):
         dose = flex.ceil(refls["xyzobs.px.value"].parts()[2])
         refls["dose"] = dose.iround()
 
-        scaled_refls = filter_reflection_table(
-            refls,
-            intensity_choice=["scale", "profile", "sum"],
-            partiality_threshold=0.4,
-            combine_partials=True,
-        )
+        # want to get scaled data with outliers
+        excluded = refls.get_flags(refls.flags.excluded_for_scaling) | refls.get_flags(refls.flags.user_excluded_in_scaling)
+        good = ~excluded
+        refls = refls.select(good) #still has outliers
+        refls = ScaleIntensityReducer.apply_scaling_factors(refls)
+        scaled_refls = SumAndPrfIntensityReducer.apply_scaling_factors(refls)
+        outliers = scaled_refls.get_flags(scaled_refls.flags.outlier_in_scaling)
+
         intensity_s = scaled_refls["intensity.scale.value"]
         sigma_s = scaled_refls["intensity.scale.variance"] ** 0.5
         dose_s = scaled_refls["dose"]
@@ -56,6 +58,7 @@ class Model(object):
         sorted_asu_s = asu_index_s.select(isel_s)
         sorted_anom_s = anom_index_s.select(isel_s)
         scaled_groups = list(OrderedSet(sorted_asu_s))
+        outliers_s = outliers.select(isel_s)
 
         # use sorted indices
         crystal_symmetry = crystal.symmetry(space_group=sg, unit_cell=uc)
@@ -67,7 +70,7 @@ class Model(object):
         d_spacings = miller_set.d_spacings().data()
 
         Data = collections.namedtuple(
-            "Data", ["intensity", "sigma", "dose", "asu_index", "anom_index"]
+            "Data", ["intensity", "sigma", "dose", "asu_index", "anom_index", "outliers"]
         )
 
         self.scaled_data = Data(
@@ -76,6 +79,7 @@ class Model(object):
             dose=dose_s.select(isel_s),
             asu_index=sorted_asu_s,
             anom_index=sorted_anom_s,
+            outliers=outliers_s,
         )
         self.unscaled_data = Data(
             intensity=intensity_u.select(isel_s),
@@ -83,6 +87,7 @@ class Model(object):
             dose=dose_s.select(isel_s),
             asu_index=sorted_asu_s,
             anom_index=sorted_anom_s,
+            outliers=outliers_s,
         )
 
         self.scaled_groups = flex.miller_index(scaled_groups)
@@ -96,9 +101,10 @@ class Model(object):
         I = self.scaled_data.intensity.select(sel)
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
+        outliers = self.scaled_data.outliers.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
         anom = (pairs == pairs[0])
-        return d, I, s, self.visibility[0], anom
+        return d, I, s, self.visibility[0], anom, outliers
 
     def get_unscaled_data(self, idx=0):
         miller_idx = self.scaled_groups[idx]
@@ -160,15 +166,34 @@ class Viewer(object):
 
     def plot_main_chart(self, n=0):
         self.ax.set_title("Scaled intensity explorer")
-        x, y, err, vis, anom = self.data.get_scaled_data(n)
+
+        # For scaled data, plot outliers separately and also separate anomalous pairs
+        x, y, err, vis, anom, outliers = self.data.get_scaled_data(n)
         neg = ~anom
         if vis:
+            n_outliers = outliers.count(True)
+            if n_outliers:
+                sel1 = ~outliers & anom
+                sel2 = ~outliers & ~anom
+            else:
+                sel1 = anom
+                sel2 = ~anom
             self.ax.errorbar(
-                x.select(anom), y.select(anom), yerr=err.select(anom), fmt="o", visible=vis, color="k", label="scaled"
+                x.select(sel1), y.select(sel1), yerr=err.select(sel1), fmt="o", visible=vis, color="k", label="scaled"
             )
             self.ax.errorbar(
-                x.select(neg), y.select(neg), yerr=err.select(neg), fmt="v", visible=vis, color="k",
+                x.select(sel2), y.select(sel2), yerr=err.select(sel2), fmt="v", visible=vis, color="k",
             )
+            if n_outliers:
+                sel3 = outliers & anom
+                sel4 = outliers & ~anom
+                self.ax.errorbar(
+                    x.select(sel3), y.select(sel3), yerr=err.select(sel3), fmt="o", visible=vis, color="r", label="outlier"
+                )
+                self.ax.errorbar(
+                    x.select(sel4), y.select(sel4), yerr=err.select(sel4), fmt="v", visible=vis, color="k",
+                )
+
         x1, y1, err1, vis, anom = self.data.get_unscaled_data(n)
         neg = ~anom
         if vis:
