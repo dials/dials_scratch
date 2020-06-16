@@ -63,12 +63,8 @@ def signal(imageset, indx):
 
     data = data.as_double()
 
-    from dxtbx import datablock
-
     spot_params = phil_scope.fetch(source=parse("min_spot_size=1")).extract()
-    threshold_function = SpotFinderFactory.configure_threshold(
-        spot_params, datablock.DataBlock([imageset])
-    )
+    threshold_function = SpotFinderFactory.configure_threshold(spot_params)
     peak_pixels = threshold_function.compute_threshold(data, ~bad)
     return peak_pixels
 

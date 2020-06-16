@@ -112,20 +112,7 @@ def run(args):
         spot_params = spot_phil.fetch(
             source=iotbx.phil.parse("min_spot_size=1")
         ).extract()
-        threshold_function = SpotFinderFactory.configure_threshold(
-            spot_params,
-            ExperimentList(
-                [
-                    Experiment(
-                        beam=imageset.get_beam(),
-                        detector=imageset.get_detector(),
-                        goniometer=imageset.get_goniometer(),
-                        scan=imageset.get_scan(),
-                        imageset=imageset,
-                    )
-                ]
-            ),
-        )
+        threshold_function = SpotFinderFactory.configure_threshold(spot_params)
         peak_pixels = threshold_function.compute_threshold(data, ~bad)
 
         if total is None:

@@ -38,7 +38,7 @@ def extract_signal_mask(data):
     spot_params = phil_scope.fetch(
         source=iotbx.phil.parse("spotfinder.threshold.dispersion.gain=1")
     ).extract()
-    threshold_function = SpotFinderFactory.configure_threshold(spot_params, None)
+    threshold_function = SpotFinderFactory.configure_threshold(spot_params)
     negative = data < 0
     signal = threshold_function.compute_threshold(data, ~negative)
 
