@@ -191,7 +191,7 @@ class Viewer(object):
                     x.select(sel3), y.select(sel3), yerr=err.select(sel3), fmt="o", visible=vis, color="r", label="outlier"
                 )
                 self.ax.errorbar(
-                    x.select(sel4), y.select(sel4), yerr=err.select(sel4), fmt="v", visible=vis, color="k",
+                    x.select(sel4), y.select(sel4), yerr=err.select(sel4), fmt="v", visible=vis, color="r",
                 )
 
         x1, y1, err1, vis, anom = self.data.get_unscaled_data(n)
