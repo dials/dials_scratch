@@ -5,6 +5,7 @@ Requires a scaled reflection table and experiments file (can be multi-dataset)
 Plots as a function of image number/"dose".
 """
 import sys
+import os
 import collections
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, CheckButtons, TextBox
@@ -13,7 +14,8 @@ from dials.array_family import flex
 from dials.util.filter_reflections import SumAndPrfIntensityReducer, ScaleIntensityReducer
 from orderedset import OrderedSet
 from cctbx import miller, crystal
-
+from iotbx.reflection_file_reader import any_reflection_file
+from dials_scratch.jbe.compare_dials_xds import read_xds_ascii, data_from_mtz
 
 def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     """Map the indices to the asymmetric unit."""
@@ -24,7 +26,6 @@ def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     )
     miller_set_in_asu = miller_set.map_to_asu()
     return miller_set_in_asu.indices(), miller_set_in_asu.d_spacings().data()
-
 
 class Model(object):
     def __init__(self, refls, expts):
@@ -49,7 +50,6 @@ class Model(object):
 
         asu_index_s, d_s = map_indices_to_asu(scaled_refls["miller_index"], sg, uc)
         anom_index_s, _ = map_indices_to_asu(scaled_refls["miller_index"], sg, uc, anom=True)
-
         integrated_refls = scaled_refls
         intensity_u = integrated_refls["intensity.prf.value"]
         sigma_u = flex.sqrt(integrated_refls["intensity.prf.variance"])
@@ -101,7 +101,10 @@ class Model(object):
         I = self.scaled_data.intensity.select(sel)
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
-        outliers = self.scaled_data.outliers.select(sel)
+        if self.scaled_data.outliers:
+            outliers = self.scaled_data.outliers.select(sel)
+        else:
+            outliers = None
         pairs = self.scaled_data.anom_index.select(sel)
         anom = (pairs == pairs[0])
         return d, I, s, self.visibility[0], anom, outliers
@@ -122,6 +125,103 @@ class Model(object):
         elif label == "scaled":
             self.visibility[0] = not self.visibility[0]
 
+class XDSModel(Model):
+    def __init__(self, xdsasciifile):
+
+        table, uc, sg = read_xds_ascii(xdsasciifile)
+        self.unscaled_data = None
+
+        asu_index_s, d_s = map_indices_to_asu(table["miller_index"], sg, uc)
+        anom_index_s, _ = map_indices_to_asu(table["miller_index"], sg, uc, anom=True)
+
+        intensity_s = table["intensity"]
+        sigma_s = table["sigma"]
+
+        isel_s = flex.sort_permutation(d_s, reverse=True)
+        sorted_asu_s = asu_index_s.select(isel_s)
+        sorted_anom_s = anom_index_s.select(isel_s)
+        scaled_groups = list(OrderedSet(sorted_asu_s))
+
+        # use sorted indices
+        crystal_symmetry = crystal.symmetry(space_group=sg, unit_cell=uc)
+        miller_set = miller.set(
+            crystal_symmetry=crystal_symmetry,
+            indices=flex.miller_index(scaled_groups),
+            anomalous_flag=False,
+        )
+        d_spacings = miller_set.d_spacings().data()
+
+        Data = collections.namedtuple(
+            "Data", ["intensity", "sigma", "dose", "asu_index", "anom_index", "outliers"]
+        )
+
+        self.scaled_data = Data(
+            intensity=intensity_s.select(isel_s),
+            sigma=sigma_s.select(isel_s),
+            dose=table["z"].select(isel_s),
+            asu_index=sorted_asu_s,
+            anom_index=sorted_anom_s,
+            outliers=None,
+        )
+
+        self.scaled_groups = flex.miller_index(scaled_groups)
+        self.d_spacings = d_spacings
+        self.visibility = [True, False]
+        self.current_miller_index = self.scaled_groups[0]
+
+class MTZModel(Model):
+    def __init__(self, mtzfile):
+        self.unscaled_data = None
+        table, uc, sg = data_from_mtz(mtzfile)
+        asu_index_s, d_s = map_indices_to_asu(table["miller_index"], sg, uc)
+        anom_index_s, _ = map_indices_to_asu(table["miller_index"], sg, uc, anom=True)
+
+        intensity_s = table["intensity"]
+        sigma_s = table["sigma"]
+        if "intensity.prf.value" in table:
+            intensity_u = table["intensity.prf.value"]
+            sigma_u = table["intensity.prf.sigma"]
+
+        isel_s = flex.sort_permutation(d_s, reverse=True)
+        sorted_asu_s = asu_index_s.select(isel_s)
+        sorted_anom_s = anom_index_s.select(isel_s)
+        scaled_groups = list(OrderedSet(sorted_asu_s))
+
+        # use sorted indices
+        crystal_symmetry = crystal.symmetry(space_group=sg, unit_cell=uc)
+        miller_set = miller.set(
+            crystal_symmetry=crystal_symmetry,
+            indices=flex.miller_index(scaled_groups),
+            anomalous_flag=False,
+        )
+        d_spacings = miller_set.d_spacings().data()
+
+        Data = collections.namedtuple(
+            "Data", ["intensity", "sigma", "dose", "asu_index", "anom_index", "outliers"]
+        )
+
+        self.scaled_data = Data(
+            intensity=intensity_s.select(isel_s),
+            sigma=sigma_s.select(isel_s),
+            dose=table["batch"].select(isel_s),
+            asu_index=sorted_asu_s,
+            anom_index=sorted_anom_s,
+            outliers=None,
+        )
+        if "intensity.prf.value" in table:
+            self.unscaled_data = Data(
+                intensity=intensity_u.select(isel_s),
+                sigma=sigma_u.select(isel_s),
+                dose=table["batch"].select(isel_s),
+                asu_index=sorted_asu_s,
+                anom_index=sorted_anom_s,
+                outliers=None,
+            )
+
+        self.scaled_groups = flex.miller_index(scaled_groups)
+        self.d_spacings = d_spacings
+        self.visibility = [True, False]
+        self.current_miller_index = self.scaled_groups[0]
 
 class Viewer(object):
     def __init__(self, data):
@@ -171,7 +271,9 @@ class Viewer(object):
         x, y, err, vis, anom, outliers = self.data.get_scaled_data(n)
         neg = ~anom
         if vis:
-            n_outliers = outliers.count(True)
+            n_outliers = 0
+            if outliers:
+                n_outliers = outliers.count(True)
             if n_outliers:
                 sel1 = ~outliers & anom
                 sel2 = ~outliers & ~anom
@@ -193,16 +295,16 @@ class Viewer(object):
                 self.ax.errorbar(
                     x.select(sel4), y.select(sel4), yerr=err.select(sel4), fmt="v", visible=vis, color="r",
                 )
-
-        x1, y1, err1, vis, anom = self.data.get_unscaled_data(n)
-        neg = ~anom
-        if vis:
-            self.ax.errorbar(
-                x1.select(anom), y1.select(anom), yerr=err1.select(anom), fmt="o", visible=vis, color="b", label="unscaled",
-            )
-            self.ax.errorbar(
-                x1.select(neg), y1.select(neg), yerr=err1.select(neg), fmt="v", visible=vis, color="b",
-            )
+        if self.data.unscaled_data:
+            x1, y1, err1, vis, anom = self.data.get_unscaled_data(n)
+            neg = ~anom
+            if vis:
+                self.ax.errorbar(
+                    x1.select(anom), y1.select(anom), yerr=err1.select(anom), fmt="o", visible=vis, color="b", label="unscaled",
+                )
+                self.ax.errorbar(
+                    x1.select(neg), y1.select(neg), yerr=err1.select(neg), fmt="v", visible=vis, color="b",
+                )
         self.ax.margins(x=0.1)
         self.ax.set_xlabel("Image number/dose")
         self.ax.set_ylabel("Intensity")
@@ -264,17 +366,32 @@ def run_viewer():
         check_format=False,
         epilog=__doc__,
     )
-    params, _ = parser.parse_args(show_diff_phil=False)
+    params, _, args = parser.parse_args(show_diff_phil=False, return_unhandled=True)
 
     if not params.input.experiments or not params.input.reflections:
-        parser.print_help()
-        sys.exit()
+        if args:
+            for arg in args:
+                assert os.path.isfile(arg), arg
+                reader = any_reflection_file(arg)
+                if reader.file_type() == "ccp4_mtz":
+                    data = MTZModel(arg)
+                    break
+                else:
+                    try:
+                        data = XDSModel(arg)
+                    except Exception:
+                        pass
+                    else:
+                        break
+        else:
+            parser.print_help()
+            sys.exit()
+    else:
+        reflections, experiments = reflections_and_experiments_from_files(
+            params.input.reflections, params.input.experiments
+        )
 
-    reflections, experiments = reflections_and_experiments_from_files(
-        params.input.reflections, params.input.experiments
-    )
-
-    data = Model(reflections[0], experiments)
+        data = Model(reflections[0], experiments)
     _ = Viewer(data)
 
 
