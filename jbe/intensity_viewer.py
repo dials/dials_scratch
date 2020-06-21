@@ -11,11 +11,15 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, CheckButtons, TextBox
 from dials.util.options import OptionParser, reflections_and_experiments_from_files
 from dials.array_family import flex
-from dials.util.filter_reflections import SumAndPrfIntensityReducer, ScaleIntensityReducer
+from dials.util.filter_reflections import (
+    SumAndPrfIntensityReducer,
+    ScaleIntensityReducer,
+)
 from orderedset import OrderedSet
 from cctbx import miller, crystal, uctbx, sgtbx
 from iotbx.reflection_file_reader import any_reflection_file
 from iotbx import mtz
+
 
 def data_from_mtz(filename):
 
@@ -97,12 +101,19 @@ def read_xds_ascii(filename):
                 I.append(float(vals[3]))
                 sigma.append(float(vals[4]))
                 xyz.append((float(vals[5]), float(vals[6]), float(vals[7])))
-                #assert
+                # assert
             elif line.startswith("!UNIT_CELL_CONSTANTS="):
                 vals = line.split()
                 uc = uctbx.unit_cell(
-                    parameters=(float(vals[1]), float(vals[2]), float(vals[3]),
-                        float(vals[4]), float(vals[5]), float(vals[6])))
+                    parameters=(
+                        float(vals[1]),
+                        float(vals[2]),
+                        float(vals[3]),
+                        float(vals[4]),
+                        float(vals[5]),
+                        float(vals[6]),
+                    )
+                )
             elif line.startswith("!SPACE_GROUP_NUMBER="):
                 sg = sgtbx.space_group_info(number=line.split()[1]).group()
 
@@ -115,6 +126,7 @@ def read_xds_ascii(filename):
     data["y"] = y
     data["z"] = z
     return data, uc, sg
+
 
 def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     """Map the indices to the asymmetric unit."""
@@ -134,9 +146,11 @@ def setup_dials_models(refls, expts):
     refls["dose"] = dose.iround()
 
     # want to get scaled data with outliers still present
-    excluded = refls.get_flags(refls.flags.excluded_for_scaling) | refls.get_flags(refls.flags.user_excluded_in_scaling)
+    excluded = refls.get_flags(refls.flags.excluded_for_scaling) | refls.get_flags(
+        refls.flags.user_excluded_in_scaling
+    )
     good = ~excluded
-    refls = refls.select(good) #still has outliers
+    refls = refls.select(good)  # still has outliers
     refls = ScaleIntensityReducer.apply_scaling_factors(refls)
     scaled_refls = SumAndPrfIntensityReducer.apply_scaling_factors(refls)
 
@@ -144,7 +158,9 @@ def setup_dials_models(refls, expts):
     uc = expts[0].crystal.get_unit_cell()
 
     asu_index_s, d_s = map_indices_to_asu(scaled_refls["miller_index"], sg, uc)
-    anom_index_s, _ = map_indices_to_asu(scaled_refls["miller_index"], sg, uc, anom=True)
+    anom_index_s, _ = map_indices_to_asu(
+        scaled_refls["miller_index"], sg, uc, anom=True
+    )
     ### finished initial setting up, now know indices
 
     ### Get relevant data and sort by asu index
@@ -187,8 +203,8 @@ def setup_dials_models(refls, expts):
     dials_unscaled = DialsUnScaledModel(unscaled_data)
     return [dials_scaled, dials_unscaled], scaled_groups, uc, sg
 
-class DialsScaledModel(object):
 
+class DialsScaledModel(object):
     def __init__(self, data, label="DIALS\nscaled"):
         self.scaled_data = data
         self.label = label
@@ -205,7 +221,7 @@ class DialsScaledModel(object):
         else:
             outliers = None
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == pairs[0])
+        anom = pairs == pairs[0]
         return d, I, s, anom, outliers
 
     def add_to_plot(self, ax, miller_idx):
@@ -224,23 +240,45 @@ class DialsScaledModel(object):
             sel1 = anom
             sel2 = ~anom
         ax.errorbar(
-            x.select(sel1), y.select(sel1), yerr=err.select(sel1), fmt="o", visible=True, color="k", label=self.label
+            x.select(sel1),
+            y.select(sel1),
+            yerr=err.select(sel1),
+            fmt="o",
+            visible=True,
+            color="k",
+            label=self.label,
         )
         ax.errorbar(
-            x.select(sel2), y.select(sel2), yerr=err.select(sel2), fmt="v", visible=True, color="k",
+            x.select(sel2),
+            y.select(sel2),
+            yerr=err.select(sel2),
+            fmt="v",
+            visible=True,
+            color="k",
         )
         if n_outliers:
             sel3 = outliers & anom
             sel4 = outliers & ~anom
             ax.errorbar(
-                x.select(sel3), y.select(sel3), yerr=err.select(sel3), fmt="o", visible=True, color="r", label=self.label+"\noutlier"
+                x.select(sel3),
+                y.select(sel3),
+                yerr=err.select(sel3),
+                fmt="o",
+                visible=True,
+                color="r",
+                label=self.label + "\noutlier",
             )
             ax.errorbar(
-                x.select(sel4), y.select(sel4), yerr=err.select(sel4), fmt="v", visible=True, color="r",
+                x.select(sel4),
+                y.select(sel4),
+                yerr=err.select(sel4),
+                fmt="v",
+                visible=True,
+                color="r",
             )
 
-class DialsUnScaledModel(object):
 
+class DialsUnScaledModel(object):
     def __init__(self, data, label="DIALS\nunscaled"):
         self.unscaled_data = data
         self.label = label
@@ -253,7 +291,7 @@ class DialsUnScaledModel(object):
         s = self.unscaled_data.sigma.select(sel)
         d = self.unscaled_data.dose.select(sel)
         pairs = self.unscaled_data.anom_index.select(sel)
-        anom = (pairs == pairs[0])
+        anom = pairs == pairs[0]
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -263,15 +301,25 @@ class DialsUnScaledModel(object):
         x1, y1, err1, anom = result
         neg = ~anom
         ax.errorbar(
-            x1.select(anom), y1.select(anom), yerr=err1.select(anom), fmt="o", visible=True, color="b", label=self.label,
+            x1.select(anom),
+            y1.select(anom),
+            yerr=err1.select(anom),
+            fmt="o",
+            visible=True,
+            color="b",
+            label=self.label,
         )
         ax.errorbar(
-            x1.select(neg), y1.select(neg), yerr=err1.select(neg), fmt="v", visible=True, color="b",
+            x1.select(neg),
+            y1.select(neg),
+            yerr=err1.select(neg),
+            fmt="v",
+            visible=True,
+            color="b",
         )
 
 
 class XDSModel(object):
-
     def __init__(self, data, label="XDS\nscaled"):
         self.scaled_data = data
         self.label = label
@@ -284,7 +332,7 @@ class XDSModel(object):
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == pairs[0])
+        anom = pairs == pairs[0]
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -295,10 +343,21 @@ class XDSModel(object):
         sel1 = anom
         sel2 = ~anom
         ax.errorbar(
-            x.select(sel1), y.select(sel1), yerr=err.select(sel1), fmt="o", visible=True, color="g", label=self.label
+            x.select(sel1),
+            y.select(sel1),
+            yerr=err.select(sel1),
+            fmt="o",
+            visible=True,
+            color="g",
+            label=self.label,
         )
         ax.errorbar(
-            x.select(sel2), y.select(sel2), yerr=err.select(sel2), fmt="v", visible=True, color="g",
+            x.select(sel2),
+            y.select(sel2),
+            yerr=err.select(sel2),
+            fmt="v",
+            visible=True,
+            color="g",
         )
 
 
@@ -330,8 +389,8 @@ def setup_xds_models(xdsasciifile):
 
     return [XDSModel(data)], scaled_groups, uc, sg
 
-class MTZModel(object):
 
+class MTZModel(object):
     def __init__(self, data, label="MTZ\nscaled"):
         self.scaled_data = data
         self.label = label
@@ -344,7 +403,7 @@ class MTZModel(object):
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == pairs[0])
+        anom = pairs == pairs[0]
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -357,18 +416,29 @@ class MTZModel(object):
         sel1 = anom
         sel2 = ~anom
         ax.errorbar(
-            x.select(sel1), y.select(sel1), yerr=err.select(sel1), fmt="o", visible=True, color="darkorange", label=self.label
+            x.select(sel1),
+            y.select(sel1),
+            yerr=err.select(sel1),
+            fmt="o",
+            visible=True,
+            color="darkorange",
+            label=self.label,
         )
         ax.errorbar(
-            x.select(sel2), y.select(sel2), yerr=err.select(sel2), fmt="v", visible=True, color="darkorange",
+            x.select(sel2),
+            y.select(sel2),
+            yerr=err.select(sel2),
+            fmt="v",
+            visible=True,
+            color="darkorange",
         )
+
 
 def setup_mtz_models(mtzfile):
 
     table, uc, sg = data_from_mtz(mtzfile)
     asu_index_s, d_s = map_indices_to_asu(table["miller_index"], sg, uc)
     anom_index_s, _ = map_indices_to_asu(table["miller_index"], sg, uc, anom=True)
-
 
     asu_index_s, d_s = map_indices_to_asu(table["miller_index"], sg, uc)
     anom_index_s, _ = map_indices_to_asu(table["miller_index"], sg, uc, anom=True)
@@ -397,7 +467,6 @@ def setup_mtz_models(mtzfile):
 
 
 class Model(object):
-
     def __init__(self, dataseries, scaled_groups, d_spacings):
 
         self.data_series = dataseries
@@ -420,7 +489,7 @@ class Viewer(object):
         if len(self.data.data_series[0]) > 1:
             self.labels = [d.label for d in self.data.data_series[0]]
         for d in self.data.data_series:
-            self.visibilities.append([True] + ([False] * (len(d)-1)))
+            self.visibilities.append([True] + ([False] * (len(d) - 1)))
 
         plt.subplots_adjust(left=0.3, bottom=0.3)
 
@@ -445,9 +514,13 @@ class Viewer(object):
         self.gno.valtext.set_text("")
 
         self.gno.on_changed(self.update)
-        if len(self.data.data_series[0]) > 1: #i.e. if we have DIALS data.
+        if len(self.data.data_series[0]) > 1:  # i.e. if we have DIALS data.
             rax = plt.axes([0.05, 0.7, 0.15, 0.2], facecolor=axcolor)
-            self.check = CheckButtons(rax, list(c.label for c in self.data.data_series[0]), self.visibilities[0])
+            self.check = CheckButtons(
+                rax,
+                list(c.label for c in self.data.data_series[0]),
+                self.visibilities[0],
+            )
             self.check.on_clicked(self.change_type)
 
         axbox = plt.axes(
@@ -465,7 +538,7 @@ class Viewer(object):
         self.visibilities[0][idx] = not self.visibilities[0][idx]
 
     def plot_main_chart(self, n=0):
-        #self.ax.set_title("Scaled intensity explorer")
+        # self.ax.set_title("Scaled intensity explorer")
 
         for vis, d, ax in zip(self.visibilities, self.data.data_series, self.ax):
             miller_idx = self.data.scaled_groups[n]
@@ -548,7 +621,9 @@ def run_viewer():
         params.input.reflections, params.input.experiments
     )
     if reflections and experiments:
-        dials_dataseries, groups, uc, sg = setup_dials_models(reflections[0], experiments)
+        dials_dataseries, groups, uc, sg = setup_dials_models(
+            reflections[0], experiments
+        )
         data_series.append(dials_dataseries)
         uclist.append(uc)
         sglist.append(sg)
@@ -582,15 +657,21 @@ def run_viewer():
     # generate final dpsacings from overall miller set and uc, sg
     sgs = [s.type().number() for s in sglist]
     if len(set(sgs)) > 1:
-        raise ValueError("Spacegroups not equal, found space group numbers: %s" % ",".join(str(s) for s in set(sgs)))
+        raise ValueError(
+            "Spacegroups not equal, found space group numbers: %s"
+            % ",".join(str(s) for s in set(sgs))
+        )
     for uc in uclist[1:]:
         if not uclist[0].is_similar_to(uc):
-            raise ValueError("""
+            raise ValueError(
+                """
 Unit cells must be similar to compare multiple datasets.
 Unit cells not similar:
 %s
 %s
-""" % (str(uclist[0]), str(uc)))
+"""
+                % (str(uclist[0]), str(uc))
+            )
 
     crystal_symmetry = crystal.symmetry(space_group=sglist[0], unit_cell=uclist[0])
     miller_set = miller.set(
