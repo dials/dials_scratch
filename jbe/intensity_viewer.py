@@ -221,7 +221,7 @@ class DialsScaledModel(object):
         else:
             outliers = None
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = pairs == pairs[0]
+        anom = (pairs == miller_idx)
         return d, I, s, anom, outliers
 
     def add_to_plot(self, ax, miller_idx):
@@ -291,7 +291,7 @@ class DialsUnScaledModel(object):
         s = self.unscaled_data.sigma.select(sel)
         d = self.unscaled_data.dose.select(sel)
         pairs = self.unscaled_data.anom_index.select(sel)
-        anom = pairs == pairs[0]
+        anom = (pairs == miller_idx)
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -332,7 +332,7 @@ class XDSModel(object):
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = pairs == pairs[0]
+        anom = (pairs == miller_idx)
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
