@@ -93,15 +93,19 @@ def read_xds_ascii(filename):
     uc = None
     sg = None
 
+    filetype = None
+    n_records = 0
+
     with open(filename, "r") as f:
         for line in f.readlines():
             vals = line.split()
-            if line[0] != "!" and len(vals) == 12:
-                hkl.append((int(vals[0]), int(vals[1]), int(vals[2])))
-                I.append(float(vals[3]))
-                sigma.append(float(vals[4]))
-                xyz.append((float(vals[5]), float(vals[6]), float(vals[7])))
-                # assert
+            if line.startswith("!NUMBER_OF_ITEMS_IN_EACH_DATA_RECORD="):
+                if line.split("=")[1].rstrip("\n") == "21":
+                    filetype = "integrated"
+                    n_records = 21
+                elif line.split("=")[1].rstrip("\n") == "12":
+                    filetype = "scaled"
+                    n_records = 12
             elif line.startswith("!UNIT_CELL_CONSTANTS="):
                 vals = line.split()
                 uc = uctbx.unit_cell(
@@ -116,6 +120,13 @@ def read_xds_ascii(filename):
                 )
             elif line.startswith("!SPACE_GROUP_NUMBER="):
                 sg = sgtbx.space_group_info(number=line.split()[1]).group()
+            if filetype:
+                if line[0] != "!" and len(vals) == n_records:
+                    hkl.append((int(vals[0]), int(vals[1]), int(vals[2])))
+                    I.append(float(vals[3]))
+                    sigma.append(float(vals[4]))
+                    xyz.append((float(vals[5]), float(vals[6]), float(vals[7])))
+
 
     data = flex.reflection_table()
     data["intensity"] = I
@@ -125,7 +136,7 @@ def read_xds_ascii(filename):
     data["x"] = x
     data["y"] = y
     data["z"] = z
-    return data, uc, sg
+    return data, uc, sg, filetype
 
 
 def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
@@ -362,7 +373,7 @@ class XDSModel(object):
 
 
 def setup_xds_models(xdsasciifile):
-    table, uc, sg = read_xds_ascii(xdsasciifile)
+    table, uc, sg, filetype = read_xds_ascii(xdsasciifile)
 
     asu_index_s, d_s = map_indices_to_asu(table["miller_index"], sg, uc)
     anom_index_s, _ = map_indices_to_asu(table["miller_index"], sg, uc, anom=True)
@@ -386,8 +397,12 @@ def setup_xds_models(xdsasciifile):
         asu_index=sorted_asu_s,
         anom_index=sorted_anom_s,
     )
-
-    return [XDSModel(data)], scaled_groups, uc, sg
+    label = None
+    if filetype == "integrated":
+        label = "XDS\nintegrated"
+    elif filetype == "scaled":
+        label = "XDS\nscaled"
+    return [XDSModel(data, label=label)], scaled_groups, uc, sg
 
 
 class MTZModel(object):
@@ -630,7 +645,7 @@ def run_viewer():
         allgroups.extend(flex.miller_index(groups))
     if args:
         for arg in args:
-            print("trying to read %s as an MTZ or XDS ascii file" % arg)
+            print("trying to read %s as an MTZ or XDS .HKL file" % arg)
             assert os.path.isfile(arg), arg
             reader = any_reflection_file(arg)
             if reader.file_type() == "ccp4_mtz":
@@ -643,6 +658,7 @@ def run_viewer():
                 try:
                     xds_dataseries, groups, uc, sg = setup_xds_models(arg)
                 except Exception as e:
+                    print("Error encountered trying to interpret file as XDS file:%s" % e)
                     pass
                 else:
                     data_series.append(xds_dataseries)
