@@ -89,7 +89,13 @@ class derpee:
             ["dials.find_spots", "input.expt", "nproc=8"], working_directory=work
         )
         result = procrunner.run(
-            ["dials.index", "input.expt", "strong.refl"], working_directory=work
+            [
+                "dials.index",
+                "input.expt",
+                "strong.refl",
+                "index_assignment.method=local",
+            ],
+            working_directory=work,
         )
         result = procrunner.run(
             ["dials.refine", "indexed.expt", "indexed.refl"], working_directory=work
