@@ -25,6 +25,11 @@ class derpee:
         self._osc = osc
         self._rng = rng
 
+        self._integrated = []
+        self._combined = None
+        self._symmetry = None
+        self._scaled = None
+
     def index(self):
         """Initial find spots and indexing: if it has been run already will
         just reload the results from the previous run."""
@@ -36,7 +41,8 @@ class derpee:
             self._experiment[0].crystal = indexed[0].crystal
             return
 
-        os.mkdir(work)
+        if not os.path.exists(work):
+            os.mkdir(work)
 
         # index from 0-5, 45-50 degree blocks - hard code on 0.1 degree frames
         # to start, do properly laters
@@ -78,7 +84,7 @@ class derpee:
 
         # count chunks in computer numbers
         for j, start in enumerate(range(self._rng[0] - 1, self._rng[1], size)):
-            self.integrate_chunk(j, (start, start + size))
+            self._integrated.append(self.integrate_chunk(j, (start, start + size)))
 
     def integrate_chunk(self, no, chunk):
         """Integrate a chunk of data: performs -
@@ -91,7 +97,14 @@ class derpee:
         somehow stash the data as read for spot finding and not need to
         read more times in the integration."""
 
-        work = os.path.join(self._root, "integrate%02d" % no)
+        work = os.path.join(self._root, "integrate%03d" % no)
+        if os.path.exists(work):
+            if all(
+                os.path.exists(os.path.join(work, f"integrated.{exten}"))
+                for exten in ["refl", "expt"]
+            ):
+                return work
+
         if not os.path.exists(work):
             os.mkdir(work)
 
@@ -131,12 +144,125 @@ class derpee:
             working_directory=work,
         )
 
-    def symmetry_scale(self):
-        """Collect together the data so far integrated, use e.g. multiplex to
-        combine, determine the symmetry and scale, or combine experiments
-        followed by dials.symmetry and dials.scale #TODO. Since the UB matrix
-        is in principle the same for each scan should be fine."""
-        pass
+        return work
+
+    def combine(self):
+        """Collect together the data so far integrated."""
+
+        work = os.path.join(self._root, "combine")
+
+        if os.path.exists(work):
+            if all(
+                os.path.exists(os.path.join(work, f"combined.{exten}"))
+                for exten in ["refl", "expt"]
+            ):
+                self._combined = work
+                return
+
+        if not os.path.exists(work):
+            os.mkdir(work)
+
+        assert self._integrated is not []
+
+        integrated = sum(
+            [
+                [
+                    os.path.join(directory, f"integrated.{exten}")
+                    for exten in ["refl", "expt"]
+                ]
+                for directory in sorted(self._integrated)
+            ],
+            [],
+        )
+
+        result = procrunner.run(
+            ["dials.combine_experiments"] + integrated, working_directory=work
+        )
+
+        self._combined = work
+
+    def symmetry(self):
+        """Take the combined data, determine the symmetry."""
+
+        assert self._combined is not None
+
+        work = os.path.join(self._root, "symmetry")
+
+        if os.path.exists(work):
+            if all(
+                os.path.exists(os.path.join(work, f"symmetrized.{exten}"))
+                for exten in ["refl", "expt"]
+            ):
+                self._symmetry = work
+                return work
+
+        if not os.path.exists(work):
+            os.mkdir(work)
+
+        result = procrunner.run(
+            ["dials.symmetry"]
+            + [
+                os.path.join(self._combined, f"combined.{exten}")
+                for exten in ["refl", "expt"]
+            ],
+            working_directory=work,
+        )
+
+        self._symmetry = work
+
+    def scale(self, d_min=None):
+        """Scale the data, to the resolution input or everything if unspecified.
+        If the data have been previously scaled, start from the scaled data
+        for sake of efficiency."""
+
+        work = os.path.join(self._root, "scale")
+
+        if os.path.exists(work):
+            if d_min is None and all(
+                os.path.exists(os.path.join(work, f"scaled.{exten}"))
+                for exten in ["refl", "expt"]
+            ):
+                self._scaled = work
+                return work
+
+        if not os.path.exists(work):
+            os.mkdir(work)
+
+        if self._scaled is not None:
+            source = os.path.join(self._scaled, "scaled")
+        else:
+            source = os.path.join(self._symmetry, "symmetrized")
+
+        command = ["dials.scale"]
+        if d_min is not None:
+            command.append(f"d_min={d_min}")
+
+        result = procrunner.run(
+            command + [f"{source}.{exten}" for exten in ["refl", "expt"]],
+            working_directory=work,
+        )
+
+        self._scaled = work
+
+    def resolution(self):
+        """Determine the resolution of the data after scaling."""
+
+        assert self._scaled
+
+        source = os.path.join(self._scaled, "scaled")
+
+        result = procrunner.run(
+            ["dials.resolutionizer"]
+            + [f"{source}.{exten}" for exten in ["refl", "expt"]],
+            working_directory=self._scaled,
+        )
+
+        d_min = None
+        for record in result["stdout"].split(b"\n"):
+            if record.startswith(b"Resolution cc_half:"):
+                d_min = float(record.split()[-1])
+
+        return d_min
 
 
 if __name__ == "__main__":
@@ -145,3 +271,8 @@ if __name__ == "__main__":
     derp = derpee(filenames)
     derp.index()
     derp.integrate()
+    derp.combine()
+    derp.symmetry()
+    derp.scale()
+    d_min = derp.resolution()
+    derp.scale(d_min=d_min)
