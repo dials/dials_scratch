@@ -26,6 +26,9 @@ class derpee:
         self._rng = rng
 
     def index(self):
+        """Initial find spots and indexing: if it has been run already will
+        just reload the results from the previous run."""
+
         work = os.path.join(self._root, "index")
         if os.path.exists(work):
             indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
@@ -65,14 +68,29 @@ class derpee:
         self._experiment[0].crystal = indexed[0].crystal
 
     def integrate(self):
+        """Integration of the complete scan: will split the data into 5 deg
+        chunks and spin the integration of each chunk off separately"""
+
         size = int(round(5 / self._osc[1]))
+
+        # need to figure out how to spin this off to somehing running on a
+        # cluster node... ideally want this called on many chunks at once
+
         # count chunks in computer numbers
         for j, start in enumerate(range(self._rng[0] - 1, self._rng[1], size)):
             self.integrate_chunk(j, (start, start + size))
 
     def integrate_chunk(self, no, chunk):
-        # need to figure out how to spin this off to somehing running on a
-        # cluster node...
+        """Integrate a chunk of data: performs -
+        - spot finding
+        - indexing by using the UB matrix determined above (quick)
+        - scan varying refinement
+        - integration
+        And works in the usual way for DIALS of using spots from every
+        image for modelling. This is designed to be data-local e.g. could
+        somehow stash the data as read for spot finding and not need to
+        read more times in the integration."""
+
         work = os.path.join(self._root, "integrate%02d" % no)
         if not os.path.exists(work):
             os.mkdir(work)
@@ -112,6 +130,13 @@ class derpee:
             ["dials.integrate", "refined.expt", "refined.refl", "nproc=8"],
             working_directory=work,
         )
+
+    def symmetry_scale(self):
+        """Collect together the data so far integrated, use e.g. multiplex to
+        combine, determine the symmetry and scale, or combine experiments
+        followed by dials.symmetry and dials.scale #TODO. Since the UB matrix
+        is in principle the same for each scan should be fine."""
+        pass
 
 
 if __name__ == "__main__":
