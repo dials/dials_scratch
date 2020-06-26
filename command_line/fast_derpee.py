@@ -22,7 +22,7 @@ class derpee:
 
         assert wedge >= 95
 
-        self._osc = osc[1]
+        self._osc = osc
         self._rng = rng
 
     def index(self):
@@ -40,8 +40,12 @@ class derpee:
         self._experiment.as_file(os.path.join(work, "input.expt"))
 
         blocks = [
-            (start + 1, start + int(round(5 / self._osc)))
-            for start in (0, int(round(45 / self._osc)), int(round(90 / self._osc)))
+            (start + 1, start + int(round(5 / self._osc[1])))
+            for start in (
+                0,
+                int(round(45 / self._osc[1])),
+                int(round(90 / self._osc[1])),
+            )
         ]
 
         result = procrunner.run(
@@ -61,7 +65,7 @@ class derpee:
         self._experiment[0].crystal = indexed[0].crystal
 
     def integrate(self):
-        size = int(round(5 / self._osc))
+        size = int(round(5 / self._osc[1]))
         # count chunks in computer numbers
         for j, start in enumerate(range(self._rng[0] - 1, self._rng[1], size)):
             self.integrate_chunk(j, (start, start + size))
@@ -80,6 +84,9 @@ class derpee:
         epochs = scan.get_epochs()[chunk[0] : chunk[1]]
         exp_times = scan.get_exposure_times()[chunk[0] : chunk[1]]
         scan.set_image_range((chunk[0] + 1, chunk[1]))
+        scan.set_oscillation(
+            (self._osc[0] + (chunk[0] - self._rng[0]) * self._osc[1], self._osc[1])
+        )
         scan.set_epochs(epochs)
         scan.set_exposure_times(exp_times)
         expt[0].scan = scan
