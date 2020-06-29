@@ -12,8 +12,7 @@ Introduction
 3. Index these spots, without making any effort to determine the
    symmetry
 4. Split the data into 5° blocks, and for each block:
-   i. slice down the input experiment to just the block, copy the
-      crystal model from step 3. into the imported experiment
+   i. slice down the input experiment to just the block, copy the crystal model from step 3. into the imported experiment
    ii. find spots on the block
    iii. index the data against the known UB matrix
    iv. refine (scan static + scan varying)
