@@ -127,7 +127,6 @@ def read_xds_ascii(filename):
                     sigma.append(float(vals[4]))
                     xyz.append((float(vals[5]), float(vals[6]), float(vals[7])))
 
-
     data = flex.reflection_table()
     data["intensity"] = I
     data["sigma"] = sigma
@@ -232,7 +231,7 @@ class DialsScaledModel(object):
         else:
             outliers = None
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom, outliers
 
     def add_to_plot(self, ax, miller_idx):
@@ -302,7 +301,7 @@ class DialsUnScaledModel(object):
         s = self.unscaled_data.sigma.select(sel)
         d = self.unscaled_data.dose.select(sel)
         pairs = self.unscaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -343,7 +342,7 @@ class XDSModel(object):
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -658,7 +657,9 @@ def run_viewer():
                 try:
                     xds_dataseries, groups, uc, sg = setup_xds_models(arg)
                 except Exception as e:
-                    print("Error encountered trying to interpret file as XDS file:%s" % e)
+                    print(
+                        "Error encountered trying to interpret file as XDS file:%s" % e
+                    )
                     pass
                 else:
                     data_series.append(xds_dataseries)
