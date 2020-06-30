@@ -7,7 +7,7 @@ import copy
 from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
 from dials_scratch.fp3 import even_blocks, index_blocks, format_phil_include
-from dials_scratch.fp3 import nproc
+from dials_scratch.fp3 import nproc, combine_reflections, combine_experiments
 
 scope = phil.parse(
     """
@@ -221,20 +221,13 @@ class FP3:
 
         assert self._integrated is not []
 
-        integrated = sum(
-            [
-                [
-                    os.path.join(directory, f"integrated.{exten}")
-                    for exten in ["refl", "expt"]
-                ]
-                for directory in sorted(self._integrated)
-            ],
-            [],
-        )
+        integrated_refl = [os.path.join(directory, "integrated.refl")
+                           for directory in sorted(self._integrated)]
+        integrated_expt = [os.path.join(directory, "integrated.expt")
+                           for directory in sorted(self._integrated)]
 
-        result = procrunner.run(
-            ["dials.combine_experiments"] + integrated, working_directory=work
-        )
+        combine_reflections(integrated_refl, os.path.join(work, "combined.refl"))
+        combine_experiments(integrated_expt, os.path.join(work, "combined.expt"))
 
         self._combined = work
 
