@@ -4,14 +4,52 @@ import os
 import glob
 import copy
 
+from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
-from dials_scratch.fp3 import even_blocks, index_blocks
+from dials_scratch.fp3 import even_blocks, index_blocks, format_phil_include
+from dials_scratch.fp3 import nproc
+
+scope = phil.parse(
+    """
+find_spots {
+  include scope dials.command_line.find_spots.phil_scope
+}
+index {
+  include scope dials.command_line.index.phil_scope
+}
+refine {
+  include scope dials.command_line.refine.phil_scope
+}
+integrate {
+  include scope dials.command_line.integrate.phil_scope
+}
+symmetry {
+  include scope dials.command_line.symmetry.phil_scope
+}
+scale {
+  include scope dials.command_line.scale.phil_scope
+}
+resolution {
+  include scope dials.command_line.resolutionizer.phil_scope
+}
+""",
+    process_includes=True,
+)
+
 
 class FP3:
-    def __init__(self, filenames):
+    def __init__(self, filenames, params):
         self._experiment = ExperimentListFactory.from_filenames(filenames)
+
+        # parse PHIL parameters
+        clai = scope.command_line_argument_interpreter()
+        self._working = scope.fetch(clai.process_and_fetch(params))
+
+        print(scope.fetch_diff(self._working).as_str())
+
         self._crystal = None
         self._root = os.getcwd()
+        self._n = nproc()
 
         # quick checks...
         scan = self._experiment[0].scan
@@ -25,6 +63,20 @@ class FP3:
         self._combined = None
         self._symmetry = None
         self._scaled = None
+
+    def _write_phil(self, what, where):
+        """helper function: extract (what) from global scope and write as
+        (where)/(what).phil iff it contains anything. If file written,
+        returns [filename] else [] to allow straight command-line adding."""
+
+        phil = format_phil_include(scope, self._working, what).strip()
+        if not phil:
+            return []
+
+        out = os.path.join(where, f"{what}.phil")
+        with open(out, "w") as f:
+            f.write(phil)
+        return [out]
 
     def index(self):
         """Initial find spots and indexing: if it has been run already will
@@ -44,18 +96,21 @@ class FP3:
 
         five = int(round(5 / self._osc[1]))
         i0, i1 = self._rng
-        blocks = [(b[0]+1, b[1]) for b in index_blocks(i0-1, i1, self._osc[1])]
+        blocks = [(b[0] + 1, b[1]) for b in index_blocks(i0 - 1, i1, self._osc[1])]
 
+        phil = self._write_phil("find_spots", work)
         result = procrunner.run(
-            ["dials.find_spots", "input.expt", "nproc=8"]
+            ["dials.find_spots", "input.expt", "nproc=%d" % self._n]
+            + phil
             + ["scan_range=%d,%d" % block for block in blocks],
             working_directory=work,
         )
 
         # let's just assume that was fine - so index
 
+        phil = self._write_phil("index", work)
         result = procrunner.run(
-            ["dials.index", "input.expt", "strong.refl"], working_directory=work
+            ["dials.index", "input.expt", "strong.refl"] + phil, working_directory=work
         )
 
         indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
@@ -67,10 +122,10 @@ class FP3:
         chunks and spin the integration of each chunk off separately"""
 
         rng = self._rng
-        
+
         nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
         blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
-        
+
         # need to figure out how to spin this off to somehing running on a
         # cluster node... ideally want this called on many blocks at once
 
@@ -114,24 +169,35 @@ class FP3:
         expt[0].scan = scan
 
         expt.as_file(os.path.join(work, "input.expt"))
+
+        phil = self._write_phil("find_spots", work)
         result = procrunner.run(
-            ["dials.find_spots", "input.expt", "nproc=8"], working_directory=work
+            ["dials.find_spots", "input.expt", "nproc=%d" % self._n] + phil,
+            working_directory=work,
         )
+
+        phil = self._write_phil("index", work)
         result = procrunner.run(
             [
                 "dials.index",
                 "input.expt",
                 "strong.refl",
                 "index_assignment.method=local",
-            ],
+            ]
+            + phil,
             working_directory=work,
         )
+
+        phil = self._write_phil("refine", work)
         result = procrunner.run(
-            ["dials.refine", "indexed.expt", "indexed.refl"], working_directory=work
+            ["dials.refine", "indexed.expt", "indexed.refl"] + phil,
+            working_directory=work,
         )
 
+        phil = self._write_phil("integrate", work)
         result = procrunner.run(
-            ["dials.integrate", "refined.expt", "refined.refl", "nproc=8"],
+            ["dials.integrate", "refined.expt", "refined.refl", "nproc=%d" % self._n]
+            + phil,
             working_directory=work,
         )
 
@@ -190,8 +256,10 @@ class FP3:
         if not os.path.exists(work):
             os.mkdir(work)
 
+        phil = self._write_phil("symmetry", work)
         result = procrunner.run(
             ["dials.symmetry"]
+            + phil
             + [
                 os.path.join(self._combined, f"combined.{exten}")
                 for exten in ["refl", "expt"]
@@ -224,7 +292,8 @@ class FP3:
         else:
             source = os.path.join(self._symmetry, "symmetrized")
 
-        command = ["dials.scale"]
+        phil = self._write_phil("scale", work)
+        command = ["dials.scale"] + phil
         if d_min is not None:
             command.append(f"d_min={d_min}")
 
@@ -242,8 +311,10 @@ class FP3:
 
         source = os.path.join(self._scaled, "scaled")
 
+        phil = self._write_phil("resolution", work)
         result = procrunner.run(
             ["dials.resolutionizer"]
+            + phil
             + [f"{source}.{exten}" for exten in ["refl", "expt"]],
             working_directory=self._scaled,
         )
@@ -257,9 +328,11 @@ class FP3:
 
 
 if __name__ == "__main__":
-    filenames = sum(map(glob.glob, sys.argv[1:]), [])
+    args = [arg for arg in sys.argv[1:] if not "=" in arg]
+    params = [arg for arg in sys.argv[1:] if "=" in arg]
+    filenames = sum(map(glob.glob, args), [])
 
-    fp3 = FP3(filenames)
+    fp3 = FP3(filenames, params)
     fp3.index()
     fp3.integrate()
     fp3.combine()
