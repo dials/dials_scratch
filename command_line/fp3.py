@@ -7,7 +7,7 @@ import copy
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
 from dials_scratch.fp3 import even_blocks, index_blocks
 
-class fp3:
+class FP3:
     def __init__(self, filenames):
         self._experiment = ExperimentListFactory.from_filenames(filenames)
         self._crystal = None
@@ -259,11 +259,11 @@ class fp3:
 if __name__ == "__main__":
     filenames = sum(map(glob.glob, sys.argv[1:]), [])
 
-    derp = fp3(filenames)
-    derp.index()
-    derp.integrate()
-    derp.combine()
-    derp.symmetry()
-    derp.scale()
-    d_min = derp.resolution()
-    derp.scale(d_min=d_min)
+    fp3 = FP3(filenames)
+    fp3.index()
+    fp3.integrate()
+    fp3.combine()
+    fp3.symmetry()
+    fp3.scale()
+    d_min = fp3.resolution()
+    fp3.scale(d_min=d_min)
