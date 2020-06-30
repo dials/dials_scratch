@@ -48,12 +48,15 @@ class fp3:
         # to start, do properly laters
         self._experiment.as_file(os.path.join(work, "input.expt"))
 
+        five = int(round(5 / self._osc[1]))
+        i0, i1 = self._rng
+        
         blocks = [
-            (start + 1, start + int(round(5 / self._osc[1])))
+            (start, start + five - 1)
             for start in (
-                0,
-                int(round(45 / self._osc[1])),
-                int(round(90 / self._osc[1])),
+                i0,
+                i0 + int(round(45 / self._osc[1])),
+                i0 + int(round(90 / self._osc[1])),
             )
         ]
 
