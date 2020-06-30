@@ -311,7 +311,9 @@ class FP3:
 
         source = os.path.join(self._scaled, "scaled")
 
+        work = os.path.join(self._root, "scale")
         phil = self._write_phil("resolution", work)
+
         result = procrunner.run(
             ["dials.resolutionizer"]
             + phil
