@@ -7,7 +7,7 @@ import copy
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
 
 
-class derpee:
+class fp3:
     def __init__(self, filenames):
         self._experiment = ExperimentListFactory.from_filenames(filenames)
         self._crystal = None
@@ -268,7 +268,7 @@ class derpee:
 if __name__ == "__main__":
     filenames = sum(map(glob.glob, sys.argv[1:]), [])
 
-    derp = derpee(filenames)
+    derp = fp3(filenames)
     derp.index()
     derp.integrate()
     derp.combine()
