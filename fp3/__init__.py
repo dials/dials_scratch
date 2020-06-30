@@ -1,3 +1,3 @@
-from .util import even_blocks
+from .util import even_blocks, index_blocks
 
-__all__ = ["even_blocks"]
+__all__ = ["even_blocks", "index_blocks"]
