@@ -5,7 +5,7 @@ import glob
 import copy
 
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
-
+from dials_scratch.fp3 import even_blocks
 
 class fp3:
     def __init__(self, filenames):
@@ -80,14 +80,16 @@ class fp3:
         """Integration of the complete scan: will split the data into 5 deg
         chunks and spin the integration of each chunk off separately"""
 
-        size = int(round(5 / self._osc[1]))
-
+        rng = self._rng
+        
+        nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
+        blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
+        
         # need to figure out how to spin this off to somehing running on a
-        # cluster node... ideally want this called on many chunks at once
+        # cluster node... ideally want this called on many blocks at once
 
-        # count chunks in computer numbers
-        for j, start in enumerate(range(self._rng[0] - 1, self._rng[1], size)):
-            self._integrated.append(self.integrate_chunk(j, (start, start + size)))
+        for j, block in enumerate(blocks):
+            self._integrated.append(self.integrate_chunk(j, block))
 
     def integrate_chunk(self, no, chunk):
         """Integrate a chunk of data: performs -
