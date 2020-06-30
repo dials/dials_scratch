@@ -5,7 +5,7 @@ import glob
 import copy
 
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
-from dials_scratch.fp3 import even_blocks
+from dials_scratch.fp3 import even_blocks, index_blocks
 
 class fp3:
     def __init__(self, filenames):
@@ -17,10 +17,6 @@ class fp3:
         scan = self._experiment[0].scan
         osc = scan.get_oscillation()
         rng = scan.get_image_range()
-
-        wedge = osc[1] * (rng[1] - rng[0] + 1)
-
-        assert wedge >= 95
 
         self._osc = osc
         self._rng = rng
@@ -44,21 +40,11 @@ class fp3:
         if not os.path.exists(work):
             os.mkdir(work)
 
-        # index from 0-5, 45-50 degree blocks - hard code on 0.1 degree frames
-        # to start, do properly laters
         self._experiment.as_file(os.path.join(work, "input.expt"))
 
         five = int(round(5 / self._osc[1]))
         i0, i1 = self._rng
-        
-        blocks = [
-            (start, start + five - 1)
-            for start in (
-                i0,
-                i0 + int(round(45 / self._osc[1])),
-                i0 + int(round(90 / self._osc[1])),
-            )
-        ]
+        blocks = [(b[0]+1, b[1]) for b in index_blocks(i0-1, i1, self._osc[1])]
 
         result = procrunner.run(
             ["dials.find_spots", "input.expt", "nproc=8"]
