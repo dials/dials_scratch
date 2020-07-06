@@ -154,19 +154,9 @@ class FP3:
         if not os.path.exists(work):
             os.mkdir(work)
 
-        expt = copy.deepcopy(self._experiment)
-
         # fix up the scan to correspond to input chunk
-        scan = expt[0].scan
-        epochs = scan.get_epochs()[chunk[0] : chunk[1]]
-        exp_times = scan.get_exposure_times()[chunk[0] : chunk[1]]
-        scan.set_image_range((chunk[0] + 1, chunk[1]))
-        scan.set_oscillation(
-            (self._osc[0] + (chunk[0] - self._rng[0]) * self._osc[1], self._osc[1])
-        )
-        scan.set_epochs(epochs)
-        scan.set_exposure_times(exp_times)
-        expt[0].scan = scan
+        expt = copy.deepcopy(self._experiment)
+        expt[0].scan = expt[0].scan[chunk[0] : chunk[1]]
 
         expt.as_file(os.path.join(work, "input.expt"))
 
@@ -221,10 +211,14 @@ class FP3:
 
         assert self._integrated is not []
 
-        integrated_refl = [os.path.join(directory, "integrated.refl")
-                           for directory in sorted(self._integrated)]
-        integrated_expt = [os.path.join(directory, "integrated.expt")
-                           for directory in sorted(self._integrated)]
+        integrated_refl = [
+            os.path.join(directory, "integrated.refl")
+            for directory in sorted(self._integrated)
+        ]
+        integrated_expt = [
+            os.path.join(directory, "integrated.expt")
+            for directory in sorted(self._integrated)
+        ]
 
         combine_reflections(integrated_refl, os.path.join(work, "combined.refl"))
         combine_experiments(integrated_expt, os.path.join(work, "combined.expt"))
