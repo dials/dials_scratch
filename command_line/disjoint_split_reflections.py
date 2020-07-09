@@ -1,7 +1,8 @@
 # LIBTBX_SET_DISPATCHER_NAME dev.dials.disjoint_split_reflections
 """Split a reflection table into N disjoint sets where observations for each
-unique Miller index are split evenly. When N=2 this is the procedure used
-in the CC1/2 calculation"""
+unique Miller index are split evenly. When N=2 this is similar to the procedure
+used in the CC1/2 calculation. By cycling through the set assignments, this
+version produces sets that differ in length by only a single reflection"""
 
 from __future__ import absolute_import, division
 from __future__ import print_function
@@ -64,6 +65,7 @@ def split_reflections(experiments, reflections, params):
     for uniq in set(asu_set.indices()):
         sel = (reflections["miller_index"] == uniq).iselection()
         vals = flex.size_t(next(cyc) for i in sel)
+        vals = vals.select(flex.random_permutation(len(vals)))
         reflections["disjoint_set"].set_selected(sel, vals)
 
     # Now split the table
