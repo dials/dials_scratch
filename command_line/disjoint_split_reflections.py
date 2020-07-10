@@ -79,7 +79,7 @@ def split_reflections(experiments, reflections, params):
     for i, refls in enumerate(splits):
         fname = (
             params.output.reflections_prefix
-            + "_{:02d}_{:02d}".format(i, len(splits))
+            + "_{:d}_of_{:d}".format(i + 1, len(splits))
             + ".refl"
         )
         logger.info("Writing {:d} reflections to {}".format(len(refls), fname))
