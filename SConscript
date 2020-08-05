@@ -1,6 +1,7 @@
 import libtbx.load_env
 import os
 import platform
+from libtbx.env_config import get_boost_library_with_python_version
 
 Import("env_etc")
 
@@ -25,8 +26,14 @@ if not env_etc.no_boost_python and hasattr(env_etc, "boost_adaptbx_include"):
         ],
     )
     env.SharedLibrary(target="#lib/dials_scratch_ext", source=["ext.cpp"])
+    if libtbx.env.build_options.use_conda:
+        boost_python = get_boost_library_with_python_version(
+            "boost_python", env_etc.conda_libpath
+        )
+    else:
+        boost_python = "boost_python"
 
-    env.Append(LIBS=env_etc.libm + ["scitbx_boost_python", "boost_python", "cctbx"])
+    env.Append(LIBS=env_etc.libm + ["scitbx_boost_python", boost_python, "cctbx"])
     env.SConscript("idy/algorithms/spot_prediction/SConscript", exports={"env": env})
     env.SConscript("dgw/cctbx_cpp_examples/SConscript", exports={"env": env})
     env.SConscript("jmp/SConscript", exports={"env": env})
