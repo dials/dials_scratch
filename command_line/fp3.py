@@ -3,6 +3,7 @@ import sys
 import os
 import glob
 import copy
+import concurrent.futures
 
 from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
@@ -32,6 +33,14 @@ scale {
 resolution {
   include scope dials.command_line.estimate_resolution.phil_scope
 }
+parallelism = *process drmaa
+  .type = choice
+max_workers = 1
+  .type = int
+  .help = "Maximum number of concurrent workers"
+worker_nproc = 1
+  .type = int
+  .help = "Number of processes for each worker"
 """,
     process_includes=True,
 )
@@ -44,6 +53,7 @@ class FP3:
         # parse PHIL parameters
         clai = scope.command_line_argument_interpreter()
         self._working = scope.fetch(clai.process_and_fetch(params))
+        self._params = self._working.extract()
 
         print(scope.fetch_diff(self._working).as_str())
 
@@ -126,11 +136,14 @@ class FP3:
         nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
         blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
 
-        # need to figure out how to spin this off to somehing running on a
-        # cluster node... ideally want this called on many blocks at once
-
-        for j, block in enumerate(blocks):
-            self._integrated.append(self.integrate_chunk(j, block))
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=self._params.max_workers
+        ) as pool:
+            jobs = []
+            for j, block in enumerate(blocks):
+                jobs.append(pool.submit(self.integrate_chunk, j, block))
+            for job in concurrent.futures.as_completed(jobs):
+                self._integrated.append(job.result())
 
     def integrate_chunk(self, no, chunk):
         """Integrate a chunk of data: performs -
@@ -142,6 +155,9 @@ class FP3:
         image for modelling. This is designed to be data-local e.g. could
         somehow stash the data as read for spot finding and not need to
         read more times in the integration."""
+
+        # FIXME this should probably be logging
+        print(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
         work = os.path.join(self._root, "integrate%03d" % no)
         if os.path.exists(work):
@@ -161,9 +177,14 @@ class FP3:
         expt.as_file(os.path.join(work, "input.expt"))
 
         phil = self._write_phil("find_spots", work)
+        # FIXME nproc here depends on max_workers and parallelism mode
+        np = self._params.worker_nproc
+
         result = procrunner.run(
-            ["dials.find_spots", "input.expt", "nproc=%d" % self._n] + phil,
+            ["dials.find_spots", "input.expt", f"nproc={np}"] + phil,
             working_directory=work,
+            print_stdout=False,
+            print_stderr=False,
         )
 
         phil = self._write_phil("index", work)
@@ -176,19 +197,25 @@ class FP3:
             ]
             + phil,
             working_directory=work,
+            print_stdout=False,
+            print_stderr=False,
         )
 
         phil = self._write_phil("refine", work)
         result = procrunner.run(
             ["dials.refine", "indexed.expt", "indexed.refl"] + phil,
             working_directory=work,
+            print_stdout=False,
+            print_stderr=False,
         )
 
         phil = self._write_phil("integrate", work)
+        # FIXME nproc here depends on max_workers and parallelism mode
         result = procrunner.run(
-            ["dials.integrate", "refined.expt", "refined.refl", "nproc=%d" % self._n]
-            + phil,
+            ["dials.integrate", "refined.expt", "refined.refl", f"nproc={np}"] + phil,
             working_directory=work,
+            print_stdout=False,
+            print_stderr=False,
         )
 
         return work
