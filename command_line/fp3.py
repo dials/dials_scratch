@@ -30,7 +30,7 @@ scale {
   include scope dials.command_line.scale.phil_scope
 }
 resolution {
-  include scope dials.command_line.resolutionizer.phil_scope
+  include scope dials.command_line.estimate_resolution.phil_scope
 }
 """,
     process_includes=True,
@@ -302,7 +302,7 @@ class FP3:
         phil = self._write_phil("resolution", work)
 
         result = procrunner.run(
-            ["dials.resolutionizer"]
+            ["dials.estimate_resolution"]
             + phil
             + [f"{source}.{exten}" for exten in ["refl", "expt"]],
             working_directory=self._scaled,
