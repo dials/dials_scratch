@@ -156,6 +156,8 @@ class FP3:
         somehow stash the data as read for spot finding and not need to
         read more times in the integration."""
 
+        self.integrate_chunk_script(no, chunk)
+
         # FIXME this should probably be logging
         print(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
@@ -217,6 +219,85 @@ class FP3:
             print_stdout=False,
             print_stderr=False,
         )
+
+        return work
+
+    def integrate_chunk_script(self, no, chunk):
+        """Integrate a chunk of data: performs -
+        - spot finding
+        - indexing by using the UB matrix determined above (quick)
+        - scan varying refinement
+        - integration
+        And works in the usual way for DIALS of using spots from every
+        image for modelling. This is designed to be data-local e.g. could
+        somehow stash the data as read for spot finding and not need to
+        read more times in the integration. This writes one script for
+        submission to a cluster to do the processing."""
+
+        # FIXME this should probably be logging
+        print(f"Writing script {no} for images {chunk[0]} to {chunk[1]}")
+
+        # first check if there is nothing to be done here
+        work = os.path.join(self._root, "integrate%03d" % no)
+        if os.path.exists(work):
+            if all(
+                os.path.exists(os.path.join(work, f"integrated.{exten}"))
+                for exten in ["refl", "expt"]
+            ):
+                return work
+
+        if not os.path.exists(work):
+            os.mkdir(work)
+
+        # fix up the scan to correspond to input chunk, save to working area
+        expt = copy.deepcopy(self._experiment)
+        expt[0].scan = expt[0].scan[chunk[0] : chunk[1]]
+
+        expt.as_file(os.path.join(work, "input.expt"))
+
+        # this is used to (i) write script and (ii) submit to cluster
+        np = self._params.worker_nproc
+
+        fout = open(os.path.join(work, "integrate.sh"), "w")
+
+        # dump key environment: PATH should be enough?
+
+        fout.write(
+            "\n".join(["#!/bin/bash", "export PATH=%s" % os.environ["PATH"], "", ""])
+        )
+
+        phil = self._write_phil("find_spots", work)
+        fout.write(f"dials.find_spots input.expt nproc={np}" + " ".join(phil) + "\n")
+
+        phil = self._write_phil("index", work)
+        fout.write(
+            " ".join(
+                [
+                    "dials.index",
+                    "input.expt",
+                    "strong.refl",
+                    "index_assignment.method=local",
+                ]
+            )
+            + " ".join(phil)
+            + "\n"
+        )
+
+        phil = self._write_phil("refine", work)
+        fout.write(
+            " ".join(["dials.refine", "indexed.expt", "indexed.refl"])
+            + " ".join(phil)
+            + "\n"
+        )
+
+        phil = self._write_phil("integrate", work)
+        fout.write(
+            " ".join(["dials.integrate", "refined.expt", "refined.refl", f"nproc={np}"])
+            + " ".join(phil)
+            + "\n"
+        )
+
+        # FIXME submit the script for processing
 
         return work
 
