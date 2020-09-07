@@ -9,6 +9,7 @@ from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
 from dials_scratch.fp3 import even_blocks, index_blocks, format_phil_include
 from dials_scratch.fp3 import nproc, combine_reflections, combine_experiments
+from dials_scratch.fp3 import find_setup_script
 
 scope = phil.parse(
     """
@@ -261,11 +262,7 @@ class FP3:
 
         fout = open(os.path.join(work, "integrate.sh"), "w")
 
-        # dump key environment: PATH should be enough?
-
-        fout.write(
-            "\n".join(["#!/bin/bash", "export PATH=%s" % os.environ["PATH"], "", ""])
-        )
+        fout.write("\n".join(["#!/bin/bash", f". {find_setup_script()}", "", ""]))
 
         phil = self._write_phil("find_spots", work)
         fout.write(f"dials.find_spots input.expt nproc={np}" + " ".join(phil) + "\n")

@@ -1,6 +1,24 @@
 import os
 
+import libtbx.load_env
 from libtbx.introspection import number_of_processors
+
+
+def find_setup_script():
+    """Look at the libtbx environment and look for the environment setup script
+    in a finite number of enumerated places."""
+
+    # old style setpaths.sh
+    script = libtbx.env.under_build("setpaths.sh")
+    if os.path.exists(script):
+        return script
+
+    # new dials way
+    script = libtbx.env.under_root("dials")
+    if os.path.exists(script):
+        return script
+
+    raise RuntimeError("cannot locate setup script")
 
 
 def even_blocks(n0, n1, m):
