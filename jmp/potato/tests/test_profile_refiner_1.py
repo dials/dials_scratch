@@ -17,9 +17,9 @@ from dials.array_family import flex
 
 def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     """
-  The log likelihood given the data
+    The log likelihood given the data
 
-  """
+    """
 
     # Construct covariance
     M = matrix.sqr(

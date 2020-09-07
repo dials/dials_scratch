@@ -125,7 +125,7 @@ def test_scale_parameterisation():
 def test_products_omitting_one_item():
     def explicit_method(items, omit_idx=0):
         """Do the explicit (slow) calculation for comparison with the
-    products_omitting_one_item function"""
+        products_omitting_one_item function"""
 
         items = list(items)
         del items[omit_idx]

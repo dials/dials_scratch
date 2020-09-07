@@ -5,37 +5,37 @@ from scitbx import matrix
 
 class MosaicityParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 6 parameters to describe a
-  multivariate normal reciprocal lattice profile. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
+    A simple mosaicity parameterisation that uses 6 parameters to describe a
+    multivariate normal reciprocal lattice profile. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
 
-  M = | b1 0  0  |
-      | b2 b3 0  |
-      | b4 b5 b6 |
+    M = | b1 0  0  |
+        | b2 b3 0  |
+        | b4 b5 b6 |
 
-  S = M*M^T
+    S = M*M^T
 
-  """
+    """
 
     def __init__(self, params):
         """
-    Initialise with the parameters
+        Initialise with the parameters
 
-    """
+        """
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
+        Return the parameters
 
-    """
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
+        Compute the covariance matrix of the MVN from the parameters
 
-    """
+        """
         M = matrix.sqr(
             (
                 self.params[0],
@@ -53,9 +53,9 @@ class MosaicityParameterisation(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
+        Compute the first derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         b1, b2, b3, b4, b5, b6 = self.params
 
         dSdb1 = (2 * b1, b2, b4, b2, 0, 0, b4, 0, 0)
@@ -74,9 +74,9 @@ class MosaicityParameterisation(object):
 
     def second_derivatives(self):
         """
-    Compute the second derivatives of Sigma w.r.t the parameters
+        Compute the second derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         b1, b2, b3, b4, b5, b6 = self.params
 
         zero = (0, 0, 0, 0, 0, 0, 0, 0, 0)

@@ -24,7 +24,7 @@ def compute_cchalf(mean, var):
     :param mean: The list of mean intensities
     :param var: The list of variances on the half set of mean intensities
     :returns: The CC 1/2
-      
+
     """
     assert len(mean) == len(var)
     n = len(mean)

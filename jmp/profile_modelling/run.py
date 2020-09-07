@@ -4,55 +4,55 @@ from __future__ import print_function
 
 class History(object):
     """
-  Store the history of parameter values and likelihood
+    Store the history of parameter values and likelihood
 
-  """
+    """
 
     def __init__(self, parameter_names):
         """
-    Initialise with parameter names
+        Initialise with parameter names
 
-    """
+        """
         self.names = parameter_names
         self.values = []
         self.logL = []
 
     def append(self, parameters, log_likelihood):
         """
-    Append a new entry
+        Append a new entry
 
-    """
+        """
         assert len(parameters) == len(self.names)
         self.values.append(parameters)
         self.logL.append(log_likelihood)
 
     def __len__(self):
         """
-    Get the number of items
+        Get the number of items
 
-    """
+        """
         return len(self.values)
 
     def __getitem__(self, index):
         """
-    Return an item
+        Return an item
 
-    """
+        """
         return (self.values, self.logL)
 
     def __iter__(self):
         """
-    Iterate through items
+        Iterate through items
 
-    """
+        """
         for i in range(len(self)):
             yield self[i]
 
     def plot(self):
         """
-    Plot the history
+        Plot the history
 
-    """
+        """
         from matplotlib import pylab
 
         fig, (ax1, ax2) = pylab.subplots(2, 1, sharex=True)
@@ -70,9 +70,9 @@ class History(object):
 
 class ProfileModeller(object):
     """
-  A class to do profile modelling
+    A class to do profile modelling
 
-  """
+    """
 
     def __init__(
         self,
@@ -84,9 +84,9 @@ class ProfileModeller(object):
         use_wavelength_spread=False,
     ):
         """
-    Init
+        Init
 
-    """
+        """
         from dials_scratch.jmp.profile_modelling import MLTarget3D
 
         # Save some stuff
@@ -114,9 +114,9 @@ class ProfileModeller(object):
 
     def estimate(self, num_reflections):
         """
-    Estimate the model parameters
+        Estimate the model parameters
 
-    """
+        """
         from scitbx import simplex
         from copy import deepcopy
         from dials.array_family import flex
@@ -142,9 +142,9 @@ class ProfileModeller(object):
 
         class Evaluator(object):
             """
-      Evaluator to simplex
+            Evaluator to simplex
 
-      """
+            """
 
             def __init__(
                 self,
@@ -156,9 +156,9 @@ class ProfileModeller(object):
                 use_wavelength_spread,
             ):
                 """
-        Initialise
+                Initialise
 
-        """
+                """
                 from dials_scratch.jmp.profile_modelling import MLTarget3D
 
                 self.func = MLTarget3D(
@@ -174,9 +174,9 @@ class ProfileModeller(object):
 
             def target(self, log_parameters):
                 """
-        Compute the negative log likelihood
+                Compute the negative log likelihood
 
-        """
+                """
                 from dials.array_family import flex
 
                 parameters = flex.exp(log_parameters)
@@ -219,15 +219,15 @@ class ProfileModeller(object):
 
     def _select_reflections(self, reflections, num):
         """
-    Select reflections to use
+        Select reflections to use
 
-    """
+        """
 
         def select_used_in_refinement(reflections):
             """
-      Select reflections to use
+            Select reflections to use
 
-      """
+            """
             selection = reflections.get_flags(reflections.flags.used_in_refinement)
             print(
                 "Selecting %d/%d strong reflections"
@@ -238,17 +238,17 @@ class ProfileModeller(object):
 
         def sort_by_intensity(reflections):
             """
-      Sort the reflections by intensity
+            Sort the reflections by intensity
 
-      """
+            """
             reflections.sort("intensity.sum.value", reverse=True)
             return reflections
 
         def select_subset(reflections, num):
             """
-      Select most intense reflections
+            Select most intense reflections
 
-      """
+            """
             print("Selecting %d/%d reflections" % (num, len(reflections)))
             return reflections[0:num]
 
@@ -261,9 +261,9 @@ class ProfileModeller(object):
 
     def display(self, num):
         """
-    Display some shoeboxes
+        Display some shoeboxes
 
-    """
+        """
         from dials_scratch.jmp.viewer import show_image_stack_multi_view
         from random import sample
         from dials.array_family import flex
@@ -293,9 +293,9 @@ if __name__ == "__main__":
 
     def read_experiments(filename):
         """
-    Read the experiments file
+        Read the experiments file
 
-    """
+        """
         from dxtbx.model.experiment_list import ExperimentListFactory
 
         print("Reading experiments from %s" % filename)
@@ -304,9 +304,9 @@ if __name__ == "__main__":
 
     def read_reflections(filename):
         """
-    Read the reflections file
+        Read the reflections file
 
-    """
+        """
         from dials.array_family import flex
 
         print("Reading reflections from %s" % filename)

@@ -308,9 +308,9 @@ class Scaler(object):
 
         def function(p):
             """
-      The runction of residuals
+            The runction of residuals
 
-      """
+            """
             # Get the parameters
             V, S, B, G = flex.double(p)
 
@@ -348,9 +348,9 @@ class Scaler(object):
 
         def jacobian(p):
             """
-      Compute the Jacobian matrix of residuals
+            Compute the Jacobian matrix of residuals
 
-      """
+            """
 
             # Get the parameters
             V, S, B, G = flex.double(p)
@@ -496,9 +496,9 @@ class Scaler(object):
         G,
     ):
         """
-    Compute the partiality and intensity from the parameters
+        Compute the partiality and intensity from the parameters
 
-    """
+        """
 
         # Get the sigma, b factor and scale for each reflection
         V_i = V.select(J_img)

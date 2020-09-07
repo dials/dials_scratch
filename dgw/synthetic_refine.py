@@ -60,14 +60,14 @@ from functools import reduce
 
 class ExperimentsPerturber(object):
     """Perturb the models in an experiment list. For simplicity create a complete
-  Refiner for this, which will just be used as a carrier for the parameterised
-  models. The parameter shifts are either drawn from a normal distribution or
-  exactly equal to a provided list. When randomly generating shifts, the offset
-  for parameters in units of mm is controlled by sig_mm, the offset for angle
-  parameters in degrees by sig_deg and the offset for unitless parameters (unit
-  cell parameters - scaled elts of the metrical matrix) by frac_sig_unitless.
-  For the unitless parameters the value frac_sig_unitless operates as a
-  fraction of the current parameter value."""
+    Refiner for this, which will just be used as a carrier for the parameterised
+    models. The parameter shifts are either drawn from a normal distribution or
+    exactly equal to a provided list. When randomly generating shifts, the offset
+    for parameters in units of mm is controlled by sig_mm, the offset for angle
+    parameters in degrees by sig_deg and the offset for unitless parameters (unit
+    cell parameters - scaled elts of the metrical matrix) by frac_sig_unitless.
+    For the unitless parameters the value frac_sig_unitless operates as a
+    fraction of the current parameter value."""
 
     def __init__(
         self,
@@ -107,7 +107,7 @@ class ExperimentsPerturber(object):
 
     def _setup_perturbation(self):
         """Obtain a PredictionParameterisation object, get the values of the
-    parameters and their units"""
+        parameters and their units"""
 
         self._refiner = RefinerFactory.from_parameters_data_experiments(
             self.params, self.dummy_reflections, self.original_experiments
@@ -175,7 +175,7 @@ class ExperimentsPerturber(object):
 
     def random_perturbation(self):
         """randomly perturb each model parameter value by an amount drawn from a
-    normal distribution with sigma equal to fraction*value"""
+        normal distribution with sigma equal to fraction*value"""
 
         self._setup_perturbation()
         new_vals = [
@@ -200,7 +200,7 @@ class ExperimentsPerturber(object):
 
 def generate_reflections(experiments, xyzvar=(0.0, 0.0, 0.0)):
     """Generate synthetic reflection centroids using the supplied experiments,
-  with normally-distributed errors applied the variances in xyzvar"""
+    with normally-distributed errors applied the variances in xyzvar"""
 
     # check input
     if [e >= 0.0 for e in xyzvar].count(False) > 0:

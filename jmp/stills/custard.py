@@ -139,20 +139,20 @@ class simple_simplex(object):
 
 class CrystalRefiner(object):
     """
-  A class to perform refinement of crystal parameters
+    A class to perform refinement of crystal parameters
 
-  """
+    """
 
     def __init__(self, experiment, reflections, mosaicity, params):
         """
-    Perform the refinement
+        Perform the refinement
 
-    :param experiment: The experiment
-    :param reflections: The reflections
-    :param mosaicity: The mosaicity
-    :param params: The parameters
+        :param experiment: The experiment
+        :param reflections: The reflections
+        :param mosaicity: The mosaicity
+        :param params: The parameters
 
-    """
+        """
         from dials.algorithms.refinement.parameterisation.crystal_parameters import (
             CrystalUnitCellParameterisation,
         )
@@ -222,9 +222,9 @@ class CrystalRefiner(object):
 
     def target(self, vector):
         """
-    The target function
+        The target function
 
-    """
+        """
         from dials.array_family import flex
         from math import sqrt
 
@@ -275,19 +275,19 @@ class CrystalRefiner(object):
 
 class ProfileRefiner(object):
     """
-  A class to perform the profile refinement
+    A class to perform the profile refinement
 
-  """
+    """
 
     def __init__(self, experiment, reflections, params):
         """
-    Do the profile refinement
+        Do the profile refinement
 
-    :param experiment: The experiment
-    :param reflections: The reflection list
-    :param params: The parameters
+        :param experiment: The experiment
+        :param reflections: The reflection list
+        :param params: The parameters
 
-    """
+        """
         from dials_scratch.jmp.stills import Model
 
         # Save the experiments and reflections
@@ -341,9 +341,9 @@ class ProfileRefiner(object):
 
     def target(self, mosaicity):
         """
-    The profile model target function
+        The profile model target function
 
-    """
+        """
 
         # Set the mosaicity
         self.model.mosaicity = mosaicity
@@ -366,27 +366,27 @@ class ProfileRefiner(object):
 
 class Integrator(object):
     """
-  Top level integrator class for a single still image
+    Top level integrator class for a single still image
 
-  Given a still experiment do the following:
+    Given a still experiment do the following:
 
-  1) Find strong spots on the image
-  2) Index those spots
-  3) Use those spots to refine the profile model
-  4) Then refine the crystal model parameters
-  5) Predict the full set of reflections
-  6) Integrate the reflections
+    1) Find strong spots on the image
+    2) Index those spots
+    3) Use those spots to refine the profile model
+    4) Then refine the crystal model parameters
+    5) Predict the full set of reflections
+    6) Integrate the reflections
 
-  """
+    """
 
     def __init__(self, experiment, params):
         """
-    Initialise the class
+        Initialise the class
 
-    :param experiment: The experiment to process
-    :param params: The configuration parameters
+        :param experiment: The experiment to process
+        :param params: The configuration parameters
 
-    """
+        """
         assert len(experiment.detector) == 1
         assert len(experiment.imageset) == 1
         self.experiment = experiment
@@ -395,9 +395,9 @@ class Integrator(object):
 
     def process(self):
         """
-    Process the image
+        Process the image
 
-    """
+        """
 
         # Find the strong spots
         self.find_spots()
@@ -421,9 +421,9 @@ class Integrator(object):
 
     def find_spots(self, min_spot_size=2, max_spot_size=100):
         """
-    Find the strong spots on the image
+        Find the strong spots on the image
 
-    """
+        """
         from dials.algorithms.spot_finding.threshold import DispersionThresholdStrategy
         from dials.model.data import PixelList
         from dials.model.data import PixelListLabeller
@@ -485,9 +485,9 @@ class Integrator(object):
 
     def index_spots(self):
         """
-    Assign miller indices to the strong spots
+        Assign miller indices to the strong spots
 
-    """
+        """
         from dials.array_family import flex
         from scitbx import matrix
         from math import sqrt
@@ -536,9 +536,9 @@ class Integrator(object):
 
     def sample_reflections(self):
         """
-    Select a sample of reflections
+        Select a sample of reflections
 
-    """
+        """
         from dials.array_family import flex
         from random import sample
 
@@ -556,9 +556,9 @@ class Integrator(object):
 
     def refine_profile(self):
         """
-    Refine the profile parameters
+        Refine the profile parameters
 
-    """
+        """
         print("")
         print("-" * 80)
         print(" Refining profile parameters")
@@ -579,9 +579,9 @@ class Integrator(object):
 
     def refine_crystal(self):
         """
-    Refine the crystal parameters
+        Refine the crystal parameters
 
-    """
+        """
         print("")
         print("-" * 80)
         print(" Refining crystal parameters")
@@ -596,9 +596,9 @@ class Integrator(object):
 
     def integrate(self):
         """
-    Predict and integrate the reflections
+        Predict and integrate the reflections
 
-    """
+        """
         from dials_scratch.jmp.stills import Model
         from dials.array_family import flex
 

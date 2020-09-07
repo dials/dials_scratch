@@ -18,14 +18,14 @@ map_prefix = ''
 
 def offset_dx_dy_p6m(detector0, detector1):
     """Compute pixel-remap function between detector1 and detector0, assuming
-  panels are arranged [0][1][2][3][4] in the fast direction first etc. This
-  also assumes that the rotation of pixels is locally small, but on the scale
-  of a panel (80 mm ish) the rotation matters. N.B. Also assumes that the
-  panel gap in the map is 7 pixels in fast direction and 17 in slow direction.
+    panels are arranged [0][1][2][3][4] in the fast direction first etc. This
+    also assumes that the rotation of pixels is locally small, but on the scale
+    of a panel (80 mm ish) the rotation matters. N.B. Also assumes that the
+    panel gap in the map is 7 pixels in fast direction and 17 in slow direction.
 
-  Offsets are with respect to the fast and slow directions on the original
-  coordinate system.
-  """
+    Offsets are with respect to the fast and slow directions on the original
+    coordinate system.
+    """
 
     assert len(detector0) == 60
     assert len(detector1) == 60

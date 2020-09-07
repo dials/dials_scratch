@@ -25,13 +25,13 @@ class IntegrationAlgorithm(object):
     def __call__(self, reflections):
         """Process the reflections.
 
-    Params:
-        reflections The reflections to process
+        Params:
+            reflections The reflections to process
 
-    Returns:
-        The list of integrated reflections
+        Returns:
+            The list of integrated reflections
 
-    """
+        """
         from dlstbx.algorithms.integration.fit_image import ImageSpaceProfileFitting
         from dlstbx.algorithms.integration.fit_image import Spec
         from dials.algorithms.integration.integrator import job_id

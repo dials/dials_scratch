@@ -7,18 +7,18 @@ from __future__ import print_function
 def get_image(cbf_handle, category="array_data", column="data", row=0, element=0):
     """Read an image from a CBF file
 
-  This function is a bit of a hack - I'm not sure what the general structure
-  of a CBF file is like but for the data I have, it works. Reads an image
-  from the location specified in the CBF file, otherwise raises an exception.
+    This function is a bit of a hack - I'm not sure what the general structure
+    of a CBF file is like but for the data I have, it works. Reads an image
+    from the location specified in the CBF file, otherwise raises an exception.
 
-  :param cbf_handle: The handle to the CBF file
-  :param category: Category in which the image is contained
-  :param column: Column in which the image is contained
-  :param row: Row in which image is contained
-  :param element: Element in which image is contained
-  :returns: An array of image data
+    :param cbf_handle: The handle to the CBF file
+    :param category: Category in which the image is contained
+    :param column: Column in which the image is contained
+    :param row: Row in which image is contained
+    :param element: Element in which image is contained
+    :returns: An array of image data
 
-  """
+    """
     import numpy
 
     # Find the given category, column and row
@@ -99,9 +99,9 @@ def read_integrate_hkl_apply_corrections(
     int_hkl, x_crns_file, y_crns_file, xparm_file, image_file
 ):
     """Read X corrections and Y corrections to arrays; for record in
-  int_hkl read x, y positions and compute r.m.s. deviations between
-  observed and calculated centroids with and without the corrections.
-  N.B. will only compute offsets for reflections with I/sigma > 10."""
+    int_hkl read x, y positions and compute r.m.s. deviations between
+    observed and calculated centroids with and without the corrections.
+    N.B. will only compute offsets for reflections with I/sigma > 10."""
 
     from scitbx import matrix
     import math
@@ -261,9 +261,9 @@ def read_integrate_hkl_apply_corrections(
 
 def read_spot_xds_apply_corrections(spot_xds, x_crns_file, y_crns_file, xparm_file):
     """Read X corrections and Y corrections to arrays; for record in
-  int_hkl read x, y positions and compute r.m.s. deviations between
-  observed and calculated centroids with and without the corrections.
-  N.B. will only compute offsets for reflections with I/sigma > 10."""
+    int_hkl read x, y positions and compute r.m.s. deviations between
+    observed and calculated centroids with and without the corrections.
+    N.B. will only compute offsets for reflections with I/sigma > 10."""
 
     from scitbx import matrix
     import math

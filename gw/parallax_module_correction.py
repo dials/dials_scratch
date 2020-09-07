@@ -40,7 +40,7 @@ def read_xds_calibration_file(calibration_file):
 
 def run_job(executable, arguments=[], stdin=[], working_directory=None):
     """Run a program with some command-line arguments and some input,
-  then return the standard output when it is finished."""
+    then return the standard output when it is finished."""
 
     import subprocess
     import os
@@ -84,9 +84,9 @@ def run_job(executable, arguments=[], stdin=[], working_directory=None):
 def fit_plane(xyz_values):
     """Derive equation of plane
 
-  z = ax + by + c
+    z = ax + by + c
 
-  from list of values x, y, z; returns a, b, c."""
+    from list of values x, y, z; returns a, b, c."""
 
     from scitbx import matrix
 
@@ -109,8 +109,8 @@ def fit_plane(xyz_values):
 
 def smooth_invert_calibration_table(table, direction):
     """Make smoothed version of the incoming table using plane linear interpolation
-  and return the smoothed table and it's inverse. Scale for smoothing is relatively
-  arbitrary."""
+    and return the smoothed table and it's inverse. Scale for smoothing is relatively
+    arbitrary."""
 
     assert direction in ["fast", "slow"]
 
@@ -168,8 +168,8 @@ ORGX=%(origin_fast).2f ORGY=%(origin_slow).2f"""
 
 def image_to_XDS_XYCORR(image_filename, sensor_thickness_mm):
     """Generate an XYCORR input file from an image header via dxtbx, noting
-  well that this will *tell lies* as the image is rescaled to give a 1:1
-  correction table in 0.025 rather than 0.1 (original) pixel increments."""
+    well that this will *tell lies* as the image is rescaled to give a 1:1
+    correction table in 0.025 rather than 0.1 (original) pixel increments."""
 
     from dxtbx import load
     from scitbx import matrix

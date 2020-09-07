@@ -5,10 +5,10 @@ from libtbx.phil import parse
 
 def vonmises_fisher(mu, kappa):
     """
-  Sample from the von-mises fisher distribution using the algorithm of Wood
-  1994.
+    Sample from the von-mises fisher distribution using the algorithm of Wood
+    1994.
 
-  """
+    """
     from numpy.random import beta, uniform
     from math import sqrt, log, acos, pi
     from scitbx import matrix
@@ -58,9 +58,9 @@ def simulate_reflection(
     beam_divergence=0.0,
 ):
     """
-  Simulate a count from a single reflection
+    Simulate a count from a single reflection
 
-  """
+    """
     from scitbx import matrix
     from dials.algorithms.spot_prediction import ScanStaticRayPredictor
     from numpy.random import normal, multivariate_normal
@@ -143,9 +143,9 @@ def simulate(
     beam_divergence=0.0,
 ):
     """
-  Simulate diffraction image from a number of reflections
+    Simulate diffraction image from a number of reflections
 
-  """
+    """
 
     # Get the image size and number of images
     xsize, ysize = experiment.detector[0].get_image_size()

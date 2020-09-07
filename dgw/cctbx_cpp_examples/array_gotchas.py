@@ -32,7 +32,7 @@ def runner(fn):
 
 def demo_no_converter_for_const_ref():
     """Demonstrate that a C++ function with return value scitbx::af::const_ref<>
-  is not automatically wrapped to return a flex array in Python."""
+    is not automatically wrapped to return a flex array in Python."""
 
     from dials_scratch_cctbx_cpp_examples_ext import BadBucket
     from cctbx.array_family import flex
@@ -60,8 +60,8 @@ def demo_no_converter_for_const_ref():
 
 def demo_data_loss_with_const_ref_storage():
     """Demonstrate that a C++ object that stores data as a
-  scitbx::af::const_ref<> without taking a copy of the data cannot guarantee
-  veracity of that data."""
+    scitbx::af::const_ref<> without taking a copy of the data cannot guarantee
+    veracity of that data."""
 
     from dials_scratch_cctbx_cpp_examples_ext import BadBucket
     from cctbx.array_family import flex
@@ -95,8 +95,8 @@ def demo_data_loss_with_const_ref_storage():
 
 def demo_cannot_pass_versa_from_python():
     """Demonstrate that multidimensional arrays using scitbx::af::versa type
-  cannot be passed from Python by a setter taking that type. They can be
-  passed as a scitbx::af::const_ref though."""
+    cannot be passed from Python by a setter taking that type. They can be
+    passed as a scitbx::af::const_ref though."""
 
     from dials_scratch_cctbx_cpp_examples_ext import TwoDimensionalArrayBroken
     from dials_scratch_cctbx_cpp_examples_ext import TwoDimensionalArrayFixed

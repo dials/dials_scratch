@@ -100,7 +100,9 @@ try:
                 "service": "DLS Cephwatcher",
                 "queue": "cephwatcher",
                 "output": {"every": 2},
-                "parameters": {"s3_url": args.s3_url,},
+                "parameters": {
+                    "s3_url": args.s3_url,
+                },
             },
             "2": {
                 "service": "DLS Per-Image-Analysis",

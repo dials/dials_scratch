@@ -17,24 +17,24 @@ class SpotMatcher(object):
     def __init__(self, max_separation=2):
         """Setup the algorithm
 
-    Params:
-        max_separation Max pixel dist between predicted and observed spot
+        Params:
+            max_separation Max pixel dist between predicted and observed spot
 
-    """
+        """
         # Set the algorithm parameters
         self._max_separation = max_separation
 
     def __call__(self, observed, predicted):
         """Match the observed reflections with the predicted.
 
-    Params:
-        observed The list of observed reflections.
-        predicted The list of predicted reflections.
+        Params:
+            observed The list of observed reflections.
+            predicted The list of predicted reflections.
 
-    Returns:
-        The list of matched reflections
+        Returns:
+            The list of matched reflections
 
-    """
+        """
         from dials.model.data import ReflectionList
 
         # Find the nearest neighbours and distances
@@ -63,14 +63,14 @@ class SpotMatcher(object):
     def _find_nearest_neighbours(self, observed, predicted):
         """Find the nearest predicted spot to the observed spot.
 
-    Params:
-        observed The observed reflections
-        predicted The predicted reflections
+        Params:
+            observed The observed reflections
+            predicted The predicted reflections
 
-    Returns:
-        (nearest neighbours, distance)
+        Returns:
+            (nearest neighbours, distance)
 
-    """
+        """
         from annlib_ext import AnnAdaptor
         from scitbx.array_family import flex
         from math import sqrt
@@ -97,14 +97,14 @@ class SpotMatcher(object):
     def _filter_by_distance(self, nn, dist):
         """Filter the matches by distance.
 
-    Params:
-        nn The nearest neighbour list
-        dist The distances
+        Params:
+            nn The nearest neighbour list
+            dist The distances
 
-    Returns:
-        A reduced list of nearest neighbours
+        Returns:
+            A reduced list of nearest neighbours
 
-    """
+        """
         from scitbx.array_family import flex
 
         index = range(len(nn))
@@ -117,22 +117,22 @@ class ComputeEsdBeamDivergence(object):
     def __init__(self, detector):
         """Initialise the algorithm.
 
-    Params:
-        detector The detector class
+        Params:
+            detector The detector class
 
-    """
+        """
         self._detector = detector
 
     def __call__(self, reflections):
         """Calculate the ESD of the beam divergence.
 
-    Params:
-        reflections The list of reflections
+        Params:
+            reflections The list of reflections
 
-    Returns:
-        E.s.d of the beam divergence
+        Returns:
+            E.s.d of the beam divergence
 
-    """
+        """
         # Calculate the beam direction variances
         variance = self._beam_direction_variance_list(reflections)
 
@@ -142,13 +142,13 @@ class ComputeEsdBeamDivergence(object):
     def _beam_direction_variance_list(self, reflections):
         """Calculate the variance in beam direction for each spot.
 
-    Params:
-        reflections The list of reflections
+        Params:
+            reflections The list of reflections
 
-    Returns:
-        The list of variances
+        Returns:
+            The list of variances
 
-    """
+        """
         from scitbx.array_family import flex
         from scitbx import matrix
         import numpy
@@ -189,17 +189,17 @@ class ComputeEsdBeamDivergence(object):
 
     def _beam_direction_variance(self, s1_centroid, s1, values):
         """Calculate the angles between the s1 centroid and s1 vectors for
-    each pixel and then calculate the variance of the angles.
+        each pixel and then calculate the variance of the angles.
 
-    Params:
-        s1_centroid The centroid beam direction
-        s1 The list of beam directions
-        values The list of pixel values
+        Params:
+            s1_centroid The centroid beam direction
+            s1 The list of beam directions
+            values The list of pixel values
 
-    Returns:
-        The variance in the beam direction
+        Returns:
+            The variance in the beam direction
 
-    """
+        """
         from scitbx.array_family import flex
         from scitbx import matrix
 
@@ -212,15 +212,15 @@ class ComputeEsdBeamDivergence(object):
 
     def _compute_esd(self, variance):
         """Calculate the beam divergence as the sum of centroid variance of the
-    intensity weighted diffracted beam directions.
+        intensity weighted diffracted beam directions.
 
-    Params:
-        variance The variance of the beam directions
+        Params:
+            variance The variance of the beam directions
 
-    Returns:
-        The e.s.d of the beam divergence
+        Returns:
+            The e.s.d of the beam divergence
 
-    """
+        """
         from math import sqrt
 
         # Return the beam divergence as the sum / num reflections
@@ -233,25 +233,25 @@ class FractionOfObservedIntensity(object):
     def __init__(self, reflections, sweep):
         """Initialise the algorithm. Calculate the list of tau and zetas.
 
-    Params:
-        reflections The list of reflections
-        sweep The sweep object
+        Params:
+            reflections The list of reflections
+            sweep The sweep object
 
-    """
+        """
         self.dphi = sweep.get_scan().get_oscillation(deg=False)[1]
         self.tau, self.zeta = self._calculate_tau_and_zeta(reflections, sweep)
 
     def _calculate_tau_and_zeta(self, reflections, sweep):
         """Calculate the list of tau and zeta needed for the calculation.
 
-    Params:
-        reflections The list of reflections
-        sweep The sweep object.
+        Params:
+            reflections The list of reflections
+            sweep The sweep object.
 
-    Returns:
-        (list of tau, list of zeta)
+        Returns:
+            (list of tau, list of zeta)
 
-    """
+        """
         from scitbx.array_family import flex
         from dials.algorithms.integration import zeta_factor
 
@@ -283,13 +283,13 @@ class FractionOfObservedIntensity(object):
     def __call__(self, sigma_m):
         """Calculate the fraction of observed intensity for each observation.
 
-    Params:
-        sigma_m The mosaicity
+        Params:
+            sigma_m The mosaicity
 
-    Returns:
-        A list of fractions of length n
+        Returns:
+            A list of fractions of length n
 
-    """
+        """
         from math import sqrt, erf
         from scitbx.array_family import flex
         import numpy
@@ -350,25 +350,25 @@ class MaximumLikelihoodEstimator(object):
     def target(self, sigma):
         """Return the target function evaluated at this valid.
 
-    Params:
-        sigma The parameters
+        Params:
+            sigma The parameters
 
-    Returns:
-        The value of the target function at the given value.
+        Returns:
+            The value of the target function at the given value.
 
-    """
+        """
         return -self.likelihood(sigma[0])
 
     def likelihood(self, sigma_m):
         """Return the likelihood of the current sigma
 
-    Params:
-        sigma_m the estimated mosaicity
+        Params:
+            sigma_m the estimated mosaicity
 
-    Returns:
-        The likelihood of this value.
+        Returns:
+            The likelihood of this value.
 
-    """
+        """
         from scitbx.array_family import flex
 
         return flex.sum(self._R(sigma_m))
@@ -376,10 +376,10 @@ class MaximumLikelihoodEstimator(object):
     def __call__(self):
         """Perform maximum likelihood estimation of sigma_m
 
-    Returns:
-        The value of sigma_m
+        Returns:
+            The value of sigma_m
 
-    """
+        """
         return self._optimizer.get_solution()[0]
 
 
@@ -389,22 +389,22 @@ class ComputeEsdReflectingRange(object):
     def __init__(self, sweep):
         """Initialise the algorithm with the scan.
 
-    Params:
-        scan The scan object
+        Params:
+            scan The scan object
 
-    """
+        """
         self._sweep = sweep
 
     def __call__(self, reflections):
         """Calculate the value for the reflecting range (mosaicity).
 
-    Params:
-        reflections The list of reflections
+        Params:
+            reflections The list of reflections
 
-    Returns:
-        The calculated value of sigma_m
+        Returns:
+            The calculated value of sigma_m
 
-    """
+        """
         maximum_likelihood = MaximumLikelihoodEstimator(reflections, self._sweep)
         return maximum_likelihood()
 
@@ -415,11 +415,11 @@ class BeamDivergenceAndMosaicity(object):
     def __init__(self, sweep, max_separation=2):
         """Initialise the algorithm.
 
-    Params:
-        sweep The sweep object
-        max_separation Max pixel dist between predicted and observed spot
+        Params:
+            sweep The sweep object
+            max_separation Max pixel dist between predicted and observed spot
 
-    """
+        """
         # Setup the algorithm objects
         self._match_spots = SpotMatcher(max_separation)
         self._compute_sigma_d = ComputeEsdBeamDivergence(sweep.get_detector())
@@ -435,23 +435,23 @@ class BeamDivergenceAndMosaicity(object):
     def __call__(self, observed, predicted):
         """Calculate the divegence/mosaicity parameters.
 
-    First match the observed reflections to the predicted reflections
-    by finding the nearest neighbour based on the observed centroid
-    and predicted bragg maximum. Then calculate the standard deviation
-    of the beam divergence followed by the standard deviation of the
-    mosaicity.
+        First match the observed reflections to the predicted reflections
+        by finding the nearest neighbour based on the observed centroid
+        and predicted bragg maximum. Then calculate the standard deviation
+        of the beam divergence followed by the standard deviation of the
+        mosaicity.
 
-    The updated list of reflections can be accessed via the
-    self.reflections member function.
+        The updated list of reflections can be accessed via the
+        self.reflections member function.
 
-    Params:
-        observed The observed list of reflections
-        predicted The predicted list of reflections
+        Params:
+            observed The observed list of reflections
+            predicted The predicted list of reflections
 
-    Returns:
-        sigma_d, sigma_m
+        Returns:
+            sigma_d, sigma_m
 
-    """
+        """
         from math import pi
         from dials.util.command_line import Command
 

@@ -51,7 +51,9 @@ def run(args):
     params, options = parser.parse_args(show_diff_phil=False)
 
     # Configure the logging
-    log.config(options.verbose,)
+    log.config(
+        options.verbose,
+    )
 
     logger.info(dials_version())
 

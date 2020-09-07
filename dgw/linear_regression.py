@@ -9,19 +9,19 @@ from scitbx.array_family import flex
 
 def linear_regression(x, y, fit_intercept=True, fit_gradient=True):
     """Perform linear regression by least squares to model how a response
-  variable (y) is linearly-related to an explanatory variable (x).
+    variable (y) is linearly-related to an explanatory variable (x).
 
-  Args:
-      x: Sequence of values of the explanatory variable
-      y: Sequence of values of the response variable (observations)
-      fit_gradient (bool): Fit the gradient as a parameter of the model
-          (otherwise assume unit gradient).
-      fit_intercept (bool): Fit the intercept as a parameter of the model
-          (otherwise assume an intercept of zero).
+    Args:
+        x: Sequence of values of the explanatory variable
+        y: Sequence of values of the response variable (observations)
+        fit_gradient (bool): Fit the gradient as a parameter of the model
+            (otherwise assume unit gradient).
+        fit_intercept (bool): Fit the intercept as a parameter of the model
+            (otherwise assume an intercept of zero).
 
-  Returns:
-      list: Values of the model parameters
-  """
+    Returns:
+        list: Values of the model parameters
+    """
     from scitbx import sparse
 
     n_obs = len(y)
@@ -68,9 +68,9 @@ def test_linear_regression():
 
 def test_hyperbola_linear_fit():
     """Test fitting a hyperbola with formula y = sqrt(x^2 + c) by a change of
-  variables followed by a linear fit. Warning: this is not recommended as the
-  change of variables implicitly assigns weights. Better to fit the function
-  by NLLS methods"""
+    variables followed by a linear fit. Warning: this is not recommended as the
+    change of variables implicitly assigns weights. Better to fit the function
+    by NLLS methods"""
 
     # Create hyperbola with intercept of 10
     c = 10

@@ -257,7 +257,7 @@ class Script(object):
 
     def find_experiments_json(self, idx_path):
         """Given the path to an indexed.pickle, try to identify an associated
-    experiments.json in the same directory assuming xia2's naming convention"""
+        experiments.json in the same directory assuming xia2's naming convention"""
 
         head, tail = os.path.split(idx_path)
         root, ext = os.path.splitext(tail)

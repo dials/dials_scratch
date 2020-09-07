@@ -11,7 +11,7 @@ from __future__ import print_function
 
 def skew_symm(v):
     """Make matrix [v]_x from v. Essentially multiply vector by SO(3) basis
-  set Lx, Ly, Lz. Equation (2) from Gallego & Yezzi paper."""
+    set Lx, Ly, Lz. Equation (2) from Gallego & Yezzi paper."""
     import scitbx.matrix
 
     L1 = scitbx.matrix.sqr((0, 0, 0, 0, 0, -1, 0, 1, 0))

@@ -25,7 +25,7 @@ from dials.scratch.dgw.refinement import (
 
 class DetectorParameterisationSinglePanel(ModelParameterisation):
     """implementation of parameterisation for a single abstract panel
-  plane, with angles expressed in mrad"""
+    plane, with angles expressed in mrad"""
 
     def __init__(self, detector):
 
@@ -378,7 +378,7 @@ class DetectorParameterisationSinglePanel(ModelParameterisation):
 
 def random_panel(lim=(0, 50)):
     """For testing, return a square panel with a randomised position
-  and orientation"""
+    and orientation"""
 
     import random
 

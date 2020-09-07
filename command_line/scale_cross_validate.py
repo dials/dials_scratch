@@ -302,8 +302,8 @@ def run_script(params, experiments, reflections, results_dict):
 
 def interpret_results(results_dict):
     """Pass in a dict of results. Each item is a different attempt.
-  Expect a configuration and final_rmsds columns. Score the data and make a
-  nice table."""
+    Expect a configuration and final_rmsds columns. Score the data and make a
+    nice table."""
     rows = []
     headers = ["option", "", "Rwork", "Rfree", "CCwork", "CCfree"]
     free_rmsds = []

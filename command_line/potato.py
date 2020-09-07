@@ -54,15 +54,15 @@ phil_scope = parse(
 
 class Script(object):
     """
-  The integration program.
+    The integration program.
 
-  """
+    """
 
     def __init__(self):
         """
-    Initialise the script.
+        Initialise the script.
 
-    """
+        """
 
         # The script usage
         usage = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
@@ -78,9 +78,9 @@ class Script(object):
 
     def run(self):
         """
-    Perform the integration.
+        Perform the integration.
 
-    """
+        """
         from time import time
 
         # Check the number of arguments is correct

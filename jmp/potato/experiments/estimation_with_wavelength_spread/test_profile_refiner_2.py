@@ -21,9 +21,9 @@ from scipy.optimize import minimize
 
 def compute_beam_vector_rotation(s0):
     """
-  Construct a matrix to rotate whole coordinate system so that beam is along z
+    Construct a matrix to rotate whole coordinate system so that beam is along z
 
-  """
+    """
     z_axis = s0.normalize()
     n = [i for i in range(3) if z_axis[i] != 0][-1]
     temp = [0, 0, 0]
@@ -62,9 +62,9 @@ def matrix_from_params(params):
 
 def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
     """
-  The log likelihood given the data
+    The log likelihood given the data
 
-  """
+    """
 
     # Construct covariance
     spot_covariance = matrix_from_params(params)

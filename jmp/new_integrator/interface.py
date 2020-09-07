@@ -142,29 +142,29 @@ class Integrator(object):
     """ Integrator interface class. """
 
     def __init__(self, manager, max_procs=1, mp_method="multiprocessing"):
-        """ Initialise the integrator.
+        """Initialise the integrator.
 
-    The integrator requires a manager class implementing the IntegratorManager
-    interface. This class executes all the workers in separate threads and
-    accumulates the results to expose to the user.
+        The integrator requires a manager class implementing the IntegratorManager
+        interface. This class executes all the workers in separate threads and
+        accumulates the results to expose to the user.
 
-    Params:
-      manager The integration manager
-      max_procs The number of processors
-      mp_method The multiprocessing method
+        Params:
+          manager The integration manager
+          max_procs The number of processors
+          mp_method The multiprocessing method
 
-    """
+        """
         self._manager = manager
         self._max_procs = max_procs
         self._mp_method = mp_method
 
     def integrate(self):
-        """ Do all the integration tasks.
+        """Do all the integration tasks.
 
-    Returns
-      The integration results
+        Returns
+          The integration results
 
-    """
+        """
         from time import time
         from libtbx import easy_mp
 

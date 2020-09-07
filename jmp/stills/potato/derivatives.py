@@ -374,9 +374,9 @@ def rotate_mat3_double(R, A):
 
 def compute_change_of_basis_operation(s0, s2):
     """
-  Compute the change of basis operation that puts the s2 vector along the z axis
+    Compute the change of basis operation that puts the s2 vector along the z axis
 
-  """
+    """
     e1 = s2.cross(s0).normalize()
     e2 = s2.cross(e1).normalize()
     e3 = s2.normalize()

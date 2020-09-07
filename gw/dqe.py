@@ -14,8 +14,8 @@ def work_dqe():
 
 def recover_xds_silicon(wavelength):
     """SILICON=Fraction of intensity loss per mm due to absorption in silicon.
-  In XDS - try to recover this value N.B. calculations still done in cm due to
-  cgs nonsense..."""
+    In XDS - try to recover this value N.B. calculations still done in cm due to
+    cgs nonsense..."""
 
     from parallax import derive_absorption_coefficient_Si
     import math

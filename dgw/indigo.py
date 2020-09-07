@@ -451,8 +451,8 @@ class indexer_low_res_spot_match(BasisVectorSearch):
 
     def _calc_obs_data(self):
         """Calculates a set of low resolution observations to try to match to
-    indices. Each observation will record its d* value as well as
-    tolerated d* bands and a 'clock angle'"""
+        indices. Each observation will record its d* value as well as
+        tolerated d* bands and a 'clock angle'"""
 
         spot_dstar = self.reflections["rlp"].norms()
         if (

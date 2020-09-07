@@ -13,9 +13,9 @@ logger = logging.getLogger("dials." + __name__)
 
 class MarginalDistribution(object):
     """
-  A class to compute useful stuff about the marginal distribution
+    A class to compute useful stuff about the marginal distribution
 
-  """
+    """
 
     def __init__(self, S, dS, d2S=None):
 
@@ -34,31 +34,31 @@ class MarginalDistribution(object):
 
     def sigma(self):
         """
-    Return the marginal sigma
+        Return the marginal sigma
 
-    """
+        """
         return self.S
 
     def first_derivatives(self):
         """
-    Return the marginal first derivatives
+        Return the marginal first derivatives
 
-    """
+        """
         return self.dS
 
     def second_derivatives(self):
         """
-    Return the maginal second derivatives
+        Return the maginal second derivatives
 
-    """
+        """
         return self.d2S
 
 
 class ConditionalDistribution(object):
     """
-  A class to compute useful stuff about the conditional distribution
+    A class to compute useful stuff about the conditional distribution
 
-  """
+    """
 
     def __init__(self, s0, s2, S, dS, d2S=None):
 
@@ -94,23 +94,23 @@ class ConditionalDistribution(object):
 
     def mean(self):
         """
-    Return the conditional mean
+        Return the conditional mean
 
-    """
+        """
         return self.mubar
 
     def sigma(self):
         """
-    Return the conditional sigma
+        Return the conditional sigma
 
-    """
+        """
         return self.Sbar
 
     def first_derivatives_of_sigma(self):
         """
-    Return the marginal first derivatives
+        Return the marginal first derivatives
 
-    """
+        """
 
         def compute_dSbar(S, dS):
 
@@ -138,9 +138,9 @@ class ConditionalDistribution(object):
 
     def first_derivatives_of_mean(self):
         """
-    Return the marginal first derivatives
+        Return the marginal first derivatives
 
-    """
+        """
 
         def compute_dmbar(S, dS):
 
@@ -166,9 +166,9 @@ class ConditionalDistribution(object):
 
     def second_derivatives_of_mean(self):
         """
-    Return the maginal second derivatives
+        Return the maginal second derivatives
 
-    """
+        """
 
         def compute_d2mbar(S, dSi, dSj, d2S):
 
@@ -214,9 +214,9 @@ class ConditionalDistribution(object):
 
     def second_derivatives_of_sigma(self):
         """
-    Return the maginal second derivatives
+        Return the maginal second derivatives
 
-    """
+        """
 
         def compute_d2S(S, dSi, dSj, d2S):
 
@@ -271,9 +271,9 @@ class ConditionalDistribution(object):
 
 def rotate_mat3_double(R, A):
     """
-  Helper function to rotate a flex.mat3_double array of matrices
+    Helper function to rotate a flex.mat3_double array of matrices
 
-  """
+    """
     accessor = A.accessor()
     RAR = flex.mat3_double([R * matrix.sqr(a) * R.transpose() for a in A])
     RAR.reshape(accessor)
@@ -314,9 +314,9 @@ class ReflectionData(object):
 
     def log_likelihood(self):
         """
-    Compute the log likelihood for the reflection
+        Compute the log likelihood for the reflection
 
-    """
+        """
 
         # Get data
         s0 = self.s0
@@ -351,9 +351,9 @@ class ReflectionData(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives
+        Compute the first derivatives
 
-    """
+        """
         # Get data
         s0 = self.s0
         s2 = self.s2
@@ -404,9 +404,9 @@ class ReflectionData(object):
 
     def second_derivatives(self):
         """
-    Compute the second derivatives
+        Compute the second derivatives
 
-    """
+        """
         # Get data
         s0 = self.s0
         s2 = self.s2
@@ -487,9 +487,9 @@ class ReflectionData(object):
 
     def fisher_information(self):
         """
-    Compute the fisher information
+        Compute the fisher information
 
-    """
+        """
         # Get data
         s0 = self.s0
         s2 = self.s2
@@ -550,9 +550,9 @@ class MaximumLikelihoodTarget(object):
 
     def log_likelihood(self):
         """
-    The joint log likelihood
+        The joint log likelihood
 
-    """
+        """
         lnL = 0
         for i in range(len(self.data)):
             lnL += self.data[i].log_likelihood()
@@ -560,9 +560,9 @@ class MaximumLikelihoodTarget(object):
 
     def first_derivatives(self):
         """
-    The joint first derivatives
+        The joint first derivatives
 
-    """
+        """
         dL = 0
         for i in range(len(self.data)):
             dL += self.data[i].first_derivatives()
@@ -570,9 +570,9 @@ class MaximumLikelihoodTarget(object):
 
     def second_derivatives(self):
         """
-    The joint second derivatives
+        The joint second derivatives
 
-    """
+        """
         d2L = 0
         for i in range(len(self.data)):
             d2L += self.data[i].second_derivatives()
@@ -580,9 +580,9 @@ class MaximumLikelihoodTarget(object):
 
     def fisher_information(self):
         """
-    The joint fisher information
+        The joint fisher information
 
-    """
+        """
         I = 0
         for i in range(len(self.data)):
             I += self.data[i].fisher_information()
@@ -591,16 +591,16 @@ class MaximumLikelihoodTarget(object):
 
 def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
     """
-  Perform a line search
-  :param func The function to minimize
-  :param x The initial position
-  :param p The direction to search
-  :param tau: The backtracking parameter
-  :param delta: The initial step
-  :param tolerance: The algorithm tolerance
-  :return: The amount to move in the given direction
+    Perform a line search
+    :param func The function to minimize
+    :param x The initial position
+    :param p The direction to search
+    :param tau: The backtracking parameter
+    :param delta: The initial step
+    :param tolerance: The algorithm tolerance
+    :return: The amount to move in the given direction
 
-  """
+    """
     fa = func(x)
     min_delta = min(tolerance, tolerance / p.length())
     while delta > min_delta:
@@ -613,15 +613,15 @@ def line_search(func, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
 
 def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
     """
-  Find the minimum using gradient descent and a line search
-  :param f The function to minimize
-  :param df The function to compute derivatives
-  :param x0 The initial position
-  :param max_iter: The maximum number of iterations
-  :param tolerance: The algorithm tolerance
-  :return: The amount to move in the given direction
+    Find the minimum using gradient descent and a line search
+    :param f The function to minimize
+    :param df The function to compute derivatives
+    :param x0 The initial position
+    :param max_iter: The maximum number of iterations
+    :param tolerance: The algorithm tolerance
+    :return: The amount to move in the given direction
 
-  """
+    """
     delta = 0.5
     for it in range(max_iter):
         p = -matrix.col(df(x0))
@@ -636,28 +636,28 @@ def gradient_descent(f, df, x0, max_iter=1000, tolerance=1e-10):
 
 class FisherScoringMaximumLikelihoodBase(object):
     """
-  A class to solve maximum likelihood equations using fisher scoring
+    A class to solve maximum likelihood equations using fisher scoring
 
-  """
+    """
 
     def __init__(self, x0, max_iter=1000, tolerance=1e-7):
         """
-    Configure the algorithm
+        Configure the algorithm
 
-    :param x0: The initial parameter estimates
-    :param max_iter: The maximum number of iterations
-    :param tolerance: The parameter tolerance
+        :param x0: The initial parameter estimates
+        :param max_iter: The maximum number of iterations
+        :param tolerance: The parameter tolerance
 
-    """
+        """
         self.x0 = matrix.col(x0)
         self.max_iter = max_iter
         self.tolerance = tolerance
 
     def solve(self):
         """
-    Find the maximum likelihood estimate
+        Find the maximum likelihood estimate
 
-    """
+        """
         x0 = self.x0
 
         # Loop through the maximum number of iterations
@@ -695,12 +695,12 @@ class FisherScoringMaximumLikelihoodBase(object):
 
     def solve_update_equation(self, S, I):
         """
-    Solve the update equation using cholesky decomposition
-    :param S: The score
-    :param I: The fisher information
-    :return: The parameter delta
+        Solve the update equation using cholesky decomposition
+        :param S: The score
+        :param I: The fisher information
+        :return: The parameter delta
 
-    """
+        """
 
         # Construct triangular matrix
         LL = flex.double()
@@ -715,12 +715,12 @@ class FisherScoringMaximumLikelihoodBase(object):
 
     def line_search(self, x, p, tau=0.5, delta=1.0, tolerance=1e-7):
         """
-    Perform a line search
-    :param x The initial position
-    :param p The direction to search
-    :return: The amount to move in the given direction
+        Perform a line search
+        :param x The initial position
+        :param p The direction to search
+        :return: The amount to move in the given direction
 
-    """
+        """
 
         def f(x):
             return -self.log_likelihood(x)
@@ -729,11 +729,11 @@ class FisherScoringMaximumLikelihoodBase(object):
 
     def gradient_search(self, x0):
         """
-    Find the minimum using gradient descent and a line search
-    :param x0 The initial position
-    :return: The amount to move in the given direction
+        Find the minimum using gradient descent and a line search
+        :param x0 The initial position
+        :return: The amount to move in the given direction
 
-    """
+        """
 
         def f(x):
             return -self.log_likelihood(x)
@@ -746,9 +746,9 @@ class FisherScoringMaximumLikelihoodBase(object):
 
 class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
     """
-  A class to solve the maximum likelihood equations
+    A class to solve the maximum likelihood equations
 
-  """
+    """
 
     def __init__(
         self,
@@ -762,9 +762,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
         tolerance=1e-7,
     ):
         """
-    Initialise the algorithm:
+        Initialise the algorithm:
 
-    """
+        """
 
         # Initialise the super class
         super(FisherScoringMaximumLikelihood, self).__init__(
@@ -789,26 +789,26 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
     def log_likelihood(self, x):
         """
-    :param x: The parameter estimate
-    :return: The log likelihood at x
+        :param x: The parameter estimate
+        :return: The log likelihood at x
 
-    """
+        """
         return self.model(x).log_likelihood()
 
     def score(self, x):
         """
-    :param x: The parameter estimate
-    :return: The score at x
+        :param x: The parameter estimate
+        :return: The score at x
 
-    """
+        """
         return self.model(x).first_derivatives()
 
     def score_and_fisher_information(self, x):
         """
-    :param x: The parameter estimate
-    :return: The score and fisher information at x
+        :param x: The parameter estimate
+        :return: The score and fisher information at x
 
-    """
+        """
         model = self.model(x)
         S = model.first_derivatives()
         I = model.fisher_information()
@@ -816,10 +816,10 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
     def model(self, x):
         """
-    :param x: The parameter estimate
-    :return: The model
+        :param x: The parameter estimate
+        :return: The model
 
-    """
+        """
         self.parameterisation.set_parameters(x)
         model = MaximumLikelihoodTarget(
             self.parameterisation,
@@ -833,9 +833,9 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
     def callback(self, x):
         """
-    Handle and update in parameter values
+        Handle and update in parameter values
 
-    """
+        """
         self.parameterisation.set_parameters(x)
         sigma = self.parameterisation.sigma()
         lnL = self.log_likelihood(x)
@@ -848,15 +848,15 @@ class FisherScoringMaximumLikelihood(FisherScoringMaximumLikelihoodBase):
 
 class ProfileRefiner(object):
     """
-  High level profile refiner class that handles book keeping etc
+    High level profile refiner class that handles book keeping etc
 
-  """
+    """
 
     def __init__(self, parameterisation, data):
         """
-    Set the data and initial parameters
+        Set the data and initial parameters
 
-    """
+        """
         self.s0 = data.s0
         self.s2_list = data.s2_list
         self.ctot_list = data.ctot_list
@@ -866,9 +866,9 @@ class ProfileRefiner(object):
 
     def refine(self):
         """
-    Perform the profile refinement
+        Perform the profile refinement
 
-    """
+        """
         if False:
             self.refine_simplex()
         else:
@@ -876,9 +876,9 @@ class ProfileRefiner(object):
 
     def refine_simplex(self):
         """
-    Perform the profile refinement
+        Perform the profile refinement
 
-    """
+        """
 
         class Target(object):
             def __init__(self, model, s0, s2_list, ctot_list, xbar_list, sobs_list):
@@ -937,9 +937,9 @@ class ProfileRefiner(object):
 
     def refine_fisher_scoring(self):
         """
-    Perform the profile refinement
+        Perform the profile refinement
 
-    """
+        """
 
         # Initialise the algorithm
         ml = FisherScoringMaximumLikelihood(
@@ -969,15 +969,15 @@ class ProfileRefiner(object):
 
 class ProfileRefinerData(object):
     """
-  A class for holding the data needed for the profile refinement
+    A class for holding the data needed for the profile refinement
 
-  """
+    """
 
     def __init__(self, s0, s2_list, ctot_list, mobs_list, sobs_list):
         """
-    Init the data
+        Init the data
 
-    """
+        """
         self.s0 = s0
         self.s2_list = s2_list
         self.ctot_list = ctot_list
@@ -987,9 +987,9 @@ class ProfileRefinerData(object):
     @classmethod
     def from_reflections(self, experiment, reflections):
         """
-    Generate the required data from the reflections
+        Generate the required data from the reflections
 
-    """
+        """
 
         # Get the beam vector
         s0 = matrix.col(experiment.beam.get_s0())
@@ -1110,9 +1110,9 @@ class ProfileRefinerData(object):
 
 def print_eigen_values_and_vectors_of_observed_covariance(A):
     """
-  Print the eigen values and vectors of a matrix
+    Print the eigen values and vectors of a matrix
 
-  """
+    """
 
     # Compute the eigen decomposition of the covariance matrix
     eigen_decomposition = linalg.eigensystem.real_symmetric(A.as_flex_double_matrix())
@@ -1138,9 +1138,9 @@ def print_eigen_values_and_vectors_of_observed_covariance(A):
 
 def print_eigen_values_and_vectors(A):
     """
-  Print the eigen values and vectors of a matrix
+    Print the eigen values and vectors of a matrix
 
-  """
+    """
 
     # Compute the eigen decomposition of the covariance matrix
     eigen_decomposition = linalg.eigensystem.real_symmetric(A.as_flex_double_matrix())
@@ -1167,9 +1167,9 @@ def print_eigen_values_and_vectors(A):
 
 def print_matrix(A, fmt="%.3g", indent=0):
     """
-  Pretty print matrix
+    Pretty print matrix
 
-  """
+    """
     t = [fmt % a for a in A]
     l = [len(tt) for tt in t]
     max_l = max(l)

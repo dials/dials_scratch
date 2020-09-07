@@ -6,9 +6,9 @@ from scitbx import matrix
 
 def normal_pdf(x, mu, sigma):
     """
-  Multi variate normal
+    Multi variate normal
 
-  """
+    """
     N = len(mu)
     sigma_inv = sigma.inverse()
     A = 1.0 / (sqrt((2 * pi) ** N * sigma.determinant()))

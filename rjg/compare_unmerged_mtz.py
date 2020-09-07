@@ -153,8 +153,7 @@ def run(args):
 
 
 def mean_difference_over_sum(self, other, binner=None):
-    """
-  """
+    """"""
     if binner is not None:
 
         return (

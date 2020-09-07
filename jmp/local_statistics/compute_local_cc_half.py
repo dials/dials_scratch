@@ -12,13 +12,13 @@ from math import sqrt
 
 def compute_cchalf(mean, var):
     """
-  Compute the CC 1/2 using the formular from Assmann, Brehm and Diederichs 2016
+    Compute the CC 1/2 using the formular from Assmann, Brehm and Diederichs 2016
 
-  :param mean: The list of mean intensities
-  :param var: The list of variances on the half set of mean intensities
-  :returns: The CC 1/2
-  
-  """
+    :param mean: The list of mean intensities
+    :param var: The list of variances on the half set of mean intensities
+    :returns: The CC 1/2
+
+    """
     assert len(mean) == len(var)
     n = len(mean)
     mean_of_means = sum(mean) / n

@@ -5,21 +5,21 @@ import wx
 def create_gui_dat():
     """
 
-  Function for editing components of every step of the GUI.
+    Function for editing components of every step of the GUI.
 
-  In this function should NOT be programmed the behavior of the main GUI
+    In this function should NOT be programmed the behavior of the main GUI
 
-  for editing the general behavior of the main GUI the class MainFrame should be used
+    for editing the general behavior of the main GUI the class MainFrame should be used
 
 
-  """
+    """
 
     class element(object):
 
         """
-    By editing different instances of this class the programmer should be able
-    to edit the components of the main GUI
-    """
+        By editing different instances of this class the programmer should be able
+        to edit the components of the main GUI
+        """
 
         def __init__(self):
             # putting some default values to the editable sub components
@@ -52,9 +52,9 @@ def create_gui_dat():
 class MainFrame(wx.Frame):
 
     """
-  Class to edit the behavior of the main GUI and to put in it the components
-  edited in the create_gui_dat function
-  """
+    Class to edit the behavior of the main GUI and to put in it the components
+    edited in the create_gui_dat function
+    """
 
     def __init__(self, parent, id, title, data_in):
         super(MainFrame, self).__init__(parent, id, title)

@@ -167,7 +167,7 @@ def centroid(image, mask, detector):
 
 def calculate_sigma_beam_divergence(var):
     """Calculate the beam divergence as the sum of centroid variance of the
-  intensity weighted diffracted beam directions."""
+    intensity weighted diffracted beam directions."""
     from math import sqrt
 
     # Calculate the sum of s^2

@@ -13,9 +13,9 @@ def log_interpolate(x0, y0, x1, y1, x):
 def derive_absorption_coefficient_Si(energy_kev):
     """From data from
 
-  http://physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab/z14.html
+    http://physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab/z14.html
 
-  derive a smoothed atenuation coefficient at a given energy in KeV, in mm ^ -1"""
+    derive a smoothed atenuation coefficient at a given energy in KeV, in mm ^ -1"""
 
     # FIXME need to decide which absorption coefficient to use - I think the mu_en
     # one which refers to energy deposition. N.B. only tabulated likely range 3 -

@@ -11,9 +11,9 @@ from scitbx import matrix
 
 class sensor:
     """A little class to represent one sensor, which is assumed to be a
-  flat rectangle defined by: an origin, two directions and extents in those
-  two directions. This may or may not map onto the pixel directions on the
-  image. All parameters are cctbx vectors or tuples."""
+    flat rectangle defined by: an origin, two directions and extents in those
+    two directions. This may or may not map onto the pixel directions on the
+    image. All parameters are cctbx vectors or tuples."""
 
     def __init__(self, origin, dir1, dir2, lim1, lim2):
         self._origin = origin
@@ -29,7 +29,7 @@ class sensor:
 
     def intersect(self, ray):
         """Compute intersection of sensor with ray from frame origin, returning
-    none if intersection not within limits."""
+        none if intersection not within limits."""
         scale = ray.dot(self._normal)
         r = (ray * self._distance / scale) - self._origin
         x1 = r.dot(self._dir1)
@@ -61,8 +61,8 @@ def test_sensor():
 
 class detector:
     """An abstract class definition for X-ray detectors which are assumed to
-  be composed of one or more flat rectangular sensor areas. Will initially
-  assume that sensor areas to not shadow one another."""
+    be composed of one or more flat rectangular sensor areas. Will initially
+    assume that sensor areas to not shadow one another."""
 
     def __init__(self, sensors):
         self._sensors = sensors

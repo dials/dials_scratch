@@ -11,23 +11,23 @@ from dials.algorithms.refinement.parameterisation.crystal_parameters import (
 
 class Simple1MosaicityParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 6 parameters to describe a
-  multivariate normal reciprocal lattice profile. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
+    A simple mosaicity parameterisation that uses 6 parameters to describe a
+    multivariate normal reciprocal lattice profile. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
 
-  M = | b1 0  0  |
-      |  0 b1 0  |
-      |  0  0 b1 |
+    M = | b1 0  0  |
+        |  0 b1 0  |
+        |  0  0 b1 |
 
-  S = M*M^T
+    S = M*M^T
 
-  """
+    """
 
     def __init__(self, params=None):
         """
-    Initialise with the parameters
+        Initialise with the parameters
 
-    """
+        """
         if params is not None:
             assert len(params) == self.num_parameters()
             self.params = params
@@ -36,38 +36,38 @@ class Simple1MosaicityParameterisation(object):
 
     def is_angular(self):
         """
-    Is angular
+        Is angular
 
-    """
+        """
         return False
 
     def num_parameters(self):
         """
-    Get the number of parameters
+        Get the number of parameters
 
-    """
+        """
         return 1
 
     def set_parameters(self, params):
         """
-    Set the parameters
+        Set the parameters
 
-    """
+        """
         assert len(params) == self.num_parameters()
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
+        Return the parameters
 
-    """
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
+        Compute the covariance matrix of the MVN from the parameters
 
-    """
+        """
         M = matrix.sqr(
             (self.params[0], 0, 0, 0, self.params[0], 0, 0, 0, self.params[0])
         )
@@ -75,9 +75,9 @@ class Simple1MosaicityParameterisation(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
+        Compute the first derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         (b1,) = self.params
 
         dSdb1 = (2 * b1, 0, 0, 0, 2 * b1, 0, 0, 0, 2 * b1)
@@ -87,23 +87,23 @@ class Simple1MosaicityParameterisation(object):
 
 class Simple6MosaicityParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 6 parameters to describe a
-  multivariate normal reciprocal lattice profile. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
+    A simple mosaicity parameterisation that uses 6 parameters to describe a
+    multivariate normal reciprocal lattice profile. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
 
-  M = | b1 0  0  |
-      | b2 b3 0  |
-      | b4 b5 b6 |
+    M = | b1 0  0  |
+        | b2 b3 0  |
+        | b4 b5 b6 |
 
-  S = M*M^T
+    S = M*M^T
 
-  """
+    """
 
     def __init__(self, params=None):
         """
-    Initialise with the parameters
+        Initialise with the parameters
 
-    """
+        """
         if params is not None:
             assert len(params) == self.num_parameters()
             self.params = params
@@ -112,38 +112,38 @@ class Simple6MosaicityParameterisation(object):
 
     def is_angular(self):
         """
-    Is angular
+        Is angular
 
-    """
+        """
         return False
 
     def num_parameters(self):
         """
-    Get the number of parameters
+        Get the number of parameters
 
-    """
+        """
         return 6
 
     def set_parameters(self, params):
         """
-    Set the parameters
+        Set the parameters
 
-    """
+        """
         assert len(params) == self.num_parameters()
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
+        Return the parameters
 
-    """
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
+        Compute the covariance matrix of the MVN from the parameters
 
-    """
+        """
         M = matrix.sqr(
             (
                 self.params[0],
@@ -161,9 +161,9 @@ class Simple6MosaicityParameterisation(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
+        Compute the first derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         b1, b2, b3, b4, b5, b6 = self.params
 
         dSdb1 = (2 * b1, b2, b4, b2, 0, 0, b4, 0, 0)
@@ -182,9 +182,9 @@ class Simple6MosaicityParameterisation(object):
 
     def second_derivatives(self):
         """
-    Compute the second derivatives of Sigma w.r.t the parameters
+        Compute the second derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         b1, b2, b3, b4, b5, b6 = self.params
 
         zero = (0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -278,23 +278,23 @@ class Simple6MosaicityParameterisation(object):
 
 class WavelengthSpreadParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 1 parameters to describe a
-  multivariate normal wavelength spread. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
+    A simple mosaicity parameterisation that uses 1 parameters to describe a
+    multivariate normal wavelength spread. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
 
-  L = | 0 0 0  |
-      | 0 0 0  |
-      | 0 0 l1 |
+    L = | 0 0 0  |
+        | 0 0 0  |
+        | 0 0 l1 |
 
-  S = L*L^T
+    S = L*L^T
 
-  """
+    """
 
     def __init__(self, params=None):
         """
-    Initialise with the parameters
+        Initialise with the parameters
 
-    """
+        """
         if params is not None:
             assert len(params) == self.num_parameters()
             self.params = params
@@ -303,39 +303,39 @@ class WavelengthSpreadParameterisation(object):
 
     def num_parameters(self):
         """
-    Get the number of parameters
+        Get the number of parameters
 
-    """
+        """
         return 1
 
     def set_parameters(self, params):
         """
-    Set the parameters
+        Set the parameters
 
-    """
+        """
         assert len(params) == self.num_parameters()
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
+        Return the parameters
 
-    """
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
+        Compute the covariance matrix of the MVN from the parameters
 
-    """
+        """
         M = matrix.sqr((0, 0, 0, 0, 0, 0, 0, 0, self.params[0]))
         return M * M.transpose()
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
+        Compute the first derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         l1 = self.params[0]
 
         dSdl1 = (0, 0, 0, 0, 0, 0, 0, 0, 2 * l1)
@@ -344,9 +344,9 @@ class WavelengthSpreadParameterisation(object):
 
     def second_derivatives(self):
         """
-    Compute the second derivatives of Sigma w.r.t the parameters
+        Compute the second derivatives of Sigma w.r.t the parameters
 
-    """
+        """
         l1 = self.params[0]
 
         d11 = (0, 0, 0, 0, 0, 0, 0, 0, 2)
@@ -359,19 +359,19 @@ class WavelengthSpreadParameterisation(object):
 
 class Angular2MosaicityParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 2 parameters to describe a
-  multivariate normal angular mosaic spread. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
-  W = | w1 0  0  |
-      | 0 w1  0  |
-      | 0  0 w2 |
-  S = W*W^T
-  """
+    A simple mosaicity parameterisation that uses 2 parameters to describe a
+    multivariate normal angular mosaic spread. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
+    W = | w1 0  0  |
+        | 0 w1  0  |
+        | 0  0 w2 |
+    S = W*W^T
+    """
 
     def __init__(self, params=None):
         """
-    Initialise with the parameters
-    """
+        Initialise with the parameters
+        """
         if params is not None:
             assert len(params) == self.num_parameters()
             self.params = params
@@ -380,34 +380,34 @@ class Angular2MosaicityParameterisation(object):
 
     def is_angular(self):
         """
-    Is angular
+        Is angular
 
-    """
+        """
         return True
 
     def num_parameters(self):
         """
-    Get the number of parameters
-    """
+        Get the number of parameters
+        """
         return 2
 
     def set_parameters(self, params):
         """
-    Set the parameters
-    """
+        Set the parameters
+        """
         assert len(params) == self.num_parameters()
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
-    """
+        Return the parameters
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
-    """
+        Compute the covariance matrix of the MVN from the parameters
+        """
         M = matrix.sqr(
             (self.params[0], 0, 0, 0, self.params[0], 0, 0, 0, self.params[1])
         )
@@ -415,8 +415,8 @@ class Angular2MosaicityParameterisation(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
-    """
+        Compute the first derivatives of Sigma w.r.t the parameters
+        """
         b1, b2 = self.params
 
         d1 = (2 * b1, 0, 0, 0, 2 * b1, 0, 0, 0, 0)
@@ -428,19 +428,19 @@ class Angular2MosaicityParameterisation(object):
 
 class Angular4MosaicityParameterisation(object):
     """
-  A simple mosaicity parameterisation that uses 4 parameters to describe a
-  multivariate normal angular mosaic spread. Sigma is enforced as positive
-  definite by parameterising using the cholesky decomposition.
-  W = | w1  0  0  |
-      | w2 w3  0  |
-      | 0   0 w4 |
-  S = W*W^T
-  """
+    A simple mosaicity parameterisation that uses 4 parameters to describe a
+    multivariate normal angular mosaic spread. Sigma is enforced as positive
+    definite by parameterising using the cholesky decomposition.
+    W = | w1  0  0  |
+        | w2 w3  0  |
+        | 0   0 w4 |
+    S = W*W^T
+    """
 
     def __init__(self, params=None):
         """
-    Initialise with the parameters
-    """
+        Initialise with the parameters
+        """
         if params is not None:
             assert len(params) == self.num_parameters()
             self.params = params
@@ -449,34 +449,34 @@ class Angular4MosaicityParameterisation(object):
 
     def is_angular(self):
         """
-    Is angular
+        Is angular
 
-    """
+        """
         return True
 
     def num_parameters(self):
         """
-    Get the number of parameters
-    """
+        Get the number of parameters
+        """
         return 4
 
     def set_parameters(self, params):
         """
-    Set the parameters
-    """
+        Set the parameters
+        """
         assert len(params) == self.num_parameters()
         self.params = params
 
     def parameters(self):
         """
-    Return the parameters
-    """
+        Return the parameters
+        """
         return self.params
 
     def sigma(self):
         """
-    Compute the covariance matrix of the MVN from the parameters
-    """
+        Compute the covariance matrix of the MVN from the parameters
+        """
         M = matrix.sqr(
             (
                 self.params[0],
@@ -494,8 +494,8 @@ class Angular4MosaicityParameterisation(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives of Sigma w.r.t the parameters
-    """
+        Compute the first derivatives of Sigma w.r.t the parameters
+        """
         b1, b2, b3, b4 = self.params
 
         d1 = (2 * b1, b2, 0, b2, 0, 0, 0, 0, 0)
@@ -511,9 +511,9 @@ class Angular4MosaicityParameterisation(object):
 
 class ModelState(object):
     """
-  A class to keep track of the model state
+    A class to keep track of the model state
 
-  """
+    """
 
     def __init__(
         self,
@@ -525,9 +525,9 @@ class ModelState(object):
         fix_orientation=False,
     ):
         """
-    Initialise the model state
+        Initialise the model state
 
-    """
+        """
 
         # Save the crystal model
         self.experiment = experiment
@@ -548,163 +548,163 @@ class ModelState(object):
 
     def is_orientation_fixed(self):
         """
-    Return whether the orientation is fixed
+        Return whether the orientation is fixed
 
-    """
+        """
         return self._is_orientation_fixed
 
     def is_unit_cell_fixed(self):
         """
-    Return whether the unit cell is fixed
+        Return whether the unit cell is fixed
 
-    """
+        """
         return self._is_unit_cell_fixed
 
     def is_mosaic_spread_fixed(self):
         """
-    Return whether the mosaic spread is fixed
+        Return whether the mosaic spread is fixed
 
-    """
+        """
         return self._is_mosaic_spread_fixed
 
     def is_mosaic_spread_angular(self):
         """
-    Return whether the mosaic spread is angular
+        Return whether the mosaic spread is angular
 
-    """
+        """
         return self.M_parameterisation.is_angular()
 
     def is_wavelength_spread_fixed(self):
         """
-    Return whether the wavelength spread is fixed
+        Return whether the wavelength spread is fixed
 
-    """
+        """
         return self._is_wavelength_spread_fixed
 
     def get_unit_cell(self):
         """
-    Get the crystal unit cell
+        Get the crystal unit cell
 
-    """
+        """
         return self.crystal.get_unit_cell()
 
     def get_U(self):
         """
-    Get the crystal U matrix
+        Get the crystal U matrix
 
-    """
+        """
         return matrix.sqr(self.crystal.get_U())
 
     def get_B(self):
         """
-    Get the crystal B matrix
+        Get the crystal B matrix
 
-    """
+        """
         return matrix.sqr(self.crystal.get_B())
 
     def get_A(self):
         """
-    Get the crystal A matrix
+        Get the crystal A matrix
 
-    """
+        """
         return matrix.sqr(self.crystal.get_A())
 
     def get_M(self):
         """
-    Get the Sigma M matrix
+        Get the Sigma M matrix
 
-    """
+        """
         return self.M_parameterisation.sigma()
 
     def get_U_params(self):
         """
-    Get the U parameters
+        Get the U parameters
 
-    """
+        """
         return flex.double(self.U_parameterisation.get_param_vals())
 
     def get_B_params(self):
         """
-    Get the B parameters
+        Get the B parameters
 
-    """
+        """
         return flex.double(self.B_parameterisation.get_param_vals())
 
     def get_M_params(self):
         """
-    Get the M parameters
+        Get the M parameters
 
-    """
+        """
         return self.M_parameterisation.parameters()
 
     def set_U_params(self, params):
         """
-    Set the U parameters
+        Set the U parameters
 
-    """
+        """
         return self.U_parameterisation.set_param_vals(params)
 
     def set_B_params(self, params):
         """
-    Set the B parameters
+        Set the B parameters
 
-    """
+        """
         return self.B_parameterisation.set_param_vals(params)
 
     def set_M_params(self, params):
         """
-    Set the M parameters
+        Set the M parameters
 
-    """
+        """
         return self.M_parameterisation.set_parameters(params)
 
     def num_U_params(self):
         """
-    Get the number of U parameters
+        Get the number of U parameters
 
-    """
+        """
         return len(self.get_U_params())
 
     def num_B_params(self):
         """
-    Get the number of B parameters
+        Get the number of B parameters
 
-    """
+        """
         return len(self.get_B_params())
 
     def num_M_params(self):
         """
-    Get the number of M parameters
+        Get the number of M parameters
 
-    """
+        """
         return len(self.get_M_params())
 
     def get_dU_dp(self):
         """
-    Get the first derivatives of U w.r.t its parameters
+        Get the first derivatives of U w.r.t its parameters
 
-    """
+        """
         return flex.mat3_double(self.U_parameterisation.get_ds_dp())
 
     def get_dB_dp(self):
         """
-    Get the first derivatives of B w.r.t its parameters
+        Get the first derivatives of B w.r.t its parameters
 
-    """
+        """
         return flex.mat3_double(self.B_parameterisation.get_ds_dp())
 
     def get_dM_dp(self):
         """
-    Get the first derivatives of M w.r.t its parameters
+        Get the first derivatives of M w.r.t its parameters
 
-    """
+        """
         return self.M_parameterisation.first_derivatives()
 
     def get_active_parameters(self):
         """
-    Get the active parameters in order: U, B, M, L, W
+        Get the active parameters in order: U, B, M, L, W
 
-    """
+        """
         active_params = flex.double()
         if not self._is_orientation_fixed:
             active_params.extend(self.get_U_params())
@@ -719,9 +719,9 @@ class ModelState(object):
 
     def set_active_parameters(self, params):
         """
-    Set the active parameters in order: U, B, M, L, W
+        Set the active parameters in order: U, B, M, L, W
 
-    """
+        """
         if not self._is_orientation_fixed:
             temp = params[: self.num_U_params()]
             params = params[self.num_U_params() :]
@@ -741,9 +741,9 @@ class ModelState(object):
 
     def get_labels(self):
         """
-    Get the parameter labels
+        Get the parameter labels
 
-    """
+        """
         labels = []
         if not self._is_orientation_fixed:
             for i in range(len(self.get_U_params())):
@@ -762,15 +762,15 @@ class ModelState(object):
 
 class ReflectionModelState(object):
     """
-  Class to compute basic derivatives of Sigma and r w.r.t parameters
+    Class to compute basic derivatives of Sigma and r w.r.t parameters
 
-  """
+    """
 
     def __init__(self, state, s0, h):
         """
-    Initialise with the state and compute derivatives
+        Initialise with the state and compute derivatives
 
-    """
+        """
 
         # Get a load of matrices
         A = state.get_A()
@@ -905,28 +905,28 @@ class ReflectionModelState(object):
 
     def get_sigma(self):
         """
-    Return the covariance matrix
+        Return the covariance matrix
 
-    """
+        """
         return self._sigma
 
     def get_r(self):
         """
-    Return the reciprocal lattice vector
+        Return the reciprocal lattice vector
 
-    """
+        """
         return self._r
 
     def get_dS_dp(self):
         """
-    Return the derivatives of the covariance matrix
+        Return the derivatives of the covariance matrix
 
-    """
+        """
         return self._ds_dp
 
     def get_dr_dp(self):
         """
-    Return the derivatives of the reciprocal lattice vector
+        Return the derivatives of the reciprocal lattice vector
 
-    """
+        """
         return self._dr_dp

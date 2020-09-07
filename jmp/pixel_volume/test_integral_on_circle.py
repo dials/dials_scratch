@@ -4,9 +4,9 @@ from __future__ import print_function
 
 def normal(x, mu, sigma):
     """
-  Multi variate normal
+    Multi variate normal
 
-  """
+    """
     from math import sqrt, exp, pi
 
     N = len(mu)
@@ -18,9 +18,9 @@ def normal(x, mu, sigma):
 
 def f(r, theta, mu, sigma):
     """
-  Multi variate normal at polar coords
+    Multi variate normal at polar coords
 
-  """
+    """
     from math import cos, sin
     from scitbx import matrix
 
@@ -31,9 +31,9 @@ def f(r, theta, mu, sigma):
 
 def g(r, theta, mu, sigma):
     """
-  The integral we want to evalute (the mean theta)
+    The integral we want to evalute (the mean theta)
 
-  """
+    """
     from cmath import exp
 
     return r * exp(complex(0, theta)) * f(r, theta, mu, sigma)

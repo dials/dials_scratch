@@ -178,7 +178,7 @@ class Shadow(object):
         return diffs, pixels, indices
 
     def pixel_plotter(self, blank=True, num_points=50):
-        """ This function plots a 3D graph of percentage of affected
+        """This function plots a 3D graph of percentage of affected
         pixels as a function of omega and kappa. This takes a long
         time.
         """

@@ -308,13 +308,13 @@ class MaskCalculatorNew(object):
 
 class Integrator(object):
     """
-  Class to perform integration of stills in the following way:
+    Class to perform integration of stills in the following way:
 
-  1. Refine profile model
-  2. Refine crystal orientation
-  3. Integrate reflections
+    1. Refine profile model
+    2. Refine crystal orientation
+    3. Integrate reflections
 
-  """
+    """
 
     def __init__(self, experiments, reflections):
 
@@ -330,9 +330,9 @@ class Integrator(object):
 
     def initial_integration(self):
         """
-    Do an initial integration of the strong spots
+        Do an initial integration of the strong spots
 
-    """
+        """
         self._compute_sigma_d()
         self._compute_bbox()
         self._allocate_shoebox()
@@ -343,9 +343,9 @@ class Integrator(object):
 
     def refine(self):
         """
-    Do the refinement of profile and crystal parameters
+        Do the refinement of profile and crystal parameters
 
-    """
+        """
 
         # Preprocess the reflections
         self._preprocess()
@@ -408,9 +408,9 @@ class Integrator(object):
 
     def _compute_sigma_d(self):
         """
-    Compute and initial spot size estimate
+        Compute and initial spot size estimate
 
-    """
+        """
 
         print(
             "Computing initial sigma d estimate for %d reflections"
@@ -425,9 +425,9 @@ class Integrator(object):
 
     def _compute_bbox(self):
         """
-    Compute the bounding box
+        Compute the bounding box
 
-    """
+        """
 
         print("Computing the bounding box for %d reflections" % len(self.reflections))
         compute_bbox = BBoxCalculator(
@@ -450,18 +450,18 @@ class Integrator(object):
 
     def _allocate_shoebox(self):
         """
-    Allocate the shoebox
+        Allocate the shoebox
 
-    """
+        """
         self.reflections["shoebox"] = flex.shoebox(
             self.reflections["panel"], self.reflections["bbox"], allocate=True
         )
 
     def _compute_mask(self):
         """
-    Compute the spot mask
+        Compute the spot mask
 
-    """
+        """
         print("Creating the foreground mask for %d reflections" % len(self.reflections))
         mask_foreground = MaskCalculator(
             self.experiments[0].crystal,
@@ -481,9 +481,9 @@ class Integrator(object):
 
     def _extract_shoebox(self):
         """
-    Extract the shoebox
+        Extract the shoebox
 
-    """
+        """
         print(
             "Extracting shoebox from image for %d reflections" % len(self.reflections)
         )
@@ -518,9 +518,9 @@ class Integrator(object):
 
     def _preprocess(self):
         """
-    Preprocess the reflections
+        Preprocess the reflections
 
-    """
+        """
 
         # Don't trust the predictions in the reflection file.
         self._update_observed_reflection_predictions()
@@ -532,9 +532,9 @@ class Integrator(object):
 
     def _update_observed_reflection_predictions(self):
         """
-    Make sure we have the correct reciprocal lattice vector
+        Make sure we have the correct reciprocal lattice vector
 
-    """
+        """
         print("Updating predictions for %d reflections" % len(self.reflections))
 
         # Get stuff from experiment
@@ -552,9 +552,9 @@ class Integrator(object):
 
     def _refine_profile(self):
         """
-    Do the profile refinement
+        Do the profile refinement
 
-    """
+        """
         print("")
         print("Refining profile parmameters")
         if self._profile_parameters is None:
@@ -567,9 +567,9 @@ class Integrator(object):
 
     def _refine_crystal(self):
         """
-    Do the crystal parameter refinement
+        Do the crystal parameter refinement
 
-    """
+        """
         print("")
         print("Refining crystal unit cell and orientation parameters")
         refiner = CrystalRefiner(

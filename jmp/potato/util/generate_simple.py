@@ -10,9 +10,9 @@ from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
 
 def generate_simple(s0, sigma, N=100):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -85,9 +85,9 @@ def generate_simple(s0, sigma, N=100):
 
 def generate_simple_binned(s0, sigma, N=100):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -174,9 +174,9 @@ def generate_simple_binned(s0, sigma, N=100):
 
 def generate_from_reflections(s0, sigma, reflections):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -252,9 +252,9 @@ def generate_from_reflections(s0, sigma, reflections):
 
 def generate_from_reflections2(A, s0, sigma, reflections):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     sp_list = []
     h_list = []
     ctot_list = []
@@ -335,9 +335,9 @@ def generate_from_reflections2(A, s0, sigma, reflections):
 
 def generate_from_reflections_binned(s0, sigma, reflections):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -427,9 +427,9 @@ def generate_from_reflections_binned(s0, sigma, reflections):
 
 def generate_with_wavelength_spread(s0, sigma_spot, sigma_wavelength, N=100):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -518,9 +518,9 @@ def generate_with_wavelength_spread2(
     D, s0, spot_covariance, wavelength_variance, N=100
 ):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []

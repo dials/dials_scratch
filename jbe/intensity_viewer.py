@@ -141,7 +141,10 @@ def read_xds_ascii(filename):
 def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     """Map the indices to the asymmetric unit."""
     assert anom in (False, True)
-    crystal_symmetry = crystal.symmetry(space_group=space_group, unit_cell=uc,)
+    crystal_symmetry = crystal.symmetry(
+        space_group=space_group,
+        unit_cell=uc,
+    )
     miller_set = miller.set(
         crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=anom
     )

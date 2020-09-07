@@ -17,26 +17,26 @@ class SpotFinder(object):
     def __init__(self, min_spot_size=6, max_separation=2):
         """Initialise the algorithm with some parameters.
 
-    Params:
-        min_spot_size The minimum number of pixels in spot
-        max_separation The maximum maximum-centroid distance
+        Params:
+            min_spot_size The minimum number of pixels in spot
+            max_separation The maximum maximum-centroid distance
 
-    """
+        """
         self._min_spot_size = min_spot_size
         self._max_separation = max_separation
 
     def __call__(self, sweep):
         """The main function of the spot finder. Select the pixels from
-    the sweep and then group the pixels into spots. Return the data
-    in the form of a reflection list.
+        the sweep and then group the pixels into spots. Return the data
+        in the form of a reflection list.
 
-    Params:
-        sweep The sweep object
+        Params:
+            sweep The sweep object
 
-    Returns:
-        The reflection list
+        Returns:
+            The reflection list
 
-    """
+        """
         from dials.util.command_line import Command
 
         # Set a command indent to 4
@@ -81,13 +81,13 @@ class SpotFinder(object):
     def _extract_pixels(self, sweep):
         """Extract the pixels from the sweep
 
-    Params:
-        sweep The sweep object
+        Params:
+            sweep The sweep object
 
-    Returns:
-        The list of selected pixels
+        Returns:
+            The list of selected pixels
 
-    """
+        """
         from dials.util.command_line import ProgressBar
         from scitbx.array_family import flex
         from dials.algorithms.peak_finding import flex_vec3_int
@@ -117,15 +117,15 @@ class SpotFinder(object):
     def _extract_image_pixels(self, flex_image, frame, trusted_range):
         """Extract pixels from a single image
 
-    Params:
-        image The image from which to extract the pixels
-        frame The frame number of the current image
-        trusted_range The trusted range of pixel values
+        Params:
+            image The image from which to extract the pixels
+            frame The frame number of the current image
+            trusted_range The trusted range of pixel values
 
-    Returns:
-        The list of selected pixels
+        Returns:
+            The list of selected pixels
 
-    """
+        """
         from scitbx.array_family import flex
         from dials.algorithms.peak_finding import flex_vec3_int
         from dials.algorithms.peak_finding import mean_sdev_filter
@@ -156,14 +156,14 @@ class SpotFinder(object):
     def _calculate_threshold(self, image, trusted_range):
         """Calculate the threshold for this image.
 
-    Params:
-        image The image to process
-        trusted_range The trusted range of pixel values
+        Params:
+            image The image to process
+            trusted_range The trusted range of pixel values
 
-    Returns:
-        The threshold value
+        Returns:
+            The threshold value
 
-    """
+        """
         from dials.algorithms.peak_finding import maximum_deviation
         from dials.algorithms.peak_finding import probability_distribution
 
@@ -178,16 +178,16 @@ class SpotFinder(object):
 
     def _label_pixels(self, pixels, sweep):
         """Do a connected component labelling of the pixels to get
-    groups of spots.
+        groups of spots.
 
-    Params:
-        pixels The pixel coordinates
-        sweep The sweep object
+        Params:
+            pixels The pixel coordinates
+            sweep The sweep object
 
-    Returns:
-        The pixel-spot mapping.
+        Returns:
+            The pixel-spot mapping.
 
-    """
+        """
         from dials.algorithms.peak_finding import LabelPixels
 
         # Get the grid size needed by the labelling algorithm
@@ -205,13 +205,13 @@ class SpotFinder(object):
     def _filter_spots(self, labels):
         """Filter spots that are too small.
 
-    Params:
-        spots The input spots
+        Params:
+            spots The input spots
 
-    Returns:
-        The filtered spots
+        Returns:
+            The filtered spots
 
-    """
+        """
         # Create a list of lists of pixels representing the spots
         spots = [list() for i in range(max(labels) + 1)]
         for i, l in enumerate(labels):
@@ -223,15 +223,15 @@ class SpotFinder(object):
     def _calculate_bbox(self, coords, spots, sweep):
         """Calculate the bounding boxes for each spot.
 
-    Params:
-        coords The pixel coordinates
-        spots The pixel-spot mapping
-        sweep The sweep object
+        Params:
+            coords The pixel coordinates
+            spots The pixel-spot mapping
+            sweep The sweep object
 
-    Returns:
-        The bounding boxes for each spot
+        Returns:
+            The bounding boxes for each spot
 
-    """
+        """
         # Get the image dimensions
         height, width = sweep.get_image_size()
         length = sweep.get_array_range()[1]
@@ -273,15 +273,15 @@ class SpotFinder(object):
     def _calculate_centroids(self, coords, intensity, spots):
         """Calculate the spot centroids.
 
-    Params:
-        coords The spot coords
-        intensity The spot intensities
-        spots The pixel-spot mapping
+        Params:
+            coords The spot coords
+            intensity The spot intensities
+            spots The pixel-spot mapping
 
-    Returns:
-        (centroid position, centroid variance)
+        Returns:
+            (centroid position, centroid variance)
 
-    """
+        """
         from scitbx.array_family import flex
 
         # Loop through all the spots
@@ -314,18 +314,18 @@ class SpotFinder(object):
 
     def _filter_maximum_centroid(self, coords, values, spots, cpos):
         """Filter the reflections by the distance between the maximum pixel
-    value and the centroid position. If the centroid is a greater than the
-    maximum separation from maximum pixel (in pixel coords) then discard.
+        value and the centroid position. If the centroid is a greater than the
+        maximum separation from maximum pixel (in pixel coords) then discard.
 
-    Params:
-        coords The list of coordinates
-        values The list of values
-        cpos The list of centroids
+        Params:
+            coords The list of coordinates
+            values The list of values
+            cpos The list of centroids
 
-    Returns:
-        An index list of valid spots
+        Returns:
+            An index list of valid spots
 
-    """
+        """
         from scitbx.array_family import flex
         from scitbx import matrix
 
@@ -343,19 +343,19 @@ class SpotFinder(object):
     def _create_reflection_list(self, coords, values, spots, bbox, cpos, cvar, index):
         """Create a reflection list from the spot data.
 
-    Params:
-        coords The pixel coordinates
-        values The pixel values
-        spots The pixel->spot mapping
-        bbox The spot bounding boxes
-        cpos The centroid position
-        cvar The centroid variance
-        index The list of valid indices
+        Params:
+            coords The pixel coordinates
+            values The pixel values
+            spots The pixel->spot mapping
+            bbox The spot bounding boxes
+            cpos The centroid position
+            cvar The centroid variance
+            index The list of valid indices
 
-    Returns:
-        A list of reflections
+        Returns:
+            A list of reflections
 
-    """
+        """
         from dials.model.data import Reflection, ReflectionList
         from dials.algorithms.integration import allocate_reflection_profiles
 

@@ -4,15 +4,15 @@ from __future__ import print_function
 
 class PixelLabeller(object):
     """
-  Class to do pixel labelling
+    Class to do pixel labelling
 
-  """
+    """
 
     def __init__(self, experiments):
         """
-    Do the labelling
+        Do the labelling
 
-    """
+        """
         from dials.algorithms.spot_prediction import PixelToMillerIndex
         from collections import defaultdict
         from math import floor, sqrt
@@ -52,44 +52,44 @@ class PixelLabeller(object):
 
     def label(self):
         """
-    Return an array of labels
+        Return an array of labels
 
-    """
+        """
         return self._label
 
     def distance(self):
         """
-    Return the distance at each pixel to the miller index
+        Return the distance at each pixel to the miller index
 
-    """
+        """
         return self._distance
 
     def indices(self):
         """
-    Return the list of miller indices
+        Return the list of miller indices
 
-    """
+        """
         return self._indices
 
     def pixels(self):
         """
-    Return the list of pixels at each reflection
+        Return the list of pixels at each reflection
 
-    """
+        """
         return self._pixels
 
 
 class ImageModeller(object):
     """
-  Class to do image modelling
+    Class to do image modelling
 
-  """
+    """
 
     def __init__(self, experiments, mosaicity):
         """
-    Do the labelling
+        Do the labelling
 
-    """
+        """
         from dials.algorithms.spot_prediction import PixelToMillerIndex
         from collections import defaultdict
         from math import floor, sqrt, pi, exp
@@ -198,30 +198,30 @@ class ImageModeller(object):
 
     def label(self):
         """
-    Return an array of labels
+        Return an array of labels
 
-    """
+        """
         return self._label
 
     def distance(self):
         """
-    Return the distance at each pixel to the miller index
+        Return the distance at each pixel to the miller index
 
-    """
+        """
         return self._distance
 
     def indices(self):
         """
-    Return the list of miller indices
+        Return the list of miller indices
 
-    """
+        """
         return self._indices
 
     def pixels(self):
         """
-    Return the list of pixels at each reflection
+        Return the list of pixels at each reflection
 
-    """
+        """
         return self._pixels
 
 

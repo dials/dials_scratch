@@ -162,10 +162,10 @@ def check(file):
 def _rstrip(line, JUNK="\n \t"):
     """Return line stripped of trailing spaces, tabs, newlines.
 
-  Note that line.rstrip() instead also strips sundry control characters,
-  but at least one known Emacs user expects to keep junk like that, not
-  mentioning Barry by name or anything <wink>.
-  """
+    Note that line.rstrip() instead also strips sundry control characters,
+    but at least one known Emacs user expects to keep junk like that, not
+    mentioning Barry by name or anything <wink>.
+    """
 
     i = len(line)
     while i > 0 and line[i - 1] in JUNK:
