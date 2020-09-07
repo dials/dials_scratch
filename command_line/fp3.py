@@ -156,8 +156,6 @@ class FP3:
         somehow stash the data as read for spot finding and not need to
         read more times in the integration."""
 
-        self.integrate_chunk_script(no, chunk)
-
         # FIXME this should probably be logging
         print(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
