@@ -141,7 +141,10 @@ class FP3:
         ) as pool:
             jobs = []
             for j, block in enumerate(blocks):
-                jobs.append(pool.submit(self.integrate_chunk, j, block))
+                if self._params.parallelism == "process":
+                    jobs.append(pool.submit(self.integrate_chunk, j, block))
+                else:
+                    jobs.append(pool.submit(self.integrate_chunk_script, j, block))
             for job in concurrent.futures.as_completed(jobs):
                 self._integrated.append(job.result())
 
@@ -266,6 +269,7 @@ class FP3:
 
         phil = self._write_phil("find_spots", work)
         fout.write(f"dials.find_spots input.expt nproc={np}" + " ".join(phil) + "\n")
+        fout.write("if [ $? -ne 0 ] ; then exit $? ; fi\n")
 
         phil = self._write_phil("index", work)
         fout.write(
@@ -280,6 +284,7 @@ class FP3:
             + " ".join(phil)
             + "\n"
         )
+        fout.write("if [ $? -ne 0 ] ; then exit $? ; fi\n")
 
         phil = self._write_phil("refine", work)
         fout.write(
@@ -287,6 +292,7 @@ class FP3:
             + " ".join(phil)
             + "\n"
         )
+        fout.write("if [ $? -ne 0 ] ; then exit $? ; fi\n")
 
         phil = self._write_phil("integrate", work)
         fout.write(
@@ -294,8 +300,18 @@ class FP3:
             + " ".join(phil)
             + "\n"
         )
+        fout.write("if [ $? -ne 0 ] ; then exit $? ; fi\n")
+
+        fout.close()
 
         # FIXME submit the script for processing
+        print(f"Executing script {no} for images {chunk[0]} to {chunk[1]}")
+        result = procrunner.run(
+            ["bash", "integrate.sh"],
+            working_directory=work,
+            print_stdout=False,
+            print_stderr=False,
+        )
 
         return work
 
