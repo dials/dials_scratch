@@ -137,17 +137,17 @@ class FP3:
         nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
         blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
 
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=self._params.max_workers
-        ) as pool:
-            jobs = []
-            for j, block in enumerate(blocks):
-                if self._params.parallelism == "process":
+        if self._params.parallelism == "process":
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=self._params.max_workers
+            ) as pool:
+                jobs = []
+                for j, block in enumerate(blocks):
                     jobs.append(pool.submit(self.integrate_chunk, j, block))
-                else:
-                    jobs.append(pool.submit(self.integrate_chunk_script, j, block))
-            for job in concurrent.futures.as_completed(jobs):
-                self._integrated.append(job.result())
+                for job in concurrent.futures.as_completed(jobs):
+                    self._integrated.append(job.result())
+        else:
+            self.integrate_drmaa_array(blocks)
 
     def integrate_chunk(self, no, chunk):
         """Integrate a chunk of data: performs -
@@ -240,7 +240,7 @@ class FP3:
         print(f"Writing script {no} for images {chunk[0]} to {chunk[1]}")
 
         # first check if there is nothing to be done here
-        work = os.path.join(self._root, "integrate%03d" % no)
+        work = os.path.join(self._root, f"integrate{no:03}")
         if os.path.exists(work):
             if all(
                 os.path.exists(os.path.join(work, f"integrated.{exten}"))
@@ -301,16 +301,47 @@ class FP3:
 
         fout.close()
 
-        # FIXME submit the script for processing
-        print(f"Executing script {no} for images {chunk[0]} to {chunk[1]}")
-        result = procrunner.run(
-            ["bash", "integrate.sh"],
-            working_directory=work,
-            print_stdout=False,
-            print_stderr=False,
-        )
-
         return work
+
+    def integrate_drmaa_array(self, blocks):
+        script_file = os.path.join(self._root, 'run_integrate_array.sh')
+        with open(script_file, 'w') as script:
+    
+            script.write('#!/bin/bash\n')
+            nblocks = 0
+            for idx, chunk in enumerate(blocks, start=1):
+    
+                working_dir = self.integrate_chunk_script(idx, chunk)
+                script.write(f'WORKING_DIR_{idx}={working_dir}\n')
+                self._integrated.append(working_dir)
+                nblocks += 1
+    
+            script.write('TASK_WORKING_DIR=WORKING_DIR_${SGE_TASK_ID}\n')
+            script.write('cd ${!TASK_WORKING_DIR}\n')
+            script.write('sh ./integrate.sh > ${!TASK_WORKING_DIR}/integrate.out  2> ${!TASK_WORKING_DIR}/integrate.err')
+    
+        import drmaa
+        with drmaa.Session() as session:
+            job = session.createJobTemplate()
+            job.jobName = 'fp3_integrate'
+            job.workingDirectory = self._root
+            job.remoteCommand = 'sh'
+            args = [script_file,]
+            job.args = args
+            job.jobCategory = 'medium'
+            if self._params.worker_nproc > 1:
+                smp = f"-pe smp {self._params.worker_nproc}"
+            else:
+                smp = ""
+            #if sge_project:
+            #    proj = f"-P {sge_project}"
+            #else:
+            #    proj = ''
+            job.nativeSpecification = f"-V {smp} -l h_rt=12:00:00 -l mfree=4G -tc {self._params.max_workers}  -o /dev/null -e /dev/null"
+    
+            job_ids = session.runBulkJobs(job, 1, nblocks, 1)
+            session.synchronize(job_ids, drmaa.Session.TIMEOUT_WAIT_FOREVER, True)
+            session.deleteJobTemplate(job)
 
     def combine(self):
         """Collect together the data so far integrated."""
