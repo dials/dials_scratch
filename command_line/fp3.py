@@ -470,6 +470,14 @@ class FP3:
             print_stderr=self._debug,
         )
 
+        _ = result["stdout"].split(b"--Summary of merging statistics--").strip()
+        self._stats = []
+        for line in _.split(b"\n"):
+            if not line.strip():
+                break
+            self._stats.append(line)
+
+        logger.info("\n".join(self._stats))
         self._scaled = work
 
     def resolution(self):
