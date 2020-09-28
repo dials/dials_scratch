@@ -63,7 +63,9 @@ class FP3:
         self._debug = self._params.log_level == "DEBUG"
 
         # configure logging
-        logging.basicConfig(filename="dials.fp3.log", format="%(message)s")
+        logging.basicConfig(
+            filename="dials.fp3.log", filemode="w", format="%(message)s"
+        )
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(getattr(logging, self._params.log_level))
         logger.info(scope.fetch_diff(self._working).as_str())
