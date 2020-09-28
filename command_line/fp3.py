@@ -175,7 +175,7 @@ class FP3:
             os.mkdir(work)
 
         # fix up the scan to correspond to input chunk
-        expt = copy.deepcopy(self._experiment)
+        expt = copy.copy(self._experiment)
         expt[0].scan = expt[0].scan[chunk[0] : chunk[1]]
 
         expt.as_file(os.path.join(work, "input.expt"))
@@ -304,41 +304,46 @@ class FP3:
         return work
 
     def integrate_drmaa_array(self, blocks):
-        script_file = os.path.join(self._root, 'run_integrate_array.sh')
-        with open(script_file, 'w') as script:
-    
-            script.write('#!/bin/bash\n')
+        script_file = os.path.join(self._root, "run_integrate_array.sh")
+        with open(script_file, "w") as script:
+
+            script.write("#!/bin/bash\n")
             nblocks = 0
             for idx, chunk in enumerate(blocks, start=1):
-    
+
                 working_dir = self.integrate_chunk_script(idx, chunk)
-                script.write(f'WORKING_DIR_{idx}={working_dir}\n')
+                script.write(f"WORKING_DIR_{idx}={working_dir}\n")
                 self._integrated.append(working_dir)
                 nblocks += 1
-    
-            script.write('TASK_WORKING_DIR=WORKING_DIR_${SGE_TASK_ID}\n')
-            script.write('cd ${!TASK_WORKING_DIR}\n')
-            script.write('sh ./integrate.sh > ${!TASK_WORKING_DIR}/integrate.out  2> ${!TASK_WORKING_DIR}/integrate.err')
-    
+
+            script.write("TASK_WORKING_DIR=WORKING_DIR_${SGE_TASK_ID}\n")
+            script.write("cd ${!TASK_WORKING_DIR}\n")
+            script.write(
+                "sh ./integrate.sh > ${!TASK_WORKING_DIR}/integrate.out  2> ${!TASK_WORKING_DIR}/integrate.err"
+            )
+
         import drmaa
+
         with drmaa.Session() as session:
             job = session.createJobTemplate()
-            job.jobName = 'fp3_integrate'
+            job.jobName = "fp3_integrate"
             job.workingDirectory = self._root
-            job.remoteCommand = 'sh'
-            args = [script_file,]
+            job.remoteCommand = "sh"
+            args = [
+                script_file,
+            ]
             job.args = args
-            job.jobCategory = 'medium'
+            job.jobCategory = "medium"
             if self._params.worker_nproc > 1:
                 smp = f"-pe smp {self._params.worker_nproc}"
             else:
                 smp = ""
-            #if sge_project:
+            # if sge_project:
             #    proj = f"-P {sge_project}"
-            #else:
+            # else:
             #    proj = ''
             job.nativeSpecification = f"-V {smp} -l h_rt=12:00:00 -l mfree=4G -tc {self._params.max_workers}  -o /dev/null -e /dev/null"
-    
+
             job_ids = session.runBulkJobs(job, 1, nblocks, 1)
             session.synchronize(job_ids, drmaa.Session.TIMEOUT_WAIT_FOREVER, True)
             session.deleteJobTemplate(job)
