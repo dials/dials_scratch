@@ -4,6 +4,9 @@ import os
 import glob
 import copy
 import concurrent.futures
+import logging
+
+logger = logging.getLogger("fp3")
 
 from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
@@ -42,6 +45,8 @@ max_workers = 1
 worker_nproc = 1
   .type = int
   .help = "Number of processes for each worker"
+log_level = CRITICAL ERROR WARNING *INFO DEBUG
+  .type = choice
 """,
     process_includes=True,
 )
@@ -55,8 +60,13 @@ class FP3:
         clai = scope.command_line_argument_interpreter()
         self._working = scope.fetch(clai.process_and_fetch(params))
         self._params = self._working.extract()
+        self._debug = self._params.log_level == "DEBUG"
 
-        print(scope.fetch_diff(self._working).as_str())
+        # configure logging
+        logging.basicConfig(filename="dials.fp3.log", format="%(message)s")
+        logger.addHandler(logging.StreamHandler(sys.stdout))
+        logger.setLevel(getattr(logging, self._params.log_level))
+        logger.info(scope.fetch_diff(self._working).as_str())
 
         self._crystal = None
         self._root = os.getcwd()
@@ -98,6 +108,8 @@ class FP3:
             indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
 
             self._experiment[0].crystal = indexed[0].crystal
+            logger.info("Picked up pre-exising crystal:")
+            logger.info(indexed[0].crystal)
             return
 
         if not os.path.exists(work):
@@ -109,23 +121,30 @@ class FP3:
         i0, i1 = self._rng
         blocks = [(b[0] + 1, b[1]) for b in index_blocks(i0 - 1, i1, self._osc[1])]
 
+        logger.info("Finding spots...")
         phil = self._write_phil("find_spots", work)
         result = procrunner.run(
             ["dials.find_spots", "input.expt", "nproc=%d" % self._n]
             + phil
             + ["scan_range=%d,%d" % block for block in blocks],
             working_directory=work,
+            print_stdout=self._debug,
+            print_stderr=self._debug,
         )
 
+        logger.info("Indexing...")
         # let's just assume that was fine - so index
 
         phil = self._write_phil("index", work)
         result = procrunner.run(
-            ["dials.index", "input.expt", "strong.refl"] + phil, working_directory=work
+            ["dials.index", "input.expt", "strong.refl"] + phil,
+            working_directory=work,
+            print_stdout=self._debug,
+            print_stderr=self._debug,
         )
 
         indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
-
+        logger.info(indexed[0].crystal)
         self._experiment[0].crystal = indexed[0].crystal
 
     def integrate(self):
@@ -136,6 +155,8 @@ class FP3:
 
         nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
         blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
+
+        logger.info("Integrating...")
 
         if self._params.parallelism == "process":
             with concurrent.futures.ProcessPoolExecutor(
@@ -160,8 +181,7 @@ class FP3:
         somehow stash the data as read for spot finding and not need to
         read more times in the integration."""
 
-        # FIXME this should probably be logging
-        print(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
+        logger.debug(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
         work = os.path.join(self._root, "integrate%03d" % no)
         if os.path.exists(work):
@@ -236,8 +256,7 @@ class FP3:
         read more times in the integration. This writes one script for
         submission to a cluster to do the processing."""
 
-        # FIXME this should probably be logging
-        print(f"Writing script {no} for images {chunk[0]} to {chunk[1]}")
+        logger.debug(f"Writing script {no} for images {chunk[0]} to {chunk[1]}")
 
         # first check if there is nothing to be done here
         work = os.path.join(self._root, f"integrate{no:03}")
@@ -329,19 +348,13 @@ class FP3:
             job.jobName = "fp3_integrate"
             job.workingDirectory = self._root
             job.remoteCommand = "sh"
-            args = [
-                script_file,
-            ]
+            args = [script_file]
             job.args = args
             job.jobCategory = "medium"
             if self._params.worker_nproc > 1:
                 smp = f"-pe smp {self._params.worker_nproc}"
             else:
                 smp = ""
-            # if sge_project:
-            #    proj = f"-P {sge_project}"
-            # else:
-            #    proj = ''
             job.nativeSpecification = f"-V {smp} -l h_rt=12:00:00 -l mfree=4G -tc {self._params.max_workers}  -o /dev/null -e /dev/null"
 
             job_ids = session.runBulkJobs(job, 1, nblocks, 1)
@@ -351,6 +364,7 @@ class FP3:
     def combine(self):
         """Collect together the data so far integrated."""
 
+        logger.info("Combining...")
         work = os.path.join(self._root, "combine")
 
         if os.path.exists(work):
@@ -385,6 +399,7 @@ class FP3:
 
         assert self._combined is not None
 
+        logger.info("Determining symmetry...")
         work = os.path.join(self._root, "symmetry")
 
         if os.path.exists(work):
@@ -407,6 +422,8 @@ class FP3:
                 for exten in ["refl", "expt"]
             ],
             working_directory=work,
+            print_stdout=self._debug,
+            print_stderr=self._debug,
         )
 
         self._symmetry = work
@@ -416,6 +433,7 @@ class FP3:
         If the data have been previously scaled, start from the scaled data
         for sake of efficiency."""
 
+        logger.info("Scaling...")
         work = os.path.join(self._root, "scale")
 
         if os.path.exists(work):
@@ -442,6 +460,8 @@ class FP3:
         result = procrunner.run(
             command + [f"{source}.{exten}" for exten in ["refl", "expt"]],
             working_directory=work,
+            print_stdout=self._debug,
+            print_stderr=self._debug,
         )
 
         self._scaled = work
@@ -461,6 +481,8 @@ class FP3:
             + phil
             + [f"{source}.{exten}" for exten in ["refl", "expt"]],
             working_directory=self._scaled,
+            print_stdout=self._debug,
+            print_stderr=self._debug,
         )
 
         d_min = None
