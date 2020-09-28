@@ -470,12 +470,12 @@ class FP3:
             print_stderr=self._debug,
         )
 
-        _ = result["stdout"].split(b"--Summary of merging statistics--").strip()
+        _ = result["stdout"].split(b"--Summary of merging statistics--")[-1].strip()
         self._stats = []
         for line in _.split(b"\n"):
             if not line.strip():
                 break
-            self._stats.append(line)
+            self._stats.append(str(line))
 
         logger.info("\n".join(self._stats))
         self._scaled = work
