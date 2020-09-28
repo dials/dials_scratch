@@ -407,6 +407,8 @@ class FP3:
                 os.path.exists(os.path.join(work, f"symmetrized.{exten}"))
                 for exten in ["refl", "expt"]
             ):
+                symm = ExperimentList.from_file(os.path.join(work, "symmetrized.expt"))
+                logger.info(symm[0].crystal)
                 self._symmetry = work
                 return work
 
@@ -426,6 +428,8 @@ class FP3:
             print_stderr=self._debug,
         )
 
+        symm = ExperimentList.from_file(os.path.join(work, "symmetrized.expt"))
+        logger.info(symm[0].crystal)
         self._symmetry = work
 
     def scale(self, d_min=None):
@@ -471,6 +475,7 @@ class FP3:
 
         assert self._scaled
 
+        logger.info("Estimating resolution...")
         source = os.path.join(self._scaled, "scaled")
 
         work = os.path.join(self._root, "scale")
@@ -490,6 +495,10 @@ class FP3:
             if record.startswith(b"Resolution cc_half:"):
                 d_min = float(record.split()[-1])
 
+        if d_min is not None:
+            logger.info(f"Resolution determined as {d_min:.2f}")
+        else:
+            logger.info("Recommendation is use all data")
         return d_min
 
 
@@ -505,4 +514,5 @@ if __name__ == "__main__":
     fp3.symmetry()
     fp3.scale()
     d_min = fp3.resolution()
-    fp3.scale(d_min=d_min)
+    if d_min:
+        fp3.scale(d_min=d_min)
