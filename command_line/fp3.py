@@ -5,6 +5,7 @@ import glob
 import copy
 import concurrent.futures
 import logging
+import time
 
 logger = logging.getLogger("fp3")
 
@@ -518,11 +519,20 @@ if __name__ == "__main__":
     filenames = sum(map(glob.glob, args), [])
 
     fp3 = FP3(filenames, params)
+    t0 = time.time()
     fp3.index()
+    t1 = time.time()
     fp3.integrate()
+    t2 = time.time()
     fp3.combine()
+    t3 = time.time()
     fp3.symmetry()
+    t4 = time.time()
     fp3.scale()
+    t5 = time.time()
     d_min = fp3.resolution()
     if d_min:
         fp3.scale(d_min=d_min)
+    t6 = time.time()
+    logger.info("\n".join(fp3._stats))
+    logger.info(f"Total processing time: {t6 - t0:0.2f}s")
