@@ -346,6 +346,9 @@ class FP3:
 
         import drmaa
 
+        # TODO in here check if processing already performed before submission
+        # of task...
+
         with drmaa.Session() as session:
             job = session.createJobTemplate()
             job.jobName = "fp3_integrate"
