@@ -173,6 +173,19 @@ class FP3:
         else:
             self.integrate_drmaa_array(blocks)
 
+        # if debug, print the log files from each of the integration stages
+        if self._debug:
+            for j, block in enumerate(blocks):
+                work = os.path.join(self._root, "integrate%03d" % no)
+                for log in (
+                    "dials.find_spots.log",
+                    "dials.index.log",
+                    "dials.refine.log",
+                    "dials.integrate.log",
+                ):
+                    for record in open(os.path.join(work, log)):
+                        logger.debug(record[:-1])
+
     def integrate_chunk(self, no, chunk):
         """Integrate a chunk of data: performs -
         - spot finding
