@@ -32,10 +32,12 @@ The workflow of ``fp3`` is very similar to that of ``fast_dp`` in that spots are
 - find spots on 0-5°, 45-50° and 90-95° or as close as can be reached
 - use this for indexing, determine and refine a UB matrix
 - for each 5° block of data:
+
   * find spots
   * re-index with the known UB matrix
   * refine
   * integrate
+
 - combine all integrate data
 - determine symmetry
 - scale
