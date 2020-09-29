@@ -449,6 +449,24 @@ class FP3:
                 for exten in ["refl", "expt"]
             ):
                 self._scaled = work
+                stdout = (
+                    open(os.path.join(work, "dials.scale.log"), "rb")
+                    .read()
+                    .split(b"\n")
+                )
+
+                # find summary table
+                for j, line in enumerate(stdout):
+                    if b"--Summary of merging statistics--" in line:
+                        break
+
+                # save table of values
+                self._stats = []
+                for line in stdout[j + 2 :]:
+                    if not line.strip():
+                        break
+                    self._stats.append(line.decode())
+
                 return work
 
         if not os.path.exists(work):
@@ -471,14 +489,20 @@ class FP3:
             print_stderr=self._debug,
         )
 
-        _ = result["stdout"].split(b"--Summary of merging statistics--")[-1].strip()
+        stdout = result["stdout"].split(b"\n")
+
+        # find summary table
+        for j, line in enumerate(stdout):
+            if b"----------Summary of merging statistics-----------" in line:
+                break
+
+        # save table of values
         self._stats = []
-        for line in _.split(b"\n"):
+        for line in stdout[j + 2 :]:
             if not line.strip():
                 break
-            self._stats.append(str(line))
+            self._stats.append(line.decode())
 
-        logger.info("\n".join(self._stats))
         self._scaled = work
 
     def resolution(self):
