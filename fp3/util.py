@@ -37,7 +37,7 @@ def even_blocks(n0, n1, m):
 
 
 def index_blocks(n0, n1, osc):
-    """Give back a list of blocks in the range n0, n1 of around 5°, spaced at 
+    """Give back a list of blocks in the range n0, n1 of around 5°, spaced at
     the start, start + 45°, start + 90° if possible. If <= 15° of data in
     total, use all, if < 95° get as close as possible to 45° wedge spacing."""
 
@@ -76,3 +76,17 @@ def nproc():
         pass
 
     return number_of_processors(return_value_if_unknown=-1)
+
+
+def prime_factors(n):
+    i = 2
+    factors = []
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
+    return factors
