@@ -22,7 +22,7 @@ def find_setup_script():
 
 
 def even_blocks(n0, n1, m):
-    """Split the range(n0, n1) into m evenly sized chunks, yeild start, end
+    """Split the range(n0, n1) into m evenly sized chunks, yield start, end
     for each chunk."""
 
     r = m
