@@ -78,10 +78,9 @@ class FP3:
         # quick checks...
         scan = self._experiment[0].scan
         osc = scan.get_oscillation()
-        rng = scan.get_image_range()
 
         self._osc = osc
-        self._rng = rng
+        self._image_range = scan.get_image_range()
 
         self._integrated = []
         self._combined = None
@@ -121,7 +120,7 @@ class FP3:
         self._experiment.as_file(os.path.join(work, "input.expt"))
 
         five = int(round(5 / self._osc[1]))
-        i0, i1 = self._rng
+        i0, i1 = self._image_range
         blocks = [(b[0] + 1, b[1]) for b in index_blocks(i0 - 1, i1, self._osc[1])]
 
         logger.info("Finding spots...")
@@ -154,10 +153,10 @@ class FP3:
         """Integration of the complete scan: will split the data into 5 deg
         chunks and spin the integration of each chunk off separately"""
 
-        rng = self._rng
+        irange = self._image_range
 
-        nblocks = int(round(self._osc[1] * (rng[1] - rng[0] + 1) / 5.0))
-        blocks = even_blocks(rng[0] - 1, rng[1], nblocks)
+        nblocks = int(round(self._osc[1] * (irange[1] - irange[0] + 1) / 5.0))
+        blocks = even_blocks(irange[0] - 1, irange[1], nblocks)
 
         logger.info("Integrating...")
 
