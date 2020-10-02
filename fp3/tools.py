@@ -18,7 +18,7 @@ def combine_reflections(fins, fout):
 
 
 def combine_experiments(fins, fout):
-    """Combine experiment files from find to a single output file fout. 
+    """Combine experiment files from fins to a single output file fout. 
     Makes assumptions that the crystal model is consistent from one experiment
     to the next, that the detectors are all similar."""
 
