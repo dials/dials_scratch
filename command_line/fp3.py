@@ -6,6 +6,7 @@ import copy
 import concurrent.futures
 import logging
 import time
+import functools
 
 logger = logging.getLogger("fp3")
 
@@ -13,7 +14,7 @@ from iotbx import phil
 from dxtbx.model.experiment_list import ExperimentList, ExperimentListFactory
 from dials_scratch.fp3 import even_blocks, index_blocks, format_phil_include
 from dials_scratch.fp3 import nproc, combine_reflections, combine_experiments
-from dials_scratch.fp3 import find_setup_script
+from dials_scratch.fp3 import find_setup_script, prime_factors
 
 scope = phil.parse(
     """
@@ -81,6 +82,24 @@ class FP3:
 
         self._osc = osc
         self._image_range = scan.get_image_range()
+
+        # default nproc here depends on max_workers and parallelism mode -
+        # if both are set to 1 have a guess for something reasonable - factor
+        # nproc to primes then share these out between workers and cores...
+
+        np = self._params.worker_nproc
+        nw = self._params.max_workers
+        if np == 1 and nw == 1:
+            f = prime_factors(self._n)
+            nw = functools.reduce((lambda x, y: x * y), f[0::2])
+            np = functools.reduce((lambda x, y: x * y), f[1::2])
+            self._params.worker_nproc = np
+            self._params.max_workers = nw
+
+        logger.info(f"Using {self._n} processors to for images {self._image_range}")
+        logger.info(
+            f"with up to {self._params.max_workers} x {self._params.worker_nproc} core workers"
+        )
 
         self._integrated = []
         self._combined = None
@@ -216,7 +235,7 @@ class FP3:
         expt.as_file(os.path.join(work, "input.expt"))
 
         phil = self._write_phil("find_spots", work)
-        # FIXME nproc here depends on max_workers and parallelism mode
+
         np = self._params.worker_nproc
 
         result = procrunner.run(
