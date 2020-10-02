@@ -107,7 +107,7 @@ class FP3:
         just reload the results from the previous run."""
 
         work = os.path.join(self._root, "index")
-        if os.path.exists(work):
+        if os.path.exists(os.path.join(work, "indexed.expt")):
             indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
 
             self._experiment[0].crystal = indexed[0].crystal
