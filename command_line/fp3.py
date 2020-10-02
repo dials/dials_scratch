@@ -111,7 +111,7 @@ class FP3:
             indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
 
             self._experiment[0].crystal = indexed[0].crystal
-            logger.info("Picked up pre-exising crystal:")
+            logger.info("Picked up pre-existing crystal:")
             logger.info(indexed[0].crystal)
             return
 
