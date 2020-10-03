@@ -194,7 +194,7 @@ class FP3:
         # if debug, print the log files from each of the integration stages
         if self._debug:
             for j, block in enumerate(blocks):
-                work = os.path.join(self._root, "integrate%03d" % no)
+                work = os.path.join(self._root, "integrate%04d" % no)
                 for log in (
                     "dials.find_spots.log",
                     "dials.index.log",
@@ -217,7 +217,7 @@ class FP3:
 
         logger.debug(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
-        work = os.path.join(self._root, "integrate%03d" % no)
+        work = os.path.join(self._root, "integrate%04d" % no)
         if os.path.exists(work):
             if all(
                 os.path.exists(os.path.join(work, f"integrated.{exten}"))
@@ -293,7 +293,7 @@ class FP3:
         logger.debug(f"Writing script {no} for images {chunk[0]} to {chunk[1]}")
 
         # first check if there is nothing to be done here
-        work = os.path.join(self._root, f"integrate{no:03}")
+        work = os.path.join(self._root, f"integrate{no:04}")
         if os.path.exists(work):
             if all(
                 os.path.exists(os.path.join(work, f"integrated.{exten}"))
