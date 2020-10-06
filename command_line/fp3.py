@@ -58,7 +58,7 @@ log_level = CRITICAL ERROR WARNING *INFO DEBUG
 
 class FP3:
     def __init__(self, filenames, params):
-        self._experiment = ExperimentListFactory.from_filenames(filenames)
+        self._experiments = ExperimentListFactory.from_filenames(filenames)
 
         # parse PHIL parameters
         clai = scope.command_line_argument_interpreter()
@@ -74,12 +74,14 @@ class FP3:
         logger.setLevel(getattr(logging, self._params.log_level))
         logger.info(scope.fetch_diff(self._working).as_str())
 
+        logger.info(f"Found {len(self._experiments)} scans to process")
+
         self._crystal = None
         self._root = os.getcwd()
         self._n = nproc()
 
         # quick checks...
-        scan = self._experiment[0].scan
+        scan = self._experiments[0].scan
         osc = scan.get_oscillation()
 
         self._osc = osc
@@ -130,7 +132,7 @@ class FP3:
         if os.path.exists(os.path.join(work, "indexed.expt")):
             indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
 
-            self._experiment[0].crystal = indexed[0].crystal
+            self._experiments[0].crystal = indexed[0].crystal
             logger.info("Picked up pre-existing crystal:")
             logger.info(indexed[0].crystal)
             return
@@ -138,7 +140,7 @@ class FP3:
         if not os.path.exists(work):
             os.mkdir(work)
 
-        self._experiment.as_file(os.path.join(work, "input.expt"))
+        self._experiments.as_file(os.path.join(work, "input.expt"))
 
         five = int(round(5 / self._osc[1]))
         i0, i1 = self._image_range
@@ -168,7 +170,7 @@ class FP3:
 
         indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
         logger.info(indexed[0].crystal)
-        self._experiment[0].crystal = indexed[0].crystal
+        self._experiments[0].crystal = indexed[0].crystal
 
     def integrate(self):
         """Integration of the complete scan: will split the data into 5 deg
@@ -231,7 +233,7 @@ class FP3:
             os.mkdir(work)
 
         # fix up the scan to correspond to input chunk
-        expt = copy.copy(self._experiment)
+        expt = copy.copy(self._experiments)
         expt[0].scan = expt[0].scan[chunk[0] : chunk[1]]
 
         expt.as_file(os.path.join(work, "input.expt"))
@@ -307,7 +309,7 @@ class FP3:
             os.mkdir(work)
 
         # fix up the scan to correspond to input chunk, save to working area
-        expt = copy.deepcopy(self._experiment)
+        expt = copy.deepcopy(self._experiments)
         expt[0].scan = expt[0].scan[chunk[0] : chunk[1]]
 
         expt.as_file(os.path.join(work, "input.expt"))
