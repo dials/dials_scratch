@@ -1,3 +1,5 @@
+# LIBTBX_SET_DISPATCHER_NAME dials.fp3
+
 import procrunner
 import sys
 import os
