@@ -18,6 +18,8 @@ from dials_scratch.fp3 import even_blocks, index_blocks, format_phil_include
 from dials_scratch.fp3 import nproc, combine_reflections, combine_experiments
 from dials_scratch.fp3 import find_setup_script, prime_factors
 
+# FIXME add block size for processing to the input parameters
+
 scope = phil.parse(
     """
 find_spots {
@@ -76,11 +78,15 @@ class FP3:
 
         logger.info(f"Found {len(self._experiments)} scans to process")
 
+        if len(self._experiments) > 1:
+            sys.exit("Multi-sweep data not supported at this time")
+
         self._crystal = None
         self._root = os.getcwd()
         self._n = nproc()
 
         # quick checks...
+        # FIXME MULTI-SWEEEP will require attention
         scan = self._experiments[0].scan
         osc = scan.get_oscillation()
 
@@ -142,6 +148,8 @@ class FP3:
 
         self._experiments.as_file(os.path.join(work, "input.expt"))
 
+        # FIXME MULTI-SWEEEP will require attention - for 5° blocks for each
+        # sweep will need to ensure that we compute the right blocks for each
         five = int(round(5 / self._osc[1]))
         i0, i1 = self._image_range
         blocks = [(b[0] + 1, b[1]) for b in index_blocks(i0 - 1, i1, self._osc[1])]
@@ -168,6 +176,10 @@ class FP3:
             print_stderr=self._debug,
         )
 
+        # FIXME MULTI-LATTICE quite possible at this stage that we have more
+        # than one lattice, on more than one experiment, so probably want to
+        # collate the unique crystals at this stage
+
         indexed = ExperimentList.from_file(os.path.join(work, "indexed.expt"))
         logger.info(indexed[0].crystal)
         self._experiments[0].crystal = indexed[0].crystal
@@ -176,12 +188,26 @@ class FP3:
         """Integration of the complete scan: will split the data into 5 deg
         chunks and spin the integration of each chunk off separately"""
 
+        # FIXME MULTI-SWEEP - in here if we have multiple sweeps (i.e. more than
+        # one imageset) need to integrate these separately, with the appropriate
+        # block sizes set. Probably want to form a list of tasks which includes
+        # all blocks for all image sets for parallel processing rather than
+        # iterating through the imagesets doing parallel processing on each.
+
         irange = self._image_range
 
         nblocks = int(round(self._osc[1] * (irange[1] - irange[0] + 1) / 5.0))
         blocks = even_blocks(irange[0] - 1, irange[1], nblocks)
 
         logger.info("Integrating...")
+
+        # FIXME in here define the integrate directory template based on the
+        # maximum number of blocks => don't hard code this. Should also have
+        # the imageset in the name e.g. integrate 0.01 for the second block of
+        # imageset 0.
+
+        # API wise, if we make blocks a list of tuples here this could be pretty
+        # simple to modify i.e. (imageset, block)
 
         if self._params.parallelism == "process":
             with concurrent.futures.ProcessPoolExecutor(
@@ -221,6 +247,8 @@ class FP3:
 
         logger.debug(f"Processing block {no} for images {chunk[0]} to {chunk[1]}")
 
+        # FIXME MULTI-SWEEEP in here dig out the right imageset etc.
+
         work = os.path.join(self._root, "integrate%04d" % no)
         if os.path.exists(work):
             if all(
@@ -231,6 +259,10 @@ class FP3:
 
         if not os.path.exists(work):
             os.mkdir(work)
+
+        # FIXME MULTI-SWEEEP pick the right scan etc. - also need to pick the
+        # _right_ experiments to copy i.e. those for which the image set is the
+        # _right_ image set.
 
         # fix up the scan to correspond to input chunk
         expt = copy.copy(self._experiments)
@@ -249,6 +281,9 @@ class FP3:
             print_stderr=False,
         )
 
+        # FIXME check the return status, check for errors, verify that the
+        # files we are expecting to exist actually ... exist
+
         phil = self._write_phil("index", work)
         result = procrunner.run(
             [
@@ -263,6 +298,9 @@ class FP3:
             print_stderr=False,
         )
 
+        # FIXME check the return status, check for errors, verify that the
+        # files we are expecting to exist actually ... exist
+
         phil = self._write_phil("refine", work)
         result = procrunner.run(
             ["dials.refine", "indexed.expt", "indexed.refl"] + phil,
@@ -271,8 +309,11 @@ class FP3:
             print_stderr=False,
         )
 
+        # FIXME check the return status, check for errors, verify that the
+        # files we are expecting to exist actually ... exist
+
         phil = self._write_phil("integrate", work)
-        # FIXME nproc here depends on max_workers and parallelism mode
+
         result = procrunner.run(
             ["dials.integrate", "refined.expt", "refined.refl", f"nproc={np}"] + phil,
             working_directory=work,
@@ -402,6 +443,10 @@ class FP3:
             session.synchronize(job_ids, drmaa.Session.TIMEOUT_WAIT_FOREVER, True)
             session.deleteJobTemplate(job)
 
+        # FIXME check the return status, check for errors, verify that the
+        # files we are expecting to exist actually ... exist, and if not, do
+        # something sensible.
+
     def combine(self):
         """Collect together the data so far integrated."""
 
@@ -419,6 +464,8 @@ class FP3:
         if not os.path.exists(work):
             os.mkdir(work)
 
+        # FIXME this should not be an assertion - if [] then sys.exit()
+        # with helpful message
         assert self._integrated is not []
 
         integrated_refl = [
@@ -548,6 +595,9 @@ class FP3:
 
         assert self._scaled
 
+        # FIXME check to see if we have done this before and if we have,
+        # pick up the outcome from that calculation rather than re-running
+
         logger.info("Estimating resolution...")
         source = os.path.join(self._scaled, "scaled")
 
@@ -579,6 +629,8 @@ if __name__ == "__main__":
     args = [arg for arg in sys.argv[1:] if not "=" in arg]
     params = [arg for arg in sys.argv[1:] if "=" in arg]
     filenames = sum(map(glob.glob, args), [])
+
+    # FIXME move all this to a main() function
 
     fp3 = FP3(filenames, params)
     t0 = time.time()
