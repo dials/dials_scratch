@@ -525,7 +525,7 @@ class FP3:
             print_stderr=self._debug,
         )
 
-        stdout = result["stdout"].split(b"\n")
+        stdout = result.stdout.split(b"\n")
 
         # find summary table
         for j, line in enumerate(stdout):
@@ -562,7 +562,7 @@ class FP3:
         )
 
         d_min = None
-        for record in result["stdout"].split(b"\n"):
+        for record in result.stdout.split(b"\n"):
             if record.startswith(b"Resolution cc_half:"):
                 d_min = float(record.split()[-1])
 
