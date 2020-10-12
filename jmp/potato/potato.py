@@ -17,7 +17,7 @@ from dials.algorithms.profile_model.gaussian_rs.calculator import (
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
-from dials.algorithms.refinement.refinement_helpers import corrgram
+from dials.algorithms.refinement.corrgram import corrgram
 from dials.algorithms.statistics.fast_mcd import FastMCD, maha_dist_sq
 from dials_scratch.jmp.potato.refiner import RefinerData
 from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
@@ -122,13 +122,13 @@ phil_scope = parse(
     }
 
     corrections {
-      
+
       lp = True
         .type = bool
-      
+
       dqe = True
         .type = bool
-      
+
       partiality = True
         .type = bool
 
@@ -138,7 +138,7 @@ phil_scope = parse(
 
   debug {
     output {
-      
+
       strong_spots = False
         .type = bool
 
