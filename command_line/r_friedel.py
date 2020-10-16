@@ -35,7 +35,6 @@ def merge_in_P1(intensities):
 
 
 def r_friedel(data_array):
-    data_array = data_array.map_to_asu()
     d_ano = data_array.anomalous_differences()
     friedel_mean = data_array.average_bijvoet_mates().common_set(other=d_ano)
     numerator = flex.sum(flex.abs(d_ano.data()))
