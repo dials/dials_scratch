@@ -17,17 +17,16 @@ Script to attempt to index a full sweep in cases where large changes in the
 model during data collection (such as beam centre drift) makes it difficult
 to index the sweep in one pass.
 
-We assume an experiments.json is available that can be used to index the first
-image. One this is indexed, a new experiments.json is produced with a refined
-model. This experiments.json can then be used to try to index the next image,
+We assume an indexed.expt is available that can be used to index the first
+image. One this is indexed, a new indexed.expt is produced with a refined
+model. This indexed.expt can then be used to try to index the next image,
 and so on.
 
 """
 
 from __future__ import absolute_import, division
 from __future__ import print_function
-from dxtbx.model.experiment_list import ExperimentListFactory
-from dxtbx.model.experiment_list import ExperimentListDumper
+from dxtbx.model.experiment_list import ExperimentList
 from dials.util.options import flatten_reflections
 from dials.array_family import flex
 from dials.command_line.show import beam_centre_mm
@@ -44,7 +43,7 @@ Index images in a dataset sequentially.
 
 Example::
 
-  dev.dials.creep_index experiments.json strong.pickle
+  dev.dials.creep_index indexed.expt strong.refl
 
 """
 
@@ -53,8 +52,10 @@ phil_scope = phil.parse(
   images_per_block=5
     .type=int
 
-  fix_unstable_detector_parameters=True
+  fix_detector_distance=True
     .type=bool
+    .help="fix the least stable detector parameters for refinement of each"
+          "small block of images. These are Dist, Tau2 and Tau3."
 """
 )
 
@@ -68,7 +69,7 @@ class Script(object):
 
         # The script usage
         usage = (
-            "usage: {0} [options] [param.phil] experiments.json " "strong.pickle"
+            "usage: {0} [options] [param.phil] indexed.expt " "strong.refl"
         ).format(libtbx.env.dispatcher_name)
 
         parser = OptionParser(
@@ -104,7 +105,7 @@ class Script(object):
         )
 
         self._images_per_block = params.images_per_block
-        self._constrain_detector = params.fix_unstable_detector_parameters
+        self._constrain_detector = params.fix_detector_distance
 
         self._all_indexed = None
         return
@@ -121,18 +122,18 @@ class Script(object):
 
         cmd = (
             "dials.index {experiments} {indexed} "
-            "scan_range={start},{stop} "
-            "output.experiments=latest_experiments.json "
-            "output.reflections=indexed_{job_id:03d}.pickle "
-            "output.log=None output.debug_log=None"
+            "image_range={start},{stop} "
+            "output.experiments=latest_indexed.expt "
+            "output.reflections=indexed_{job_id:03d}.refl "
+            "output.log=None "
         ).format(**fmt_dic)
         if self._constrain_detector:
-            cmd += " detector.fix_list=Dist,Tau2,Tau3"
+            cmd += " detector.fix=distance"
         result = easy_run.fully_buffered(command=cmd)
 
         # check if indexing worked
-        new_exp_path = "latest_experiments.json"
-        indexed_path = "indexed_{job_id:03d}.pickle".format(**fmt_dic)
+        new_exp_path = "latest_indexed.expt"
+        indexed_path = "indexed_{job_id:03d}.refl".format(**fmt_dic)
         tst = [os.path.exists(e) for e in (new_exp_path, indexed_path)]
         if tst.count(True) != 2:
             return (None, None)
@@ -141,7 +142,7 @@ class Script(object):
     def __call__(self):
 
         # set up variables we need to determine blocks
-        first, last = self._scan.get_array_range()
+        first, last = self._scan.get_image_range()
         start = first
         stop = first
 
@@ -195,16 +196,17 @@ class Script(object):
             print("Job {0} completed: scan range ({1},{2})".format(job_id, start, stop))
 
             # load the indexed results
-            el = ExperimentListFactory.from_json_file(
-                self._current_exp_path, check_format=False
-            )
+            el = ExperimentList.from_file(self._current_exp_path, check_format=False)
             assert len(el) == 1
             exp = el[0]
 
-            rt = flex.reflection_table.from_pickle(indexed_path)
+            rt = flex.reflection_table.from_file(indexed_path)
             if self._all_indexed is None:
                 self._all_indexed = rt
             else:
+                rt.experiment_identifiers()[
+                    0
+                ] = self._all_indexed.experiment_identifiers()[0]
                 self._all_indexed.extend(rt)
 
             indexed = rt.select(rt.get_flags(rt.flags.indexed))
@@ -231,12 +233,9 @@ class Script(object):
             # update the scan range in the experiments and save
             for exp in el:
                 exp.scan.swap(exp.scan[start:stop])
-
-            dump = ExperimentListDumper(el)
-            dump.as_json("experiments_{0:03d}.json".format(job_id))
-
+            el.as_json("indexed_{0:03d}.expt".format(job_id))
             filelist_lines.append(
-                "block{0:03d} experiments_{0:03d}.json ".format(job_id) + indexed_path
+                "block{0:03d} indexed_{0:03d}.expt ".format(job_id) + indexed_path
             )
 
             # set up for the next block
