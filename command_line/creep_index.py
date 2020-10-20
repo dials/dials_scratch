@@ -261,8 +261,8 @@ class Script(object):
             f.write("\n")
 
         # write out the full reflection table of indexed reflections
-        print("writing out all indexed reflections to all_indexed.pickle")
-        self._all_indexed.as_pickle("all_indexed.pickle")
+        print("writing out all indexed reflections to all_indexed.refl")
+        self._all_indexed.as_pickle("all_indexed.refl")
 
     def _rmsds(self, reflections):
         """calculate unweighted RMSDs for the specified reflections"""
