@@ -12,13 +12,19 @@ Usage: dev.dials.r_friedel hklin=scaled.mtz
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 from iotbx import mtz
 from cctbx import sgtbx
 from scitbx.array_family import flex
+import dials.util.log
 
 from dials.util import Sorry, show_mail_handle_errors
 from dials.util.options import OptionParser
 from dials.algorithms.merging.merge import truncate
+
+# Define a logger. __name__ cannot be used as this script is called directly.
+# Omit the dev prefix to use the DIALS logger
+logger = logging.getLogger("dials.r_friedel")
 
 
 def merge_in_P1(intensities):
@@ -37,7 +43,10 @@ def merge_in_P1(intensities):
 def r_friedel(data_array):
     d_ano = data_array.anomalous_differences()
     friedel_mean = data_array.average_bijvoet_mates().common_set(other=d_ano)
-    numerator = flex.sum(flex.abs(d_ano.data()))
+    abs_anom_diff = flex.abs(d_ano.data())
+    assert friedel_mean.size() == abs_anom_diff.size()
+    logger.debug("R_{Friedel} using " + f"{friedel_mean.size()} pairs")
+    numerator = flex.sum(abs_anom_diff)
     denominator = flex.sum(flex.abs(friedel_mean.data()))
     assert denominator > 0
     return numerator / denominator
@@ -53,6 +62,11 @@ class Script(object):
         # The phil scope
         phil_scope = parse(
             """
+            output {
+                log = dev.dials.r_friedel.log
+                    .type = path
+            }
+
             hklin = None
                 .type = path
                 .help = "MTZ file (containing observed and calculated structure "
@@ -103,7 +117,10 @@ class Script(object):
         """Execute the script."""
 
         # Parse the command line
-        self.params, _ = self.parser.parse_args(args, show_diff_phil=True)
+        self.params, options = self.parser.parse_args(args, show_diff_phil=True)
+
+        # Configure the logging
+        dials.util.log.config(verbosity=options.verbose, logfile=self.params.output.log)
 
         if self.params.hklin is None:
             self.parser.print_help()
@@ -115,9 +132,9 @@ class Script(object):
         f_p1 = truncate(i_p1)[1]
         fsq_p1 = f_p1.customized_copy(data=flex.pow2(f_p1.data()))
 
-        print("R_friedel(F) = {0:.5f}".format(r_friedel(f_p1)))
-        print("R_friedel(F^2) = {0:.5f}".format(r_friedel(fsq_p1)))
-        print("R_friedel(I) = {0:.5f}".format(r_friedel(i_p1)))
+        logger.info("R_friedel(F) = {0:.5f}".format(r_friedel(f_p1)))
+        logger.info("R_friedel(F^2) = {0:.5f}".format(r_friedel(fsq_p1)))
+        logger.info("R_friedel(I) = {0:.5f}".format(r_friedel(i_p1)))
 
         return
 
