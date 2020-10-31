@@ -16,6 +16,3 @@ _*.nb
 .git-notifier*
 git-notifier.log
 .gitversion
-
-# C object files
-*.o
