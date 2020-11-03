@@ -80,21 +80,6 @@ def combine_reflections(fins, fout):
     d0.as_file(fout)
 
 
-def dumb_combine_reflections(fins, fout):
-    """Combine reflection files from fins into a single output file fout.
-    Makes assumptions that the data are consistent from one to the next, no
-    particular tests are performed at the moment."""
-
-    d0 = flex.reflection_table.from_file(fins[0])
-    for f in fins[1:]:
-        d1 = flex.reflection_table.from_file(f)
-
-        d1.experiment_identifiers()[0] = d0.experiment_identifiers()[0]
-        d0.extend(d1)
-
-    d0.as_file(fout)
-
-
 def combine_experiments(fins, fout):
     """Combine experiment files from fins to a single output file fout.
     Makes assumptions that the crystal model is consistent from one experiment
