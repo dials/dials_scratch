@@ -8,9 +8,15 @@ def combine_reflections(fins, fout):
     particular tests are performed at the moment."""
 
     d0 = flex.reflection_table.from_file(fins[0])
+    if "intensity.prf.variance" in d0:
+        d0 = d0.select(d0["intensity.prf.variance"] > 0)
+    d0 = d0.select(d0["intensity.sum.variance"] > 0)
 
     for f in fins[1:]:
         d1 = flex.reflection_table.from_file(f)
+        if "intensity.prf.variance" in d1:
+            d1 = d1.select(d1["intensity.prf.variance"] > 0)
+        d1 = d1.select(d1["intensity.sum.variance"] > 0)
 
         d1.experiment_identifiers()[0] = d0.experiment_identifiers()[0]
 
