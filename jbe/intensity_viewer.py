@@ -23,9 +23,9 @@ from iotbx import mtz
 
 def data_from_mtz(filename):
 
-    miller_arrays = mtz.object(file_name=filename).as_miller_arrays(
-        merge_equivalents=False
-    )
+    mtz_object = mtz.object(file_name=filename)
+
+    miller_arrays = mtz_object.as_miller_arrays(merge_equivalents=False)
 
     # Select the desired columns
     intensities = None
@@ -67,7 +67,7 @@ def data_from_mtz(filename):
 
     # The reflection data
     table = flex.reflection_table()
-    table["miller_index"] = intensities.indices()
+    table["miller_index"] = mtz_object.extract_original_index_miller_indices()
     table["d"] = intensities.d_spacings().data()
     table["intensity"] = intensities.data()
     table["sigma"] = intensities.sigmas()
