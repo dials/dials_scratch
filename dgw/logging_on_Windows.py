@@ -1,5 +1,6 @@
 """Set up logging like we do in DIALS, to test behaviour on Windows"""
 
+import procrunner
 import logging.config
 import os
 import sys
@@ -92,11 +93,18 @@ def config(verbosity=0, logfile=None):
     #   logging.getLogger("dxtbx").setLevel(logging.DEBUG)
     console.setLevel(loglevel)
 
-
-if __name__ == "__main__":
+def log_out():
     config(logfile="foo.log")
 
     logger = logging.getLogger("dials")
     logger.info("Hello")
     logger.warning("Watch out!")  # Colour
     logger.info("Å σ")
+
+if __name__ == "__main__":
+
+    # This works:
+    log_out()
+
+    # This does not:
+    procrunner.run(["dials.python.bat", "-c", "from logging_on_Windows import log_out; log_out()"])
