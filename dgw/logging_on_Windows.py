@@ -106,5 +106,5 @@ if __name__ == "__main__":
     # This works:
     log_out()
 
-    # This does not:
-    procrunner.run(["dials.python.bat", "-c", "from logging_on_Windows import log_out; log_out()"])
+    # This does not work on Windows, but does on Linux:
+    procrunner.run(["dials.python", "-c", "from logging_on_Windows import log_out; log_out()"])
