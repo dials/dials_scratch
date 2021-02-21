@@ -93,6 +93,7 @@ def config(verbosity=0, logfile=None):
     #   logging.getLogger("dxtbx").setLevel(logging.DEBUG)
     console.setLevel(loglevel)
 
+
 def log_out():
     config(logfile="foo.log")
 
@@ -101,10 +102,13 @@ def log_out():
     logger.warning("Watch out!")  # Colour
     logger.info("Å σ")
 
+
 if __name__ == "__main__":
 
     # This works:
     log_out()
 
     # This does not work on Windows, but does on Linux:
-    procrunner.run(["dials.python", "-c", "from logging_on_Windows import log_out; log_out()"])
+    procrunner.run(
+        ["dials.python", "-c", "from logging_on_Windows import log_out; log_out()"]
+    )
