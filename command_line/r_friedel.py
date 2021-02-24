@@ -12,6 +12,7 @@ Usage: dev.dials.r_friedel hklin=scaled.mtz
 
 from __future__ import absolute_import, division, print_function
 
+import sys
 import logging
 from iotbx import mtz
 from cctbx import sgtbx
