@@ -16,8 +16,6 @@ from dxtbx.model.goniometer import GoniometerFactory
 from dxtbx.model import Crystal
 from dxtbx.model.experiment_list import Experiment
 from dxtbx.model.experiment_list import ExperimentList
-from dxtbx.model.experiment_list import ExperimentListFactory
-from dxtbx.model.experiment_list import ExperimentListDumper
 from random import uniform, seed
 from math import pi
 import sys
@@ -101,10 +99,6 @@ class Simulation(object):
         )
         exp.imageset = imset
 
-    def dump_experiment(self, experiments, filename):
-        dump = ExperimentListDumper(experiments)
-        dump.as_json(filename)
-        return
 
     def cell_from_pdb(self):
         from iotbx import pdb
@@ -250,9 +244,8 @@ class Simulation(object):
         # Set an imageset in the experiment list using the noiseimage
         self.set_imageset(fileout, expr_no)
 
-        self.dump_experiment(
-            self.experiments[expr_no : expr_no + 1], "experiments_%03d.json" % image_no
-        )
+        self.experiments[expr_no : expr_no + 1].as_file("experiments_%03d.json" % image_no)
+
 
     def generate_all_images(self):
         for i in range(self.i0, self.i1):
