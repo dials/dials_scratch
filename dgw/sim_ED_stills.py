@@ -99,7 +99,6 @@ class Simulation(object):
         )
         exp.imageset = imset
 
-
     def cell_from_pdb(self):
         from iotbx import pdb
 
@@ -244,8 +243,9 @@ class Simulation(object):
         # Set an imageset in the experiment list using the noiseimage
         self.set_imageset(fileout, expr_no)
 
-        self.experiments[expr_no : expr_no + 1].as_file("experiments_%03d.json" % image_no)
-
+        self.experiments[expr_no : expr_no + 1].as_file(
+            "experiments_%03d.json" % image_no
+        )
 
     def generate_all_images(self):
         for i in range(self.i0, self.i1):
