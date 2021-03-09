@@ -7,8 +7,8 @@ from scitbx.array_family import flex
 from simtbx.nanoBragg import shapetype
 from simtbx.nanoBragg import nanoBragg
 import libtbx.load_env  # possibly implicit
-from cctbx import miller
 from scitbx import matrix
+from cctbx.eltbx import sasaki, henke
 from dxtbx.model.detector import DetectorFactory
 from dxtbx.model.beam import Beam, BeamFactory
 from dxtbx.model.scan import ScanFactory
@@ -16,12 +16,13 @@ from dxtbx.model.goniometer import GoniometerFactory
 from dxtbx.model import Crystal
 from dxtbx.model.experiment_list import Experiment
 from dxtbx.model.experiment_list import ExperimentList
+from multiprocessing import Pool
+import argparse
 from random import uniform, seed
 from math import pi
-import sys
 
 pdb_lines = """HEADER TEST
-CRYST1   78.840   78.840   38.290  90.00  90.00  90.00 P 43 21 2
+CRYST1   7.8840   7.8840   3.8290  90.00  90.00  90.00 P 43 21 2
 ATOM      1  O   HOH A   1      56.829   2.920  55.702  1.00 20.00           O
 ATOM      2  O   HOH A   2      49.515  35.149  37.665  1.00 20.00           O
 ATOM      3  O   HOH A   3      52.667  17.794  69.925  1.00 20.00           O
@@ -33,11 +34,11 @@ END
 
 
 class Simulation(object):
-    def __init__(self, i0, i1):
+    def __init__(self, start, num):
 
-        self.i0 = i0
-        self.i1 = i1
-        assert i0 > 0 and i1 > i0
+        self.start = start
+        self.num = num
+        #assert i0 > 0 and i1 > i0
 
         # Set up detector
         distance = 1590.00
@@ -73,7 +74,8 @@ class Simulation(object):
         self._unit_cell = self.cell_from_pdb()
         a, b, c, aa, bb, cc = self._unit_cell.parameters()
         self.experiments = ExperimentList()
-        for i in range(i1 - i0):
+
+        for _ in range(self.num):
             # Set up crystal - does not need to be correct, it is overwritten anyway
             crystal = Crystal(
                 real_space_a=(a, 0, 0),
@@ -117,8 +119,6 @@ class Simulation(object):
         # would one use electron scattering instead?
         scatterers = xray_structure.scatterers()
         for sc in scatterers:
-            from cctbx.eltbx import sasaki, henke
-
             expected_henke = henke.table(sc.element_symbol()).at_angstrom(wavelength)
             sc.fp = expected_henke.fp()
             sc.fdp = expected_henke.fdp()
@@ -133,8 +133,8 @@ class Simulation(object):
 
     def generate_image(self, image_no=1):
 
-        expr_no = image_no - self.i0
-        crystal = self.experiments[expr_no].crystal
+        expr_no = image_no - self.start
+        crystal = self.experiments[int(expr_no)].crystal
 
         # Set the beam for this image
         beam = self.beam
@@ -202,7 +202,7 @@ class Simulation(object):
         # Write out the noise-free image with a pedestal matching that reported in
         # the header
         SIM.raw_pixels += SIM.adc_offset_adu
-        fileout = "intimage_{0:03d}.img".format(image_no)
+        fileout = "intimage_{0:05d}.img".format(image_no)
         SIM.to_smv_format(fileout=fileout, intfile_scale=1)
         SIM.raw_pixels -= SIM.adc_offset_adu
 
@@ -236,7 +236,7 @@ class Simulation(object):
         SIM.add_noise()
 
         # Write out image with noise
-        fileout = "noiseimage_{0:03d}.img".format(image_no)
+        fileout = "noiseimage_{0:05d}.img".format(image_no)
         SIM.to_smv_format(fileout=fileout, intfile_scale=1)
 
         SIM.free_all()
@@ -244,25 +244,29 @@ class Simulation(object):
         # Set an imageset in the experiment list using the noiseimage
         self.set_imageset(fileout, expr_no)
 
-        self.experiments[expr_no : expr_no + 1].as_file("experiments_%03d.json" % image_no)
+        self.experiments[expr_no : expr_no + 1].as_file("experiments_%05d.json" % image_no)
 
 
     def generate_all_images(self):
-        for i in range(self.i0, self.i1):
-            self.generate_image(i)
+        for image in range(self.start, self.start+self.num):
+            self.generate_image(image)
+
+    def generate_all_in_parallel(self, proc):
+        with Pool(proc) as pool:
+            pool.map(self.generate_image, range(self.start, self.start+self.num))
 
 
 def run():
-    i0 = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        i1 = int(sys.argv[2])
-    else:
-        i1 = i0 + 1
-    seed(i0)
-    sim = Simulation(i0, i1)
-    sim.generate_all_images()
+    p = argparse.ArgumentParser()
+    p.add_argument('start', type=int)
+    p.add_argument('num', default=1, type=int)
+    p.add_argument('proc', type=int)
+    args = p.parse_args()
 
+    seed(args.start)
+
+    sim = Simulation(int(args.start), int(args.num))
+    sim.generate_all_in_parallel(args.proc)
 
 if __name__ == "__main__":
-
     run()
