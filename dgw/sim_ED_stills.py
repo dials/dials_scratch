@@ -38,7 +38,7 @@ class Simulation(object):
 
         self.start = start
         self.num = num
-        #assert i0 > 0 and i1 > i0
+        assert self.start > 0 and self.num > 1
 
         # Set up detector
         distance = 1590.00
