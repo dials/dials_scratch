@@ -22,7 +22,7 @@ from random import uniform, seed
 from math import pi
 
 pdb_lines = """HEADER TEST
-CRYST1   7.8840   7.8840   3.8290  90.00  90.00  90.00 P 43 21 2
+CRYST1   78.840   78.840   38.290  90.00  90.00  90.00 P 43 21 2
 ATOM      1  O   HOH A   1      56.829   2.920  55.702  1.00 20.00           O
 ATOM      2  O   HOH A   2      49.515  35.149  37.665  1.00 20.00           O
 ATOM      3  O   HOH A   3      52.667  17.794  69.925  1.00 20.00           O
