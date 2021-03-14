@@ -243,32 +243,31 @@ class Simulation(object):
         # Set an imageset in the experiment list using the noiseimage
         self.set_imageset(fileout, expr_no)
 
-
         self.experiments[expr_no : expr_no + 1].as_file(
             "experiments_%03d.json" % image_no
         )
 
-
     def generate_all_images(self):
-        for image in range(self.start, self.start+self.num):
+        for image in range(self.start, self.start + self.num):
             self.generate_image(image)
 
     def generate_all_in_parallel(self, proc):
         with Pool(proc) as pool:
-            pool.map(self.generate_image, range(self.start, self.start+self.num))
+            pool.map(self.generate_image, range(self.start, self.start + self.num))
 
 
 def run():
     p = argparse.ArgumentParser()
-    p.add_argument('start', type=int)
-    p.add_argument('num', default=1, type=int)
-    p.add_argument('proc', type=int)
+    p.add_argument("start", type=int)
+    p.add_argument("num", default=1, type=int)
+    p.add_argument("proc", type=int)
     args = p.parse_args()
 
     seed(args.start)
 
     sim = Simulation(int(args.start), int(args.num))
     sim.generate_all_in_parallel(args.proc)
+
 
 if __name__ == "__main__":
     run()
