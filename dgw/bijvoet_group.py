@@ -26,7 +26,7 @@ def bijvoet_table(experiments, reflections, params):
         assert len(exp_id) == 1
         symm = experiment.crystal.get_crystal_symmetry()
 
-        ms = miller.set(symm, anomalous_flag=None, indices=rt["miller_index"])
+        ms = miller.set(symm, anomalous_flag=False, indices=rt["miller_index"])
         rt["miller_index_asu"] = ms.map_to_asu().indices()
         rt.sort("miller_index_asu")
 
