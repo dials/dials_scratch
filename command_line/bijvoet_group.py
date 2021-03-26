@@ -45,6 +45,8 @@ def bijvoet_table(experiments, reflections, params):
                 experiment.identifier,
             ]
         )
+        # Only take reflections that were considered "good" for scaling
+        rt = rt.select(rt.get_flags(rt.flags.scaled))
         exp_id = list(set(rt["id"]))
         assert len(exp_id) == 1
         exp_id = exp_id[0]
