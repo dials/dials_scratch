@@ -14,7 +14,7 @@ from dials.interfaces import BackgroundIface
 
 
 class FableBackgroundExt(BackgroundIface):
-    """ An extension implementing background algorithm in fable. """
+    """An extension implementing background algorithm in fable."""
 
     name = "fable"
 
@@ -32,7 +32,7 @@ class FableBackgroundExt(BackgroundIface):
   """
 
     def __init__(self, params, experiment):
-        """ Initialise the algorithm. """
+        """Initialise the algorithm."""
         from dials.algorithms.background import FableSubtractorAlgorithm
 
         self._subtractor = FableSubtractorAlgorithm(
@@ -41,7 +41,7 @@ class FableBackgroundExt(BackgroundIface):
         )
 
     def compute_background(self, reflections):
-        """ Compute the background. """
+        """Compute the background."""
         from dials.util.command_line import Command
 
         # Do the background subtraction

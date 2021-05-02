@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 
 class IntegrationAlgorithm(object):
-    """ A class to perform profile fitting """
+    """A class to perform profile fitting"""
 
     def __init__(self, experiments, profile_model, grid_size=5, debug=False):
         """Initialise algorithm."""

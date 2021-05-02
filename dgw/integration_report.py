@@ -693,10 +693,10 @@ class ProfileValidationReport(Report):
 
 
 class Script(object):
-    """ A class to encapsulate the script. """
+    """A class to encapsulate the script."""
 
     def __init__(self):
-        """ Initialise the script. """
+        """Initialise the script."""
         from dials.util.options import OptionParser
         import libtbx.load_env
 
@@ -712,7 +712,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Run the script. """
+        """Run the script."""
         from dials.util.options import flatten_reflections, flatten_experiments
 
         # Parse the command line arguments

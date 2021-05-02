@@ -35,12 +35,12 @@ phil_scope = parse(
 
 
 class ProfileModel(ProfileModelIface):
-    """ A class to encapsulate the profile model. """
+    """A class to encapsulate the profile model."""
 
     # TODO maybe add beam divergence and dispersion
 
     def __init__(self, s, da, w):
-        """ Initialise with the parameters. """
+        """Initialise with the parameters."""
         from math import pi
 
         self._s = s
@@ -51,19 +51,19 @@ class ProfileModel(ProfileModelIface):
         assert self._w >= 0
 
     def s(self):
-        """ Return the spread in mosaic block size. """
+        """Return the spread in mosaic block size."""
         return self._s
 
     def da(self):
-        """ Return the spread of unitcell dimensions. """
+        """Return the spread of unitcell dimensions."""
         return self._da
 
     def w(self):
-        """ Return the angular spread of mosaic blocks. """
+        """Return the angular spread of mosaic blocks."""
         return self._w
 
     def predict_reflections(self, experiment, dmin=None, dmax=None, **kwargs):
-        """ Predict the reflections. """
+        """Predict the reflections."""
         from dials.algorithms.spot_prediction import ScanVaryingReflectionPredictor
         from dials.array_family import flex
 
@@ -93,19 +93,19 @@ class ProfileModel(ProfileModelIface):
         return result
 
     def compute_bbox(self, experiment, reflections, **kwargs):
-        """ Compute the bounding box. """
+        """Compute the bounding box."""
         raise RuntimeError("Not implemented")
 
     def compute_partiality(self, experiment, reflections, **kwargs):
-        """ Compute the partiality. """
+        """Compute the partiality."""
         raise RuntimeError("Not implemented")
 
     def compute_mask(self, experiment, reflections, **kwargs):
-        """ Compute the shoebox mask. """
+        """Compute the shoebox mask."""
         raise RuntimeError("Not implemented")
 
     def dump(self):
-        """ Dump the profile model to phil parameters. """
+        """Dump the profile model to phil parameters."""
         from dials.algorithms.profile_model import factory
 
         phil_str = """

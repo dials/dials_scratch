@@ -53,7 +53,7 @@ def refine_wavelengths(
     from scitbx.simplex import simplex_opt
 
     class simplex_minimizer(object):
-        """Class for refining mosaic parameters """
+        """Class for refining mosaic parameters"""
 
         def __init__(
             self,
@@ -101,7 +101,7 @@ def refine_wavelengths(
             self.x = self.optimizer.get_solution()
 
         def target(self, vector):
-            """ Compute the functional """
+            """Compute the functional"""
             print("Starting target", list(vector[0:2]))
             if (vector < 0).count(True) > 0:
                 return 1e6

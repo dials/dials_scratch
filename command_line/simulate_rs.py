@@ -13,10 +13,10 @@ from __future__ import absolute_import, division, print_function
 
 
 class Script(object):
-    """ The class to encapsulate the script. """
+    """The class to encapsulate the script."""
 
     def __init__(self):
-        """ Initialise the script. """
+        """Initialise the script."""
         from dials.util.options import OptionParser
         from libtbx.phil import parse
         import libtbx.load_env
@@ -70,7 +70,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Run the script. """
+        """Run the script."""
         from dials.algorithms.simulation.reciprocal_space import Simulator
         from dials.util.options import flatten_experiments
         from dials.util import Sorry

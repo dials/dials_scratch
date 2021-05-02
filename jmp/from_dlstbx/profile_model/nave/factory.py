@@ -12,26 +12,26 @@ from __future__ import absolute_import, division, print_function
 
 
 class Factory(object):
-    """ A factory class to compute the profile models. """
+    """A factory class to compute the profile models."""
 
     @classmethod
     def compute_single(cls, experiment, reflections, min_zeta=0.05):
-        """ Compute the profile model. """
+        """Compute the profile model."""
         raise RuntimeError("Not impemented")
 
     @classmethod
     def compute(cls, params, experiments, reflections):
-        """ Compute the profile models. """
+        """Compute the profile models."""
         raise RuntimeError("Not implemented")
 
     @classmethod
     def load(cls, params):
-        """ Load from phil parameters. """
+        """Load from phil parameters."""
         raise RuntimeError("Not implemented")
 
     @classmethod
     def create(cls, params, experiments, reflections):
-        """ Create the profile models. """
+        """Create the profile models."""
         if len(params.profile.gaussian_rs.model) > 0:
             assert len(params.profile.gaussian_rs.model) == len(experiments)
             model = Factory.load(params.profile)

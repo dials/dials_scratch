@@ -60,10 +60,10 @@ phil_scope = parse(
 
 
 class Script(object):
-    """ Class to parse the command line options. """
+    """Class to parse the command line options."""
 
     def __init__(self):
-        """ Set the expected options. """
+        """Set the expected options."""
         from dials.util.options import OptionParser
         import libtbx.load_env
 
@@ -81,7 +81,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Parse the options. """
+        """Parse the options."""
         # Parse the command line arguments
         params, options = self.parser.parse_args(show_diff_phil=True)
         self.params = params

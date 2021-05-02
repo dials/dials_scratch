@@ -19,7 +19,7 @@ class iner_panel(wx.Panel):
 
 
 class MyFrame(wx.Frame):
-    """ We simply derive a new class of Frame. """
+    """We simply derive a new class of Frame."""
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=wx.DefaultSize)

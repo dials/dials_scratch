@@ -3,7 +3,7 @@ from __future__ import print_function
 
 
 def parse_frame_data(filename):
-    """ Parse the INTEGRATE.LP file. """
+    """Parse the INTEGRATE.LP file."""
 
     # The row headings
     header = [
@@ -51,7 +51,7 @@ def parse_frame_data(filename):
 
 
 def parse_profile_data(filename):
-    """ Parse the INTEGRATE.LP file. """
+    """Parse the INTEGRATE.LP file."""
 
     # The row headings
     header1 = "STANDARD DEVIATION (DEGREES) OF BEAM DIVERGENCE"

@@ -28,7 +28,7 @@ phil_scope = parse("", process_includes=True)
 
 
 class Script(object):
-    """ The integration program. """
+    """The integration program."""
 
     def __init__(self):
         """Initialise the script."""
@@ -41,7 +41,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Analyse the background """
+        """Analyse the background"""
         # Parse the command line
         params, options = self.parser.parse_args(show_diff_phil=False)
         experiments = flatten_experiments(params.input.experiments)

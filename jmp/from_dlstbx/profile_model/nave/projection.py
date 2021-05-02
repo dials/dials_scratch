@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 
 class ProfileProjector(object):
     def __init__(self, model, experiment):
-        """ Take as input the profile model and experiment. """
+        """Take as input the profile model and experiment."""
 
         # Check the input
         assert len(experiment.detector) == 1
@@ -24,7 +24,7 @@ class ProfileProjector(object):
         self._reflections = self.model.predict_reflections(experiment)
 
     def image(self, index):
-        """ Return a projected image of the profile masks on the detector image. """
+        """Return a projected image of the profile masks on the detector image."""
         from dials.array_family import flex
         from dlstbx.algorithms.profile_model.nave import Projector
 

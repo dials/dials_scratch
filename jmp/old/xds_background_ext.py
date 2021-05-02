@@ -14,7 +14,7 @@ from dials.interfaces import BackgroundIface
 
 
 class XdsBackgroundExt(BackgroundIface):
-    """ An extension class implementing XDS background subtraction. """
+    """An extension class implementing XDS background subtraction."""
 
     name = "xds"
 
@@ -26,7 +26,7 @@ class XdsBackgroundExt(BackgroundIface):
   """
 
     def __init__(self, params, experiment):
-        """ Initialise the algorithm. """
+        """Initialise the algorithm."""
         from dials.algorithms.background import XdsSubtractorAlgorithm
 
         if params:
@@ -37,7 +37,7 @@ class XdsBackgroundExt(BackgroundIface):
         self._subtractor = XdsSubtractorAlgorithm(min_data)
 
     def compute_background(self, reflections):
-        """ Compute the backgrond. """
+        """Compute the backgrond."""
         from dials.util.command_line import Command
 
         # Do the background subtraction

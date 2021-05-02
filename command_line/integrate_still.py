@@ -54,7 +54,7 @@ phil_scope = parse(
 
 
 class Script(object):
-    """ The integration program. """
+    """The integration program."""
 
     def __init__(self):
         """Initialise the script."""
@@ -70,7 +70,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Perform the integration. """
+        """Perform the integration."""
 
         from dials.util.options import flatten_reflections, flatten_experiments
         from dxtbx.model.experiment_list import ExperimentListDumper

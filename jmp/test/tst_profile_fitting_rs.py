@@ -319,7 +319,7 @@ class Test(object):
         print("OK")
 
     def check_profiles(self, learner):
-        """ Check the reference profiles. """
+        """Check the reference profiles."""
         from dials.array_family import flex
         from dials.algorithms.image.centroid import centroid_image
         from math import sqrt
@@ -363,7 +363,7 @@ class Test(object):
         print("OK")
 
     def check_reference(self, reference):
-        """ Check the reference spots. """
+        """Check the reference spots."""
         from dials.array_family import flex
         from dials.algorithms.image.centroid import centroid_image
         from math import sqrt

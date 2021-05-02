@@ -44,7 +44,7 @@ phil_scope = parse(
 
 
 class Script(object):
-    """ The integration program. """
+    """The integration program."""
 
     def __init__(self):
         """Initialise the script."""
@@ -60,7 +60,7 @@ class Script(object):
         )
 
     def run(self):
-        """ Perform the integration. """
+        """Perform the integration."""
         from dials.util.options import flatten_experiments
         from dials.util import log
         from dials.array_family import flex

@@ -8,7 +8,7 @@ import abc
 
 
 def generate_phil_scope():
-    """ Generate the phil scope. """
+    """Generate the phil scope."""
     from dials.interfaces import BackgroundIface
     from dials.interfaces import IntensityIface
     from dials.interfaces import CentroidIface
@@ -94,16 +94,16 @@ phil_scope = generate_phil_scope()
 
 
 class IntegrationResult(object):
-    """ A class representing an integration result. """
+    """A class representing an integration result."""
 
     def __init__(self, index, reflections):
-        """ Initialise the data. """
+        """Initialise the data."""
         self.index = index
         self.reflections = reflections
 
 
 class IntegrationTask(object):
-    """ The integration task interface. """
+    """The integration task interface."""
 
     __metaclass__ = abc.ABCMeta
 
@@ -113,7 +113,7 @@ class IntegrationTask(object):
 
 
 class IntegrationManager(object):
-    """ The integration manager interface. """
+    """The integration manager interface."""
 
     __metaclass__ = abc.ABCMeta
 
@@ -139,7 +139,7 @@ class IntegrationManager(object):
 
 
 class Integrator(object):
-    """ Integrator interface class. """
+    """Integrator interface class."""
 
     def __init__(self, manager, max_procs=1, mp_method="multiprocessing"):
         """Initialise the integrator.
@@ -215,10 +215,10 @@ class Integrator(object):
 
 
 class IntegrationProcessor3D(object):
-    """ A class to do the processing. """
+    """A class to do the processing."""
 
     def __init__(self, experiments):
-        """ Initialise the processor and set the algorithms. """
+        """Initialise the processor and set the algorithms."""
         from dials.framework.registry import Registry
 
         params = Registry().params()
@@ -231,7 +231,7 @@ class IntegrationProcessor3D(object):
         self.time = 0
 
     def __call__(self, reflections):
-        """ Perform all the processing for integration. """
+        """Perform all the processing for integration."""
         from time import time
 
         print("Process")
@@ -253,10 +253,10 @@ class IntegrationProcessor3D(object):
 
 
 class IntegrationTask3DExecutorAux(boost.python.injector, IntegrationTask3DExecutor):
-    """ Add additional methods. """
+    """Add additional methods."""
 
     def execute(self, imageset, mask=None):
-        """ Passing in an imageset process all the images. """
+        """Passing in an imageset process all the images."""
         from dials.model.data import Image
         from time import time
         import sys
@@ -297,7 +297,7 @@ class IntegrationTask3DExecutorAux(boost.python.injector, IntegrationTask3DExecu
 
 
 class IntegrationTask3DMultiExecutor(IntegrationTask3DMultiExecutorBase):
-    """ Add additional methods. """
+    """Add additional methods."""
 
     def __init__(self, data, jobs, npanels, callback):
         from dials.array_family import flex
@@ -313,7 +313,7 @@ class IntegrationTask3DMultiExecutor(IntegrationTask3DMultiExecutorBase):
         super(IntegrationTask3DMultiExecutor, self).__init__(data, jobs, npanels)
 
     def execute(self, imageset, mask=None):
-        """ Passing in an imageset process all the images. """
+        """Passing in an imageset process all the images."""
         from dials.model.data import Image
         from time import time
         import sys
@@ -356,10 +356,10 @@ class IntegrationTask3DMultiExecutor(IntegrationTask3DMultiExecutorBase):
 
 
 class IntegrationTask3D(IntegrationTask):
-    """ A class to perform a 3D integration task. """
+    """A class to perform a 3D integration task."""
 
     def __init__(self, index, experiments, data, jobs):
-        """ Initialise the task. """
+        """Initialise the task."""
         self._index = index
         self._experiments = experiments
         self._data = data
@@ -367,7 +367,7 @@ class IntegrationTask3D(IntegrationTask):
         self._mask = None
 
     def __call__(self):
-        """ Do the integration. """
+        """Do the integration."""
         from dials.array_family import flex
         from scitbx.array_family import shared
         import sys
@@ -396,10 +396,10 @@ class IntegrationTask3D(IntegrationTask):
 
 
 class IntegrationManager3D(IntegrationManager):
-    """ An class to manage 3D integration. book-keeping """
+    """An class to manage 3D integration. book-keeping"""
 
     def __init__(self, experiments, reflections, block_size=1, max_procs=1):
-        """ Initialise the manager. """
+        """Initialise the manager."""
         from dials.algorithms.integration import IntegrationManager3DExecutor
         from dials.algorithms.integration import IntegrationManager3DMultiExecutor
         from dials.array_family import flex
@@ -431,7 +431,7 @@ class IntegrationManager3D(IntegrationManager):
         self.process_time = 0
 
     def task(self, index):
-        """ Get a task. """
+        """Get a task."""
         return IntegrationTask3D(
             index,
             self._experiments,
@@ -440,27 +440,27 @@ class IntegrationManager3D(IntegrationManager):
         )
 
     def tasks(self):
-        """ Iterate through the tasks. """
+        """Iterate through the tasks."""
         for i in range(len(self)):
             yield self.task(i)
 
     def accumulate(self, result):
-        """ Accumulate the results. """
+        """Accumulate the results."""
         self._manager.accumulate(result.index, result.reflections)
         self.read_time += result.read_time
         self.extract_time += result.extract_time
         self.process_time += result.process_time
 
     def result(self):
-        """ Return the result. """
+        """Return the result."""
         return self._manager.data()
 
     def finished(self):
-        """ Return if all tasks have finished. """
+        """Return if all tasks have finished."""
         return self._manager.finished()
 
     def __len__(self):
-        """ Return the number of tasks. """
+        """Return the number of tasks."""
         return len(self._manager)
 
 
@@ -536,7 +536,7 @@ class IntegrationManager3D(IntegrationManager):
 
 
 class Integrator3D(Integrator):
-    """ Top level integrator for 3D integration. """
+    """Top level integrator for 3D integration."""
 
     def __init__(
         self,
@@ -546,7 +546,7 @@ class Integrator3D(Integrator):
         max_procs=1,
         mp_method="multiprocessing",
     ):
-        """ Initialise the manager and the integrator. """
+        """Initialise the manager and the integrator."""
 
         # Create the integration manager
         manager = IntegrationManager3D(experiments, reflections, block_size, max_procs)
@@ -556,7 +556,7 @@ class Integrator3D(Integrator):
 
 
 class IntegratorFlat2D(Integrator):
-    """ Top level integrator for flat 2D integration. """
+    """Top level integrator for flat 2D integration."""
 
     def __init__(
         self,
@@ -566,12 +566,12 @@ class IntegratorFlat2D(Integrator):
         max_procs=1,
         mp_method="multiprocessing",
     ):
-        """ Initialise the manager and the integrator. """
+        """Initialise the manager and the integrator."""
         raise RuntimeError("Not Implemented")
 
 
 class Integrator2D(Integrator):
-    """ Top level integrator for 2D integration. """
+    """Top level integrator for 2D integration."""
 
     def __init__(
         self,
@@ -581,16 +581,16 @@ class Integrator2D(Integrator):
         max_procs=1,
         mp_method="multiprocessing",
     ):
-        """ Initialise the manager and the integrator. """
+        """Initialise the manager and the integrator."""
         raise RuntimeError("Not Implemented")
 
 
 class IntegratorFactory(object):
-    """ A factory for creating integrators. """
+    """A factory for creating integrators."""
 
     @staticmethod
     def create(params, experiments, reflections):
-        """ Create the integrator from the input configuration. """
+        """Create the integrator from the input configuration."""
         from dials.interfaces import IntensityIface
         from dials.interfaces import BackgroundIface
         from dials.interfaces import CentroidIface
@@ -632,7 +632,7 @@ class IntegratorFactory(object):
 
     @staticmethod
     def select_integrator(cls):
-        """ Select the integrator. """
+        """Select the integrator."""
         from dials.interfaces import Integration3DMixin
         from dials.interfaces import IntegrationFlat2DMixin
         from dials.interfaces import Integration2DMixin

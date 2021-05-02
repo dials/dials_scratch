@@ -17,7 +17,7 @@ def read_reflections(filename):
 
 
 def process_reference(reference):
-    """ Load the reference spots. """
+    """Load the reference spots."""
     from dials.array_family import flex
     from time import time
     from libtbx.utils import Sorry
