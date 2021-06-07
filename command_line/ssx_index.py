@@ -74,12 +74,25 @@ def index(experiments, observed, params):
         log2 = logging.getLogger("dials.algorithms.refinement.refiner")
         log3 = logging.getLogger("dials.algorithms.indexing.stills_indexer")
         log4 = logging.getLogger("dials.algorithms.indexing.nave_parameters")
-        with LoggingContext(log1, level=logging.WARNING):
-            with LoggingContext(log2, level=logging.WARNING):
-                with LoggingContext(log3, level=logging.WARNING):
-                    with LoggingContext(log4, level=logging.WARNING):
-                        fn(*fnargs)
+        log5 = logging.getLogger("dials.algorithms.indexing.basis_vector_search.real_space_grid_search")
+        with LoggingContext(log1, level=logging.ERROR):
+            with LoggingContext(log2, level=logging.ERROR):
+                with LoggingContext(log3, level=logging.ERROR):
+                    with LoggingContext(log4, level=logging.ERROR):
+                        with LoggingContext(log5, level=logging.ERROR):
+                            fn(*fnargs)
         sys.stdout = sys.__stdout__  # restore printing
+
+    if params.indexing.known_symmetry.unit_cell:
+        method_list = ["fft1d", "real_space_grid_search"]
+    else:
+        method_list = [params.indexing.method]
+    methods = ", ".join(method_list)
+    pl = "s" if (len(method_list) > 1) else ""
+    def plural(method):
+        return f" with {method} method" if (len(method_list) > 1) else ""
+
+    logger.info(f"Attempting indexing with {methods} method{pl}")
 
     def index_all(experiments, reflections, params):
         n_found = 0
@@ -90,30 +103,28 @@ def index(experiments, observed, params):
             )  # needed for centroid_px_to_mm
             refl.centroid_px_to_mm(elist)
             refl.map_centroids_to_reciprocal_space(elist)
-            idxr = Indexer.from_parameters(
-                refl,
-                elist,
-                params=params,
-            )
-            try:
-                idxr.index()
-            except DialsIndexError as e:
-                logger.info(f"Image {i+1}: Failed to index, error: {e}")
-            else:
-                # renumber numerical ids in the table
-                ids_map = dict(idxr.refined_reflections.experiment_identifiers())
-                for k in idxr.refined_reflections.experiment_identifiers().keys():
-                    del idxr.refined_reflections.experiment_identifiers()[k]
-                idxr.refined_reflections["id"] += n_found
-                for k, v in ids_map.items():
-                    idxr.refined_reflections.experiment_identifiers()[k + n_found] = v
-                n_found += len(ids_map.keys())
-                logger.info(
-                    f"Image {i+1}: Indexed {idxr.refined_reflections.size()} spots"
-                )
-                indexed_reflections.extend(idxr.refined_reflections)
-                for jexpt in idxr.refined_experiments:
-                    indexed_experiments.append(
+            for method in method_list:
+                params.indexing.method = method
+                idxr = Indexer.from_parameters(refl, elist, params=params)
+                try:
+                    idxr.index()
+                except DialsIndexError as e:
+                    logger.info(f"Image {i+1}: Failed to index{plural(method)}, error: {e}")
+                else:
+                    # renumber numerical ids in the table
+                    ids_map = dict(idxr.refined_reflections.experiment_identifiers())
+                    for k in idxr.refined_reflections.experiment_identifiers().keys():
+                        del idxr.refined_reflections.experiment_identifiers()[k]
+                    idxr.refined_reflections["id"] += n_found
+                    for k, v in ids_map.items():
+                        idxr.refined_reflections.experiment_identifiers()[k + n_found] = v
+                    n_found += len(ids_map.keys())
+                    logger.info(
+                        f"Image {i+1}: Indexed {idxr.refined_reflections.size()} spots{plural(method)}"
+                    )
+                    indexed_reflections.extend(idxr.refined_reflections)
+                    for jexpt in idxr.refined_experiments:
+                        indexed_experiments.append(
                             Experiment(
                                 identifier=jexpt.identifier,
                                 beam=jexpt.beam,
@@ -122,7 +133,9 @@ def index(experiments, observed, params):
                                 goniometer=jexpt.goniometer,
                                 crystal=jexpt.crystal,
                                 imageset=jexpt.imageset[i:i+1],
-                    ))
+                            )
+                        )
+                    break
 
     run_with_disabled_logs(index_all, (experiments, reflections, params))
     logger.info(
@@ -172,6 +185,10 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
     )
     log.config(verbosity=1, logfile="dials.ssx_index.log")
     logger.info(dials_version())
+
+    diff_phil = parser.diff_phil.as_str()
+    if diff_phil:
+        logger.info("The following parameters have been modified:\n%s", diff_phil)
 
     index(experiments, reflections[0], params)
 
