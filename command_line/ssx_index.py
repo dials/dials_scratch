@@ -16,7 +16,7 @@ from dials.util import log, show_mail_handle_errors
 from dials.util.options import OptionParser, reflections_and_experiments_from_files
 from dials.util.version import dials_version
 
-from dxtbx.model import ExperimentList
+from dxtbx.model import ExperimentList, Experiment
 from dials.array_family import flex
 from dials.algorithms.indexing.indexer import Indexer
 
@@ -112,7 +112,17 @@ def index(experiments, observed, params):
                     f"Image {i+1}: Indexed {idxr.refined_reflections.size()} spots"
                 )
                 indexed_reflections.extend(idxr.refined_reflections)
-                indexed_experiments.extend(idxr.refined_experiments)
+                for jexpt in idxr.refined_experiments:
+                    indexed_experiments.append(
+                            Experiment(
+                                identifier=jexpt.identifier,
+                                beam=jexpt.beam,
+                                detector=jexpt.detector,
+                                scan=jexpt.scan,
+                                goniometer=jexpt.goniometer,
+                                crystal=jexpt.crystal,
+                                imageset=jexpt.imageset[i:i+1],
+                    ))
 
     run_with_disabled_logs(index_all, (experiments, reflections, params))
     logger.info(
