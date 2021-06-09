@@ -7,11 +7,15 @@ with a joint detector and beam model.
 """
 
 import logging
+import time
 import sys, os
 import math
+import numpy as np
 from io import StringIO
+import concurrent.futures
+from collections import defaultdict
 
-from libtbx import phil
+from libtbx import phil, Auto
 
 from dials.util import log, show_mail_handle_errors, tabulate
 from dials.util.options import OptionParser, reflections_and_experiments_from_files
@@ -20,6 +24,12 @@ from dials.util.version import dials_version
 from dxtbx.model import ExperimentList, Experiment
 from dials.array_family import flex
 from dials.algorithms.indexing.indexer import Indexer
+from dials.algorithms.indexing.max_cell import find_max_cell
+
+from xfel.clustering.cluster import Cluster
+from xfel.clustering.cluster_groups import unit_cell_info
+from cctbx import crystal
+from dials.command_line.combine_experiments import CombineWithReference
 
 try:
     from typing import List
@@ -38,6 +48,7 @@ program_defaults_phil_str = """
 indexing {
   method = fft1d
 }
+output.log = dials.ssx_index.log
 refinement {
   parameterisation {
     auto_reduction {
@@ -56,19 +67,32 @@ refinement {
 
 phil_scope = phil.parse(
     """
+method = *fft1d *real_space_grid_search
+    .type = choice(multi=True)
 include scope dials.command_line.index.phil_scope
 """,
     process_includes=True,
 ).fetch(phil.parse(program_defaults_phil_str))
 
+def _index_one(experiment, refl, params, method_list, expt_no):
+    elist = ExperimentList([experiment])
+    for method in method_list:
+        params.indexing.method = method
+        idxr = Indexer.from_parameters(refl, elist, params=params)
+        try:
+            idxr.index()
+        except (DialsIndexError, AssertionError) as e:
+            logger.info(f"Image {expt_no+1}: Failed to index with {method} method, error: {e}")
+            if method == method_list[-1]:
+                return None, None, expt_no
+        else:
+            logger.info(f"Image {expt_no+1}: Indexed {idxr.refined_reflections.size()}/{refl.size()} spots with {method} method.")
+            return idxr.refined_experiments, idxr.refined_reflections, expt_no
+
 
 def index(experiments, observed, params):
     params.refinement.parameterisation.scan_varying = False
     params.indexing.stills.indexer = "stills"
-
-    reflections = observed.split_by_experiment_id()
-    indexed_experiments = ExperimentList()
-    indexed_reflections = flex.reflection_table()
 
     def run_with_disabled_logs(fn, fnargs):
         sys.stdout = open(os.devnull, "w")  # block printing from rstbx
@@ -78,58 +102,76 @@ def index(experiments, observed, params):
         log4 = logging.getLogger("dials.algorithms.indexing.nave_parameters")
         log5 = logging.getLogger("dials.algorithms.indexing.basis_vector_search.real_space_grid_search")
         log6 = logging.getLogger("dials.algorithms.indexing.basis_vector_search.combinations")
+        log7 = logging.getLogger("dials.algorithms.indexing.indexer")
         with LoggingContext(log1, level=logging.ERROR):
             with LoggingContext(log2, level=logging.ERROR):
                 with LoggingContext(log3, level=logging.ERROR):
                     with LoggingContext(log4, level=logging.ERROR):
                         with LoggingContext(log5, level=logging.ERROR):
                             with LoggingContext(log6, level=logging.ERROR):
-                                fn(*fnargs)
+                                with LoggingContext(log7, level=logging.ERROR):
+                                    return fn(*fnargs)
         sys.stdout = sys.__stdout__  # restore printing
 
-    if params.indexing.known_symmetry.unit_cell:
-        method_list = ["fft1d", "real_space_grid_search"]
-    else:
-        method_list = [params.indexing.method]
+    reflections = observed.split_by_experiment_id()
+    # Calculate necessary quantities
+    for refl, experiment in zip(reflections, experiments):
+        elist = ExperimentList([experiment])
+        refl["imageset_id"] = flex.int(
+            refl.size(), 0
+        )  # needed for centroid_px_to_mm
+        refl.centroid_px_to_mm(elist)
+        refl.map_centroids_to_reciprocal_space(elist)
+
+    if (params.indexing.max_cell is Auto) and (not params.indexing.known_symmetry.unit_cell):
+        max_cells = []
+        for refl in reflections:
+            try:
+                max_cells.append(find_max_cell(refl).max_cell)
+            except (DialsIndexError, AssertionError):
+                pass
+        logger.info(f"Setting max cell to {max(max_cells):.1f} "+ u"\u212B")
+        params.indexing.max_cell = max(max_cells)
+
+    n_strong = np.array([table.size() for table in reflections])
+    indexed_experiments = ExperimentList()
+    indexed_reflections = flex.reflection_table()
+    method_list = params.method
+    if "real_space_grid_search" in method_list:
+        if not params.indexing.known_symmetry.unit_cell:
+            logger.info("No unit cell given, real_space_grid_search will not be used")
+            method_list.remove("real_space_grid_search")
     methods = ", ".join(method_list)
     pl = "s" if (len(method_list) > 1) else ""
-    def plural(method):
-        return f" with {method} method" if (len(method_list) > 1) else ""
-
     logger.info(f"Attempting indexing with {methods} method{pl}")
 
     def index_all(experiments, reflections, params):
         n_found = 0
-        overall_summary_header = ["Image", "lattice", "expt_id", "n_indexed", "dX", "dY", "dPsi"]
-        overall_summary_rows = []
-        # toggle on n_lattice and method depending on if multiple or not?
-        for i, (expt, refl) in enumerate(zip(experiments, reflections)):
-            ### Calculate necessary quantities
-            elist = ExperimentList([expt])
-            refl["imageset_id"] = flex.int(
-                refl.size(), 0
-            )  # needed for centroid_px_to_mm
-            refl.centroid_px_to_mm(elist)
-            refl.map_centroids_to_reciprocal_space(elist)
-            path = expt.imageset.get_path(i)
+        overall_summary_header = ["Image", "expt_id", "n_indexed", "RMSD_X", "RMSD_Y", "RMSD_dPsi"]
 
-            ### Loop over methods and attempt indexing
-            for method in method_list:
-                params.indexing.method = method
-                idxr = Indexer.from_parameters(refl, elist, params=params)
-                try:
-                    idxr.index()
-                except DialsIndexError as e:
-                    logger.info(f"Image {i+1}: Failed to index{plural(method)}, error: {e}")
-                else:
-                    ### Extract rmsd values for output
-                    ids_map = dict(idxr.refined_reflections.experiment_identifiers())
-                    logger.info(f"Image {i+1}: Indexed with {method} method.")
-                    header = ["Crystal #", "n indexed", "RMSD_X (px)", "RMSD_Y (px)", "RMSD_DeltaPsi (deg)"]
-                    rows = []
-                    n_strong = refl.size()
+        futures = []
+        results = defaultdict(list)
+        tables_list = []
+        expts_list = []
+        results_order = np.array([], dtype=np.int32)
+
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=params.indexing.nproc
+        ) as pool:
+            for i, (expt, refl) in enumerate(zip(experiments, reflections)):
+                futures.append(
+                    pool.submit(
+                        _index_one, expt, refl, params, method_list, i
+                    )
+                )
+            for future in concurrent.futures.as_completed(futures):
+                idx_expts, idx_refl, index= future.result()
+                if idx_expts:
+                    results_order = np.append(results_order, [index])
+                    ids_map = dict(idx_refl.experiment_identifiers())
+                    path = expt.imageset.get_path(index)
                     for n_cryst, id_ in enumerate(ids_map.keys()):
-                        selr = idxr.refined_reflections.select(idxr.refined_reflections["id"] == id_)
+                        selr = idx_refl.select(idx_refl["id"] == id_)
                         calx, caly, calz = selr["xyzcal.px"].parts()
                         obsx, obsy, obsz = selr["xyzobs.px.value"].parts()
                         delpsi = selr["delpsical.rad"]
@@ -137,37 +179,19 @@ def index(experiments, observed, params):
                         rmsd_y = flex.mean((caly - obsy) ** 2)**0.5
                         rmsd_z = flex.mean(((delpsi) * RAD2DEG) ** 2)**0.5
                         n_id_ = calx.size()
-                        n_indexed = f"{n_id_}/{n_strong} ({100*n_id_/n_strong:2.1f}%)"
-                        rows.append([
-                            f"{n_cryst + 1}",
-                            n_indexed,
-                            f"{rmsd_x:.3f}",
-                            f"{rmsd_y:.3f}",
-                            f" {rmsd_z:.4f}",
-                        ])
-                        overall_summary_rows.append([
+                        n_indexed = f"{n_id_}/{n_strong[index]} ({100*n_id_/n_strong[index]:2.1f}%)"
+                        results[index].append([
                             path.split("/")[-1],
-                            n_cryst + 1,
-                            n_found + n_cryst,
                             n_indexed,
                             f"{rmsd_x:.3f}",
                             f"{rmsd_y:.3f}",
                             f" {rmsd_z:.4f}",
                         ])
-                    logger.info(tabulate(rows, header))
-
-                    ### renumber numerical ids in the table
-                    for k in idxr.refined_reflections.experiment_identifiers().keys():
-                        del idxr.refined_reflections.experiment_identifiers()[k]
-                    idxr.refined_reflections["id"] += n_found
-                    for k, v in ids_map.items():
-                        idxr.refined_reflections.experiment_identifiers()[k + n_found] = v
                     n_found += len(ids_map.keys())
-
-                    ### Add data to overall list/table
-                    indexed_reflections.extend(idxr.refined_reflections)
-                    for jexpt in idxr.refined_experiments:
-                        indexed_experiments.append(
+                    tables_list.append(idx_refl)
+                    elist = ExperimentList()
+                    for jexpt in idx_expts:
+                        elist.append(
                             Experiment(
                                 identifier=jexpt.identifier,
                                 beam=jexpt.beam,
@@ -175,22 +199,68 @@ def index(experiments, observed, params):
                                 scan=jexpt.scan,
                                 goniometer=jexpt.goniometer,
                                 crystal=jexpt.crystal,
-                                imageset=jexpt.imageset[i:i+1],
+                                imageset=jexpt.imageset[index:index+1],
                             )
                         )
-                    break
+                    expts_list.append(elist)
 
-        # now give overall summary
-        logger.info(tabulate(overall_summary_rows, overall_summary_header))
+        # Results came in a non-deterministic order. So sort them out
+        # to match the input order, adjusting the ids as appropriate.
+        n_tot = 0
+        for i in np.argsort(results_order):
+            table = tables_list[i]
+            expts = expts_list[i]
+            indexed_experiments.extend(expts)
+            ids_map = dict(table.experiment_identifiers())
+            for k in table.experiment_identifiers().keys():
+                del table.experiment_identifiers()[k]
+            table["id"] += n_tot
+            for k, v in ids_map.items():
+                table.experiment_identifiers()[k + n_tot] = v
+            n_tot += len(ids_map.keys())
+            indexed_reflections.extend(table)
+        indexed_reflections.assert_experiment_identifiers_are_consistent(indexed_experiments)
 
+        # Add a few extra useful items to the summary table.
+        rows = []
+        total = 0
+        if params.indexing.multiple_lattice_search.max_lattices > 1:
+            show_lattices = True
+            overall_summary_header.insert(1, "lattice")
+        else:
+            show_lattices = False
+        for i, k in enumerate(sorted(results.keys())):
+            for j, cryst in enumerate(results[k]):
+                cryst.insert(1, total)
+                if show_lattices:
+                    cryst.insert(1, j+1)
+                rows.append(cryst)
+                total += 1
 
-    run_with_disabled_logs(index_all, (experiments, reflections, params))
+        return indexed_experiments, indexed_reflections, tabulate(rows, overall_summary_header)
+
+    indexed_experiments, indexed_reflections, summary = \
+        run_with_disabled_logs(index_all, (experiments, reflections, params))
+
+    # print some clustering information
+    crystal_symmetries = [
+        crystal.symmetry(
+            unit_cell=expt.crystal.get_unit_cell(),
+            space_group=expt.crystal.get_space_group(),
+        )
+        for expt in indexed_experiments
+    ]
+    ucs = Cluster.from_crystal_symmetries(crystal_symmetries)
+    clusters, cluster_axes = ucs.ab_cluster(
+        5000, log=None, write_file_lists=False, doplot=False
+    )
+    logger.info("\nUnit cell clustering analysis\n"+unit_cell_info(clusters))
+    logger.info("\nSummary of images sucessfully indexed\n"+summary)
+
     n_images = len(set(e.imageset.get_path(0) for e in indexed_experiments))
     logger.info(
         f"{indexed_reflections.size()} spots indexed on {n_images} images"
     )
-
-    from dials.command_line.combine_experiments import CombineWithReference
 
     # combine beam and detector models if not already
     if (len(indexed_experiments.detectors())) > 1 or (
@@ -204,12 +274,11 @@ def index(experiments, observed, params):
         for expt in indexed_experiments:
             elist.append(combine(expt))
         indexed_experiments = elist
-    expt_filename = "indexed.expt"
-    refl_filename = "indexed.refl"
-    logger.info(f"Saving indexed experiments to {expt_filename}")
-    indexed_experiments.as_file(expt_filename)
-    logger.info(f"Saving indexed reflections to {refl_filename}")
-    indexed_reflections.as_file(refl_filename)
+
+    logger.info(f"Saving indexed experiments to {params.output.experiments}")
+    indexed_experiments.as_file(params.output.experiments)
+    logger.info(f"Saving indexed reflections to {params.output.reflections}")
+    indexed_reflections.as_file(params.output.reflections)
 
 
 @show_mail_handle_errors()
@@ -231,14 +300,16 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
     reflections, experiments = reflections_and_experiments_from_files(
         params.input.reflections, params.input.experiments
     )
-    log.config(verbosity=1, logfile="dials.ssx_index.log")
+    log.config(verbosity=1, logfile=params.output.log)
     logger.info(dials_version())
 
     diff_phil = parser.diff_phil.as_str()
     if diff_phil:
         logger.info("The following parameters have been modified:\n%s", diff_phil)
 
+    st = time.time()
     index(experiments, reflections[0], params)
+    logger.info(f"Total time: {time.time() - st:.2f}s")
 
 
 if __name__ == "__main__":
