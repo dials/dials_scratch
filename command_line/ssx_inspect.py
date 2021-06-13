@@ -21,12 +21,15 @@ except ImportError:
 
 logger = logging.getLogger("dials")
 
-phil_scope = phil.parse("""
+phil_scope = phil.parse(
+    """
 d_min = None
     .type = float
 threshold_i_over_sigma = None
     .type = float
-""")
+"""
+)
+
 
 def inspect(experiments, reflections, params):
 
@@ -37,7 +40,7 @@ def inspect(experiments, reflections, params):
             return
     I = reflections["intensity.sum.value"]
     sig = reflections["intensity.sum.variance"] ** 0.5
-    Ioversig = I/sig
+    Ioversig = I / sig
     images = []
 
     for (id_, identifier) in dict(reflections.experiment_identifiers()).items():
@@ -46,7 +49,11 @@ def inspect(experiments, reflections, params):
         expt = (experiments.identifiers() == identifier).iselection()[0]
         images.append(experiments[expt].imageset.get_path(0).split("/")[-1])
 
-    header = ["image", "expt_id", ("I/sigma" + f" (d_min={params.d_min})" if params.d_min else "I/sigma")]
+    header = [
+        "image",
+        "expt_id",
+        ("I/sigma" + f" (d_min={params.d_min})" if params.d_min else "I/sigma"),
+    ]
     rows = []
 
     for i, (image, Iovers) in enumerate(zip(images, Ioversig_per_crystal)):
@@ -56,7 +63,11 @@ def inspect(experiments, reflections, params):
 
     if params.threshold_i_over_sigma:
         logger.info(f"Integrated images with I/sigma > {params.threshold_i_over_sigma}")
-        header = ["image", "expt_id", ("I/sigma" + f" (d_min={params.d_min})" if params.d_min else "I/sigma")]
+        header = [
+            "image",
+            "expt_id",
+            ("I/sigma" + f" (d_min={params.d_min})" if params.d_min else "I/sigma"),
+        ]
         rows = []
 
         for i, (image, Iovers) in enumerate(zip(images, Ioversig_per_crystal)):
