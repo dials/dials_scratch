@@ -30,6 +30,7 @@ from xfel.clustering.cluster import Cluster
 from xfel.clustering.cluster_groups import unit_cell_info
 from cctbx import crystal
 from dials.command_line.combine_experiments import CombineWithReference
+from dials.util.mp import multi_node_parallel_map
 
 try:
     from typing import List
@@ -95,32 +96,169 @@ def _index_one(experiment, refl, params, method_list, expt_no):
             return idxr.refined_experiments, idxr.refined_reflections, expt_no
 
 
+def run_with_disabled_logs(fn, fnargs):
+    sys.stdout = open(os.devnull, "w")  # block printing from rstbx
+    log1 = logging.getLogger("dials.algorithms.refinement.reflection_processor")
+    log2 = logging.getLogger("dials.algorithms.refinement.refiner")
+    log8 = logging.getLogger("dials.algorithms.refinement.reflection_manager")
+    log3 = logging.getLogger("dials.algorithms.indexing.stills_indexer")
+    log4 = logging.getLogger("dials.algorithms.indexing.nave_parameters")
+    log5 = logging.getLogger(
+        "dials.algorithms.indexing.basis_vector_search.real_space_grid_search"
+    )
+    log6 = logging.getLogger(
+        "dials.algorithms.indexing.basis_vector_search.combinations"
+    )
+    log7 = logging.getLogger("dials.algorithms.indexing.indexer")
+    with LoggingContext(log1, level=logging.ERROR):
+        with LoggingContext(log2, level=logging.ERROR):
+            with LoggingContext(log3, level=logging.ERROR):
+                with LoggingContext(log4, level=logging.ERROR):
+                    with LoggingContext(log5, level=logging.ERROR):
+                        with LoggingContext(log6, level=logging.ERROR):
+                            with LoggingContext(log7, level=logging.ERROR):
+                                with LoggingContext(log8, level=logging.ERROR):
+                                    result = fn(*fnargs)
+                                    sys.stdout = sys.__stdout__  # restore printing
+                                    return result
+
+
+class Processor(object):
+    # Wrap some functions into a class to allow multiprocessing with
+    # multi_node_parallel_map
+
+    def __init__(self, experiments, reflections, params):
+        self.experiments = experiments
+        self.reflections = reflections
+        self.params = params
+        self._results_order = np.array([], dtype=np.int32)
+        self._results = defaultdict(list)
+        self._n_strong = np.array([table.size() for table in self.reflections])
+        self._n_found = 0
+        self._tables_list = []
+        self._expts_list = []
+        self.indexed_experiments = ExperimentList()
+        self.indexed_reflections = flex.reflection_table()
+        self.summary_table = ""
+
+    def process_output(self, result):
+        idx_expts, idx_refl, index = result[0], result[1], result[2]
+        if idx_expts:
+            self._results_order = np.append(self._results_order, [index])
+            ids_map = dict(idx_refl.experiment_identifiers())
+            path = idx_expts[0].imageset.get_path(index)
+            for n_cryst, id_ in enumerate(ids_map.keys()):
+                selr = idx_refl.select(idx_refl["id"] == id_)
+                calx, caly, calz = selr["xyzcal.px"].parts()
+                obsx, obsy, obsz = selr["xyzobs.px.value"].parts()
+                delpsi = selr["delpsical.rad"]
+                rmsd_x = flex.mean((calx - obsx) ** 2) ** 0.5
+                rmsd_y = flex.mean((caly - obsy) ** 2) ** 0.5
+                rmsd_z = flex.mean(((delpsi) * RAD2DEG) ** 2) ** 0.5
+                n_id_ = calx.size()
+                n_indexed = f"{n_id_}/{self._n_strong[index]} ({100*n_id_/self._n_strong[index]:2.1f}%)"
+                self._results[index].append(
+                    [
+                        path.split("/")[-1],
+                        n_indexed,
+                        f"{rmsd_x:.3f}",
+                        f"{rmsd_y:.3f}",
+                        f" {rmsd_z:.4f}",
+                    ]
+                )
+            self._n_found += len(ids_map.keys())
+            self._tables_list.append(idx_refl)
+            elist = ExperimentList()
+            for jexpt in idx_expts:
+                elist.append(
+                    Experiment(
+                        identifier=jexpt.identifier,
+                        beam=jexpt.beam,
+                        detector=jexpt.detector,
+                        scan=jexpt.scan,
+                        goniometer=jexpt.goniometer,
+                        crystal=jexpt.crystal,
+                        imageset=jexpt.imageset[index : index + 1],
+                    )
+                )
+            self._expts_list.append(elist)
+
+    def process(self, method_list):
+        inputs = []
+        for i, (expt, refl) in enumerate(zip(self.experiments, self.reflections)):
+            inputs.append((expt, refl, self.params, method_list, i))
+        mp_nproc = self.params.indexing.nproc
+        mp_njobs = 1
+        mp_method = "multiprocessing"
+
+        def execute_task(input_):
+            return _index_one(*input_)
+
+        if mp_nproc > 1:
+            multi_node_parallel_map(
+                func=execute_task,
+                iterable=inputs,
+                njobs=mp_njobs,
+                nproc=mp_nproc,
+                callback=self.process_output,
+                cluster_method=mp_method,
+                preserve_order=True,
+            )
+        else:
+            for input_ in inputs:
+                self.process_output(execute_task(input_))
+
+    def finalize(self):
+        # Results came in a non-deterministic order. So sort them out
+        # to match the input order, adjusting the ids as appropriate.
+        n_tot = 0
+        for i in np.argsort(self._results_order):
+            table = self._tables_list[i]
+            expts = self._expts_list[i]
+            self.indexed_experiments.extend(expts)
+            ids_map = dict(table.experiment_identifiers())
+            for k in table.experiment_identifiers().keys():
+                del table.experiment_identifiers()[k]
+            table["id"] += n_tot
+            for k, v in ids_map.items():
+                table.experiment_identifiers()[k + n_tot] = v
+            n_tot += len(ids_map.keys())
+            self.indexed_reflections.extend(table)
+        self.indexed_reflections.assert_experiment_identifiers_are_consistent(
+            self.indexed_experiments
+        )
+
+        # Add a few extra useful items to the summary table.
+        overall_summary_header = [
+            "Image",
+            "expt_id",
+            "n_indexed",
+            "RMSD_X",
+            "RMSD_Y",
+            "RMSD_dPsi",
+        ]
+
+        rows = []
+        total = 0
+        if self.params.indexing.multiple_lattice_search.max_lattices > 1:
+            show_lattices = True
+            overall_summary_header.insert(1, "lattice")
+        else:
+            show_lattices = False
+        for i, k in enumerate(sorted(self._results.keys())):
+            for j, cryst in enumerate(self._results[k]):
+                cryst.insert(1, total)
+                if show_lattices:
+                    cryst.insert(1, j + 1)
+                rows.append(cryst)
+                total += 1
+
+        self.summary_table = tabulate(rows, overall_summary_header)
+
+
 def index(experiments, observed, params):
     params.refinement.parameterisation.scan_varying = False
     params.indexing.stills.indexer = "stills"
-
-    def run_with_disabled_logs(fn, fnargs):
-        sys.stdout = open(os.devnull, "w")  # block printing from rstbx
-        log1 = logging.getLogger("dials.algorithms.refinement.reflection_manager")
-        log2 = logging.getLogger("dials.algorithms.refinement.refiner")
-        log3 = logging.getLogger("dials.algorithms.indexing.stills_indexer")
-        log4 = logging.getLogger("dials.algorithms.indexing.nave_parameters")
-        log5 = logging.getLogger(
-            "dials.algorithms.indexing.basis_vector_search.real_space_grid_search"
-        )
-        log6 = logging.getLogger(
-            "dials.algorithms.indexing.basis_vector_search.combinations"
-        )
-        log7 = logging.getLogger("dials.algorithms.indexing.indexer")
-        with LoggingContext(log1, level=logging.ERROR):
-            with LoggingContext(log2, level=logging.ERROR):
-                with LoggingContext(log3, level=logging.ERROR):
-                    with LoggingContext(log4, level=logging.ERROR):
-                        with LoggingContext(log5, level=logging.ERROR):
-                            with LoggingContext(log6, level=logging.ERROR):
-                                with LoggingContext(log7, level=logging.ERROR):
-                                    return fn(*fnargs)
-        sys.stdout = sys.__stdout__  # restore printing
 
     reflections = observed.split_by_experiment_id()
     # Calculate necessary quantities
@@ -142,9 +280,6 @@ def index(experiments, observed, params):
         logger.info(f"Setting max cell to {max(max_cells):.1f} " + "\u212B")
         params.indexing.max_cell = max(max_cells)
 
-    n_strong = np.array([table.size() for table in reflections])
-    indexed_experiments = ExperimentList()
-    indexed_reflections = flex.reflection_table()
     method_list = params.method
     if "real_space_grid_search" in method_list:
         if not params.indexing.known_symmetry.unit_cell:
@@ -155,110 +290,13 @@ def index(experiments, observed, params):
     logger.info(f"Attempting indexing with {methods} method{pl}")
 
     def index_all(experiments, reflections, params):
-        n_found = 0
-        overall_summary_header = [
-            "Image",
-            "expt_id",
-            "n_indexed",
-            "RMSD_X",
-            "RMSD_Y",
-            "RMSD_dPsi",
-        ]
-
-        futures = []
-        results = defaultdict(list)
-        tables_list = []
-        expts_list = []
-        results_order = np.array([], dtype=np.int32)
-
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=params.indexing.nproc
-        ) as pool:
-            for i, (expt, refl) in enumerate(zip(experiments, reflections)):
-                futures.append(
-                    pool.submit(_index_one, expt, refl, params, method_list, i)
-                )
-            for future in concurrent.futures.as_completed(futures):
-                idx_expts, idx_refl, index = future.result()
-                if idx_expts:
-                    results_order = np.append(results_order, [index])
-                    ids_map = dict(idx_refl.experiment_identifiers())
-                    path = expt.imageset.get_path(index)
-                    for n_cryst, id_ in enumerate(ids_map.keys()):
-                        selr = idx_refl.select(idx_refl["id"] == id_)
-                        calx, caly, calz = selr["xyzcal.px"].parts()
-                        obsx, obsy, obsz = selr["xyzobs.px.value"].parts()
-                        delpsi = selr["delpsical.rad"]
-                        rmsd_x = flex.mean((calx - obsx) ** 2) ** 0.5
-                        rmsd_y = flex.mean((caly - obsy) ** 2) ** 0.5
-                        rmsd_z = flex.mean(((delpsi) * RAD2DEG) ** 2) ** 0.5
-                        n_id_ = calx.size()
-                        n_indexed = f"{n_id_}/{n_strong[index]} ({100*n_id_/n_strong[index]:2.1f}%)"
-                        results[index].append(
-                            [
-                                path.split("/")[-1],
-                                n_indexed,
-                                f"{rmsd_x:.3f}",
-                                f"{rmsd_y:.3f}",
-                                f" {rmsd_z:.4f}",
-                            ]
-                        )
-                    n_found += len(ids_map.keys())
-                    tables_list.append(idx_refl)
-                    elist = ExperimentList()
-                    for jexpt in idx_expts:
-                        elist.append(
-                            Experiment(
-                                identifier=jexpt.identifier,
-                                beam=jexpt.beam,
-                                detector=jexpt.detector,
-                                scan=jexpt.scan,
-                                goniometer=jexpt.goniometer,
-                                crystal=jexpt.crystal,
-                                imageset=jexpt.imageset[index : index + 1],
-                            )
-                        )
-                    expts_list.append(elist)
-
-        # Results came in a non-deterministic order. So sort them out
-        # to match the input order, adjusting the ids as appropriate.
-        n_tot = 0
-        for i in np.argsort(results_order):
-            table = tables_list[i]
-            expts = expts_list[i]
-            indexed_experiments.extend(expts)
-            ids_map = dict(table.experiment_identifiers())
-            for k in table.experiment_identifiers().keys():
-                del table.experiment_identifiers()[k]
-            table["id"] += n_tot
-            for k, v in ids_map.items():
-                table.experiment_identifiers()[k + n_tot] = v
-            n_tot += len(ids_map.keys())
-            indexed_reflections.extend(table)
-        indexed_reflections.assert_experiment_identifiers_are_consistent(
-            indexed_experiments
-        )
-
-        # Add a few extra useful items to the summary table.
-        rows = []
-        total = 0
-        if params.indexing.multiple_lattice_search.max_lattices > 1:
-            show_lattices = True
-            overall_summary_header.insert(1, "lattice")
-        else:
-            show_lattices = False
-        for i, k in enumerate(sorted(results.keys())):
-            for j, cryst in enumerate(results[k]):
-                cryst.insert(1, total)
-                if show_lattices:
-                    cryst.insert(1, j + 1)
-                rows.append(cryst)
-                total += 1
-
+        processor = Processor(experiments, reflections, params)
+        processor.process(method_list)
+        processor.finalize()
         return (
-            indexed_experiments,
-            indexed_reflections,
-            tabulate(rows, overall_summary_header),
+            processor.indexed_experiments,
+            processor.indexed_reflections,
+            processor.summary_table,
         )
 
     indexed_experiments, indexed_reflections, summary = run_with_disabled_logs(
@@ -288,8 +326,7 @@ def index(experiments, observed, params):
         len(indexed_experiments.beams())
     ) > 1:
         combine = CombineWithReference(
-            detector=indexed_experiments[0].detector,
-            beam=indexed_experiments[0].beam,
+            detector=indexed_experiments[0].detector, beam=indexed_experiments[0].beam
         )
         elist = ExperimentList()
         for expt in indexed_experiments:
