@@ -21,15 +21,9 @@ from dials.array_family import flex
 File = Union[str, pathlib.Path]
 
 
-class Formatter(
-    argparse.RawDescriptionHelpFormatter, argparse.ArgumentDefaultsHelpFormatter
-):
-    """Print argument default values and preserve help text linebreaks."""
-
-    pass
-
-
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=Formatter)
+parser = argparse.ArgumentParser(
+    description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
 parser.add_argument(
     "reflection-table",
     help=(
