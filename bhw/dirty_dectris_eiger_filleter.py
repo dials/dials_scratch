@@ -134,7 +134,7 @@ with h5py.File(master_file, "r") as f, h5py.File("dummy_master.h5", "w") as g:
         g,
         large_datasets,
         lambda key: "trimbit" in key,
-        lambda data: 16 * np.ones_like(data),
+        lambda data: np.full_like(data, 16),
     )
     # Reduce the size of the global detector flat-field correction data set,
     # using ones as dummy values.
