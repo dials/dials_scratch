@@ -3,8 +3,9 @@ import scitbx.matrix
 from dxtbx.model import Crystal
 
 
-
-def plot_cells(crystals, ax=None, facecolor="cyan", linewidth=1, edgecolor="r", alpha=0.1, **kwargs):
+def plot_cells(
+    crystals, ax=None, facecolor="cyan", linewidth=1, edgecolor="r", alpha=0.1, **kwargs
+):
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
@@ -51,9 +52,7 @@ def plot_cells(crystals, ax=None, facecolor="cyan", linewidth=1, edgecolor="r", 
         ]
 
         # plot sides
-        pc = Poly3DCollection(
-            verts, linewidth=linewidth, edgecolor=edgecolor, **kwargs
-        )
+        pc = Poly3DCollection(verts, linewidth=linewidth, edgecolor=edgecolor, **kwargs)
         # https://github.com/matplotlib/matplotlib/issues/10237/
         pc.set_alpha(alpha)
         pc.set_facecolor(facecolor)
@@ -69,16 +68,24 @@ def plot_cells(crystals, ax=None, facecolor="cyan", linewidth=1, edgecolor="r", 
 
 
 def crystal_symmetry_as_dxtbx_crystal(crystal_symmetry):
-    B = scitbx.matrix.sqr(crystal_symmetry.unit_cell(
-    ).fractionalization_matrix()).transpose()
+    B = scitbx.matrix.sqr(
+        crystal_symmetry.unit_cell().fractionalization_matrix()
+    ).transpose()
     return Crystal(B, crystal_symmetry.space_group())
 
 
 if __name__ == "__main__":
-    uc_min = uctbx.unit_cell((44.66208170999999, 53.12629402999999,
-                             62.53397660267584, 115.13670293012744, 101.7265610491002, 90.0))
-    cs_min = crystal.symmetry(unit_cell=uc_min,
-                              space_group=sgtbx.space_group())
+    uc_min = uctbx.unit_cell(
+        (
+            44.66208170999999,
+            53.12629402999999,
+            62.53397660267584,
+            115.13670293012744,
+            101.7265610491002,
+            90.0,
+        )
+    )
+    cs_min = crystal.symmetry(unit_cell=uc_min, space_group=sgtbx.space_group())
     from cctbx.sgtbx.lattice_symmetry import metric_subgroups
 
     subgroups = metric_subgroups(cs_min, max_delta=5)
@@ -87,10 +94,10 @@ if __name__ == "__main__":
     print(f"ref_sybsym {best_subgroup['ref_subsym']}\n")
 
     cs_ref = crystal.symmetry(
-        #unit_cell=(113.2236274, 53.12629403, 44.66208171, 90, 102.9736126, 90),
+        # unit_cell=(113.2236274, 53.12629403, 44.66208171, 90, 102.9736126, 90),
         unit_cell=(112.90, 53.14, 44.39, 90.00, 103.04, 90.00),
-        space_group_symbol="C 1 2/m 1"
-      )
+        space_group_symbol="C 1 2/m 1",
+    )
 
     cs_best = cs_ref.best_cell()
     cb_ref_best = cs_ref.change_of_basis_op_to_best_cell()
