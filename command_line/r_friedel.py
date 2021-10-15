@@ -35,9 +35,6 @@ def merge_in_P1(intensities):
         )
         .merge_equivalents()
         .array()
-        .customized_copy(
-            space_group_info=intensities.space_group_info(), anomalous_flag=True
-        )
     )
 
 
