@@ -1,3 +1,4 @@
+# LIBTBX_SET_DISPATCHER_NAME dev.dials.convert_to_XDS_frame
 """
 Convert an imported.expt to the XDS coordinate system by comparison with an
 XDS.INP by aligning the detector axes.
