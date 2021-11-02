@@ -91,8 +91,10 @@ def align_experiments(
     for expt in experiments:
         expt.detector.rotate_around_origin(axis, angle, deg=False)
         expt.beam.rotate_around_origin(axis, angle, deg=False)
-        expt.goniometer.rotate_around_origin(axis, angle, deg=False)
-
+        # https://github.com/cctbx/dxtbx/issues/447
+        # expt.goniometer.rotate_around_origin(axis, angle, deg=False)
+        rotation_axis = matrix.col(expt.goniometer.get_rotation_axis())
+        expt.goniometer.set_rotation_axis(R * rotation_axis)
         if expt.crystal is not None:
             expt.crystal = rotate_crystal(expt.crystal, R, axis, angle)
 
