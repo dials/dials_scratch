@@ -1,4 +1,5 @@
 import sys
+import math
 
 import numpy as np
 
@@ -21,6 +22,31 @@ def prob(i1, i2, s1, s2):
     for i in range(pp.size()):
         prod = prod * pp[i]
     return prod
+
+
+def t_test(i1, i2):
+    # Degrees of freedom
+    dof = i1.size() + i2.size() - 2
+
+    # Calculate mean and standard error
+    mv1 = flex.mean_and_variance(i1)
+    m1 = mv1.mean()
+    std1 = mv1.unweighted_sample_standard_deviation()
+    se1 = std1 / math.sqrt(i1.size())
+
+    mv2 = flex.mean_and_variance(i2)
+    m2 = mv2.mean()
+    std2 = mv2.unweighted_sample_standard_deviation()
+    se2 = std2 / math.sqrt(i2.size())
+
+    # Calculate standard error of the difference
+    sed = math.sqrt(se1 ** 2 + se2 ** 2)
+
+    # Find t
+    t = (m1 - m2) / sed
+
+    # TBC
+    return t
 
 
 def plot_cc(var, name):
@@ -59,6 +85,8 @@ def main(data):
             #     r2["intensity.scale.variance"],
             # )
             # print(a, b, p)
+            t = t_test(r1["intensity.scale.value"], r2["intensity.scale.value"])
+            print(a, b, t)
 
     plot_cc(mat_I, "Intensity correlation coefficient")
     plot_cc(mat_s, "Intensity variance correlation coefficient")
