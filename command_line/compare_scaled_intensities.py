@@ -97,7 +97,7 @@ def main(data):
             #     r2["intensity.scale.variance"],
             # )
             # print(a, b, p)
-            t = t_test(
+            t = t_test_paired(
                 r1["intensity.scale.value"], r2["intensity.scale.value"]
             )  # , r1["intensity.scale.variance"], r2["intensity.scale.variance"])
             print(a, b, t)
