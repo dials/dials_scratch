@@ -16,11 +16,14 @@ def prob(i1, i2, s1, s2):
     sq1 = flex.sqrt(s1)
     sq2 = flex.sqrt(s2)
     pp = flex.abs(i1 - i2) / (sq1 + sq2)
-    # print(flex.min(pp), flex.max(pp))
+    #pp = (i1 - i2) / (sq1 + sq2)
     prod = 1
     for i in range(pp.size()):
         prod = prod * pp[i]
     return prod
+
+def t_test():
+    pass
 
 
 def plot_cc(var, name):
@@ -29,8 +32,6 @@ def plot_cc(var, name):
     plt.imshow(var)
     plt.colorbar()
 
-
-# TODO FIXME NB. Should I just delete the reflections that are <0. (like with a mask I guess) Just how many are they? Does that make sense?
 def main(data):
     l = len(data)
     mat_I = np.full((l, l), 0.0)
@@ -40,20 +41,26 @@ def main(data):
         mat_I[(a, a)] = 1.0
         mat_s[(a, a)] = 1.0
         for b in range(a + 1, l):
+            # Delete negative values
+            mask1 = data[a]["intensity.scale.value"] <= 0.0
+            mask2 = data[b]["intensity.scale.value"] <= 0.0
+            data[a].del_selected(mask1)
+            data[b].del_selected(mask2)
             m12 = data[a].match(data[b])
             r1 = data[a].select(m12[0])
             r2 = data[b].select(m12[1])
+            # Compute correlation coefficient for I and sigma
             I = cc(r1["intensity.scale.value"], r2["intensity.scale.value"])
             mat_I[(a, b)] = mat_I[(b, a)] = I
             s = cc(r1["intensity.scale.variance"], r2["intensity.scale.variance"])
             mat_s[(a, b)] = mat_s[(b, a)] = s
-            p = prob(
-                r1["intensity.scale.value"],
-                r2["intensity.scale.value"],
-                r1["intensity.scale.variance"],
-                r2["intensity.scale.variance"],
-            )
-            print(a, b, p)
+            # p = prob(
+            #     r1["intensity.scale.value"],
+            #     r2["intensity.scale.value"],
+            #     r1["intensity.scale.variance"],
+            #     r2["intensity.scale.variance"],
+            # )
+            # print(a, b, p)
 
     plot_cc(mat_I, "Intensity correlation coefficient")
     plot_cc(mat_s, "Intensity variance correlation coefficient")
