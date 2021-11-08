@@ -24,28 +24,40 @@ def prob(i1, i2, s1, s2):
     return prod
 
 
-def t_test(i1, i2):
+# def t_test(i1, i2, s1, s2):
+def t_test_paired(i1, i2):
+    # Applied to paired samples
+    assert i1.size() == i2.size()
+    n = i1.size()
+
     # Degrees of freedom
-    dof = i1.size() + i2.size() - 2
+    dof = n - 1
 
-    # Calculate mean and standard error
-    mv1 = flex.mean_and_variance(i1)
-    m1 = mv1.mean()
-    std1 = mv1.unweighted_sample_standard_deviation()
-    se1 = std1 / math.sqrt(i1.size())
+    # Calculate means
+    m1 = flex.mean(i1)
+    m2 = flex.mean(i2)
 
-    mv2 = flex.mean_and_variance(i2)
-    m2 = mv2.mean()
-    std2 = mv2.unweighted_sample_standard_deviation()
-    se2 = std2 / math.sqrt(i2.size())
+    # Standard deviations
+    # std1 = flex.sqrt(s1)
+    # std2 = flex.sqrt(s2)
 
-    # Calculate standard error of the difference
-    sed = math.sqrt(se1 ** 2 + se2 ** 2)
+    # Average difference between observations
+    d_avg = sum([(i1[i] - i2[i]) for i in range(n)]) / n
+
+    # Calculate standard error of the average difference
+    somm = 0
+    for j in range(n):
+        _d = i1[j] - i2[j]
+        somm += (_d - d_avg) ** 2
+    std = math.sqrt(somm / (n - 1))
+    sed = std / math.sqrt(n)
 
     # Find t
     t = (m1 - m2) / sed
 
     # TBC
+    # Considering 5% ...
+    alpha = 0.05
     return t
 
 
@@ -85,7 +97,9 @@ def main(data):
             #     r2["intensity.scale.variance"],
             # )
             # print(a, b, p)
-            t = t_test(r1["intensity.scale.value"], r2["intensity.scale.value"])
+            t = t_test(
+                r1["intensity.scale.value"], r2["intensity.scale.value"]
+            )  # , r1["intensity.scale.variance"], r2["intensity.scale.variance"])
             print(a, b, t)
 
     plot_cc(mat_I, "Intensity correlation coefficient")
