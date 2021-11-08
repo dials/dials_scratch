@@ -16,14 +16,11 @@ def prob(i1, i2, s1, s2):
     sq1 = flex.sqrt(s1)
     sq2 = flex.sqrt(s2)
     pp = flex.abs(i1 - i2) / (sq1 + sq2)
-    #pp = (i1 - i2) / (sq1 + sq2)
+    # pp = (i1 - i2) / (sq1 + sq2)
     prod = 1
     for i in range(pp.size()):
         prod = prod * pp[i]
     return prod
-
-def t_test():
-    pass
 
 
 def plot_cc(var, name):
@@ -31,6 +28,7 @@ def plot_cc(var, name):
     plt.title(name)
     plt.imshow(var)
     plt.colorbar()
+
 
 def main(data):
     l = len(data)
