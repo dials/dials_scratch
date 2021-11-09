@@ -13,18 +13,38 @@ def cc(i1, i2):
     return lc.coefficient()
 
 
-def prob(i1, i2, s1, s2):
-    sq1 = flex.sqrt(s1)
-    sq2 = flex.sqrt(s2)
-    pp = flex.abs(i1 - i2) / (sq1 + sq2)
-    # pp = (i1 - i2) / (sq1 + sq2)
-    prod = 1
-    for i in range(pp.size()):
-        prod = prod * pp[i]
-    return prod
+# def prob(i1, i2, s1, s2):
+#     sq1 = flex.sqrt(s1)
+#     sq2 = flex.sqrt(s2)
+#     pp = flex.abs(i1 - i2) / (sq1 + sq2)
+#     # pp = (i1 - i2) / (sq1 + sq2)
+#     prod = 1
+#     for i in range(pp.size()):
+#         prod = prod * pp[i]
+#     return prod
 
 
-# def t_test(i1, i2, s1, s2):
+def compare(i1, i2, s1, s2):
+    # |i1 - i2| <= beta*s
+    beta = 2
+    # beta = math.sqrt(2)
+
+    # Calculate difference
+    diff = i1 - i2
+    diff = flex.abs(diff)
+
+    # Calculate uncertainty s
+    # s = sqrt(s1^2 + s2^2)
+    s = flex.sqrt(s1 ** 2 + s2 ** 2)
+
+    c = diff <= s * beta
+    return c
+
+
+def chi_square():
+    pass
+
+
 def t_test_paired(i1, i2):
     # Applied to paired samples
     assert i1.size() == i2.size()
@@ -36,10 +56,6 @@ def t_test_paired(i1, i2):
     # Calculate means
     m1 = flex.mean(i1)
     m2 = flex.mean(i2)
-
-    # Standard deviations
-    # std1 = flex.sqrt(s1)
-    # std2 = flex.sqrt(s2)
 
     # Average difference between observations
     d_avg = sum([(i1[i] - i2[i]) for i in range(n)]) / n
@@ -97,9 +113,7 @@ def main(data):
             #     r2["intensity.scale.variance"],
             # )
             # print(a, b, p)
-            t = t_test_paired(
-                r1["intensity.scale.value"], r2["intensity.scale.value"]
-            )  # , r1["intensity.scale.variance"], r2["intensity.scale.variance"])
+            t = t_test_paired(r1["intensity.scale.value"], r2["intensity.scale.value"])
             print(a, b, t)
 
     plot_cc(mat_I, "Intensity correlation coefficient")
