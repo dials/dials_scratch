@@ -3,6 +3,7 @@ import math
 
 import numpy as np
 
+from scipy.stats import t
 from matplotlib import pyplot as plt
 
 from dials.array_family import flex
@@ -11,17 +12,6 @@ from dials.array_family import flex
 def cc(i1, i2):
     lc = flex.linear_correlation(i1, i2)
     return lc.coefficient()
-
-
-# def prob(i1, i2, s1, s2):
-#     sq1 = flex.sqrt(s1)
-#     sq2 = flex.sqrt(s2)
-#     pp = flex.abs(i1 - i2) / (sq1 + sq2)
-#     # pp = (i1 - i2) / (sq1 + sq2)
-#     prod = 1
-#     for i in range(pp.size()):
-#         prod = prod * pp[i]
-#     return prod
 
 
 def compare(i1, i2, s1, s2):
@@ -38,15 +28,25 @@ def compare(i1, i2, s1, s2):
     s = flex.sqrt(s1 ** 2 + s2 ** 2)
 
     c = diff <= s * beta
-    return c
+    return c.as_numpy_array()
 
 
 def chi_square():
     pass
 
 
+def pseudo_chi(i1, i2, s1, s2):
+    # This should be around 1
+    n = i1.size()
+    somm = 0
+    for k in range(n):
+        _d = i1[k] ** 2 + i2[k] ** 2
+        somm += abs(_d) / (s1[k] ** 2 + s2[k] ** 2)
+    return somm / n
+
+
 def t_test_paired(i1, i2):
-    # Applied to paired samples
+    # Applied to paired samples, 2-tailed
     assert i1.size() == i2.size()
     n = i1.size()
 
@@ -69,12 +69,17 @@ def t_test_paired(i1, i2):
     sed = std / math.sqrt(n)
 
     # Find t
-    t = (m1 - m2) / sed
+    T = (m1 - m2) / sed
 
-    # TBC
     # Considering 5% ...
     alpha = 0.05
-    return t
+
+    # Find p-value (for 2 tailed test)
+    p_val = t.sf(abs(T), dof) * 2
+
+    # If p > alpha => Null hp accepted => equal observations
+    res = p_val > alpha
+    return T, p_val, res
 
 
 def plot_cc(var, name):
@@ -88,16 +93,12 @@ def main(data):
     l = len(data)
     mat_I = np.full((l, l), 0.0)
     mat_s = np.full((l, l), 0.0)
+    T_test = []
 
     for a in range(l):
         mat_I[(a, a)] = 1.0
         mat_s[(a, a)] = 1.0
         for b in range(a + 1, l):
-            # Delete negative values
-            mask1 = data[a]["intensity.scale.value"] <= 0.0
-            mask2 = data[b]["intensity.scale.value"] <= 0.0
-            data[a].del_selected(mask1)
-            data[b].del_selected(mask2)
             m12 = data[a].match(data[b])
             r1 = data[a].select(m12[0])
             r2 = data[b].select(m12[1])
@@ -106,15 +107,30 @@ def main(data):
             mat_I[(a, b)] = mat_I[(b, a)] = I
             s = cc(r1["intensity.scale.variance"], r2["intensity.scale.variance"])
             mat_s[(a, b)] = mat_s[(b, a)] = s
-            # p = prob(
-            #     r1["intensity.scale.value"],
-            #     r2["intensity.scale.value"],
-            #     r1["intensity.scale.variance"],
-            #     r2["intensity.scale.variance"],
-            # )
-            # print(a, b, p)
-            t = t_test_paired(r1["intensity.scale.value"], r2["intensity.scale.value"])
-            print(a, b, t)
+            # t-test for paired samples
+            T, p_val, t_res = t_test_paired(
+                r1["intensity.scale.value"], r2["intensity.scale.value"]
+            )
+            c_res = compare(
+                r1["intensity.scale.value"],
+                r2["intensity.scale.value"],
+                r1["intensity.scale.variance"],
+                r2["intensity.scale.variance"],
+            )
+            chi = pseudo_chi(
+                r1["intensity.scale.value"],
+                r2["intensity.scale.value"],
+                r1["intensity.scale.variance"],
+                r2["intensity.scale.variance"],
+            )
+            T_test.append(t_res)
+            # print(a, b, t_res, c_res.count(False), chi)
+            # what's an acceptable value for chi? 1.2 ok, but 1.5? still ok?
+
+    t_fail = [i for i in T_test if i == False]
+    print(
+        f"Number of matches: {len(T_test)}, of which {len(t_fail)} fail the T-test."
+    )  # It might be interesting to know which and what the lc is there...
 
     plot_cc(mat_I, "Intensity correlation coefficient")
     plot_cc(mat_s, "Intensity variance correlation coefficient")
