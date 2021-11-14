@@ -115,13 +115,13 @@ def _index_one(experiment, refl, params, method_list, expt_no):
 
 def index_all_concurrent(experiments, reflections, params, method_list):
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=params.indexing.nproc) as pool:
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=params.indexing.nproc
+    ) as pool:
         sys.stdout = open(os.devnull, "w")  # block printing from rstbx
         futures = {
             pool.submit(_index_one, expt, table, params, method_list, i): i
-            for i, (table, expt) in enumerate(
-                zip(reflections, experiments)
-            )
+            for i, (table, expt) in enumerate(zip(reflections, experiments))
         }
         tables_list = [0] * len(reflections)
         expts_list = [0] * len(reflections)
@@ -226,6 +226,7 @@ def index_all_concurrent(experiments, reflections, params, method_list):
 
     return indexed_experiments, indexed_reflections, summary_table
 
+
 def index(experiments, observed, params):
     params.refinement.parameterisation.scan_varying = False
     params.indexing.stills.indexer = "stills"
@@ -260,7 +261,10 @@ def index(experiments, observed, params):
     logger.info(f"Attempting indexing with {methods} method{pl}")
 
     indexed_experiments, indexed_reflections, summary = index_all_concurrent(
-        experiments, reflections, params, method_list,
+        experiments,
+        reflections,
+        params,
+        method_list,
     )
 
     # print some clustering information
