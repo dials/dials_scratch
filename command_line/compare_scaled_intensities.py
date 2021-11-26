@@ -1,69 +1,68 @@
-import sys
 import math
+import argparse
 
 import numpy as np
+import pandas as pd
 
-from scipy.stats import t
+from pathlib import Path
+from tabulate import tabulate
+from scipy.stats import t, probplot
+
 from matplotlib import pyplot as plt
 
 from dials.array_family import flex
 
+parser = argparse.ArgumentParser(description="Compare scaled intensities.")
+parser.add_argument("refl_files", nargs="*")
+parser.add_argument(
+    "-o",
+    "--output",
+    help="Output directory to save results. If not passed, defaults to working directory.",
+    type=str,
+)
 
-def cc(i1, i2):
-    lc = flex.linear_correlation(i1, i2)
+# Correlation coefficient
+def lin_cc(x1, x2):
+    lc = flex.linear_correlation(x1, x2)
     return lc.coefficient()
 
 
-def compare(i1, i2, s1, s2):
-    # |i1 - i2| <= beta*s
-    beta = 2
-    # beta = math.sqrt(2)
+# Normal probability plot
+def normal_probability_plot(x1, x2, v1, v2, filename):
+    k = sum(x1 * x2) / sum(x2 ** 2)
+    n = x1.size()
+    dm_real = (x1 - k * x2) / flex.sqrt(v1 ** 2 + k ** 2 * v2 ** 2)
+    dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
-    # Calculate difference
-    diff = i1 - i2
-    diff = flex.abs(diff)
-
-    # Calculate uncertainty s
-    # s = sqrt(s1^2 + s2^2)
-    s = flex.sqrt(s1 ** 2 + s2 ** 2)
-
-    c = diff <= s * beta
-    return c.as_numpy_array()
-
-
-def chi_square():
-    pass
+    res = probplot(dm_real_sorted, plot=plt)
+    # plt.show()
+    if filename:
+        plt.savefig(filename)
+    plt.close()
+    # print("slope: ", res[1][0])
+    # print("intercept: ", res[1][1])
+    return res[1]
 
 
-def pseudo_chi(i1, i2, s1, s2):
-    # This should be around 1
-    n = i1.size()
-    somm = 0
-    for k in range(n):
-        _d = i1[k] ** 2 + i2[k] ** 2
-        somm += abs(_d) / (s1[k] ** 2 + s2[k] ** 2)
-    return somm / n
-
-
-def t_test_paired(i1, i2):
-    # Applied to paired samples, 2-tailed
-    assert i1.size() == i2.size()
-    n = i1.size()
+# Paired T-test, 2-tailed
+def paired_T_test(x1, x2):
+    assert x1.size() == x2.size()
+    n = x1.size()
 
     # Degrees of freedom
     dof = n - 1
 
     # Calculate means
-    m1 = flex.mean(i1)
-    m2 = flex.mean(i2)
+    m1 = flex.mean(x1)
+    m2 = flex.mean(x2)
 
     # Average difference between observations
-    d_avg = sum([(i1[i] - i2[i]) for i in range(n)]) / n
+    d_avg = sum([(x1[i] - x2[i]) for i in range(n)]) / n
 
     # Calculate standard error of the average difference
     somm = 0
     for j in range(n):
-        _d = i1[j] - i2[j]
+        _d = x1[j] - x2[j]
         somm += (_d - d_avg) ** 2
     std = math.sqrt(somm / (n - 1))
     sed = std / math.sqrt(n)
@@ -71,7 +70,7 @@ def t_test_paired(i1, i2):
     # Find t
     T = (m1 - m2) / sed
 
-    # Considering 5% ...
+    # Considering 5% confidence interval
     alpha = 0.05
 
     # Find p-value (for 2 tailed test)
@@ -82,63 +81,75 @@ def t_test_paired(i1, i2):
     return T, p_val, res
 
 
-def plot_cc(var, name):
-    fig = plt.figure()
-    plt.title(name)
-    plt.imshow(var)
-    plt.colorbar()
-
-
-def main(data):
+def compare(data, wdir):
+    tab = []
     l = len(data)
-    mat_I = np.full((l, l), 0.0)
-    mat_s = np.full((l, l), 0.0)
-    T_test = []
+    CC_I = np.full((l, l), 0.0)  # Correlation coefficient matrix for intensities
+    # CC_s = np.full((l, l), 0.0)     # Correlation coefficient matrix for variances
 
     for a in range(l):
-        mat_I[(a, a)] = 1.0
-        mat_s[(a, a)] = 1.0
+        CC_I[(a, a)] = 1.0
+        tab.append(
+            {
+                "refl1": a,
+                "refl2": a,
+                "Correlation Coefficient": 1.0,
+                "Normal Probability Plot [slope, intercept]": [0.0, 0.0],
+            }
+        )
+
         for b in range(a + 1, l):
+            # Match reflections
             m12 = data[a].match(data[b])
             r1 = data[a].select(m12[0])
             r2 = data[b].select(m12[1])
-            # Compute correlation coefficient for I and sigma
-            I = cc(r1["intensity.scale.value"], r2["intensity.scale.value"])
-            mat_I[(a, b)] = mat_I[(b, a)] = I
-            s = cc(r1["intensity.scale.variance"], r2["intensity.scale.variance"])
-            mat_s[(a, b)] = mat_s[(b, a)] = s
-            # t-test for paired samples
-            T, p_val, t_res = t_test_paired(
-                r1["intensity.scale.value"], r2["intensity.scale.value"]
+            i1 = r1["intensity.scale.value"]
+            i2 = r2["intensity.scale.value"]
+            s1 = r1["intensity.scale.variance"]
+            s2 = r2["intensity.scale.variance"]
+            # Find correlation coefficient
+            I = lin_cc(i1, i2)
+            CC_I[(a, b)] = CC_I[(b, a)] = I
+            # Paired T-test with 95% confidence interval
+            T, p_val, T_res = paired_T_test(i1, i2)
+            # Normal Probability Plot
+            npp = normal_probability_plot(
+                i1, i2, s1, s2, wdir / f"compare_refl{a}_and_{b}"
             )
-            c_res = compare(
-                r1["intensity.scale.value"],
-                r2["intensity.scale.value"],
-                r1["intensity.scale.variance"],
-                r2["intensity.scale.variance"],
+            tab.append(
+                {
+                    "refl1": a,
+                    "refl2": b,
+                    "Correlation Coefficient": I,
+                    "Normal Probability Plot [slope, intercept]": [npp[0], npp[1]],
+                    "Paired T-test [T-statistic, p-value]": [T, p_val],
+                    "T-test Null HP accepted": T_res,
+                }
             )
-            chi = pseudo_chi(
-                r1["intensity.scale.value"],
-                r2["intensity.scale.value"],
-                r1["intensity.scale.variance"],
-                r2["intensity.scale.variance"],
-            )
-            T_test.append(t_res)
-            # print(a, b, t_res, c_res.count(False), chi)
-            # what's an acceptable value for chi? 1.2 ok, but 1.5? still ok?
+    # Plot and save CC
+    plt.title("Intensity correlation coefficient")
+    plt.imshow(CC_I)
+    plt.colorbar()
+    plt.savefig(wdir / f"CC_intensities")
+    plt.close()
 
-    t_fail = [i for i in T_test if i == False]
-    print(
-        f"Number of matches: {len(T_test)}, of which {len(t_fail)} fail the T-test."
-    )  # It might be interesting to know which and what the lc is there...
-
-    plot_cc(mat_I, "Intensity correlation coefficient")
-    plot_cc(mat_s, "Intensity variance correlation coefficient")
-    plt.show()
+    # Save results to a file
+    df = pd.DataFrame(tab)
+    with open(wdir / f"Comparison_results.txt", "w") as f:
+        f.write("Summary of scaled intensities comparison.\n")
+        f.write("Null HP for T-test: No significant change in.\n")
+        f.write(tabulate(df, headers="keys", tablefmt="psql", showindex=False))
 
 
 if __name__ == "__main__":
-    data = [flex.reflection_table.from_file(arg) for arg in sys.argv[1:]]
+    args = parser.parse_args()
+    data = [flex.reflection_table.from_file(arg) for arg in args.refl_files]
     data = [d.select(d.get_flags(d.flags.scaled)) for d in data]
 
-    main(data)
+    if args.output:
+        wdir = Path(args.output).expanduser().resolve()
+        wdir.mkdir(exist_ok=True)
+    else:
+        wdir = Path(".").expanduser().resolve()
+
+    compare(data, wdir)
