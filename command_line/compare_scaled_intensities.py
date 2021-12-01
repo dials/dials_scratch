@@ -30,8 +30,9 @@ def lin_cc(x1, x2):
 # Normal probability plot
 def normal_probability_plot(x1, x2, v1, v2, filename):
     k = sum(x1 * x2) / sum(x2 ** 2)
+    print(k)
     n = x1.size()
-    dm_real = (x1 - k * x2) / flex.sqrt(v1 ** 2 + k ** 2 * v2 ** 2)
+    dm_real = (x1 - k * x2) / flex.sqrt(v1 + k ** 2 * v2)
     dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
     res = probplot(dm_real_sorted, plot=plt)
