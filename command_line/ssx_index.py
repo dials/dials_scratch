@@ -23,6 +23,7 @@ from dxtbx.model import ExperimentList, Experiment
 from dials.array_family import flex
 from dials.algorithms.indexing.indexer import Indexer
 from dials.algorithms.indexing.max_cell import find_max_cell
+from dials.algorithms.clustering import plots as cluster_plotter
 
 from xfel.clustering.cluster import Cluster
 from xfel.clustering.cluster_groups import unit_cell_info
@@ -510,6 +511,22 @@ def make_summary_table(results_summary):
     summary_table = tabulate(rows, overall_summary_header)
     return summary_table
 
+def make_cluster_plots(large_clusters):
+    cluster_plots = {}
+    for n, cluster in enumerate(large_clusters):
+        uc_params = [flex.double() for i in range(6)]
+        for c in cluster.members:
+            ucp = c.crystal_symmetry.unit_cell().parameters()
+            for i in range(6):
+                uc_params[i].append(ucp[i])
+        d_this = cluster_plotter.plot_uc_histograms(uc_params)
+        d_this["uc_scatter"]["layout"]["title"] += f" cluster {n+1}"
+        d_this["uc_hist"]["layout"]["title"] += f" cluster {n+1}"
+        d_this[f"uc_scatter_{n}"] = d_this.pop("uc_scatter")
+        d_this[f"uc_hist_{n}"] = d_this.pop("uc_hist")
+        cluster_plots.update(d_this)
+    return cluster_plots
+
 
 def index(experiments, observed, params):
     params.refinement.parameterisation.scan_varying = False
@@ -555,7 +572,7 @@ def index(experiments, observed, params):
     logger.info("\nSummary of images sucessfully indexed\n" + summary_table)
 
     n_images = len(set(e.imageset.get_path(0) for e in indexed_experiments))
-    logger.info(f"{indexed_reflections.size()} spots indexed on {n_images} images")
+    logger.info(f"{indexed_reflections.size()} spots indexed on {n_images} images\n")
 
     # combine beam and detector models if not already
     if (len(indexed_experiments.detectors())) > 1 or (
@@ -610,9 +627,24 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
         for expt in indexed_experiments
     ])
     clusters, _ = ucs.ab_cluster(
-        1000, log=None, write_file_lists=False, doplot=False
+        5000, log=None, write_file_lists=False, doplot=False
     )
-    logger.info("\nUnit cell clustering analysis\n" + unit_cell_info(clusters))
+    large_clusters = []
+    cluster_plots = {}
+    threshold = math.floor(0.05 * len(indexed_experiments))
+    for cluster in clusters:
+        if len(cluster.members) > threshold:
+            large_clusters.append(cluster)
+    large_clusters.sort(key=lambda x:len(x.members), reverse=True)
+
+    if large_clusters:
+        logger.info(f"""
+Unit cell clustering analysis, clusters with >5% of the number of crystals indexed
+""" + unit_cell_info(large_clusters))
+        if params.output.html or params.output.json:
+            cluster_plots = make_cluster_plots(large_clusters)
+    else:
+        logger.info(f"No clusters found with >5% of the number of crystals.")
 
     logger.info(f"Saving indexed experiments to {params.output.experiments}")
     indexed_experiments.as_file(params.output.experiments)
@@ -620,12 +652,14 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
     indexed_reflections.as_file(params.output.reflections)
 
     if params.output.html or params.output.json:
-        plots = generate_plots(summary_data)
+        summary_plots = generate_plots(summary_data)
+        if cluster_plots:
+            summary_plots.update(cluster_plots)
         if params.output.html:
-            generate_html_report(plots, params.output.html)
+            generate_html_report(summary_plots, params.output.html)
         if params.output.json:
             with open(params.output.json, "w") as outfile:
-                json.dump(plots, outfile)
+                json.dump(summary_plots, outfile)
 
     logger.info(f"Total time: {time.time() - st:.2f}s")
 
