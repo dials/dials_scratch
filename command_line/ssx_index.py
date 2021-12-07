@@ -8,7 +8,7 @@ with a joint detector and beam model.
 
 import logging
 import time
-import sys, os
+import sys, os, json
 import math
 import concurrent.futures
 from collections import defaultdict
@@ -28,6 +28,9 @@ from xfel.clustering.cluster import Cluster
 from xfel.clustering.cluster_groups import unit_cell_info
 from cctbx import crystal
 from dials.command_line.combine_experiments import CombineWithReference
+from jinja2 import ChoiceLoader, Environment, PackageLoader
+import numpy as np
+
 
 try:
     from typing import List
@@ -67,33 +70,29 @@ phil_scope = phil.parse(
     """
 method = *fft1d *real_space_grid_search
     .type = choice(multi=True)
+output.html = dials.ssx_index.html
+    .type = str
+output.json = None
+    .type = str
 include scope dials.command_line.index.phil_scope
 """,
     process_includes=True,
 ).fetch(phil.parse(program_defaults_phil_str))
 
+loggers_to_disable = [
+    "dials.algorithms.refinement.reflection_processor",
+    "dials.algorithms.refinement.refiner",
+    "dials.algorithms.refinement.reflection_manager",
+    "dials.algorithms.indexing.stills_indexer",
+    "dials.algorithms.indexing.nave_parameters",
+    "dials.algorithms.indexing.basis_vector_search.real_space_grid_search",
+    "dials.algorithms.indexing.basis_vector_search.combinations",
+    "dials.algorithms.indexing.indexer",
+]
 
 def _index_one(experiment, refl, params, method_list, expt_no):
-    log1 = logging.getLogger("dials.algorithms.refinement.reflection_processor")
-    log2 = logging.getLogger("dials.algorithms.refinement.refiner")
-    log8 = logging.getLogger("dials.algorithms.refinement.reflection_manager")
-    log3 = logging.getLogger("dials.algorithms.indexing.stills_indexer")
-    log4 = logging.getLogger("dials.algorithms.indexing.nave_parameters")
-    log5 = logging.getLogger(
-        "dials.algorithms.indexing.basis_vector_search.real_space_grid_search"
-    )
-    log6 = logging.getLogger(
-        "dials.algorithms.indexing.basis_vector_search.combinations"
-    )
-    log7 = logging.getLogger("dials.algorithms.indexing.indexer")
-    log1.disabled = True
-    log2.disabled = True
-    log3.disabled = True
-    log4.disabled = True
-    log5.disabled = True
-    log6.disabled = True
-    log7.disabled = True
-    log8.disabled = True
+    for name in loggers_to_disable:
+        logging.getLogger(name).disabled = True
     elist = ExperimentList([experiment])
     for method in method_list:
         params.indexing.method = method
@@ -113,7 +112,278 @@ def _index_one(experiment, refl, params, method_list, expt_no):
             return idxr.refined_experiments, idxr.refined_reflections
 
 
+def generate_plots(summary_data):
+    # n_indexed_arrays are cumulative n_indexed for nth lattice
+    n_indexed_arrays = [np.zeros(len(summary_data))]
+    rmsd_x_arrays = [np.zeros(len(summary_data))]
+    rmsd_y_arrays = [np.zeros(len(summary_data))]
+    rmsd_z_arrays = [np.zeros(len(summary_data))]
+    n_total_indexed = np.zeros(len(summary_data))
+    n_strong_array = np.zeros(len(summary_data))
+    images = np.arange(1, len(summary_data) + 1)
+    n_lattices = 1
+
+    for k in sorted(summary_data.keys()):
+        n_lattices_this = len(summary_data[k])
+        n_strong_array[k] = summary_data[k][0]["n_strong"]
+        for j, cryst in enumerate(summary_data[k]):
+            if not cryst["n_indexed"]:
+                continue
+            if n_lattices_this > n_lattices:
+                for _ in range(n_lattices_this - n_lattices):
+                    n_indexed_arrays.append(np.zeros(len(summary_data)))
+                    rmsd_x_arrays.append(np.zeros(len(summary_data)))
+                    rmsd_y_arrays.append(np.zeros(len(summary_data)))
+                    rmsd_z_arrays.append(np.zeros(len(summary_data)))
+                n_lattices = n_lattices_this
+            n_indexed_arrays[j][k] = cryst["n_indexed"]
+            rmsd_x_arrays[j][k] = cryst["RMSD_X"]
+            rmsd_y_arrays[j][k] = cryst["RMSD_Y"]
+            rmsd_z_arrays[j][k] = cryst["RMSD_dPsi"]
+            n_total_indexed[k] += cryst["n_indexed"]
+
+    n_indexed_data = [
+        {
+            "x": images.tolist(),
+            "y": n_indexed_arrays[0].tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": "N indexed",
+        },
+    ]
+    rmsd_data = [
+        {
+            "x": images[rmsd_x_arrays[0] > 0].tolist(),
+            "y": rmsd_x_arrays[0][rmsd_x_arrays[0] > 0].tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": "RMSD X",
+        },
+        {
+            "x": images[rmsd_y_arrays[0] > 0].tolist(),
+            "y": rmsd_y_arrays[0][rmsd_y_arrays[0] > 0].tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": "RMSD Y",
+        },
+    ]
+    rmsdz_data = [
+        {
+            "x": images[rmsd_z_arrays[0] > 0].tolist(),
+            "y": rmsd_z_arrays[0][rmsd_z_arrays[0] > 0].tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": "RMSD dPsi",
+        },
+    ]
+    if n_lattices > 1:
+        n_indexed_data[0]["name"] += " (lattice 1)"
+        rmsd_data[0]["name"] += " (lattice 1)"
+        rmsd_data[1]["name"] += " (lattice 1)"
+        rmsdz_data[0]["name"] += " (lattice 1)"
+        for i, arr in enumerate(n_indexed_arrays[1:]):
+            sub_images = images[arr > 0]
+            sub_data = arr[arr > 0]
+            n_indexed_data.append(
+                {
+                    "x": sub_images.tolist(),
+                    "y": sub_data.tolist(),
+                    "type": "scatter",
+                    "mode": "markers",
+                    "name": f"N indexed (lattice {i+2})",
+                }
+            )
+        for i, arr in enumerate(rmsd_x_arrays[1:]):
+            sub_images = images[arr > 0]
+            sub_data_x = arr[arr > 0]
+            sub_data_y = rmsd_y_arrays[i+1][arr > 0]
+            rmsd_data.append(
+                {
+                    "x": sub_images.tolist(),
+                    "y": sub_data_x.tolist(),
+                    "type": "scatter",
+                    "mode": "markers",
+                    "name": f"RMSD X (lattice {i+2})",
+                },
+            )
+            rmsd_data.append(
+                {
+                    "x": sub_images.tolist(),
+                    "y": sub_data_y.tolist(),
+                    "type": "scatter",
+                    "mode": "markers",
+                    "name": f"RMSD Y (lattice {i+2})",
+                },
+            )
+        for i, arr in enumerate(rmsd_z_arrays[1:]):
+            sub_images = images[arr > 0]
+            sub_data = arr[arr > 0]
+            rmsdz_data.append(
+                {
+                    "x": sub_images.tolist(),
+                    "y": sub_data.tolist(),
+                    "type": "scatter",
+                    "mode": "markers",
+                    "name": f"RMSD dPsi (lattice {i+2})",
+                },
+            )
+    percent_indexed = 100 * n_total_indexed / n_strong_array
+    images = images.tolist()
+    n_indexed_data.append(
+        {
+            "x": images,
+            "y": n_strong_array.tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": "N strong",
+        },
+    )
+
+    percent_bins = np.linspace(0, 100, 51)
+    percent_hist = np.histogram(percent_indexed, percent_bins)[0]
+
+    def _generate_hist_data(rmsd_arrays, step=0.01):
+        all_rmsd = np.concatenate(rmsd_arrays)
+        all_rmsd = all_rmsd[all_rmsd > 0]
+        mult = int(1/0.01)
+        start = math.floor(np.min(all_rmsd) * mult) / mult
+        stop = math.ceil(np.max(all_rmsd) * mult) / mult
+        nbins = int((stop - start) / step)
+        hist, bin_edges = np.histogram(
+            all_rmsd,
+            bins=nbins,
+            range=(start, stop),
+        )
+        bin_centers = bin_edges[:-1] + np.diff(bin_edges) / 2
+        return hist, bin_centers
+
+    hist_x, bin_centers_x = _generate_hist_data(rmsd_x_arrays)
+    hist_y, bin_centers_y = _generate_hist_data(rmsd_y_arrays)
+    hist_z, bin_centers_z = _generate_hist_data(rmsd_z_arrays, 0.001)
+
+    plots = {
+        "n_indexed": {
+            "data": n_indexed_data,
+            "layout": {
+                "title": "Number of indexed reflections per image",
+                "xaxis": {"title": "image number"},
+                "yaxis": {"title": "N reflections"},
+            },
+        },
+        "percent_indexed": {
+            "data": [{
+                "x": images,
+                "y": percent_indexed.tolist(),
+                "type": "scatter",
+                "mode": "markers",
+                "name": "Percentage of strong spots indexed",
+            }],
+            "layout": {
+                "title": "Percentage of strong spots indexed per image",
+                "xaxis": {"title": "image number"},
+                "yaxis": {"title": "Percentage"},
+            },
+        },
+        "percent_indexed_hist":{
+            "data": [{
+                "x" : percent_bins.tolist(),
+                "y" : percent_hist.tolist(),
+                "type" : "bar",
+            }],
+            "layout": {
+                "title": "Distribution of percentage indexed",
+                "xaxis": {"title": "Percentage indexed"},
+                "yaxis": {"title": "Number of images"},
+                "bargap": 0,
+            },
+        },
+        "rmsds": {
+            "data": rmsd_data,
+            "layout": {
+                "title": "RMSDs (x, y) per image",
+                "xaxis": {"title": "image number"},
+                "yaxis": {"title": "RMSD (px)"},
+            },
+        },
+        "rmsdz": {
+            "data": rmsdz_data,
+            "layout": {
+                "title": "RMSD (dPsi) per image",
+                "xaxis": {"title": "image number"},
+                "yaxis": {"title": "RMSD dPsi (deg)"},
+            },
+        },
+        "rmsdxy_hist":{
+            "data": [
+                {
+                    "x": bin_centers_x.tolist(),
+                    "y": hist_x.tolist(),
+                    "type" : "bar",
+                    "name" : "RMSD X",
+                    "opacity": 0.6,
+                },
+                {
+                    "x": bin_centers_y.tolist(),
+                    "y": hist_y.tolist(),
+                    "type" : "bar",
+                    "name" : "RMSD Y",
+                    "opacity": 0.6,
+                },
+            ],
+            "layout": {
+                "title": "Distribution of RMSDs (x, y)",
+                "xaxis": {"title": "RMSD (px)"},
+                "yaxis": {"title": "Number of images"},
+                "bargap": 0,
+                "barmode" : "overlay",
+            },
+        },
+        "rmsdz_hist":{
+            "data": [
+                {
+                    "x": bin_centers_z.tolist(),
+                    "y": hist_z.tolist(),
+                    "type" : "bar",
+                    "name" : "RMSD dPsi",
+                },
+            ],
+            "layout": {
+                "title": "Distribution of RMSDs (dPsi)",
+                "xaxis": {"title": "RMSD dPsi (deg)"},
+                "yaxis": {"title": "Number of images"},
+                "bargap": 0,
+            },
+        },
+    }
+    return plots
+
+
+def generate_html_report(plots, filename):
+    loader = ChoiceLoader(
+        [
+            PackageLoader("dials", "templates"),
+            PackageLoader("dials", "static", encoding="utf-8"),
+        ]
+    )
+    env = Environment(loader=loader)
+    template = env.get_template("simple_report.html")
+    html = template.render(
+        page_title="DIALS SSX indexing report",
+        panel_title="Indexing plots",
+        graphs=plots,
+    )
+    with open(filename, "wb") as f:
+        f.write(html.encode("utf-8", "xmlcharrefreplace"))
+
+
 def index_all_concurrent(experiments, reflections, params, method_list):
+
+    # first determine n_strong per image:
+    n_strong_per_image = {}
+    for i, (expt, table) in enumerate(zip(experiments, reflections)):
+        img = expt.imageset.get_path(i).split("/")[-1]
+        n_strong = table.get_flags(table.flags.strong).count(True)
+        n_strong_per_image[img] = n_strong
 
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=params.indexing.nproc
@@ -123,8 +393,8 @@ def index_all_concurrent(experiments, reflections, params, method_list):
             pool.submit(_index_one, expt, table, params, method_list, i): i
             for i, (table, expt) in enumerate(zip(reflections, experiments))
         }
-        tables_list = [0] * len(reflections)
-        expts_list = [0] * len(reflections)
+        tables_list = [None] * len(reflections)
+        expts_list = [None] * len(reflections)
 
         for future in concurrent.futures.as_completed(futures):
             try:
@@ -152,14 +422,24 @@ def index_all_concurrent(experiments, reflections, params, method_list):
 
     sys.stdout = sys.__stdout__  # restore printing
 
-    # now postprocess
-    results = defaultdict(list)
+    # now postprocess - record generic information
+    results_summary = defaultdict(list)
     indexed_experiments = ExperimentList()
     indexed_reflections = flex.reflection_table()
     n_tot = 0
-    for elist, table in zip(expts_list, tables_list):
+    for idx, (elist, table) in enumerate(zip(expts_list, tables_list)):
         if not (elist and table):
+            img = experiments[idx].imageset.get_path(idx).split("/")[-1]
+            n_strong = n_strong_per_image[img]
+            results_summary[idx].append({
+                   "Image" : img,
+                    "n_indexed" : 0,
+                    "n_strong" : n_strong,
+            })
             continue
+        path = elist[0].imageset.get_path(0)
+        img = path.split("/")[-1]
+        n_strong = n_strong_per_image[img]
         indexed_experiments.extend(elist)
         ids_map = dict(table.experiment_identifiers())
         for k in table.experiment_identifiers().keys():
@@ -170,61 +450,65 @@ def index_all_concurrent(experiments, reflections, params, method_list):
         n_tot += len(ids_map.keys())
         indexed_reflections.extend(table)
 
-        # record some things for printing to output log
-        path = elist[0].imageset.get_path(0)
-        for n_cryst, id_ in enumerate(table.experiment_identifiers().keys()):
+        # record some things for printing to output log/html
+        for id_ in table.experiment_identifiers().keys():
             selr = table.select(table["id"] == id_)
-            calx, caly, calz = selr["xyzcal.px"].parts()
-            obsx, obsy, obsz = selr["xyzobs.px.value"].parts()
+            calx, caly, _ = selr["xyzcal.px"].parts()
+            obsx, obsy, _ = selr["xyzobs.px.value"].parts()
             delpsi = selr["delpsical.rad"]
             rmsd_x = flex.mean((calx - obsx) ** 2) ** 0.5
             rmsd_y = flex.mean((caly - obsy) ** 2) ** 0.5
             rmsd_z = flex.mean(((delpsi) * RAD2DEG) ** 2) ** 0.5
             n_id_ = calx.size()
-            n_strong = table.get_flags(table.flags.strong).count(True)
-            n_indexed = f"{n_id_}/{n_strong} ({100*n_id_/n_strong:2.1f}%)"
-            results[index].append(
-                [
-                    path.split("/")[-1],
-                    n_indexed,
-                    f"{rmsd_x:.3f}",
-                    f"{rmsd_y:.3f}",
-                    f" {rmsd_z:.4f}",
-                ]
+            results_summary[idx].append(
+                {
+                   "Image" : img,
+                    "n_indexed" : n_id_,
+                    "n_strong" : n_strong,
+                    "RMSD_X" : rmsd_x,
+                    "RMSD_Y" : rmsd_y,
+                    "RMSD_dPsi" : rmsd_z,
+                }
             )
 
     indexed_reflections.assert_experiment_identifiers_are_consistent(
         indexed_experiments
     )
 
-    # Add a few extra useful items to the summary table.
+    return indexed_experiments, indexed_reflections, results_summary
+
+def make_summary_table(results_summary):
+    # make a summary table
     overall_summary_header = [
         "Image",
         "expt_id",
         "n_indexed",
-        "RMSD_X",
-        "RMSD_Y",
-        "RMSD_dPsi",
+        "RMSD X",
+        "RMSD Y",
+        "RMSD dPsi",
     ]
 
     rows = []
     total = 0
-    if params.indexing.multiple_lattice_search.max_lattices > 1:
+    if any(len(v) > 1 for v in results_summary.values()):
         show_lattices = True
         overall_summary_header.insert(1, "lattice")
     else:
         show_lattices = False
-    for i, k in enumerate(sorted(results.keys())):
-        for j, cryst in enumerate(results[k]):
-            cryst.insert(1, total)
+    for k in sorted(results_summary.keys()):
+        for j, cryst in enumerate(results_summary[k]):
+            if not cryst["n_indexed"]:
+                continue
+            n_idx, n_strong = (cryst["n_indexed"], cryst["n_strong"])
+            frac_idx =  f"{n_idx}/{n_strong} ({100*n_idx/n_strong:2.1f}%)"
+            row = [cryst["Image"], str(total), frac_idx, cryst["RMSD_X"], cryst["RMSD_Y"], cryst["RMSD_dPsi"]]
             if show_lattices:
-                cryst.insert(1, j + 1)
-            rows.append(cryst)
+                row.insert(1, j + 1)
+            rows.append(row)
             total += 1
 
     summary_table = tabulate(rows, overall_summary_header)
-
-    return indexed_experiments, indexed_reflections, summary_table
+    return summary_table
 
 
 def index(experiments, observed, params):
@@ -260,27 +544,15 @@ def index(experiments, observed, params):
     pl = "s" if (len(method_list) > 1) else ""
     logger.info(f"Attempting indexing with {methods} method{pl}")
 
-    indexed_experiments, indexed_reflections, summary = index_all_concurrent(
+    indexed_experiments, indexed_reflections, results_summary = index_all_concurrent(
         experiments,
         reflections,
         params,
         method_list,
     )
 
-    # print some clustering information
-    crystal_symmetries = [
-        crystal.symmetry(
-            unit_cell=expt.crystal.get_unit_cell(),
-            space_group=expt.crystal.get_space_group(),
-        )
-        for expt in indexed_experiments
-    ]
-    ucs = Cluster.from_crystal_symmetries(crystal_symmetries)
-    clusters, cluster_axes = ucs.ab_cluster(
-        5000, log=None, write_file_lists=False, doplot=False
-    )
-    logger.info("\nUnit cell clustering analysis\n" + unit_cell_info(clusters))
-    logger.info("\nSummary of images sucessfully indexed\n" + summary)
+    summary_table = make_summary_table(results_summary)
+    logger.info("\nSummary of images sucessfully indexed\n" + summary_table)
 
     n_images = len(set(e.imageset.get_path(0) for e in indexed_experiments))
     logger.info(f"{indexed_reflections.size()} spots indexed on {n_images} images")
@@ -297,10 +569,7 @@ def index(experiments, observed, params):
             elist.append(combine(expt))
         indexed_experiments = elist
 
-    logger.info(f"Saving indexed experiments to {params.output.experiments}")
-    indexed_experiments.as_file(params.output.experiments)
-    logger.info(f"Saving indexed reflections to {params.output.reflections}")
-    indexed_reflections.as_file(params.output.reflections)
+    return indexed_experiments, indexed_reflections, results_summary
 
 
 @show_mail_handle_errors()
@@ -330,7 +599,34 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
         logger.info("The following parameters have been modified:\n%s", diff_phil)
 
     st = time.time()
-    index(experiments, reflections[0], params)
+    indexed_experiments, indexed_reflections, summary_data = index(experiments, reflections[0], params)
+
+    # print some clustering information
+    ucs = Cluster.from_crystal_symmetries([
+        crystal.symmetry(
+            unit_cell=expt.crystal.get_unit_cell(),
+            space_group=expt.crystal.get_space_group(),
+        )
+        for expt in indexed_experiments
+    ])
+    clusters, _ = ucs.ab_cluster(
+        1000, log=None, write_file_lists=False, doplot=False
+    )
+    logger.info("\nUnit cell clustering analysis\n" + unit_cell_info(clusters))
+
+    logger.info(f"Saving indexed experiments to {params.output.experiments}")
+    indexed_experiments.as_file(params.output.experiments)
+    logger.info(f"Saving indexed reflections to {params.output.reflections}")
+    indexed_reflections.as_file(params.output.reflections)
+
+    if params.output.html or params.output.json:
+        plots = generate_plots(summary_data)
+        if params.output.html:
+            generate_html_report(plots, params.output.html)
+        if params.output.json:
+            with open(params.output.json, "w") as outfile:
+                json.dump(plots, outfile)
+
     logger.info(f"Total time: {time.time() - st:.2f}s")
 
 
