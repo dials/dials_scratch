@@ -71,6 +71,8 @@ phil_scope = phil.parse(
     """
 method = *fft1d *real_space_grid_search
     .type = choice(multi=True)
+processing_block_size = 10
+    .type = int
 output.html = dials.ssx_index.html
     .type = str
 output.json = None
@@ -111,6 +113,31 @@ def _index_one(experiment, refl, params, method_list, expt_no):
                 f"Image {expt_no+1}: Indexed {idxr.refined_reflections.size()}/{refl.size()} spots with {method} method."
             )
             return idxr.refined_experiments, idxr.refined_reflections
+
+def _index_block(experiments, reflection_tables, params, method_list, start_expt_no):
+    for name in loggers_to_disable:
+        logging.getLogger(name).disabled = True
+    results = {}
+    for i, (expt, table) in enumerate(zip(experiments, reflection_tables)):
+        elist = ExperimentList([expt])
+        expt_no = start_expt_no + i
+        for method in method_list:
+            params.indexing.method = method
+            idxr = Indexer.from_parameters(table, elist, params=params)
+            try:
+                idxr.index()
+            except (DialsIndexError, AssertionError) as e:
+                logger.info(
+                    f"Image {expt_no+1}: Failed to index with {method} method, error: {e}"
+                )
+                if method == method_list[-1]:
+                    results[expt_no] = (None, None)
+            else:
+                logger.info(
+                    f"Image {expt_no+1}: Indexed {idxr.refined_reflections.size()}/{table.size()} spots with {method} method."
+                )
+                results[expt_no] = (idxr.refined_experiments, idxr.refined_reflections)
+    return results
 
 
 def generate_plots(summary_data):
@@ -390,36 +417,47 @@ def index_all_concurrent(experiments, reflections, params, method_list):
         max_workers=params.indexing.nproc
     ) as pool:
         sys.stdout = open(os.devnull, "w")  # block printing from rstbx
-        futures = {
-            pool.submit(_index_one, expt, table, params, method_list, i): i
-            for i, (table, expt) in enumerate(zip(reflections, experiments))
-        }
+
         tables_list = [None] * len(reflections)
         expts_list = [None] * len(reflections)
 
+        block_size = params.processing_block_size
+        futures = {
+            pool.submit(
+                _index_block,
+                experiments[n*block_size:(n+1)*block_size:],
+                reflections[n*block_size:(n+1)*block_size:],
+                params,
+                method_list,
+                n*block_size
+            ): n
+            for n in range(math.ceil(len(experiments) / block_size))
+        }
+
         for future in concurrent.futures.as_completed(futures):
             try:
-                expts, refls = future.result()
-                j = futures[future]
+                results = future.result()
             except Exception as e:
                 logger.info(e)
             else:
-                if refls and expts:
-                    tables_list[j] = refls
-                    elist = ExperimentList()
-                    for jexpt in expts:
-                        elist.append(
-                            Experiment(
-                                identifier=jexpt.identifier,
-                                beam=jexpt.beam,
-                                detector=jexpt.detector,
-                                scan=jexpt.scan,
-                                goniometer=jexpt.goniometer,
-                                crystal=jexpt.crystal,
-                                imageset=jexpt.imageset[j : j + 1],
+                for expt_no, result in results.items():
+                    expts, refls = result
+                    if refls and expts:
+                        tables_list[expt_no] = refls
+                        elist = ExperimentList()
+                        for jexpt in expts:
+                            elist.append(
+                                Experiment(
+                                    identifier=jexpt.identifier,
+                                    beam=jexpt.beam,
+                                    detector=jexpt.detector,
+                                    scan=jexpt.scan,
+                                    goniometer=jexpt.goniometer,
+                                    crystal=jexpt.crystal,
+                                    imageset=jexpt.imageset[expt_no : expt_no + 1],
+                                )
                             )
-                        )
-                    expts_list[j] = elist
+                        expts_list[expt_no] = elist
 
     sys.stdout = sys.__stdout__  # restore printing
 
