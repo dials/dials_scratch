@@ -91,6 +91,7 @@ loggers_to_disable = [
     "dials.algorithms.indexing.indexer",
 ]
 
+
 def _index_one(experiment, refl, params, method_list, expt_no):
     for name in loggers_to_disable:
         logging.getLogger(name).disabled = True
@@ -197,7 +198,7 @@ def generate_plots(summary_data):
         for i, arr in enumerate(rmsd_x_arrays[1:]):
             sub_images = images[arr > 0]
             sub_data_x = arr[arr > 0]
-            sub_data_y = rmsd_y_arrays[i+1][arr > 0]
+            sub_data_y = rmsd_y_arrays[i + 1][arr > 0]
             rmsd_data.append(
                 {
                     "x": sub_images.tolist(),
@@ -246,7 +247,7 @@ def generate_plots(summary_data):
     def _generate_hist_data(rmsd_arrays, step=0.01):
         all_rmsd = np.concatenate(rmsd_arrays)
         all_rmsd = all_rmsd[all_rmsd > 0]
-        mult = int(1/0.01)
+        mult = int(1 / 0.01)
         start = math.floor(np.min(all_rmsd) * mult) / mult
         stop = math.ceil(np.max(all_rmsd) * mult) / mult
         nbins = int((stop - start) / step)
@@ -272,25 +273,29 @@ def generate_plots(summary_data):
             },
         },
         "percent_indexed": {
-            "data": [{
-                "x": images,
-                "y": percent_indexed.tolist(),
-                "type": "scatter",
-                "mode": "markers",
-                "name": "Percentage of strong spots indexed",
-            }],
+            "data": [
+                {
+                    "x": images,
+                    "y": percent_indexed.tolist(),
+                    "type": "scatter",
+                    "mode": "markers",
+                    "name": "Percentage of strong spots indexed",
+                }
+            ],
             "layout": {
                 "title": "Percentage of strong spots indexed per image",
                 "xaxis": {"title": "image number"},
                 "yaxis": {"title": "Percentage"},
             },
         },
-        "percent_indexed_hist":{
-            "data": [{
-                "x" : percent_bins.tolist(),
-                "y" : percent_hist.tolist(),
-                "type" : "bar",
-            }],
+        "percent_indexed_hist": {
+            "data": [
+                {
+                    "x": percent_bins.tolist(),
+                    "y": percent_hist.tolist(),
+                    "type": "bar",
+                }
+            ],
             "layout": {
                 "title": "Distribution of percentage indexed",
                 "xaxis": {"title": "Percentage indexed"},
@@ -314,20 +319,20 @@ def generate_plots(summary_data):
                 "yaxis": {"title": "RMSD dPsi (deg)"},
             },
         },
-        "rmsdxy_hist":{
+        "rmsdxy_hist": {
             "data": [
                 {
                     "x": bin_centers_x.tolist(),
                     "y": hist_x.tolist(),
-                    "type" : "bar",
-                    "name" : "RMSD X",
+                    "type": "bar",
+                    "name": "RMSD X",
                     "opacity": 0.6,
                 },
                 {
                     "x": bin_centers_y.tolist(),
                     "y": hist_y.tolist(),
-                    "type" : "bar",
-                    "name" : "RMSD Y",
+                    "type": "bar",
+                    "name": "RMSD Y",
                     "opacity": 0.6,
                 },
             ],
@@ -336,16 +341,16 @@ def generate_plots(summary_data):
                 "xaxis": {"title": "RMSD (px)"},
                 "yaxis": {"title": "Number of images"},
                 "bargap": 0,
-                "barmode" : "overlay",
+                "barmode": "overlay",
             },
         },
-        "rmsdz_hist":{
+        "rmsdz_hist": {
             "data": [
                 {
                     "x": bin_centers_z.tolist(),
                     "y": hist_z.tolist(),
-                    "type" : "bar",
-                    "name" : "RMSD dPsi",
+                    "type": "bar",
+                    "name": "RMSD dPsi",
                 },
             ],
             "layout": {
@@ -432,11 +437,13 @@ def index_all_concurrent(experiments, reflections, params, method_list):
         if not (elist and table):
             img = experiments[idx].imageset.get_path(idx).split("/")[-1]
             n_strong = n_strong_per_image[img]
-            results_summary[idx].append({
-                   "Image" : img,
-                    "n_indexed" : 0,
-                    "n_strong" : n_strong,
-            })
+            results_summary[idx].append(
+                {
+                    "Image": img,
+                    "n_indexed": 0,
+                    "n_strong": n_strong,
+                }
+            )
             continue
         path = elist[0].imageset.get_path(0)
         img = path.split("/")[-1]
@@ -463,12 +470,12 @@ def index_all_concurrent(experiments, reflections, params, method_list):
             n_id_ = calx.size()
             results_summary[idx].append(
                 {
-                   "Image" : img,
-                    "n_indexed" : n_id_,
-                    "n_strong" : n_strong,
-                    "RMSD_X" : rmsd_x,
-                    "RMSD_Y" : rmsd_y,
-                    "RMSD_dPsi" : rmsd_z,
+                    "Image": img,
+                    "n_indexed": n_id_,
+                    "n_strong": n_strong,
+                    "RMSD_X": rmsd_x,
+                    "RMSD_Y": rmsd_y,
+                    "RMSD_dPsi": rmsd_z,
                 }
             )
 
@@ -477,6 +484,7 @@ def index_all_concurrent(experiments, reflections, params, method_list):
     )
 
     return indexed_experiments, indexed_reflections, results_summary
+
 
 def make_summary_table(results_summary):
     # make a summary table
@@ -501,8 +509,15 @@ def make_summary_table(results_summary):
             if not cryst["n_indexed"]:
                 continue
             n_idx, n_strong = (cryst["n_indexed"], cryst["n_strong"])
-            frac_idx =  f"{n_idx}/{n_strong} ({100*n_idx/n_strong:2.1f}%)"
-            row = [cryst["Image"], str(total), frac_idx, cryst["RMSD_X"], cryst["RMSD_Y"], cryst["RMSD_dPsi"]]
+            frac_idx = f"{n_idx}/{n_strong} ({100*n_idx/n_strong:2.1f}%)"
+            row = [
+                cryst["Image"],
+                str(total),
+                frac_idx,
+                cryst["RMSD_X"],
+                cryst["RMSD_Y"],
+                cryst["RMSD_dPsi"],
+            ]
             if show_lattices:
                 row.insert(1, j + 1)
             rows.append(row)
@@ -510,6 +525,7 @@ def make_summary_table(results_summary):
 
     summary_table = tabulate(rows, overall_summary_header)
     return summary_table
+
 
 def make_cluster_plots(large_clusters):
     cluster_plots = {}
@@ -616,31 +632,36 @@ def run(args: List[str] = None, phil: phil.scope = phil_scope) -> None:
         logger.info("The following parameters have been modified:\n%s", diff_phil)
 
     st = time.time()
-    indexed_experiments, indexed_reflections, summary_data = index(experiments, reflections[0], params)
+    indexed_experiments, indexed_reflections, summary_data = index(
+        experiments, reflections[0], params
+    )
 
     # print some clustering information
-    ucs = Cluster.from_crystal_symmetries([
-        crystal.symmetry(
-            unit_cell=expt.crystal.get_unit_cell(),
-            space_group=expt.crystal.get_space_group(),
-        )
-        for expt in indexed_experiments
-    ])
-    clusters, _ = ucs.ab_cluster(
-        5000, log=None, write_file_lists=False, doplot=False
+    ucs = Cluster.from_crystal_symmetries(
+        [
+            crystal.symmetry(
+                unit_cell=expt.crystal.get_unit_cell(),
+                space_group=expt.crystal.get_space_group(),
+            )
+            for expt in indexed_experiments
+        ]
     )
+    clusters, _ = ucs.ab_cluster(5000, log=None, write_file_lists=False, doplot=False)
     large_clusters = []
     cluster_plots = {}
     threshold = math.floor(0.05 * len(indexed_experiments))
     for cluster in clusters:
         if len(cluster.members) > threshold:
             large_clusters.append(cluster)
-    large_clusters.sort(key=lambda x:len(x.members), reverse=True)
+    large_clusters.sort(key=lambda x: len(x.members), reverse=True)
 
     if large_clusters:
-        logger.info(f"""
+        logger.info(
+            f"""
 Unit cell clustering analysis, clusters with >5% of the number of crystals indexed
-""" + unit_cell_info(large_clusters))
+"""
+            + unit_cell_info(large_clusters)
+        )
         if params.output.html or params.output.json:
             cluster_plots = make_cluster_plots(large_clusters)
     else:
