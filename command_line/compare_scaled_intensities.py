@@ -81,6 +81,42 @@ def paired_T_test(x1, x2):
     return T, p_val, res
 
 
+def matcher(d0, d1):
+    """Return the reflections which are common to d0, d1 in a common order"""
+
+    hkl = d0["miller_index"].as_vec3_double().parts()
+    h0 = hkl[0].iround().as_numpy_array()
+    k0 = hkl[1].iround().as_numpy_array()
+    l0 = hkl[2].iround().as_numpy_array()
+    e0 = d0["entering"].as_numpy_array()
+    n0 = np.array(range(len(e0)))
+
+    x0 = {"h": h0, "k": k0, "l": l0, "e": e0, "n0": n0}
+
+    p0 = pd.DataFrame(data=x0, columns=["h", "k", "l", "e", "n0"])
+
+    hkl = d1["miller_index"].as_vec3_double().parts()
+    h1 = hkl[0].iround().as_numpy_array()
+    k1 = hkl[1].iround().as_numpy_array()
+    l1 = hkl[2].iround().as_numpy_array()
+    e1 = d1["entering"].as_numpy_array()
+    n1 = np.array(range(len(e1)))
+
+    x1 = {"h": h1, "k": k1, "l": l1, "e": e1, "n1": n1}
+
+    p1 = pd.DataFrame(data=x1, columns=["h", "k", "l", "e", "n1"])
+
+    merged = pd.merge(p0, p1, on=["h", "k", "l", "e"], how="inner")
+
+    n0 = merged["n0"].to_numpy()
+    n1 = merged["n1"].to_numpy()
+
+    d0 = d0.select(flex.size_t(n0))
+    d1 = d1.select(flex.size_t(n1))
+
+    return d0, d1
+
+
 def compare(data, wdir):
     tab = []
     l = len(data)
@@ -100,9 +136,7 @@ def compare(data, wdir):
 
         for b in range(a + 1, l):
             # Match reflections
-            m12 = data[a].match(data[b])
-            r1 = data[a].select(m12[0])
-            r2 = data[b].select(m12[1])
+            r1, r2 = matcher(data[a], data[b])
             i1 = r1["intensity.scale.value"]
             i2 = r2["intensity.scale.value"]
             s1 = r1["intensity.scale.variance"]
