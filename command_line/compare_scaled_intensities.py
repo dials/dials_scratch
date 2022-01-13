@@ -23,6 +23,7 @@ parser.add_argument(
 
 # Correlation coefficient
 def lin_cc(x1, x2):
+    """Return the linear correlation coefficient."""
     lc = flex.linear_correlation(x1, x2)
     return lc.coefficient()
 
@@ -35,17 +36,16 @@ def normal_probability_plot(x1, x2, v1, v2, filename):
     dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
     res = probplot(dm_real_sorted, plot=plt)
-    # plt.show()
+
     if filename:
         plt.savefig(filename)
     plt.close()
-    # print("slope: ", res[1][0])
-    # print("intercept: ", res[1][1])
     return res[1]
 
 
-# Paired T-test, 2-tailed
-def paired_T_test(x1, x2):
+# Paired T-test, 2-tailed, default confidence interval 5%
+def paired_T_test(x1, x2, alpha=0.05):
+    """Return the p-value for a two tailed paired T-test."""
     assert x1.size() == x2.size()
     n = x1.size()
 
@@ -70,15 +70,12 @@ def paired_T_test(x1, x2):
     # Find t
     T = (m1 - m2) / sed
 
-    # Considering 5% confidence interval
-    alpha = 0.05
-
     # Find p-value (for 2 tailed test)
     p_val = t.sf(abs(T), dof) * 2
 
     # If p > alpha => Null hp accepted => equal observations
-    res = p_val > alpha
-    return T, p_val, res
+    # res = p_val > alpha
+    return p_val
 
 
 def matcher(d0, d1):
@@ -144,8 +141,8 @@ def compare(data, wdir):
             # Find correlation coefficient
             I = lin_cc(i1, i2)
             CC_I[(a, b)] = CC_I[(b, a)] = I
-            # Paired T-test with 95% confidence interval
-            T, p_val, T_res = paired_T_test(i1, i2)
+            # Paired T-test
+            p_val = paired_T_test(i1, i2)
             # Normal Probability Plot
             npp = normal_probability_plot(
                 i1, i2, s1, s2, wdir / f"compare_refl{a}_and_{b}"
@@ -156,8 +153,7 @@ def compare(data, wdir):
                     "refl2": b,
                     "Correlation Coefficient": I,
                     "Normal Probability Plot [slope, intercept]": [npp[0], npp[1]],
-                    "Paired T-test [T-statistic, p-value]": [T, p_val],
-                    "T-test Null HP accepted": T_res,
+                    "Paired T-test [p-value]": p_val,
                 }
             )
     # Plot and save CC
@@ -171,7 +167,6 @@ def compare(data, wdir):
     df = pd.DataFrame(tab)
     with open(wdir / f"Comparison_results.txt", "w") as f:
         f.write("Summary of scaled intensities comparison.\n")
-        f.write("Null HP for T-test: No significant change in.\n")
         f.write(tabulate(df, headers="keys", tablefmt="psql", showindex=False))
 
 
