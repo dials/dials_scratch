@@ -127,7 +127,8 @@ def compare(data, wdir):
                 "refl1": a,
                 "refl2": a,
                 "Correlation Coefficient": 1.0,
-                "Normal Probability Plot [slope, intercept]": [0.0, 0.0],
+                "Normal Probability Plot [slope, intercept]": "-",
+                "Paired T-test [p-value]": "-",
             }
         )
 
