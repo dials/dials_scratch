@@ -22,7 +22,7 @@ def combine_reflections(fins, fout):
 
         matches = d0.match(d1)
 
-        for i, j in zip(*matches):
+        for i, j, _ in zip(*matches):
             assert d0["miller_index"][i] == d1["miller_index"][j]
 
         # join up those reflections, extract them from the existing lists...
