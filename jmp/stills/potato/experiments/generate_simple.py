@@ -10,9 +10,9 @@ from dials_scratch.jmp.stills.potato.profile_model import (
 
 def generate_simple(s0, sigma, N=100):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []
@@ -123,9 +123,9 @@ def generate_simple(s0, sigma, N=100):
 
 def generate_from_reflections(s0, sigma, reflections):
     """
-  Generate a list of normally distributed observations
+    Generate a list of normally distributed observations
 
-  """
+    """
     s2_list = []
     ctot_list = []
     xbar_list = []

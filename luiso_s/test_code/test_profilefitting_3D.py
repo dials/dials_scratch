@@ -92,7 +92,7 @@ for ypos in range(n_y):
         for x_loc in range(ncol):
             for y_loc in range(nrow):
                 """if ref2d[y_loc,x_loc] > thold:
-            lc_mask[0, y_loc, x_loc] = 5"""
+                lc_mask[0, y_loc, x_loc] = 5"""
 
                 # to_use_soon = '''
                 for z_loc in range(5):

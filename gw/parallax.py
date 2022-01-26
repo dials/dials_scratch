@@ -17,9 +17,9 @@ def log_interpolate(x0, y0, x1, y1, x):
 def derive_absorption_coefficient_Si(energy_kev):
     """From data from
 
-  http://physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab/z14.html
+    http://physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab/z14.html
 
-  derive a smoothed atenuation coefficient at a given energy in KeV, in cm ^ -1"""
+    derive a smoothed atenuation coefficient at a given energy in KeV, in cm ^ -1"""
 
     if False:
 
@@ -95,7 +95,7 @@ def compute_offset_dectris(t0, theta, mu):
 
 def dqe(t0, theta, mu):
     """Compute DQE for the given thickness of sensor, for the given angle and linear
-  absorption coefficient."""
+    absorption coefficient."""
 
     import math
 
@@ -106,7 +106,7 @@ def dqe(t0, theta, mu):
 
 def work():
     """320 micron sensor, 12.7 KeV photons, theta intersection angle 0 to 45 degrees
-  by way of a code test, return values in pixels i.e. multiples of 172 microns."""
+    by way of a code test, return values in pixels i.e. multiples of 172 microns."""
 
     import math
 
@@ -138,9 +138,9 @@ def work_dqe():
 
 def work_compare_2005_paper():
     """Run with 12 KeV photons, 300 micron sensor, 217 micron pixel size to compare
-  with 2005 Hulsen, Bronnimann & Eikenberry paper. OK with the current state of
-  the parallax corrections this now gives what look to be the same answers as
-  in this paper - pretty accurate but does not agree with XDS..."""
+    with 2005 Hulsen, Bronnimann & Eikenberry paper. OK with the current state of
+    the parallax corrections this now gives what look to be the same answers as
+    in this paper - pretty accurate but does not agree with XDS..."""
 
     import math
 
@@ -192,7 +192,7 @@ def read_xds_calibration_file(calibration_file):
 
 def validate_against_xds(xds_directory):
     """Will look in xds_directory for (i) XPARM.XDS and (ii) X- and Y-CORRECTIONS.cbf
-  files, and will rederive from the former the values for the latter..."""
+    files, and will rederive from the former the values for the latter..."""
 
     from rstbx.cftbx.coordinate_frame_converter import coordinate_frame_converter
     import os

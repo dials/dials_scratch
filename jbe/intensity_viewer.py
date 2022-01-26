@@ -23,9 +23,9 @@ from iotbx import mtz
 
 def data_from_mtz(filename):
 
-    miller_arrays = mtz.object(file_name=filename).as_miller_arrays(
-        merge_equivalents=False
-    )
+    mtz_object = mtz.object(file_name=filename)
+
+    miller_arrays = mtz_object.as_miller_arrays(merge_equivalents=False)
 
     # Select the desired columns
     intensities = None
@@ -67,7 +67,7 @@ def data_from_mtz(filename):
 
     # The reflection data
     table = flex.reflection_table()
-    table["miller_index"] = intensities.indices()
+    table["miller_index"] = mtz_object.extract_original_index_miller_indices()
     table["d"] = intensities.d_spacings().data()
     table["intensity"] = intensities.data()
     table["sigma"] = intensities.sigmas()
@@ -127,7 +127,6 @@ def read_xds_ascii(filename):
                     sigma.append(float(vals[4]))
                     xyz.append((float(vals[5]), float(vals[6]), float(vals[7])))
 
-
     data = flex.reflection_table()
     data["intensity"] = I
     data["sigma"] = sigma
@@ -142,7 +141,10 @@ def read_xds_ascii(filename):
 def map_indices_to_asu(miller_indices, space_group, uc, anom=False):
     """Map the indices to the asymmetric unit."""
     assert anom in (False, True)
-    crystal_symmetry = crystal.symmetry(space_group=space_group, unit_cell=uc,)
+    crystal_symmetry = crystal.symmetry(
+        space_group=space_group,
+        unit_cell=uc,
+    )
     miller_set = miller.set(
         crystal_symmetry=crystal_symmetry, indices=miller_indices, anomalous_flag=anom
     )
@@ -232,7 +234,7 @@ class DialsScaledModel(object):
         else:
             outliers = None
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom, outliers
 
     def add_to_plot(self, ax, miller_idx):
@@ -302,7 +304,7 @@ class DialsUnScaledModel(object):
         s = self.unscaled_data.sigma.select(sel)
         d = self.unscaled_data.dose.select(sel)
         pairs = self.unscaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -343,7 +345,7 @@ class XDSModel(object):
         s = self.scaled_data.sigma.select(sel)
         d = self.scaled_data.dose.select(sel)
         pairs = self.scaled_data.anom_index.select(sel)
-        anom = (pairs == miller_idx)
+        anom = pairs == miller_idx
         return d, I, s, anom
 
     def add_to_plot(self, ax, miller_idx):
@@ -658,7 +660,9 @@ def run_viewer():
                 try:
                     xds_dataseries, groups, uc, sg = setup_xds_models(arg)
                 except Exception as e:
-                    print("Error encountered trying to interpret file as XDS file:%s" % e)
+                    print(
+                        "Error encountered trying to interpret file as XDS file:%s" % e
+                    )
                     pass
                 else:
                     data_series.append(xds_dataseries)

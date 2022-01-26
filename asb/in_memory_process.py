@@ -46,7 +46,7 @@ cbf_wrapper.__deepcopy__ = __stupid_but_swig_safe__deepcopy__
 
 
 def process_reference(reference):
-    """ Load the reference spots. """
+    """Load the reference spots."""
     from dials.util.command_line import Command
     from dials.array_family import flex
 

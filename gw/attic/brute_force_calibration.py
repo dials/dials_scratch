@@ -39,7 +39,7 @@ def read_xds_calibration_file(calibration_file):
 
 def run_job(executable, arguments=[], stdin=[], working_directory=None):
     """Run a program with some command-line arguments and some input,
-  then return the standard output when it is finished."""
+    then return the standard output when it is finished."""
 
     import subprocess
     import os
@@ -96,8 +96,8 @@ ORGX=1231.5 ORGY=1263.5
 
 def run_xds_xycorr(distance, wavelength, thickness):
     """Run XDS XYCORR step for given distance, wavelength & thickness, read
-  back the X, Y correction map, compute offset as a function of angle of
-  incoming ray, return this."""
+    back the X, Y correction map, compute offset as a function of angle of
+    incoming ray, return this."""
 
     xds_output = xds_template % {
         "distance": distance,

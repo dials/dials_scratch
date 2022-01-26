@@ -13,7 +13,7 @@ from __future__ import print_function
 
 
 def show_reflection(reflection, orient="landscape"):
-    """ Display a single reflection. """
+    """Display a single reflection."""
     import wx
 
     print("Show Reflection")

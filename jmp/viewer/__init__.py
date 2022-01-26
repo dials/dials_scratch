@@ -1,8 +1,8 @@
 def show_image_stack(data, axis=0, interpolation="none", **kwargs):
     """
-  Display a stack of images
+    Display a stack of images
 
-  """
+    """
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider, Button, RadioButtons
 
@@ -44,9 +44,9 @@ def show_image_stack_multi_view(
     data, interpolation="none", axis_names=["Axis 0", "Axis 1", "Axis 2"], **kwargs
 ):
     """
-  Display a stack of images
+    Display a stack of images
 
-  """
+    """
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider, Button, RadioButtons
 

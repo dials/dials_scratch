@@ -4,9 +4,9 @@ from __future__ import print_function
 
 def simple_summation(data, background):
     """
-  Perform a simple summation with background subtraction
+    Perform a simple summation with background subtraction
 
-  """
+    """
     signal = 0
     for C, B in zip(data, background):
         signal += C - B
@@ -15,13 +15,13 @@ def simple_summation(data, background):
 
 def estimate_signal(data, background, estimator="mean"):
     """
-  :param data: The array of pixel data
-  :param background: The array of known background values
-  :param estimator: Mean or Maximum of Posterior distribution (mean, max)
+    :param data: The array of pixel data
+    :param background: The array of known background values
+    :param estimator: Mean or Maximum of Posterior distribution (mean, max)
 
-  :returns: A bayesian estimate of the signal
+    :returns: A bayesian estimate of the signal
 
-  """
+    """
     if estimator == "mean":
 
         C = sum(data)

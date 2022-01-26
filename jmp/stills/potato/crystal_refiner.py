@@ -102,9 +102,9 @@ class CrystalRefiner(object):
 
     def target(self, vector):
         """
-    The target function
+        The target function
 
-    """
+        """
         from dials.array_family import flex
         from math import sqrt
 

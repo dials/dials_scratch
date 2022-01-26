@@ -42,7 +42,7 @@ def mosflm_to_rossmann(a_matrix):
 
 def parse_mosflm_matrix(matrix_file):
     """Parse the mosflm matrix file to get: U, B, wavelength, unit cell,
-  returning A* = U B in the Rossmann coordinate frame."""
+    returning A* = U B in the Rossmann coordinate frame."""
 
     from scitbx import matrix
     from cctbx import uctbx
@@ -85,7 +85,7 @@ def parse_mosflm_matrix(matrix_file):
 
 def generate_reflection_indices(uc, dmin):
     """Generate the possible reflection indices from a unit cell object: N.B.
-  that these are not symmetry reduced."""
+    that these are not symmetry reduced."""
 
     maxh, maxk, maxl = uc.max_miller_indices(dmin)
 
@@ -108,7 +108,7 @@ def generate_reflection_indices(uc, dmin):
 
 def remove_absent_indices(indices, space_group_number):
     """From the given list of indices, remove those reflections which should
-  be systematic absences according to the given space group."""
+    be systematic absences according to the given space group."""
 
     from cctbx.sgtbx import space_group, space_group_symbols
 
@@ -125,8 +125,8 @@ def remove_absent_indices(indices, space_group_number):
 
 def generate_intersection_angles(a_matrix, dmin, wavelength, indices):
     """From an A matrix following the Mosflm convention and the list of
-  indices, return a list of phi, (h, k, l) where (typically) there will be
-  two records corresponding to each h, k, l."""
+    indices, return a list of phi, (h, k, l) where (typically) there will be
+    two records corresponding to each h, k, l."""
 
     from rstbx.diffraction import rotation_angles
     from scitbx import matrix

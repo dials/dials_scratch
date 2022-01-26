@@ -4,11 +4,11 @@ from scitbx import matrix
 
 class source:
     """Simple model for the source X-ray beam in which the beam vector can be
-  moved, but changes to its initial magnitude are not allowed"""
+    moved, but changes to its initial magnitude are not allowed"""
 
     def __init__(self, s0_vec, wavelength=None):
         """Beam direction is taken from s0_vec. If wavelength is supplied that
-    sets the magnitude, otherwise the length of s0_vec is preserved"""
+        sets the magnitude, otherwise the length of s0_vec is preserved"""
         assert isinstance(s0_vec, matrix.rec)
         self._s0 = matrix.col(s0_vec)
         if wavelength is not None:

@@ -86,7 +86,7 @@ class Script(object):
     @staticmethod
     def extended_scan(experiments):
         """Return a single scan that encompasses the full scan width of all of
-    the inputs"""
+        the inputs"""
         scan = deepcopy(experiments[0].scan)
 
         for exp in experiments[1:]:
@@ -97,7 +97,7 @@ class Script(object):
     @staticmethod
     def combine_crystals(experiments, scan):
         """Create a single crystal model using the static models of each of the
-    input models to define a scan-varying A matrix"""
+        input models to define a scan-varying A matrix"""
 
         crystal = deepcopy(experiments[0].crystal)
         crystal.reset_scan_points()

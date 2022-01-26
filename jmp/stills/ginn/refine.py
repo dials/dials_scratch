@@ -4,10 +4,10 @@ from __future__ import print_function
 
 def predict(experiments, bandpass=0.035):
     """
-  Predict all reflections within the limiting Ewald spheres given a fractional
-  bandpass (i.e. smin = s0 / (1 + bandpass), smax = s0 / (1 - bandpass))
+    Predict all reflections within the limiting Ewald spheres given a fractional
+    bandpass (i.e. smin = s0 / (1 + bandpass), smax = s0 / (1 - bandpass))
 
-  """
+    """
 
     from dials.algorithms.spot_prediction import IndexGenerator
     from scitbx import matrix
@@ -93,9 +93,9 @@ def predict(experiments, bandpass=0.035):
 
 def label_pixels(experiments, mask_distance=0.3):
     """
-  Assign each pixel to a miller index
+    Assign each pixel to a miller index
 
-  """
+    """
     from dials.algorithms.spot_prediction import PixelToMillerIndex
     from math import sqrt, floor
     from dials.array_family import flex
@@ -200,9 +200,9 @@ def extract_shoeboxes(experiments, reflections, labels, mask):
 
 def integrate(experiments, reflections, mask_distance=0.3):
     """
-  Do a crude integration around all the potential spots
+    Do a crude integration around all the potential spots
 
-  """
+    """
 
     print("Labelling pixels")
     labels, mask = label_pixels(experiments, mask_distance=mask_distance)

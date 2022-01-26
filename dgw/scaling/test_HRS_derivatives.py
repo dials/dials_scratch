@@ -9,8 +9,8 @@ from scitbx.random import poisson_distribution, variate
 
 def av_I(I, w, g):
     """Given observations I for some reflection, their weights w and their
-  inverse scales g, calculate the best average intensity according to the
-  formula in HRS1965"""
+    inverse scales g, calculate the best average intensity according to the
+    formula in HRS1965"""
 
     nobs = len(I)
     assert len(w) == nobs
@@ -25,8 +25,8 @@ def av_I(I, w, g):
 
 def dg_dp(g, iparam):
     """Calculate dg/dp for a parameter of the model, specified by its index. In
-  this trivial case we make the g values the parameters themselves. Therefore
-  the dg_dp vector is a delta function"""
+    this trivial case we make the g values the parameters themselves. Therefore
+    the dg_dp vector is a delta function"""
 
     result = [0] * len(g)
     assert iparam < len(g)
@@ -37,7 +37,7 @@ def dg_dp(g, iparam):
 
 def grad_av_I(I, w, g, iparam):
     """Calculate the gradient of the best average intensity with respect to a
-  parameter of the model, specified by its index."""
+    parameter of the model, specified by its index."""
 
     dg = dg_dp(g, iparam)
 
@@ -53,8 +53,8 @@ def grad_av_I(I, w, g, iparam):
 
 def fd_grad_av_I(I, w, g, iparam):
     """Calculate the finite difference approximation to the gradient of the best
-  average intensity with respect to a parameter of the model, specified by its
-  index."""
+    average intensity with respect to a parameter of the model, specified by its
+    index."""
 
     p = list(g)
     delta = 1.0e-7
@@ -84,7 +84,7 @@ def residual(I, w, g, iparam):
 
 def grad_r(I, w, g, iparam):
     """Calculate the first derivative of the residual of the HRS target with
-  respect to a parameter of the model, specified by its index."""
+    respect to a parameter of the model, specified by its index."""
 
     dg = dg_dp(g, iparam)
     dgl = dg[iparam]
@@ -103,8 +103,8 @@ def grad_r(I, w, g, iparam):
 
 def fd_grad_r(I, w, g, iparam):
     """Calculate the finite difference approximation to the first derivative of
-  the residual of the HRS target with respect to a parameter of the model,
-  specified by its index."""
+    the residual of the HRS target with respect to a parameter of the model,
+    specified by its index."""
 
     p = list(g)
     delta = 1.0e-7

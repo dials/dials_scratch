@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import matplotlib
 import logging
 import sys
+from matplotlib import ticker
 
 import iotbx.phil
 from cctbx import miller, sgtbx, uctbx
@@ -34,6 +35,12 @@ figsize = 12, 8
 )
 
 
+@ticker.FuncFormatter
+def resolution_formatter(d_star_sq, pos):
+    d = 1 / d_star_sq ** 0.5 if d_star_sq > 0 else 0
+    return f"{d:.2f}"
+
+
 def run(args):
     usage = (
         "dev.dials.nearest_neighbour_analysis [options] datablock.json strong.pickle"
@@ -51,13 +58,15 @@ def run(args):
     params, options = parser.parse_args(show_diff_phil=False)
 
     # Configure the logging
-    log.config(options.verbose,)
+    log.config(
+        options.verbose,
+    )
 
     logger.info(dials_version())
 
     # Log the diff phil
     diff_phil = parser.diff_phil.as_str()
-    if diff_phil is not "":
+    if diff_phil:
         logger.info("The following parameters have been modified:\n")
         logger.info(diff_phil)
 
@@ -176,9 +185,7 @@ def plot_d_spacings(reflections, figsize=(12, 8)):
         )
     plt.ylim(ylim)
     ax = plt.gca()
-    xticks = ax.get_xticks()
-    xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-    ax.set_xticklabels(["%.2f" % x for x in xticks_d])
+    ax.xaxis.set_major_formatter(resolution_formatter)
     plt.xlabel("d spacing (A^-1)")
     plt.ylabel("Cumulative frequency")
     plt.legend(loc="best")
@@ -228,11 +235,7 @@ def plot_d_spacings(reflections, figsize=(12, 8)):
             )
         plt.ylim(ylim)
         ax = plt.gca()
-        xticks = ax.get_xticks()
-        xticks = [x for x in xticks if x >= 0]
-        ax.set_xticks(xticks)
-        xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-        ax.set_xticklabels(["%.2f" % x for x in xticks_d])
+        ax.xaxis.set_major_formatter(resolution_formatter)
         yticks = ax.get_yticks()
         yticks = [y for y in yticks if y >= 0]
         ax.set_yticks(yticks)
@@ -285,9 +288,7 @@ def plot_d_spacings(reflections, figsize=(12, 8)):
         )
     plt.ylim(ylim)
     ax = plt.gca()
-    xticks = ax.get_xticks()
-    xticks_d = [uctbx.d_star_sq_as_d(x) for x in xticks]
-    ax.set_xticklabels(["%.2f" % x for x in xticks_d])
+    ax.xaxis.set_major_formatter(resolution_formatter)
     plt.xlabel("d spacing (A^-1)")
     plt.ylabel("Frequency")
     plt.legend(loc="best")

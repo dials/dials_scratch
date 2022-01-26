@@ -27,7 +27,7 @@ class ScaleFactor(object):
 
     def get_param_vals(self):
         """export the values of the internal list of parameters as a
-    sequence of floats."""
+        sequence of floats."""
 
         # In this case, trivial as there is only one parameter set and it is not
         # fixed, but always free. Make sure there is a copy
@@ -35,7 +35,7 @@ class ScaleFactor(object):
 
     def set_param_vals(self, vals):
         """set the values of the internal list of parameters from a
-    sequence of floats."""
+        sequence of floats."""
 
         # In this case, trivial as there is only one parameter set and it is not
         # fixed, but always free. Make sure there is a copy
@@ -45,10 +45,10 @@ class ScaleFactor(object):
 
     def get_factors_and_derivatives(self, seq):
         """Calculate and return the smoothed values and their derivatives with
-    respect to the underlying parameters for this scale factor component,
-    for the reflections described by the values in seq. For example, these
-    may be the phi rotation angle values for a scale factor component that is
-    a function of phi."""
+        respect to the underlying parameters for this scale factor component,
+        for the reflections described by the values in seq. For example, these
+        may be the phi rotation angle values for a scale factor component that is
+        a function of phi."""
 
         # Obtain data from the smoother, where value and sumweight are arrays with
         # the same length as seq. Weight is a sparse matrix with one row per
@@ -67,7 +67,7 @@ class ScaleFactor(object):
 
 class IncidentBeamFactor(ScaleFactor):
     """Smoothly varying scale factor combining incident beam flux variation
-  with other factors that can be modelled as a function of rotation angle"""
+    with other factors that can be modelled as a function of rotation angle"""
 
     def __init__(self, phi_range_deg, deg_per_interval=5):
 
@@ -93,16 +93,16 @@ class IncidentBeamFactor(ScaleFactor):
 
 class BFactor(ScaleFactor):
     """Smoothly varying B-factor describing falloff with resolution as a function
-  of rotation angle (and hence addressing bulk radiation damage to some extent)
-  """
+    of rotation angle (and hence addressing bulk radiation damage to some extent)
+    """
 
     pass
 
 
 class ScaleParameterisation(object):
     """Parameterisation of the overall scale, combining various separate factors,
-  such as an incident beam factor, a B-factor correction and potentially other
-  factors."""
+    such as an incident beam factor, a B-factor correction and potentially other
+    factors."""
 
     def __init__(self, factors_list):
         """Initialise with a list of component factors for the overall scale"""
@@ -119,7 +119,7 @@ class ScaleParameterisation(object):
 
     def get_param_vals(self):
         """Return a concatenated list of parameters from each of the components
-    in the global model"""
+        in the global model"""
 
         global_p_list = []
         for f in self._factors:
@@ -129,8 +129,8 @@ class ScaleParameterisation(object):
 
     def set_param_vals(self, vals):
         """Set the parameter values of the contained models to the values in
-    vals. This list must be of the same length as the result of get_param_vals
-    and must contain the parameter values in the same order."""
+        vals. This list must be of the same length as the result of get_param_vals
+        and must contain the parameter values in the same order."""
 
         assert len(vals) == len(self)
         it = iter(vals)
@@ -142,7 +142,7 @@ class ScaleParameterisation(object):
 
     def scales_and_derivatives(self, phi):
         """Calculate the overall scale factor at each position in 'phi' and the
-    derivatives of that scale factor wrt all parameters of the model"""
+        derivatives of that scale factor wrt all parameters of the model"""
 
         # obtain data from all scale factor components
         data = [f.get_factors_and_derivatives(phi) for f in self._factors]

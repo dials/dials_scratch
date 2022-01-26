@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 
 class IntegrationAlgorithm(object):
-    """ A class to perform profile fitting """
+    """A class to perform profile fitting"""
 
     def __init__(self, experiments, profile_model, grid_size=5, debug=False):
         """Initialise algorithm."""
@@ -25,13 +25,13 @@ class IntegrationAlgorithm(object):
     def __call__(self, reflections):
         """Process the reflections.
 
-    Params:
-        reflections The reflections to process
+        Params:
+            reflections The reflections to process
 
-    Returns:
-        The list of integrated reflections
+        Returns:
+            The list of integrated reflections
 
-    """
+        """
         from dlstbx.algorithms.integration.fit_image import ImageSpaceProfileFitting
         from dlstbx.algorithms.integration.fit_image import Spec
         from dials.algorithms.integration.integrator import job_id

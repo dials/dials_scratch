@@ -307,7 +307,7 @@ class Script(object):
 
     def _refine_onwards(self, experiments, reflections):
         """Perform processing tasks in a sub-directory for files matching the
-    base_name in the parent directory"""
+        base_name in the parent directory"""
 
         exp_path = os.path.join("..", experiments)
         ref_path = os.path.join("..", reflections)

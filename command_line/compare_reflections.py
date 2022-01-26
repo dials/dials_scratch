@@ -4,15 +4,15 @@ from __future__ import absolute_import, division, print_function
 
 
 class CompareReflections(object):
-    """ A class to compare reflections. """
+    """A class to compare reflections."""
 
     def __init__(self, refl1, refl2):
-        """ Initialise the class. """
+        """Initialise the class."""
         self.refl1 = refl1
         self.refl2 = refl2
 
     def intensities(self):
-        """ Compare the intensities. """
+        """Compare the intensities."""
         from dials.array_family import flex
 
         # Sort by resolution

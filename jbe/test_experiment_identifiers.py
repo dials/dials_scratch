@@ -40,9 +40,9 @@ def test_extend_reflection_table():
 
 def test_conflicting_extend_reflection_table():
     """Simple case, two experiments, but where they both have conflicting ids.
-  Should this be up to the user to ensure that the ids are unique before, are
-  should it be assumed that if the 'id' is the same then this should be the same
-  experiment?"""
+    Should this be up to the user to ensure that the ids are unique before, are
+    should it be assumed that if the 'id' is the same then this should be the same
+    experiment?"""
 
     rt = flex.reflection_table()
     rt["id"] = flex.int([0])

@@ -10,9 +10,9 @@ Experimental functions for alternate means of predicting reflection central impa
 
 def estimate_bandpass(reflections):
     """
-  Estimate a minimum and maximum wavelength from the column reflection_wavelength_from_pixels
-  At present, this is just mean +/- sigma
-  """
+    Estimate a minimum and maximum wavelength from the column reflection_wavelength_from_pixels
+    At present, this is just mean +/- sigma
+    """
     stats = flex.mean_and_variance(reflections["reflection_wavelength_from_pixels"])
     sigma = stats.unweighted_sample_standard_deviation()
     wavelength_min = stats.mean() - sigma
@@ -29,17 +29,17 @@ def refine_wavelengths(
     refine_bandpass=False,
     gaussians=True,
 ):
-    """ Simplex minimizer to refine per pixel wavelengths by refining the mosaic model and bandpass for
-      each experiment
-      @param experiments Experment list
-      @param reflections flex.reflection table
-      @param initial_mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
-      @tag Column name for new wavelengths
-      @dest Column name appended to recomputed predictions (IE delpsical.rad.dest)
-      @param refine_bandpass If True, refine band pass for each experiment.
-      @gaussians If true, use gaussian bandpass and mosaicity to compute wavelengths, otherwise use
-      tophat functions
-  """
+    """Simplex minimizer to refine per pixel wavelengths by refining the mosaic model and bandpass for
+    each experiment
+    @param experiments Experment list
+    @param reflections flex.reflection table
+    @param initial_mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
+    @tag Column name for new wavelengths
+    @dest Column name appended to recomputed predictions (IE delpsical.rad.dest)
+    @param refine_bandpass If True, refine band pass for each experiment.
+    @gaussians If true, use gaussian bandpass and mosaicity to compute wavelengths, otherwise use
+    tophat functions
+    """
 
     if initial_mosaic_parameters is None:
         domain_size_ang = flex.mean(
@@ -53,7 +53,7 @@ def refine_wavelengths(
     from scitbx.simplex import simplex_opt
 
     class simplex_minimizer(object):
-        """Class for refining mosaic parameters """
+        """Class for refining mosaic parameters"""
 
         def __init__(
             self,
@@ -63,13 +63,13 @@ def refine_wavelengths(
             wavelength_func,
             refine_bandpass=False,
         ):
-            """ Initialize the minimizer and perform the minimization
-      @param experiments ExperimentList
-      @param reflections flex.reflection_table
-      @param initial_mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
-      @param wavelength_func Function to compute wavelengths
-      @param refine_bandpass If True, refine band pass for each experiment.
-      """
+            """Initialize the minimizer and perform the minimization
+            @param experiments ExperimentList
+            @param reflections flex.reflection_table
+            @param initial_mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
+            @param wavelength_func Function to compute wavelengths
+            @param refine_bandpass If True, refine band pass for each experiment.
+            """
             self.experiments = experiments
             self.reflections = reflections
             self.wavelength_func = wavelength_func
@@ -101,7 +101,7 @@ def refine_wavelengths(
             self.x = self.optimizer.get_solution()
 
         def target(self, vector):
-            """ Compute the functional """
+            """Compute the functional"""
             print("Starting target", list(vector[0:2]))
             if (vector < 0).count(True) > 0:
                 return 1e6
@@ -181,40 +181,40 @@ def refine_wavelengths(
 
 def tophat_vector_wavelengths(experiments, reflections, mosaic_parameters):
     """
-  Given a set of mosaic parameters, use vectors to estimate a wavelength for each reflection
+    Given a set of mosaic parameters, use vectors to estimate a wavelength for each reflection
 
-  Details:
-  For a given reflection, the reciprocal lattice point vector q = Ah, where A is the reciprocal
-  A matrix and h is the reflection's miller index.  Construct a vector e1 orthagonal to s0 and q.
-  Construct 4 more vectors of length equal to the magnitude of q, and that lie in the plane that
-  is normal to e1:
-  q_mos_inner and q_mos_outer: q vectors rotated into or out of the Ewald sphere by an angle equal
-  to the half mosaic angle + the angle inscribed by adding an arc length equal to 2/domain size
-  (angstroms). Call this angle the combined mosaic angle approximation.
-  q_wavelength_min and q_wavelength_max: q vectors rotated on an ewald sphere with radius
-  1/bandpass minimum or 1/bandpass maximum.
+    Details:
+    For a given reflection, the reciprocal lattice point vector q = Ah, where A is the reciprocal
+    A matrix and h is the reflection's miller index.  Construct a vector e1 orthagonal to s0 and q.
+    Construct 4 more vectors of length equal to the magnitude of q, and that lie in the plane that
+    is normal to e1:
+    q_mos_inner and q_mos_outer: q vectors rotated into or out of the Ewald sphere by an angle equal
+    to the half mosaic angle + the angle inscribed by adding an arc length equal to 2/domain size
+    (angstroms). Call this angle the combined mosaic angle approximation.
+    q_wavelength_min and q_wavelength_max: q vectors rotated on an ewald sphere with radius
+    1/bandpass minimum or 1/bandpass maximum.
 
-  Consider now the pairs of vectors wavelength min/max and q_mos inner/outer.  If neither q_mos
-  vectors lies between the two wavelength vectors, then assign a refletion's wavelength to
-  either wavelength min or max, depending on which is closest.  Otherwise, find two vectors
-  that lie between wavelength min/max. For example if q_mos inner lies between them, but outer
-  does not, the two vectors will be q_mos inner and q wavelength min.  If both q_mos inner and
-  outer lie between wavelength min/max, then the two vetors will be q_mos inner and outer.
+    Consider now the pairs of vectors wavelength min/max and q_mos inner/outer.  If neither q_mos
+    vectors lies between the two wavelength vectors, then assign a refletion's wavelength to
+    either wavelength min or max, depending on which is closest.  Otherwise, find two vectors
+    that lie between wavelength min/max. For example if q_mos inner lies between them, but outer
+    does not, the two vectors will be q_mos inner and q wavelength min.  If both q_mos inner and
+    outer lie between wavelength min/max, then the two vetors will be q_mos inner and outer.
 
-  Once the two vectors have been identified, define a new q vector which is the average of the
-  two vectors.  Determine the wavelength that would allow this q vector to be in the diffracting
-  condition.  Report that wavelength in the column reflection_wavelength_from_mosaicity_and_bandpass.
+    Once the two vectors have been identified, define a new q vector which is the average of the
+    two vectors.  Determine the wavelength that would allow this q vector to be in the diffracting
+    condition.  Report that wavelength in the column reflection_wavelength_from_mosaicity_and_bandpass.
 
-  Because these determinations involve hard cutoffs instead of gaussians, the wavelengths are
-  determined in a manner similar to the overlap of tophat functions.
+    Because these determinations involve hard cutoffs instead of gaussians, the wavelengths are
+    determined in a manner similar to the overlap of tophat functions.
 
-  @param experiments ExperimentList. If crystal.band_pass is set, use it. Otherwise, estimate the
-  band pass using estimate_bandpass
-  @param reflections flex.reflection_table Needs to contain the column
-  reflection_wavelength_from_pixels
-  @param mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
+    @param experiments ExperimentList. If crystal.band_pass is set, use it. Otherwise, estimate the
+    band pass using estimate_bandpass
+    @param reflections flex.reflection_table Needs to contain the column
+    reflection_wavelength_from_pixels
+    @param mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees)
 
-  """
+    """
 
     if "reflection_wavelength_from_pixels" not in reflections:
         return reflections
@@ -333,20 +333,20 @@ def tophat_vector_wavelengths(experiments, reflections, mosaic_parameters):
 
 def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
     """
-  Given a set of mosaic parameters, use gaussian bandpass and mosaicity to estimate a
-  wavelength for each reflection.
+    Given a set of mosaic parameters, use gaussian bandpass and mosaicity to estimate a
+    wavelength for each reflection.
 
-  Details:
-  For a given reflection, the reciprocal lattice point vector q = Ah, where A is the reciprocal
-  A matrix and h is the reflection's miller index.  Construct a vector e1 orthagonal to s0 and q.
+    Details:
+    For a given reflection, the reciprocal lattice point vector q = Ah, where A is the reciprocal
+    A matrix and h is the reflection's miller index.  Construct a vector e1 orthagonal to s0 and q.
 
-  @param experiments ExperimentList. If crystal.band_pass is set, use it. Otherwise, estimate the
-  band pass using estimate_bandpass
-  @param reflections flex.reflection_table Needs to contain the column
-  reflection_wavelength_from_pixels
-  @param mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees). If
-  None, use the mosaic parameters from each crystal model.
-  """
+    @param experiments ExperimentList. If crystal.band_pass is set, use it. Otherwise, estimate the
+    band pass using estimate_bandpass
+    @param reflections flex.reflection_table Needs to contain the column
+    reflection_wavelength_from_pixels
+    @param mosaic_parameters Tuple of domain size (angstroms) and half mosaic angle (degrees). If
+    None, use the mosaic parameters from each crystal model.
+    """
 
     if "reflection_wavelength_from_pixels" not in reflections:
         return reflections
@@ -365,11 +365,11 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
     new_wavelengths = flex.double()
 
     def gaussian_product(mean1, sigma1, mean2, sigma2):
-        """ Jiffy function to multiply two gaussians. Formula from
-    P. Bromiley, "Products and convolutions of Gaussian distributions,"
-    Medical School, Univ. Manchester, Manchester, UK, Tech. Rep, vol. 3,
-    p. 2003, 2003.
-    """
+        """Jiffy function to multiply two gaussians. Formula from
+        P. Bromiley, "Products and convolutions of Gaussian distributions,"
+        Medical School, Univ. Manchester, Manchester, UK, Tech. Rep, vol. 3,
+        p. 2003, 2003.
+        """
         ssq1 = sigma1 ** 2
         ssq2 = sigma2 ** 2
         mean = ((mean1 * ssq2) + (mean2 * ssq1)) / (ssq1 + ssq2)
@@ -447,14 +447,14 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
 
 def predictions_from_per_reflection_energies(experiments, reflections, tag, dest):
     """
-  Give a new set of energies for each reflection, recompute reflection locations and
-  delta psi values
-  @param experiments ExperimentList
-  @param reflections flex.reflection_table
-  @param tag Column name for the per reflection wavelength
-  @param dest Predictions will be in put in the columns delpsical.rad.dest,
-  xyzcal.mm.dest and xyzcal.px.dest
-  """
+    Give a new set of energies for each reflection, recompute reflection locations and
+    delta psi values
+    @param experiments ExperimentList
+    @param reflections flex.reflection_table
+    @param tag Column name for the per reflection wavelength
+    @param dest Predictions will be in put in the columns delpsical.rad.dest,
+    xyzcal.mm.dest and xyzcal.px.dest
+    """
     if tag not in reflections:
         return reflections
 

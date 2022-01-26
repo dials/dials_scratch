@@ -21,7 +21,7 @@ p_f = dict()  # panel faces
 
 class Sample(object):
 
-    """ The crystal class. A cuboid crystal is constructed with the
+    """The crystal class. A cuboid crystal is constructed with the
     origin at its centre, taking the x, y, z dimensions as args.
     """
 

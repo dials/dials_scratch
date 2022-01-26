@@ -17,7 +17,7 @@ from dials.algorithms.profile_model.gaussian_rs.calculator import (
 from dials.algorithms.profile_model.gaussian_rs import MaskCalculator
 from dials.algorithms.profile_model.gaussian_rs import BBoxCalculator
 from dials.algorithms.profile_model.gaussian_rs import CoordinateSystem2d
-from dials.algorithms.refinement.refinement_helpers import corrgram
+from dials.algorithms.refinement.corrgram import corrgram
 from dials.algorithms.statistics.fast_mcd import FastMCD, maha_dist_sq
 from dials_scratch.jmp.potato.refiner import RefinerData
 from dials_scratch.jmp.potato.refiner import Refiner as ProfileRefiner
@@ -122,13 +122,13 @@ phil_scope = parse(
     }
 
     corrections {
-      
+
       lp = True
         .type = bool
-      
+
       dqe = True
         .type = bool
-      
+
       partiality = True
         .type = bool
 
@@ -138,7 +138,7 @@ phil_scope = parse(
 
   debug {
     output {
-      
+
       strong_spots = False
         .type = bool
 
@@ -166,15 +166,15 @@ phil_scope = parse(
 
 class Indexer(object):
     """
-  A class to reindex the strong spot list
+    A class to reindex the strong spot list
 
-  """
+    """
 
     def __init__(self, params, experiments, reflections):
         """
-    Do the indexing
+        Do the indexing
 
-    """
+        """
 
         # Save some state
         self.params = params
@@ -188,9 +188,9 @@ class Indexer(object):
 
     def _index(self):
         """
-    Index the strong spots
+        Index the strong spots
 
-    """
+        """
 
         # Get some stuff from experiment
         A = matrix.sqr(self.experiments[0].crystal.get_A())
@@ -261,9 +261,9 @@ class Indexer(object):
 
     def _predict(self):
         """
-    Predict the position of the spots
+        Predict the position of the spots
 
-    """
+        """
 
         # Get some stuff from experiment
         A = matrix.sqr(self.experiments[0].crystal.get_A())
@@ -297,10 +297,10 @@ class Indexer(object):
 
     def _filter_reflections_based_on_centroid_distance(self):
         """
-    Filter reflections too far from predicted position
+            Filter reflections too far from predicted position
 
-<<<<<<< HEAD
-    """
+        <<<<<<< HEAD
+        """
 
         # Compute the x and y residuals
         Xobs, Yobs, _ = self.reflections["xyzobs.px.value"].parts()
@@ -382,15 +382,15 @@ class Indexer(object):
 
 class InitialIntegrator(object):
     """
-  A class to do an initial integration of strong spots
+    A class to do an initial integration of strong spots
 
-  """
+    """
 
     def __init__(self, params, experiments, reflections):
         """
-    Do the initial integration
+        Do the initial integration
 
-    """
+        """
 
         # Save the experiments and reflections
         self.experiments = experiments
@@ -422,9 +422,9 @@ class InitialIntegrator(object):
 
     def _compute_sigma_d(self):
         """
-    Compute and initial spot size estimate
+        Compute and initial spot size estimate
 
-    """
+        """
         logger.info(
             "Computing initial sigma d estimate for %d reflections"
             % len(self.reflections)
@@ -438,9 +438,9 @@ class InitialIntegrator(object):
 
     def _compute_beam_vector(self):
         """
-    Compute the obseved beam vector
+        Compute the obseved beam vector
 
-    """
+        """
         panel = self.experiments[0].detector[0]
         xyz = self.reflections["xyzobs.px.value"]
         s1_obs = flex.vec3_double(len(self.reflections))
@@ -451,9 +451,9 @@ class InitialIntegrator(object):
 
     def _compute_bbox(self):
         """
-    Compute the bounding box
+        Compute the bounding box
 
-    """
+        """
 
         logger.info(
             "Computing the bounding box for %d reflections" % len(self.reflections)
@@ -482,18 +482,18 @@ class InitialIntegrator(object):
 
     def _allocate_shoebox(self):
         """
-    Allocate the shoebox
+        Allocate the shoebox
 
-    """
+        """
         self.reflections["shoebox"] = flex.shoebox(
             self.reflections["panel"], self.reflections["bbox"], allocate=True
         )
 
     def _compute_mask(self):
         """
-    Compute the spot mask
+        Compute the spot mask
 
-    """
+        """
         logger.info(
             "Creating the foreground mask for %d reflections" % len(self.reflections)
         )
@@ -542,9 +542,9 @@ class InitialIntegrator(object):
 
     def _extract_shoebox(self):
         """
-    Extract the shoebox
+        Extract the shoebox
 
-    """
+        """
         logger.info(
             "Extracting shoebox from image for %d reflections" % len(self.reflections)
         )
@@ -552,17 +552,17 @@ class InitialIntegrator(object):
 
     def _compute_background(self):
         """
-    Compute the reflection background
+        Compute the reflection background
 
-    """
+        """
         logger.info("Computing background for %d reflections" % len(self.reflections))
         self.reflections.compute_background(self.experiments)
 
     def _compute_intensity(self):
         """
-    Compute the reflection intensity
+        Compute the reflection intensity
 
-    """
+        """
         logger.info("Computing intensity for %d reflections" % len(self.reflections))
         self.reflections.compute_summed_intensity()
         logger.info(
@@ -574,17 +574,17 @@ class InitialIntegrator(object):
 
     def _compute_centroid(self):
         """
-    Compute the reflection centroid
+        Compute the reflection centroid
 
-    """
+        """
         logger.info("Computing centroid for %d reflections" % len(self.reflections))
         self.reflections.compute_centroid(self.experiments)
 
     def _print_shoeboxes(self):
         """
-    Print the shoeboxes
+        Print the shoeboxes
 
-    """
+        """
         sbox = self.reflections["shoebox"]
         for r in range(len(sbox)):
             data = sbox[r].data
@@ -595,15 +595,15 @@ class InitialIntegrator(object):
 
 class Refiner(object):
     """
-  A class to do the refinement
+    A class to do the refinement
 
-  """
+    """
 
     def __init__(self, experiments, reflections, sigma_d, params):
         """
-    Initialise the refiner
+        Initialise the refiner
 
-    """
+        """
 
         # Save the experiments and reflections
         self.params = params
@@ -630,9 +630,9 @@ class Refiner(object):
 
     def _preprocess(self):
         """
-    Preprocess the reflections
+        Preprocess the reflections
 
-    """
+        """
 
         # Make some plots
         if self.params.debug.output.plots:
@@ -645,9 +645,9 @@ class Refiner(object):
 
     def _postprocess(self):
         """
-    Postprocess the reflections
+        Postprocess the reflections
 
-    """
+        """
 
         # Update predictions
         self._predict()
@@ -669,9 +669,9 @@ class Refiner(object):
 
     def _refine_profile(self):
         """
-    Do the profile refinement
+        Do the profile refinement
 
-    """
+        """
         logger.info("")
         logger.info("Refining profile parmameters")
 
@@ -704,9 +704,9 @@ class Refiner(object):
 
     def _refine_crystal(self):
         """
-    Do the crystal refinement
+        Do the crystal refinement
 
-    """
+        """
         if (
             self.params.profile.unit_cell.fixed == True
             and self.params.profile.orientation.fixed == True
@@ -733,9 +733,9 @@ class Refiner(object):
 
     def _predict(self):
         """
-    Predict the position of the spots
+        Predict the position of the spots
 
-    """
+        """
 
         # Get some stuff from experiment
         A = matrix.sqr(self.experiments[0].crystal.get_A())
@@ -799,9 +799,9 @@ class Refiner(object):
 
     def _plot_distance_from_ewald_sphere(self, prefix):
         """
-    Plot distance from Ewald sphere
+        Plot distance from Ewald sphere
 
-    """
+        """
         from matplotlib import pylab
 
         s0 = matrix.col(self.experiments[0].beam.get_s0())
@@ -819,18 +819,18 @@ class Refiner(object):
 
     def _plot_corrgram(self, corrmat, labels):
         """
-    Plot a corrgram of correlations between parameters
+        Plot a corrgram of correlations between parameters
 
-    """
+        """
         plt = corrgram(corrmat, labels)
         plt.savefig("corrgram.png", dpi=300)
         plt.clf()
 
     def _save_profile_model(self):
         """
-    Save the profile model to file
+        Save the profile model to file
 
-    """
+        """
         with open("profile_model.json", "w") as outfile:
             data = {
                 "rlp_mosaicity": tuple(self.experiments[0].crystal.mosaicity.sigma())
@@ -839,24 +839,24 @@ class Refiner(object):
 
     def _save_history(self):
         """
-    Save the history
+        Save the history
 
-    """
+        """
         with open("history.json", "w") as outfile:
             json.dump(self.history, outfile, indent=2)
 
 
 class FinalIntegrator(object):
     """
-  Do the final refinement
+    Do the final refinement
 
-  """
+    """
 
     def __init__(self, params, experiments, reflections, sigma_d):
         """
-    Initialise the refiner
+        Initialise the refiner
 
-    """
+        """
 
         # Save some stuff
         self.params = params
@@ -883,9 +883,9 @@ class FinalIntegrator(object):
 
     def _compute_bbox(self):
         """
-    Do crude bbox calculation from sigma_b or from model
+        Do crude bbox calculation from sigma_b or from model
 
-    """
+        """
         if self.params.integration.use_crude_shoebox_mask:
             self._compute_bbox_from_sigma_d()
         else:
@@ -893,9 +893,9 @@ class FinalIntegrator(object):
 
     def _compute_bbox_from_sigma_d(self):
         """
-    Compute the bounding box
+        Compute the bounding box
 
-    """
+        """
 
         logger.info(
             "Computing the bounding box for %d reflections" % len(self.reflections)
@@ -932,9 +932,9 @@ class FinalIntegrator(object):
 
     def _compute_bbox_from_model(self):
         """
-    Compute the bounding box
+        Compute the bounding box
 
-    """
+        """
         # Compute the bounding box
         profile = self.experiments[0].crystal.mosaicity
         profile.compute_bbox(
@@ -953,18 +953,18 @@ class FinalIntegrator(object):
 
     def _allocate_shoebox(self):
         """
-    Allocate the shoebox
+        Allocate the shoebox
 
-    """
+        """
         self.reflections["shoebox"] = flex.shoebox(
             self.reflections["panel"], self.reflections["bbox"], allocate=True
         )
 
     def _compute_mask(self):
         """
-    Compute the reflection mask
+        Compute the reflection mask
 
-    """
+        """
         if self.params.integration.use_crude_shoebox_mask:
             self._compute_mask_from_sigma_d()
         else:
@@ -972,9 +972,9 @@ class FinalIntegrator(object):
 
     def _compute_mask_from_sigma_d(self):
         """
-    Compute the spot mask
+        Compute the spot mask
 
-    """
+        """
         logger.info(
             "Creating the foreground mask for %d reflections" % len(self.reflections)
         )
@@ -1000,9 +1000,9 @@ class FinalIntegrator(object):
 
     def _compute_mask_from_model(self):
         """
-    Compute the reflection mask
+        Compute the reflection mask
 
-    """
+        """
         profile = self.experiments[0].crystal.mosaicity
         profile.compute_mask(
             self.experiments,
@@ -1012,9 +1012,9 @@ class FinalIntegrator(object):
 
     def _extract_shoebox(self):
         """
-    Extract the shoebox
+        Extract the shoebox
 
-    """
+        """
         logger.info(
             "Extracting shoebox from image for %d reflections" % len(self.reflections)
         )
@@ -1022,17 +1022,17 @@ class FinalIntegrator(object):
 
     def _compute_background(self):
         """
-    Compute the reflection background
+        Compute the reflection background
 
-    """
+        """
         logger.info("Computing background for %d reflections" % len(self.reflections))
         self.reflections.compute_background(self.experiments)
 
     def _compute_intensity(self):
         """
-    Compute the reflection intensity
+        Compute the reflection intensity
 
-    """
+        """
         logger.info("Computing intensity for %d reflections" % len(self.reflections))
         self.reflections.compute_summed_intensity()
         self.reflections.compute_corrections(self.experiments)
@@ -1045,25 +1045,25 @@ class FinalIntegrator(object):
 
     def _compute_centroid(self):
         """
-    Compute the reflection centroid
+        Compute the reflection centroid
 
-    """
+        """
         logger.info("Computing centroid for %d reflections" % len(self.reflections))
         self.reflections.compute_centroid(self.experiments)
 
     def _compute_partiality(self):
         """
-    Compute the partiality
+        Compute the partiality
 
-    """
+        """
         profile = self.experiments[0].crystal.mosaicity
         profile.compute_partiality(self.experiments, self.reflections)
 
     def _plot_partiality(self):
         """
-    Plot the partiality
+        Plot the partiality
 
-    """
+        """
         from matplotlib import pylab
 
         P = self.reflections["partiality"]
@@ -1076,19 +1076,19 @@ class FinalIntegrator(object):
 
 class Integrator(object):
     """
-  Class to perform integration of stills in the following way:
+    Class to perform integration of stills in the following way:
 
-  1. Do an initial integration of strong reflections
-  2. Refine profile and crystal parameters
-  3. Do a final integration of all reflections
+    1. Do an initial integration of strong reflections
+    2. Refine profile and crystal parameters
+    3. Do a final integration of all reflections
 
-  """
+    """
 
     def __init__(self, experiments, reflections, params=None):
         """
-    Initialise the integrator
+        Initialise the integrator
 
-    """
+        """
 
         # Only use single experiment at the moment
         if len(experiments) > 1:
@@ -1109,35 +1109,35 @@ class Integrator(object):
 
     def reindex_strong_spots(self):
         """
-    Reindex the strong spot list
+        Reindex the strong spot list
 
-    """
+        """
         indexer = Indexer(self.params, self.experiments, self.strong)
         self.reference = indexer.reflections
 
     def integrate_strong_spots(self):
         """
-    Do an initial integration of the strong spots
+        Do an initial integration of the strong spots
 
-    """
+        """
         integrator = InitialIntegrator(self.params, self.experiments, self.reference)
         self.reference = integrator.reflections
         self.sigma_d = integrator.sigma_d
 
     def refine(self):
         """
-    Do the refinement of profile and crystal parameters
+        Do the refinement of profile and crystal parameters
 
-    """
+        """
         refiner = Refiner(self.experiments, self.reference, self.sigma_d, self.params)
         self.experiments = refiner.experiments
         self.reference = refiner.reflections
 
     def predict(self):
         """
-    Predict the reflections
+        Predict the reflections
 
-    """
+        """
         logger.info("")
         logger.info("Predicting reflections")
 
@@ -1184,9 +1184,9 @@ class Integrator(object):
 
     def integrate(self):
         """
-    Do an final integration of the reflections
+        Do an final integration of the reflections
 
-    """
+        """
         integrator = FinalIntegrator(
             self.params, self.experiments, self.reflections, self.sigma_d
         )

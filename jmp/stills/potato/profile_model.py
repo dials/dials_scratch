@@ -7,9 +7,9 @@ from dials_scratch.jmp.stills.potato.parameterisation import MosaicityParameteri
 
 class MarginalDistribution(object):
     """
-  A class to compute useful stuff about the marginal distribution
+    A class to compute useful stuff about the marginal distribution
 
-  """
+    """
 
     def __init__(self, S, dS, d2S):
 
@@ -25,31 +25,31 @@ class MarginalDistribution(object):
 
     def sigma(self):
         """
-    Return the marginal sigma
+        Return the marginal sigma
 
-    """
+        """
         return self.S
 
     def first_derivatives(self):
         """
-    Return the marginal first derivatives
+        Return the marginal first derivatives
 
-    """
+        """
         return self.dS
 
     def second_derivatives(self):
         """
-    Return the maginal second derivatives
+        Return the maginal second derivatives
 
-    """
+        """
         return self.d2S
 
 
 class ConditionalDistribution(object):
     """
-  A class to compute useful stuff about the conditional distribution
+    A class to compute useful stuff about the conditional distribution
 
-  """
+    """
 
     def __init__(self, S, dS, d2S):
 
@@ -72,9 +72,9 @@ class ConditionalDistribution(object):
 
     def mean(self, d):
         """
-    Return the conditional mean
+        Return the conditional mean
 
-    """
+        """
         S12 = matrix.col((self._S[2], self._S[5]))
         S21 = matrix.col((self._S[6], self._S[7])).transpose()
         S22 = self._S[8]
@@ -82,16 +82,16 @@ class ConditionalDistribution(object):
 
     def sigma(self):
         """
-    Return the conditional sigma
+        Return the conditional sigma
 
-    """
+        """
         return self.Sbar
 
     def first_derivatives(self):
         """
-    Return the marginal first derivatives
+        Return the marginal first derivatives
 
-    """
+        """
 
         def compute_dSbar(S, dS):
 
@@ -119,9 +119,9 @@ class ConditionalDistribution(object):
 
     def second_derivatives(self):
         """
-    Return the maginal second derivatives
+        Return the maginal second derivatives
 
-    """
+        """
 
         def compute_d2S(S, dSi, dSj, d2S):
 
@@ -176,9 +176,9 @@ class ConditionalDistribution(object):
 
 def rotate_mat3_double(R, A):
     """
-  Helper function to rotate a flex.mat3_double array of matrices
+    Helper function to rotate a flex.mat3_double array of matrices
 
-  """
+    """
     accessor = A.accessor()
     RAR = flex.mat3_double([R * matrix.sqr(a) * R.transpose() for a in A])
     RAR.reshape(accessor)
@@ -187,9 +187,9 @@ def rotate_mat3_double(R, A):
 
 def compute_change_of_basis_operation(s0, s2):
     """
-  Compute the change of basis operation that puts the s2 vector along the z axis
+    Compute the change of basis operation that puts the s2 vector along the z axis
 
-  """
+    """
     e1 = s2.cross(s0).normalize()
     e2 = s2.cross(e1).normalize()
     e3 = s2.normalize()
@@ -199,9 +199,9 @@ def compute_change_of_basis_operation(s0, s2):
 
 class ReflectionProfileModel(object):
     """
-  A class to represent the model for a single reflection
+    A class to represent the model for a single reflection
 
-  """
+    """
 
     def __init__(self, model, s0, s2, ctot, xbar, Sobs):
 
@@ -231,23 +231,23 @@ class ReflectionProfileModel(object):
 
     def marginal(self):
         """
-    Return the marginal
+        Return the marginal
 
-    """
+        """
         return self._marginal
 
     def conditional(self):
         """
-    Return the conditional
+        Return the conditional
 
-    """
+        """
         return self._conditional
 
     def log_likelihood(self):
         """
-    Compute the log likelihood for the reflection
+        Compute the log likelihood for the reflection
 
-    """
+        """
 
         # Get info about the marginal
         S22 = self.marginal().sigma()
@@ -270,9 +270,9 @@ class ReflectionProfileModel(object):
 
     def first_derivatives(self):
         """
-    Compute the first derivatives
+        Compute the first derivatives
 
-    """
+        """
 
         # Get info about marginal distribution
         S22 = self.marginal().sigma()
@@ -303,9 +303,9 @@ class ReflectionProfileModel(object):
 
     def second_derivatives(self):
         """
-    Compute the second derivatives
+        Compute the second derivatives
 
-    """
+        """
 
         # Get info about marginal distribution
         S22 = self.marginal().sigma()
@@ -348,9 +348,9 @@ class ReflectionProfileModel(object):
 
     def fisher_information(self):
         """
-    Compute the fisher information
+        Compute the fisher information
 
-    """
+        """
 
         # Get info about marginal distribution
         S22 = self.marginal().sigma()
@@ -379,15 +379,15 @@ class ReflectionProfileModel(object):
 
 class ReflectionProfileModelList(object):
     """
-  A class to hold all the reflection profile models
+    A class to hold all the reflection profile models
 
-  """
+    """
 
     def __init__(self, parameterisation, s0, s2_list, ctot_list, xbar_list, Sobs_list):
         """
-    Initialise
+        Initialise
 
-    """
+        """
 
         # Save the parameterisation
         self._parameterisation = parameterisation
@@ -412,23 +412,23 @@ class ReflectionProfileModelList(object):
 
     def __len__(self):
         """
-    The number of models
+        The number of models
 
-    """
+        """
         return len(self._models)
 
     def parameterisation(self):
         """
-    Return the parameterisation
+        Return the parameterisation
 
-    """
+        """
         return self._parameterisation
 
     def log_likelihood(self):
         """
-    The joint log likelihood
+        The joint log likelihood
 
-    """
+        """
         lnL = 0
         for i in range(len(self)):
             lnL += self._models[i].log_likelihood()
@@ -436,9 +436,9 @@ class ReflectionProfileModelList(object):
 
     def first_derivatives(self):
         """
-    The joint first derivatives
+        The joint first derivatives
 
-    """
+        """
         dL = 0
         for i in range(len(self)):
             dL += self._models[i].first_derivatives()
@@ -446,9 +446,9 @@ class ReflectionProfileModelList(object):
 
     def second_derivatives(self):
         """
-    The joint second derivatives
+        The joint second derivatives
 
-    """
+        """
         d2L = 0
         for i in range(len(self)):
             d2L += self._models[i].second_derivatives()
@@ -456,9 +456,9 @@ class ReflectionProfileModelList(object):
 
     def fisher_information(self):
         """
-    The joint fisher information
+        The joint fisher information
 
-    """
+        """
         I = 0
         for i in range(len(self)):
             I += self._models[i].fisher_information()

@@ -36,7 +36,7 @@ def read_xds_calibration_file(calibration_file):
 
 def run_job(executable, arguments=[], stdin=[], working_directory=None):
     """Run a program with some command-line arguments and some input,
-  then return the standard output when it is finished."""
+    then return the standard output when it is finished."""
 
     import subprocess
     import os
@@ -96,8 +96,8 @@ ORGX=%(origin_fast).2f ORGY=%(origin_slow).2f
 
 def generate_xds_corrections(image_filename, sensor_thickness_mm, energy_ev=None):
     """Generate an XYCORR input file from an image header via dxtbx, noting
-  well that this will *tell lies* as the image is rescaled to give a 1:1
-  correction table in 0.025 rather than 0.1 (original) pixel increments."""
+    well that this will *tell lies* as the image is rescaled to give a 1:1
+    correction table in 0.025 rather than 0.1 (original) pixel increments."""
 
     from dxtbx import load
     from scitbx import matrix

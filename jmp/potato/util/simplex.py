@@ -4,15 +4,15 @@ from scitbx import simplex
 
 class SimpleSimplex(object):
     """
-  Class to wrap some simplex stuff
+    Class to wrap some simplex stuff
 
-  """
+    """
 
     def __init__(self, values, offset, evaluator, max_iter, tolerance=1e-10):
         """
-    Init the simplex
+        Init the simplex
 
-    """
+        """
         self.n = len(values)
         self.x = values
         self.starting_simplex = self.generate_start(values, offset)
@@ -27,9 +27,9 @@ class SimpleSimplex(object):
 
     def generate_start(self, values, offset):
         """
-    Generate starting values
+        Generate starting values
 
-    """
+        """
         assert len(values) == len(offset)
         start = [values]
         for j, o in enumerate(offset):
@@ -40,7 +40,7 @@ class SimpleSimplex(object):
 
     def get_solution(self):
         """
-    Get the solution
+        Get the solution
 
-    """
+        """
         return self.x

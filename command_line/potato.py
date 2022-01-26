@@ -15,11 +15,10 @@ from __future__ import absolute_import, division
 import libtbx.load_env
 from libtbx.utils import Sorry
 from libtbx.phil import parse
-from dials.util import log
+from dials.util import log, show_mail_handle_errors
 from dials.util.options import OptionParser
 from dials.util.options import flatten_reflections, flatten_experiments
 from dials_scratch.jmp.potato.potato import Integrator
-from dxtbx.model.experiment_list import ExperimentListDumper
 import logging
 
 
@@ -54,15 +53,15 @@ phil_scope = parse(
 
 class Script(object):
     """
-  The integration program.
+    The integration program.
 
-  """
+    """
 
     def __init__(self):
         """
-    Initialise the script.
+        Initialise the script.
 
-    """
+        """
 
         # The script usage
         usage = "usage: %s [options] experiment.json" % libtbx.env.dispatcher_name
@@ -78,9 +77,9 @@ class Script(object):
 
     def run(self):
         """
-    Perform the integration.
+        Perform the integration.
 
-    """
+        """
         from time import time
 
         # Check the number of arguments is correct
@@ -100,7 +99,9 @@ class Script(object):
         reflections = reflections[0]
 
         # Configure logging
-        log.config(info="dials.potato.log", debug="dials.potato.debug.log")
+        if __name__ == "__main__":
+            # Configure the logging
+            log.config(verbosity=options.verbose, logfile="dials.potato.log")
 
         # Log the diff phil
         diff_phil = self.parser.diff_phil.as_str()
@@ -127,17 +128,15 @@ class Script(object):
 
         # Save the reflections
         reflections.as_pickle(params.output.reflections)
+        experiments.as_file(params.output.experiments)
 
-        dump = ExperimentListDumper(experiments)
-        with open(params.output.experiments, "w") as outfile:
-            outfile.write(dump.as_json())
+
+@show_mail_handle_errors()
+def run(args=None):
+    with show_mail_handle_errors():
+        script = Script()
+        script.run()
 
 
 if __name__ == "__main__":
-    from dials.util import halraiser
-
-    try:
-        script = Script()
-        script.run()
-    except Exception as e:
-        halraiser(e)
+    run()

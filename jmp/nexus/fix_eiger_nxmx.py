@@ -3,9 +3,9 @@ from __future__ import print_function
 
 class EigerNXmxFixer(object):
     """
-  A hacky class to read an NXmx file
+    A hacky class to read an NXmx file
 
-  """
+    """
 
     def __init__(self, input_filename, output_filename):
         import h5py

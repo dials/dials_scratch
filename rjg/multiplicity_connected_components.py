@@ -162,7 +162,9 @@ def run(args=None, phil=phil_scope):  # type: (List[str], libtbx.phil.scope) -> 
 
     # Do whatever this program is supposed to do.
     do_connected_components(
-        experiments, reflections, min_component_size=params.min_component_size,
+        experiments,
+        reflections,
+        min_component_size=params.min_component_size,
     )
 
 

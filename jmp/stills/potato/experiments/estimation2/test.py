@@ -13,9 +13,9 @@ from collections import defaultdict
 
 def generate_sigma():
     """
-  Generate a random sigma
+    Generate a random sigma
 
-  """
+    """
 
     # Random eigenvalues
     L = matrix.diag((uniform(1e-5, 1e-4), uniform(1e-5, 1e-4), uniform(1e-5, 1e-4)))

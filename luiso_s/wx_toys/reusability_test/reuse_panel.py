@@ -53,7 +53,7 @@ class butoms_panel(wx.Panel):
 
 
 class My_new_Frame(wx.Frame):
-    """ We simply derive a new class of Frame. """
+    """We simply derive a new class of Frame."""
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=wx.DefaultSize)

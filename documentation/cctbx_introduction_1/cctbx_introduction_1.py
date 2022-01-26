@@ -61,7 +61,7 @@ def find_beam_direction(cbf_handle):
 
 def compute_central_rotation_matrix(gonio):
     """Compute the composite rotation matrix mid way through the acquisition
-  of this frame."""
+    of this frame."""
 
     x = gonio.rotate_vector(0.5, 1, 0, 0)
     y = gonio.rotate_vector(0.5, 0, 1, 0)
@@ -90,7 +90,7 @@ def plot_image(size1, size2, image_values, plot_file_name):
 
 def compute_reciprocal_space_distance_map(cbf_image):
     """Compute a map of distance from the transformed centre of each pixel
-  to the nearest reciprocal space node, measured in h, k, l space."""
+    to the nearest reciprocal space node, measured in h, k, l space."""
 
     # construct and link a cbf_handle to the image itself.
     cbf_handle = pycbf.cbf_handle_struct()

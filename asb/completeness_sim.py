@@ -80,8 +80,8 @@ spgrp = known_symmetry.space_group()
 
 
 def get_random_predictions():
-    """ Return a DIALS reflection table representing predictions using the given models.
-  Assumes a Ewald proximity model for mosaicity """
+    """Return a DIALS reflection table representing predictions using the given models.
+    Assumes a Ewald proximity model for mosaicity"""
     # The U matrix to calculate A*
     rot = flex.random_double_r3_rotation_matrix()
     A = sqr(rot) * sqr(uc.reciprocal().orthogonalization_matrix())

@@ -24,7 +24,7 @@ def generate_dials_corrections(
     image_filename, sensor_thickness_mm, energy_ev=None, method=compute_absolute_offset
 ):
     """Generate equivalent correction tables equivalent to those from XDS, but using
-  the equations above."""
+    the equations above."""
 
     from dxtbx import load
     from scitbx import matrix
@@ -79,7 +79,7 @@ def generate_dials_corrections(
 
 def work(image_filename, sensor_thickness_mm, energy_ev=None):
     """Exercise the DIALS implementation of the XDS correction, compare with
-  the XDS correction tables."""
+    the XDS correction tables."""
     from parallax_xds import generate_xds_corrections
 
     xds_parallax_x, xds_parallax_y = generate_xds_corrections(

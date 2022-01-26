@@ -28,7 +28,7 @@ phil_scope = phil.parse(
 
 def compare_pickle_with_mtz(params):
     """Compare intensities in pickle file with the scaled and merged intensities
-  provided through the mtz file."""
+    provided through the mtz file."""
 
     from libtbx.utils import Sorry
     from iotbx import mtz

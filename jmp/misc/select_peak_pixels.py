@@ -4,17 +4,17 @@ from functools import reduce
 
 
 def select_contigious(index, shape, conn):
-    """ Filter the indices to only contain contigious pixels
+    """Filter the indices to only contain contigious pixels
 
-  Params:
-      index The input array of indices
-      shape The shape of the mask
-      conn The connectivity (4 or 8)
+    Params:
+        index The input array of indices
+        shape The shape of the mask
+        conn The connectivity (4 or 8)
 
-  Returns:
-      The filtered indices
+    Returns:
+        The filtered indices
 
-  """
+    """
     from scipy.ndimage.measurements import label, histogram
     from numpy import zeros, int32, argmax, where
     from operator import mul
@@ -50,22 +50,22 @@ def select_contigious(index, shape, conn):
 
 
 def select_foreground_pixels(pixel_data, min_pixels=10, n_sigma=-1, conn=4):
-    """ Select the pixels contributing to the spot foreground
+    """Select the pixels contributing to the spot foreground
 
-  Fixed select all foreground pixels that leave the remaining background
-  pixels in an approximate normal distribution. Then filter indices to
-  get only those pixels that are contigious
+    Fixed select all foreground pixels that leave the remaining background
+    pixels in an approximate normal distribution. Then filter indices to
+    get only those pixels that are contigious
 
-  Params:
-      pixel_data The pixel data
-      min_pixels The minimum number of pixels contributing to background
-      n_sigma The number of standard deviations to check for
-      conn The connectivity (4 or 8)
+    Params:
+        pixel_data The pixel data
+        min_pixels The minimum number of pixels contributing to background
+        n_sigma The number of standard deviations to check for
+        conn The connectivity (4 or 8)
 
-  Returns:
-      A list of indices deemed to contribute to spot foreground
+    Returns:
+        A list of indices deemed to contribute to spot foreground
 
-  """
+    """
     from dials.algorithms.integration import foreground_pixels
     from scitbx.array_family import flex
 

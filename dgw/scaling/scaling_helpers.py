@@ -15,16 +15,16 @@ from __future__ import absolute_import, division
 
 def products_omitting_one_item(items):
     """For n items, efficiently calculate every product of n-1 items. That is
-  calculate every possible product that omits a single item. For example,
-  given the list of items [a, b, c, d], calculate and return the products
+    calculate every possible product that omits a single item. For example,
+    given the list of items [a, b, c, d], calculate and return the products
 
-  1) b*c*d
-  2) a*c*d
-  3) a*b*d
-  4) a*b*c.
+    1) b*c*d
+    2) a*c*d
+    3) a*b*d
+    4) a*b*c.
 
-  The aim here is to avoid calculating sub-products such as c*d more than once.
-  """
+    The aim here is to avoid calculating sub-products such as c*d more than once.
+    """
 
     items = list(items)
     n = len(items)

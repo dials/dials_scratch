@@ -34,20 +34,20 @@ from dials.algorithms.spot_prediction import ReekeIndexGenerator
 
 class ScanVaryingReflectionPredictor(object):
     """
-  Reflection prediction for a relp within a small segment of a scan, which
-  we assume to be a single image.
+    Reflection prediction for a relp within a small segment of a scan, which
+    we assume to be a single image.
 
-  The path of the relp through reciprocal space between the start and end of
-  the image is approximated by a general linear transformation (not just a
-  rotation).
+    The path of the relp through reciprocal space between the start and end of
+    the image is approximated by a general linear transformation (not just a
+    rotation).
 
-  Temporarily, we initialise with a list of N+1 UB matrices, where N is the
-  total number of images. In future we will simple pass a crystal model,
-  which will store its own per-image UB matrix.
+    Temporarily, we initialise with a list of N+1 UB matrices, where N is the
+    total number of images. In future we will simple pass a crystal model,
+    which will store its own per-image UB matrix.
 
-  Currently it is assumed that only the crystal model varies with image
-  number, whilst the other models remain static.
-  """
+    Currently it is assumed that only the crystal model varies with image
+    number, whilst the other models remain static.
+    """
 
     def __init__(self, crystal, beam, gonio, scan, dmin):
 
@@ -88,9 +88,9 @@ class ScanVaryingReflectionPredictor(object):
 
     def prepare(self, image_number, step=1):
         """
-    Cache transformations that position relps at the beginning and end of
-    the step.
-    """
+        Cache transformations that position relps at the beginning and end of
+        the step.
+        """
 
         self._image_number = image_number
         self._step = step
@@ -130,11 +130,11 @@ class ScanVaryingReflectionPredictor(object):
 
     def predict(self, hkl):
         """
-    Predict for hkl during the passage from A1*h to A2*h.
+        Predict for hkl during the passage from A1*h to A2*h.
 
-    If a prediction is found, return the predicted Reflection. Otherwise
-    return None.
-    """
+        If a prediction is found, return the predicted Reflection. Otherwise
+        return None.
+        """
 
         self._r1 = self._A1 * matrix.col(hkl)
         self._r2 = self._A2 * matrix.col(hkl)
@@ -192,8 +192,8 @@ class ScanVaryingReflectionPredictor(object):
 
 class ScanVaryingReflectionPredictorDebug(ScanVaryingReflectionPredictor):
     """Debugging version of ScanVaryingReflectionPredictor that stores all
-  the sites it tests and provides the ability to write them out by abusing
-  PDB format."""
+    the sites it tests and provides the ability to write them out by abusing
+    PDB format."""
 
     # reciprocal lattice coords of predictions
     trial_sites = []
@@ -224,16 +224,16 @@ class ScanVaryingReflectionPredictorDebug(ScanVaryingReflectionPredictor):
 
 class ScanVaryingReflectionListGenerator(object):
     """
-  Generate and predict all reflections for a scan with a varying crystal
-  model.
+    Generate and predict all reflections for a scan with a varying crystal
+    model.
 
-  Starting from the (0,0,0) reflection, known to be on the Ewald sphere, for a
-  particular image t, generate indices using the Reeke algorithm, then predict
-  using ScanVaryingReflectionPredictor to test each candidate.
+    Starting from the (0,0,0) reflection, known to be on the Ewald sphere, for a
+    particular image t, generate indices using the Reeke algorithm, then predict
+    using ScanVaryingReflectionPredictor to test each candidate.
 
-  Temporarily pass a UBlist (see docstring for ScanVaryingReflectionPredictor)
-  until we can store per-image UB matrices in a crystal model
-  """
+    Temporarily pass a UBlist (see docstring for ScanVaryingReflectionPredictor)
+    until we can store per-image UB matrices in a crystal model
+    """
 
     def __init__(self, crystal, beam, gonio, scan, dmin):
 
@@ -258,7 +258,7 @@ class ScanVaryingReflectionListGenerator(object):
 
     def step_over_images(self):
         """Loop over images, doing the search on each and extending the
-    predictions list"""
+        predictions list"""
 
         from libtbx import easy_mp
 
@@ -333,13 +333,13 @@ class ScanVaryingReflectionListGenerator(object):
 
 class AnglePredictor_rstbx(object):
     """
-  Predict the reflecting angles for a relp based on the current states
-  of models in the experimental geometry model. This version is a wrapper
-  for rstbx's C++ rotation_angles so is faster than the pure Python class
-  AnglePredictor_py.
+    Predict the reflecting angles for a relp based on the current states
+    of models in the experimental geometry model. This version is a wrapper
+    for rstbx's C++ rotation_angles so is faster than the pure Python class
+    AnglePredictor_py.
 
-  This is essentially deprecated by DIALS reflection prediction code.
-  """
+    This is essentially deprecated by DIALS reflection prediction code.
+    """
 
     def __init__(self, crystal, beam, gonio, dmin):
         """Construct by linking to instances of experimental model classes"""
@@ -354,7 +354,7 @@ class AnglePredictor_rstbx(object):
     @staticmethod
     def orthogonal_component(reference, changing):
         """Return unit vector corresponding to component of changing orthogonal
-    to reference."""
+        to reference."""
 
         r = reference.normalize()
         c = changing.normalize()
@@ -366,10 +366,10 @@ class AnglePredictor_rstbx(object):
         primary_axis, primary_target, secondary_axis, secondary_target
     ):
         """Compute a rotation matrix R: R x primary_axis = primary_target and
-    R x secondary_axis places the secondary_axis in the plane perpendicular
-    to the primary_target, as close as possible to the secondary_target.
-    Require: primary_target orthogonal to secondary_target, primary axis
-    not colinear with secondary axis."""
+        R x secondary_axis places the secondary_axis in the plane perpendicular
+        to the primary_target, as close as possible to the secondary_target.
+        Require: primary_target orthogonal to secondary_target, primary axis
+        not colinear with secondary axis."""
 
         from scitbx import matrix
 
@@ -425,7 +425,7 @@ class AnglePredictor_rstbx(object):
         self, phi_start_rad, phi_end_rad, indices
     ):
         """For a list of indices, return those indices that can be rotated into
-    diffracting position, along with the corresponding angles"""
+        diffracting position, along with the corresponding angles"""
 
         # calculate conversion matrix to rossmann frame.
         R_to_rossmann = self.align_reference_frame(
@@ -483,7 +483,7 @@ class AnglePredictor_rstbx(object):
 
 class AnglePredictor_py(object):
     """Predict the reflecting angles for a relp based on the current states
-  of models in the experimental geometry model."""
+    of models in the experimental geometry model."""
 
     def __init__(self, crystal, beam, gonio, dmin):
         """Construct by linking to instances of experimental model classes"""
@@ -592,7 +592,7 @@ class AnglePredictor_py(object):
         self, phi_start_rad, phi_end_rad, indices
     ):
         """For a list of indices, return those indices that can be rotated into
-    diffracting position, along with the corresponding angles"""
+        diffracting position, along with the corresponding angles"""
 
         self._prepare()
 
@@ -615,16 +615,16 @@ class AnglePredictor_py(object):
 class ImpactPredictor(object):
     """Predict observation position for supplied reflections and angles.
 
-  This class is just a wrapper for RSTBX's reflection_prediction class (which
-  is superseded by DIALS' ray_intersection function). A wrapper is necessary
-  because reflection_prediction does not use the experimental models. This
-  class keeps track of those models and instantiates a reflection_prediction
-  object when required with the correct geometry.
+    This class is just a wrapper for RSTBX's reflection_prediction class (which
+    is superseded by DIALS' ray_intersection function). A wrapper is necessary
+    because reflection_prediction does not use the experimental models. This
+    class keeps track of those models and instantiates a reflection_prediction
+    object when required with the correct geometry.
 
-  It is called ImpactPredictor, because ReflectionPredictor does not imply
-  that the hkl is actually observed, whereas ImpactPredictor does
+    It is called ImpactPredictor, because ReflectionPredictor does not imply
+    that the hkl is actually observed, whereas ImpactPredictor does
 
-  """
+    """
 
     def __init__(self, detector, goniometer, beam, crystal):
         self._detector = detector

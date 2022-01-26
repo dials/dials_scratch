@@ -42,7 +42,7 @@ om_scope = phil.parse(observation_manager_phil_str)
 
 class ObservationManager(object):
     """A class to maintain information about the reflections during
-  optimisation of their scale factors."""
+    optimisation of their scale factors."""
 
     def __init__(self, reflections, experiment, params=None):
 
@@ -135,8 +135,8 @@ class ObservationManager(object):
 
     def get_average_intensity(self):
         """Calculate the weighted average intensity in reflection groups at the
-    current scales using the formula of Hamilton, Rollett and Sparks (1965).
-    Return as a vector for each observation"""
+        current scales using the formula of Hamilton, Rollett and Sparks (1965).
+        Return as a vector for each observation"""
 
         # delegate to the GroupedObservations object
         return self._go.get_average_intensity()

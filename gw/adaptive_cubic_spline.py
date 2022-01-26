@@ -4,8 +4,8 @@ from __future__ import print_function
 
 class bicubic_bilinear_spline(object):
     """A class to provide support for bicubic spline interpolation falling back
-  on bilinear spline interpolation at the corners. To avoid the fallback, pad
-  the incoming parameter array appropriately."""
+    on bilinear spline interpolation at the corners. To avoid the fallback, pad
+    the incoming parameter array appropriately."""
 
     def __init__(self, point_array):
         self._point_array = point_array

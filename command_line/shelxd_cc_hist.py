@@ -3,7 +3,7 @@ from __future__ import division, print_function
 
 def shelxd_cc_hist(filename):
     """Read the logs from filename (from shelxd) scrape out CC's, compute
-  histogram of all, weak, write to stdout"""
+    histogram of all, weak, write to stdout"""
     from cctbx.array_family import flex
 
     all = flex.double()

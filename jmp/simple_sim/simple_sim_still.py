@@ -6,9 +6,9 @@ from math import sqrt, exp, pi
 
 def normal_pdf(x, mu, sigma):
     """
-  Multi variate normal
+    Multi variate normal
 
-  """
+    """
     N = len(mu)
     sigma_inv = sigma.inverse()
     A = 1.0 / (sqrt((2 * pi) ** N * sigma.determinant()))
@@ -18,9 +18,9 @@ def normal_pdf(x, mu, sigma):
 
 def simulate_pixel(i, j, pixel_to_miller_index, simulator):
     """
-  Simulate the counts in a single pixel
+    Simulate the counts in a single pixel
 
-  """
+    """
     from scitbx import matrix
     from numpy.random import normal, multivariate_normal
     from math import floor
@@ -48,9 +48,9 @@ def simulate(
     angular_spread=[0, 0, 0],
 ):
     """
-  Simulate diffraction image from a number of reflections
+    Simulate diffraction image from a number of reflections
 
-  """
+    """
     from dials.algorithms.spot_prediction import PixelToMillerIndex
     from dials_scratch.jmp.stills import StillsSimulator
     from numpy.random import poisson

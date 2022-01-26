@@ -61,9 +61,9 @@ def generate_rect(xc, sx, width, scale=1000, random=False):
 
 def compute_centroid(profile):
     """
-  Compute the centroid as normal
+    Compute the centroid as normal
 
-  """
+    """
     from dials.array_family import flex
 
     width = len(profile)
