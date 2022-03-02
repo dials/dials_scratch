@@ -183,3 +183,10 @@ if __name__ == "__main__":
         wdir = Path(".").expanduser().resolve()
 
     compare(data, wdir)
+
+# TODO Good news is that even if some reflection files are missing from the collections, it works anyway.
+# However, it sould be good to keep track of which ones are missing and to have consistent numbering when
+# printing out the results.
+# In the 65_PdNO2_TR_265K_100S dataset for example, there are some missing scaled.refl files (it will be
+# reprocessed, but still) which are not consecutive eg. 02, 10
+# For the missing ones, it would be usefule to print out at least a log message
