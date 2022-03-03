@@ -36,6 +36,7 @@ def normal_probability_plot(x1, x2, v1, v2, filename):
     dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
     res = probplot(dm_real_sorted, plot=plt)
+    plt.text(-4, 14, f"slope = {res[1][0]:.3f}")
 
     if filename:
         plt.savefig(filename)
@@ -129,6 +130,7 @@ def compare(data, wdir):
                 "Correlation Coefficient": 1.0,
                 "Normal Probability Plot [slope, intercept]": "-",
                 "Paired T-test [p-value]": "-",
+                "Number of matched reflections": "-",
             }
         )
 
@@ -155,6 +157,7 @@ def compare(data, wdir):
                     "Correlation Coefficient": I,
                     "Normal Probability Plot [slope, intercept]": [npp[0], npp[1]],
                     "Paired T-test [p-value]": p_val,
+                    "Number of matched reflections": i1.size(),
                 }
             )
     # Plot and save CC
@@ -183,10 +186,3 @@ if __name__ == "__main__":
         wdir = Path(".").expanduser().resolve()
 
     compare(data, wdir)
-
-# TODO Good news is that even if some reflection files are missing from the collections, it works anyway.
-# However, it sould be good to keep track of which ones are missing and to have consistent numbering when
-# printing out the results.
-# In the 65_PdNO2_TR_265K_100S dataset for example, there are some missing scaled.refl files (it will be
-# reprocessed, but still) which are not consecutive eg. 02, 10
-# For the missing ones, it would be usefule to print out at least a log message
