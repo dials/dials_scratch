@@ -26,8 +26,8 @@ from libtbx.test_utils import approx_equal
 from scitbx.array_family import flex
 
 # Get modules to build models and minimiser using PHIL
-from dials.test.algorithms.refinement import setup_geometry
-from dials.test.algorithms.refinement import setup_minimiser
+from dials.tests.algorithms.refinement import setup_geometry
+from dials.tests.algorithms.refinement import setup_minimiser
 
 # We will set up a mock scan and a mock experiment list
 from dxtbx.model.scan import ScanFactory
@@ -77,8 +77,8 @@ from dials.algorithms.refinement.reflection_manager import ReflectionManager
 args = sys.argv[1:]
 master_phil = parse(
     """
-    include scope dials.test.algorithms.refinement.geometry_phil
-    include scope dials.test.algorithms.refinement.minimiser_phil
+    include scope dials.tests.algorithms.refinement.geometry_phil
+    include scope dials.tests.algorithms.refinement.minimiser_phil
     """,
     process_includes=True,
 )
