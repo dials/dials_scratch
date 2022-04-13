@@ -142,14 +142,14 @@ class ReciprocalLatticeViewer(Render3d):
         # Struggling to add these shapes individually to separate layers. Let's
         # just accumulate all shapes and then add them all at once
         shapes = [line]
-        edge_colors = [(255, 255, 255)]
-        shape_type = ["line"]
+        edge_colors = [(1, 1, 1)]
 
         # Add reciprocal cells
         cells, cell_colors = self.viewer.draw_cells()
         shapes.extend(cells)
         edge_colors.extend(cell_colors)
 
+        edge_colors = np.array(edge_colors)
         shapes_layer = napari_viewer.add_shapes(
             shapes, shape_type="line", edge_width=0.1, edge_color=edge_colors
         )
@@ -269,7 +269,6 @@ class RLVWindow:
                     j = (i + 1) % self.palette.size()
                     colors.extend([self.palette[j]] * 12)
                     lines.extend(self.cell_edges(axes))
-        colors = np.array(colors)
         return lines, colors
 
     def cell_edges(self, axes):
