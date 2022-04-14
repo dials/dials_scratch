@@ -144,14 +144,26 @@ class ReciprocalLatticeViewer(Render3d):
         shapes = [line]
         edge_colors = [(1, 1, 1)]
 
+        axis_layer = napari_viewer.add_shapes(
+            shapes,
+            shape_type="line",
+            edge_width=0.1,
+            edge_color=edge_colors,
+            name="axis",
+        )
+
         # Add reciprocal cells
         cells, cell_colors = self.viewer.draw_cells()
-        shapes.extend(cells)
-        edge_colors.extend(cell_colors)
+        # shapes.extend(cells)
+        # edge_colors.extend(cell_colors)
 
         edge_colors = np.array(edge_colors)
-        shapes_layer = napari_viewer.add_shapes(
-            shapes, shape_type="line", edge_width=0.1, edge_color=edge_colors
+        cells_layer = napari_viewer.add_shapes(
+            cells,
+            shape_type="line",
+            edge_width=0.1,
+            edge_color=cell_colors,
+            name="cells",
         )
 
         return
