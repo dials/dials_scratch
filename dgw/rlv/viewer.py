@@ -5,18 +5,10 @@ import numpy as np
 
 import libtbx.phil
 
-# import wxtbx.utils
 from libtbx import Auto
 from scitbx.array_family import flex
 from scitbx.math import minimum_covering_sphere
 
-# from wxtbx.segmentedctrl import (
-#    SEGBTN_HORIZONTAL,
-#    SegmentedRadioControl,
-#    SegmentedToggleControl,
-# )
-
-# from dials.util import wx_viewer
 from dials_scratch.dgw.rlv import Render3d
 from dxtbx import flumpy
 
@@ -43,45 +35,13 @@ model_view_matrix = None
 )
 
 
-## WX3 - WX4 compatibility
-# def _rewrite_event(unbound):
-#    """Decorator to intercept the event and add missing instance methods"""
-#
-#    def _wrapp(self, event):
-#        event.GetPositionTuple = event.GetPosition
-#        return unbound(self, event)
-#
-#    return _wrapp
-
-
-## HACK: Monkeypatch wxtbx so that we don't use old interfaces
-# wxtbx.segmentedctrl.SegmentedControl.HitTest = _rewrite_event(
-#    wxtbx.segmentedctrl.SegmentedControl.HitTest
-# )
-# wxtbx.segmentedctrl.SegmentedControl.OnMotion = _rewrite_event(
-#    wxtbx.segmentedctrl.SegmentedControl.OnMotion
-# )
-
-
 class ReciprocalLatticeViewer(Render3d):
     def __init__(self, parent, id, title, size, settings=None, *args, **kwds):
-        # wx.Frame.__init__(self, parent, id, title, size=size, *args, **kwds)
         Render3d.__init__(self, settings=settings)
-        # self.parent = self.GetParent()
-        # self.statusbar = self.CreateStatusBar()
-        # self.sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # self.create_settings_panel()
-        # self.sizer.Add(self.settings_panel, 0, wx.EXPAND)
-        self.create_viewer_panel()
-        # self.sizer.Add(self.viewer, 1, wx.EXPAND | wx.ALL)
-        # self.SetSizerAndFit(self.sizer)
-        # self.SetMinSize(self.settings_panel.GetSize())
-        # self.Bind(wx.EVT_CLOSE, self.OnClose, self)
-        # self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, self)
-        # self.Bind(wx.EVT_ACTIVATE, self.OnActive)
-        # self.viewer.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        # self.viewer.SetFocus()
+        self.viewer = RLVWindow(
+            settings=self.settings,
+        )
 
     def add_to_napari(self, napari_viewer):
         """Add the layers data to a napari viewer"""
@@ -183,18 +143,6 @@ class ReciprocalLatticeViewer(Render3d):
             marker_size = max(marker_size, 0.5)
             marker_size = min(marker_size, 5)
             self.settings.marker_size = marker_size
-
-    def create_viewer_panel(self):
-        if self.settings.black_background:
-            background_rgb = (0, 0, 0)
-        else:
-            background_rgb = (255, 255, 255)
-        self.viewer = RLVWindow(
-            settings=self.settings,
-            parent=self,
-            size=(800, 600),
-            background_rgb=background_rgb,
-        )
 
     def set_points(self):
         Render3d.set_points(self)
