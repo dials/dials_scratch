@@ -12,6 +12,7 @@ from scitbx.math import minimum_covering_sphere
 from dials_scratch.dgw.rlv import Render3d
 from dxtbx import flumpy
 from collections import namedtuple
+from napari.experimental import link_layers
 
 phil_scope = libtbx.phil.parse(
     """
@@ -58,32 +59,39 @@ class ReciprocalLatticeViewer(Render3d):
             points = flumpy.to_numpy(self.viewer.points.select(sel))
             colors = flumpy.to_numpy(self.viewer.colors.select(sel))
 
-            # Set point labels (could be slow!)
-            labels = []
-            xyz_data = self.viewer.points_data["xyz"].select(sel)
+            id_data = self.viewer.points_data["id"].select(sel)
+            x, y, z = self.viewer.points_data["xyz"].select(sel).parts()
             panel_data = self.viewer.points_data["panel"].select(sel)
             d_spacing_data = self.viewer.points_data["d_spacing"].select(sel)
-            for xyz, panel, d_spacing in zip(xyz_data, panel_data, d_spacing_data):
-
-                label = (
-                    f"id: {exp_id}; panel: {panel}\n"
-                    f"xyz: {xyz[0]:.1f} {xyz[1]:.1f} {xyz[2]:.1f}\n"
-                    f"res: {d_spacing:.2f} Angstrom"
-                )
-                labels.append(label)
-            if "miller_index" in self.viewer.points_data and exp_id != -1:
-                for i, hkl in enumerate(
-                    self.viewer.points_data["miller_index"].select(sel)
-                ):
-                    labels[i] += f"\nhkl: {hkl}"
-
-            # These labels are displayed on mouseover of the points
             point_properties = {
-                "label": labels,
+                "id": flumpy.to_numpy(id_data),
+                "x": flumpy.to_numpy(x).round(1),
+                "y": flumpy.to_numpy(y).round(1),
+                "z": flumpy.to_numpy(z).round(1),
+                "panel": flumpy.to_numpy(panel_data),
+                "res": flumpy.to_numpy(d_spacing_data).round(3),
             }
+            # text = "id:{} panel:{panel} xyz:{x}{y}{z} res:{res}Å"
+            if "miller_index" in self.viewer.points_data and exp_id != -1:
+                h, k, l = (
+                    self.viewer.points_data["miller_index"]
+                    .select(sel)
+                    .as_vec3_double()
+                    .parts()
+                )
+                h = h.iround()
+                k = k.iround()
+                l = l.iround()
+                point_properties["h"] = flumpy.to_numpy(h)
+                point_properties["k"] = flumpy.to_numpy(k)
+                point_properties["l"] = flumpy.to_numpy(l)
+            #    text += " hkl:{hkl}"
+            # Currently not adding the text= to the points as this displays for
+            # *every* point. Need a mouseover or tooltip instead. However, the
+            # property values are displayed in the status bar, when the relevant
+            # layer is selected
 
-            # Add the points layer. Only a single layer for now, with all points
-            napari_viewer.add_points(
+            relps_layer = napari_viewer.add_points(
                 points,
                 properties=point_properties,
                 face_color=colors,
@@ -94,13 +102,16 @@ class ReciprocalLatticeViewer(Render3d):
             # Add the cell as a shapes layer, if it exists
             cell = cells.get(exp_id)
             if cell:
-                napari_viewer.add_shapes(
+                cell_layer = napari_viewer.add_shapes(
                     cell.lines,
                     shape_type="line",
                     edge_width=0.1,
                     edge_color=np.array(cell.colors),
                     name=f"cell id: {exp_id}",
                 )
+
+                # Link the visibility of the relps and cell layer
+                link_layers([relps_layer, cell_layer], ("visible",))
 
         # Now add rotation axis. Code extracted from draw_axis
         if self.viewer.minimum_covering_sphere is None:
