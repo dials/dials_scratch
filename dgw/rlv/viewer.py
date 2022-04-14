@@ -11,6 +11,7 @@ from scitbx.math import minimum_covering_sphere
 
 from dials_scratch.dgw.rlv import Render3d
 from dxtbx import flumpy
+from collections import namedtuple
 
 phil_scope = libtbx.phil.parse(
     """
@@ -46,48 +47,60 @@ class ReciprocalLatticeViewer(Render3d):
     def add_to_napari(self, napari_viewer):
         """Add the layers data to a napari viewer"""
 
-        # NB In dials.reciprocal_lattice_viewer, the drawing is handled by an
-        # RLVWindow instance, which here is self.viewer.
+        # Get the reciprocal cells for drawing
+        cells = self.viewer.draw_cells()
 
-        # Convert points and colors to numpy arrays
-        points = flumpy.to_numpy(self.viewer.points)
-        colors = flumpy.to_numpy(self.viewer.colors)
+        # Add relps and cell (if present) as points and shapes layers for each id
+        for exp_id in sorted(list(set(self.viewer.points_data["id"])), reverse=True):
+            sel = self.viewer.points_data["id"] == exp_id
 
-        # Set point labels (could be slow!)
-        labels = []
-        xyz_data = self.viewer.points_data["xyz"]
-        id_data = self.viewer.points_data["id"]
-        panel_data = self.viewer.points_data["panel"]
-        d_spacing_data = self.viewer.points_data["d_spacing"]
-        for xyz, exp_id, panel, d_spacing in zip(
-            xyz_data, id_data, panel_data, d_spacing_data
-        ):
+            # Convert points and colors to numpy arrays
+            points = flumpy.to_numpy(self.viewer.points.select(sel))
+            colors = flumpy.to_numpy(self.viewer.colors.select(sel))
 
-            label = (
-                f"id: {exp_id}; panel: {panel}\n"
-                f"xyz: {xyz[0]:.1f} {xyz[1]:.1f} {xyz[2]:.1f}\n"
-                f"res: {d_spacing:.2f} Angstrom"
-            )
-            labels.append(label)
-        if "miller_index" in self.viewer.points_data:
-            for i, (exp_id, hkl) in enumerate(
-                zip(id_data, self.viewer.points_data["miller_index"])
-            ):
-                if exp_id != -1:
+            # Set point labels (could be slow!)
+            labels = []
+            xyz_data = self.viewer.points_data["xyz"].select(sel)
+            panel_data = self.viewer.points_data["panel"].select(sel)
+            d_spacing_data = self.viewer.points_data["d_spacing"].select(sel)
+            for xyz, panel, d_spacing in zip(xyz_data, panel_data, d_spacing_data):
+
+                label = (
+                    f"id: {exp_id}; panel: {panel}\n"
+                    f"xyz: {xyz[0]:.1f} {xyz[1]:.1f} {xyz[2]:.1f}\n"
+                    f"res: {d_spacing:.2f} Angstrom"
+                )
+                labels.append(label)
+            if "miller_index" in self.viewer.points_data and exp_id != -1:
+                for i, hkl in enumerate(
+                    self.viewer.points_data["miller_index"].select(sel)
+                ):
                     labels[i] += f"\nhkl: {hkl}"
 
-        # These labels are displayed on mouseover of the points
-        point_properties = {
-            "label": labels,
-        }
+            # These labels are displayed on mouseover of the points
+            point_properties = {
+                "label": labels,
+            }
 
-        # Add the points layer. Only a single layer for now, with all points
-        points_layer = napari_viewer.add_points(
-            points,
-            properties=point_properties,
-            face_color=colors,
-            size=self.settings.marker_size,
-        )
+            # Add the points layer. Only a single layer for now, with all points
+            napari_viewer.add_points(
+                points,
+                properties=point_properties,
+                face_color=colors,
+                size=self.settings.marker_size,
+                name=f"relps id: {exp_id}",
+            )
+
+            # Add the cell as a shapes layer, if it exists
+            cell = cells.get(exp_id)
+            if cell:
+                napari_viewer.add_shapes(
+                    cell.lines,
+                    shape_type="line",
+                    edge_width=0.1,
+                    edge_color=np.array(cell.colors),
+                    name=f"cell id: {exp_id}",
+                )
 
         # Now add rotation axis. Code extracted from draw_axis
         if self.viewer.minimum_covering_sphere is None:
@@ -110,20 +123,6 @@ class ReciprocalLatticeViewer(Render3d):
             edge_width=0.1,
             edge_color=edge_colors,
             name="axis",
-        )
-
-        # Add reciprocal cells
-        cells, cell_colors = self.viewer.draw_cells()
-        # shapes.extend(cells)
-        # edge_colors.extend(cell_colors)
-
-        edge_colors = np.array(edge_colors)
-        cells_layer = napari_viewer.add_shapes(
-            cells,
-            shape_type="line",
-            edge_width=0.1,
-            edge_color=cell_colors,
-            name="cells",
         )
 
         return
@@ -211,10 +210,11 @@ class RLVWindow:
         self.minimum_covering_sphere = minimum_covering_sphere(self.points.select(isel))
 
     def draw_cells(self):
-        """Create a list of lines corresponding to reciprocal unit cells"""
+        """Create a dictionary mapping experiment id to lists of lines and
+        colours for reciprocal unit cells"""
 
-        lines = []
-        colors = []
+        result = {}
+        CellDrawing = namedtuple("CellDrawing", ["lines", "colors"])
         if self.settings.show_reciprocal_cell:
             # if we don't have one sort of vector we don't have the other either
             vectors = self.recip_latt_vectors
@@ -227,9 +227,11 @@ class RLVWindow:
                         if i not in self.settings.experiment_ids:
                             continue
                     j = (i + 1) % self.palette.size()
-                    colors.extend([self.palette[j]] * 12)
-                    lines.extend(self.cell_edges(axes))
-        return lines, colors
+                    result[i] = CellDrawing(
+                        lines=self.cell_edges(axes), colors=[self.palette[j]] * 12
+                    )
+
+        return result
 
     def cell_edges(self, axes):
         astar, bstar, cstar = axes[0], axes[1], axes[2]
