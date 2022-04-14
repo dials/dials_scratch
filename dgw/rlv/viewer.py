@@ -119,22 +119,22 @@ class ReciprocalLatticeViewer(Render3d):
         s = self.viewer.minimum_covering_sphere
         scale = max(max(s.box_max()), abs(min(s.box_min())))
         axis = self.viewer.rotation_axis
-        line = np.array(
+        axis_line = np.array(
             [[0, 0, 0], [axis[0] * scale, axis[1] * scale, axis[2] * scale]]
         )
 
-        # Struggling to add these shapes individually to separate layers. Let's
-        # just accumulate all shapes and then add them all at once
-        shapes = [line]
-        edge_colors = [(1, 1, 1)]
-
         axis_layer = napari_viewer.add_shapes(
-            shapes,
+            [
+                axis_line,
+            ],
             shape_type="line",
             edge_width=0.1,
-            edge_color=edge_colors,
+            edge_color="white",
             name="axis",
         )
+
+        # Set rotation around the origin
+        napari_viewer.camera.center = (0, 0, 0)
 
         return
 
