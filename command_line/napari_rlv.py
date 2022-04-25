@@ -71,6 +71,9 @@ def run(args=None):
     rlv.load_models(experiments, reflections)
     rlv.add_to_napari(viewer)
 
+    # Hide the layer controls - needs non-public access
+    # viewer.window._qt_viewer.dockLayerControls.setVisible(False)
+
     napari.run()
 
 
