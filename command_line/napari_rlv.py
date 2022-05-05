@@ -60,7 +60,10 @@ def run(args=None):
 
     reflections = reflections[0]
 
-    viewer = napari.Viewer(ndisplay=3)
+    viewer = napari.Viewer(
+        title=os.path.realpath(params.input.reflections[0].filename),
+        ndisplay=3,
+    )
     rlv = ReciprocalLatticeViewer(
         None,
         -1,
