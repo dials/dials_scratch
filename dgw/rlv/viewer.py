@@ -14,6 +14,9 @@ from dxtbx import flumpy
 from collections import namedtuple
 from napari.experimental import link_layers
 
+from magicgui import magicgui
+import napari
+
 phil_scope = libtbx.phil.parse(
     """
 include scope dials.util.reciprocal_lattice.phil_scope
@@ -35,6 +38,14 @@ model_view_matrix = None
 """,
     process_includes=True,
 )
+
+
+@magicgui
+def rlv_settings(viewer: napari.Viewer, marker_size: float):
+    for layer in viewer.layers:
+        if layer.name.startswith("relps"):
+            layer.size[:] = marker_size
+            layer.refresh()
 
 
 class ReciprocalLatticeViewer(Render3d):
@@ -135,6 +146,8 @@ class ReciprocalLatticeViewer(Render3d):
 
         # Set rotation around the origin
         napari_viewer.camera.center = (0, 0, 0)
+
+        napari_viewer.window.add_dock_widget(rlv_settings)
 
         return
 
