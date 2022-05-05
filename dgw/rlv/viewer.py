@@ -40,7 +40,7 @@ model_view_matrix = None
 )
 
 
-@magicgui
+@magicgui(auto_call=True)
 def rlv_settings(viewer: napari.Viewer, marker_size: float):
     for layer in viewer.layers:
         if layer.name.startswith("relps"):
