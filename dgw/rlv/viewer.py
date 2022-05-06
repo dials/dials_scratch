@@ -109,6 +109,7 @@ class ReciprocalLatticeViewer(Render3d):
                 size=self.settings.marker_size,
                 name=f"relps id: {exp_id}",
             )
+            relps_layer.blending = "translucent_no_depth"
 
             # Add the cell as a shapes layer, if it exists
             cell = cells.get(exp_id)
