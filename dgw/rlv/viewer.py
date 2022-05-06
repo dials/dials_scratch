@@ -40,11 +40,13 @@ model_view_matrix = None
 )
 
 
-@magicgui(auto_call=True)
-def rlv_settings(viewer: napari.Viewer, marker_size: float):
+@magicgui(auto_call=True, d_min={"label": "high resolution", "step": 0.05})
+def rlv_settings(viewer: napari.Viewer, marker_size: int, d_min: float):
     for layer in viewer.layers:
         if layer.name.startswith("relps"):
             layer.size[:] = marker_size
+            shown = layer.properties["res"] >= d_min
+            layer.shown = shown
             layer.refresh()
 
 
@@ -151,6 +153,7 @@ class ReciprocalLatticeViewer(Render3d):
         # Add the rlv_settings widget and set values
         napari_viewer.window.add_dock_widget(rlv_settings, name="rlv settings")
         rlv_settings.marker_size.value = self.settings.marker_size
+        rlv_settings.d_min.value = self.settings.d_min
 
         return
 
