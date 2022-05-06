@@ -59,6 +59,8 @@ class Render3d:
             self.settings = settings
         self.goniometer_orig = None
         self.viewer = None
+        # Suitable scale factor to use typical point and edge sizes
+        self._scale_factor = 1000
 
     def load_models(self, experiments, reflections):
         self.experiments = experiments
@@ -86,11 +88,10 @@ class Render3d:
             expt.crystal for expt in self.experiments if expt.crystal is not None
         ]
         if crystals:
-            # the points are scaled by 100 so must do that here too
             vecs = [
                 [
                     matrix.col(l)
-                    for l in (100 * matrix.sqr(c.get_A()))
+                    for l in (self._scale_factor * matrix.sqr(c.get_A()))
                     .transpose()
                     .as_list_of_lists()
                 ]
@@ -100,7 +101,7 @@ class Render3d:
             vecs = [
                 [
                     matrix.col(l)
-                    for l in (100 * matrix.sqr(c.get_B()))
+                    for l in (self._scale_factor * matrix.sqr(c.get_B()))
                     .transpose()
                     .as_list_of_lists()
                 ]
@@ -229,7 +230,7 @@ class Render3d:
                 reflections = reflections.select(p <= self.settings.partiality_max)
             else:
                 self.settings.partiality_max = flex.max(p)
-        points = reflections["rlp"] * 100
+        points = reflections["rlp"] * self._scale_factor
         self.viewer.set_points(points)
         self.viewer.set_points_data(reflections)
         colors = flex.vec3_double(len(points), (1, 1, 1))

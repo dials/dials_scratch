@@ -116,7 +116,7 @@ class ReciprocalLatticeViewer(Render3d):
                 cell_layer = napari_viewer.add_shapes(
                     cell.lines,
                     shape_type="line",
-                    edge_width=0.1,
+                    edge_width=0.5,
                     edge_color=np.array(cell.colors),
                     name=f"cell id: {exp_id}",
                 )
@@ -139,7 +139,7 @@ class ReciprocalLatticeViewer(Render3d):
                 axis_line,
             ],
             shape_type="line",
-            edge_width=0.1,
+            edge_width=0.5,
             edge_color="white",
             name="axis",
         )
@@ -147,7 +147,9 @@ class ReciprocalLatticeViewer(Render3d):
         # Set rotation around the origin
         napari_viewer.camera.center = (0, 0, 0)
 
+        # Add the rlv_settings widget and set values
         napari_viewer.window.add_dock_widget(rlv_settings)
+        rlv_settings.marker_size.value = self.settings.marker_size
 
         return
 
@@ -160,11 +162,15 @@ class ReciprocalLatticeViewer(Render3d):
             max_radius = max(self.reflections["rlp"].norms())
             volume = 4 / 3 * pi * max_radius ** 3
             density = len(self.reflections) / volume
-            # Set marker size to between 0.05 and 0.5 depending on density, where
-            # 1000 < density < 20000 ==> 5 < marker_size < 0.5
-            marker_size = (-0.45 / 19000) * density + (0.05 + 9 / 19)
-            marker_size = max(marker_size, 0.5)
-            marker_size = min(marker_size, 5)
+            # Set marker size depending on relp density, where
+            # 1000 < density < 20000 ==> max_size < marker_size < min_size
+            # XXX this does not take into account narrow wedges!
+            min_size, max_size = 1, 5
+            grad = (max_size - min_size) / (20000 - 1000)
+            intercept = max_size - 1000 * grad
+            marker_size = grad * density + intercept
+            marker_size = max(marker_size, min_size)
+            marker_size = min(marker_size, max_size)
             self.settings.marker_size = marker_size
 
     def set_points(self):
