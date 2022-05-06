@@ -149,7 +149,7 @@ class ReciprocalLatticeViewer(Render3d):
         napari_viewer.camera.center = (0, 0, 0)
 
         # Add the rlv_settings widget and set values
-        napari_viewer.window.add_dock_widget(rlv_settings)
+        napari_viewer.window.add_dock_widget(rlv_settings, name="rlv settings")
         rlv_settings.marker_size.value = self.settings.marker_size
 
         return
