@@ -55,15 +55,30 @@ def rlv_display(
 
 
 class ReciprocalLatticeViewer(Render3d):
-    def __init__(self, parent, id, title, size, settings=None, *args, **kwds):
+    def __init__(self, parent, id, title, size, settings, napari_viewer, *args, **kwds):
         Render3d.__init__(self, settings=settings)
 
         self.viewer = RLVWindow(
             settings=self.settings,
         )
 
-    def add_to_napari(self, napari_viewer):
-        """Add the layers data to a napari viewer"""
+        self.napari_viewer = napari_viewer
+
+    def add_rlv_widgets(self):
+        # Add the rlv_display widget and set values and limits
+        self.napari_viewer.window.add_dock_widget(rlv_display, name="rlv display")
+        rlv_display.marker_size.value = self.settings.marker_size
+        rlv_display.d_min.value = self.settings.d_min
+        rlv_display.d_min.min = self.settings.d_min
+        rlv_display.z_min.value = self.settings.z_min
+        rlv_display.z_min.min = self.settings.z_min
+        rlv_display.z_min.max = self.settings.z_max
+        rlv_display.z_max.value = self.settings.z_max
+        rlv_display.z_max.min = self.settings.z_min
+        rlv_display.z_max.max = self.settings.z_max
+
+    def add_layers(self):
+        """Add the layers data to the napari viewer"""
 
         # Get the reciprocal cells for drawing
         cells = self.viewer.draw_cells()
@@ -108,7 +123,7 @@ class ReciprocalLatticeViewer(Render3d):
             # property values are displayed in the status bar, when the relevant
             # layer is selected
 
-            relps_layer = napari_viewer.add_points(
+            relps_layer = self.napari_viewer.add_points(
                 points,
                 properties=point_properties,
                 face_color=colors,
@@ -120,7 +135,7 @@ class ReciprocalLatticeViewer(Render3d):
             # Add the cell as a shapes layer, if it exists
             cell = cells.get(exp_id)
             if cell:
-                cell_layer = napari_viewer.add_shapes(
+                cell_layer = self.napari_viewer.add_shapes(
                     cell.lines,
                     shape_type="line",
                     edge_width=0.5,
@@ -141,7 +156,7 @@ class ReciprocalLatticeViewer(Render3d):
             [[0, 0, 0], [axis[0] * scale, axis[1] * scale, axis[2] * scale]]
         )
 
-        axis_layer = napari_viewer.add_shapes(
+        axis_layer = self.napari_viewer.add_shapes(
             [
                 axis_line,
             ],
@@ -150,18 +165,6 @@ class ReciprocalLatticeViewer(Render3d):
             edge_color="white",
             name="axis",
         )
-
-        # Add the rlv_display widget and set values and limits
-        napari_viewer.window.add_dock_widget(rlv_display, name="rlv display")
-        rlv_display.marker_size.value = self.settings.marker_size
-        rlv_display.d_min.value = self.settings.d_min
-        rlv_display.d_min.min = self.settings.d_min
-        rlv_display.z_min.value = self.settings.z_min
-        rlv_display.z_min.min = self.settings.z_min
-        rlv_display.z_min.max = self.settings.z_max
-        rlv_display.z_max.value = self.settings.z_max
-        rlv_display.z_max.min = self.settings.z_min
-        rlv_display.z_max.max = self.settings.z_max
 
         return
 

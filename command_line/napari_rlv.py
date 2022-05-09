@@ -60,7 +60,7 @@ def run(args=None):
 
     reflections = reflections[0]
 
-    viewer = napari.Viewer(
+    napari_viewer = napari.Viewer(
         title=os.path.realpath(params.input.reflections[0].filename),
         ndisplay=3,
     )
@@ -70,15 +70,17 @@ def run(args=None):
         os.path.realpath(params.input.reflections[0].filename),
         size=(1024, 768),
         settings=copy.deepcopy(params),
+        napari_viewer=napari_viewer,
     )
     rlv.load_models(experiments, reflections)
-    rlv.add_to_napari(viewer)
+    rlv.add_rlv_widgets()
+    rlv.add_layers()
 
     # Set rotation around the origin
-    viewer.camera.center = (0, 0, 0)
+    napari_viewer.camera.center = (0, 0, 0)
 
     # Hide the layer controls - needs non-public access
-    # viewer.window._qt_viewer.dockLayerControls.setVisible(False)
+    # napari_viewer.window._qt_viewer.dockLayerControls.setVisible(False)
 
     napari.run()
 
