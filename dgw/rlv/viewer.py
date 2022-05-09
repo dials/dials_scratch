@@ -41,7 +41,7 @@ model_view_matrix = None
 
 
 @magicgui(auto_call=True, d_min={"label": "high resolution", "step": 0.05})
-def rlv_settings(
+def rlv_display(
     viewer: napari.Viewer, marker_size: int, d_min: float, z_min: int, z_max: int
 ):
     for layer in viewer.layers:
@@ -154,17 +154,17 @@ class ReciprocalLatticeViewer(Render3d):
         # Set rotation around the origin
         napari_viewer.camera.center = (0, 0, 0)
 
-        # Add the rlv_settings widget and set values and limits
-        napari_viewer.window.add_dock_widget(rlv_settings, name="rlv settings")
-        rlv_settings.marker_size.value = self.settings.marker_size
-        rlv_settings.d_min.value = self.settings.d_min
-        rlv_settings.d_min.min = self.settings.d_min
-        rlv_settings.z_min.value = self.settings.z_min
-        rlv_settings.z_min.min = self.settings.z_min
-        rlv_settings.z_min.max = self.settings.z_max
-        rlv_settings.z_max.value = self.settings.z_max
-        rlv_settings.z_max.min = self.settings.z_min
-        rlv_settings.z_max.max = self.settings.z_max
+        # Add the rlv_display widget and set values and limits
+        napari_viewer.window.add_dock_widget(rlv_display, name="rlv display")
+        rlv_display.marker_size.value = self.settings.marker_size
+        rlv_display.d_min.value = self.settings.d_min
+        rlv_display.d_min.min = self.settings.d_min
+        rlv_display.z_min.value = self.settings.z_min
+        rlv_display.z_min.min = self.settings.z_min
+        rlv_display.z_min.max = self.settings.z_max
+        rlv_display.z_max.value = self.settings.z_max
+        rlv_display.z_max.min = self.settings.z_min
+        rlv_display.z_max.max = self.settings.z_max
 
         return
 
