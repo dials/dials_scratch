@@ -151,9 +151,6 @@ class ReciprocalLatticeViewer(Render3d):
             name="axis",
         )
 
-        # Set rotation around the origin
-        napari_viewer.camera.center = (0, 0, 0)
-
         # Add the rlv_display widget and set values and limits
         napari_viewer.window.add_dock_widget(rlv_display, name="rlv display")
         rlv_display.marker_size.value = self.settings.marker_size
