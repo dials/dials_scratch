@@ -58,7 +58,7 @@ class Render3d:
         else:
             self.settings = settings
         self.goniometer_orig = None
-        self.viewer = None
+        self.rlv_window = None
         # Suitable scale factor to use typical point and edge sizes
         self._scale_factor = 1000
 
@@ -66,10 +66,10 @@ class Render3d:
         self.experiments = experiments
         self.reflections_input = reflections
         if self.experiments[0].goniometer is not None:
-            self.viewer.set_rotation_axis(
+            self.rlv_window.set_rotation_axis(
                 self.experiments[0].goniometer.get_rotation_axis()
             )
-        self.viewer.set_beam_vector(self.experiments[0].beam.get_s0())
+        self.rlv_window.set_beam_vector(self.experiments[0].beam.get_s0())
         if self.settings.beam_centre is None:
             try:
                 (
@@ -97,7 +97,7 @@ class Render3d:
                 ]
                 for c in crystals
             ]
-            self.viewer.set_reciprocal_lattice_vectors(vecs)
+            self.rlv_window.set_reciprocal_lattice_vectors(vecs)
             vecs = [
                 [
                     matrix.col(l)
@@ -107,7 +107,7 @@ class Render3d:
                 ]
                 for c in crystals
             ]
-            self.viewer.set_reciprocal_crystal_vectors(vecs)
+            self.rlv_window.set_reciprocal_crystal_vectors(vecs)
         self.map_points_to_reciprocal_space()
         self.set_points()
 
@@ -231,8 +231,8 @@ class Render3d:
             else:
                 self.settings.partiality_max = flex.max(p)
         points = reflections["rlp"] * self._scale_factor
-        self.viewer.set_points(points)
-        self.viewer.set_points_data(reflections)
+        self.rlv_window.set_points(points)
+        self.rlv_window.set_points_data(reflections)
         colors = flex.vec3_double(len(points), (1, 1, 1))
 
         if len(points):
@@ -256,7 +256,7 @@ class Render3d:
                 for j in range(len(palette)):
                     bkg.append((1, 1, 1))
                 palette = bkg - palette
-            self.viewer.set_palette(palette)
+            self.rlv_window.set_palette(palette)
             n = palette.size() - 1
             if (
                 self.reflections.get_flags(self.reflections.flags.indexed).count(True)
@@ -272,7 +272,7 @@ class Render3d:
                 colors.set_selected(reflections["id"] == -1, palette[0])
                 for i in range(0, flex.max(reflections["id"]) + 1):
                     colors.set_selected(reflections["id"] == i, palette[(i % n) + 1])
-        self.viewer.set_colors(colors)
+        self.rlv_window.set_colors(colors)
 
     def set_beam_centre(self, panel, beam_centre):
         detector = self.experiments[0].detector

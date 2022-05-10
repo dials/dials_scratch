@@ -58,11 +58,22 @@ class ReciprocalLatticeViewer(Render3d):
     def __init__(self, parent, id, title, size, settings, napari_viewer, *args, **kwds):
         Render3d.__init__(self, settings=settings)
 
-        self.viewer = RLVWindow(
+        self.rlv_window = RLVWindow(
             settings=self.settings,
         )
 
         self.napari_viewer = napari_viewer
+
+    @magicgui(auto_call=True)
+    def rlv_geometry(self, invert_rotation_axis: bool):
+
+        # Clear current layers
+        self.napari_viewer.layers.clear()
+
+        # Set values
+        self.settings.reverse_phi = invert_rotation_axis
+
+        self.add_layers()
 
     def add_rlv_widgets(self):
         # Add the rlv_display widget and set values and limits
@@ -77,24 +88,32 @@ class ReciprocalLatticeViewer(Render3d):
         rlv_display.z_max.min = self.settings.z_min
         rlv_display.z_max.max = self.settings.z_max
 
+        # Add the rlv_geometry widget and set values
+        self.napari_viewer.window.add_dock_widget(
+            self.rlv_geometry, name="rlv geometry"
+        )
+        self.rlv_geometry.invert_rotation_axis.value = self.settings.reverse_phi
+
     def add_layers(self):
         """Add the layers data to the napari viewer"""
 
         # Get the reciprocal cells for drawing
-        cells = self.viewer.draw_cells()
+        cells = self.rlv_window.draw_cells()
 
         # Add relps and cell (if present) as points and shapes layers for each id
-        for exp_id in sorted(list(set(self.viewer.points_data["id"])), reverse=True):
-            sel = self.viewer.points_data["id"] == exp_id
+        for exp_id in sorted(
+            list(set(self.rlv_window.points_data["id"])), reverse=True
+        ):
+            sel = self.rlv_window.points_data["id"] == exp_id
 
             # Convert points and colors to numpy arrays
-            points = flumpy.to_numpy(self.viewer.points.select(sel))
-            colors = flumpy.to_numpy(self.viewer.colors.select(sel))
+            points = flumpy.to_numpy(self.rlv_window.points.select(sel))
+            colors = flumpy.to_numpy(self.rlv_window.colors.select(sel))
 
-            id_data = self.viewer.points_data["id"].select(sel)
-            x, y, z = self.viewer.points_data["xyz"].select(sel).parts()
-            panel_data = self.viewer.points_data["panel"].select(sel)
-            d_spacing_data = self.viewer.points_data["d_spacing"].select(sel)
+            id_data = self.rlv_window.points_data["id"].select(sel)
+            x, y, z = self.rlv_window.points_data["xyz"].select(sel).parts()
+            panel_data = self.rlv_window.points_data["panel"].select(sel)
+            d_spacing_data = self.rlv_window.points_data["d_spacing"].select(sel)
             point_properties = {
                 "id": flumpy.to_numpy(id_data),
                 "x": flumpy.to_numpy(x).round(1),
@@ -104,9 +123,9 @@ class ReciprocalLatticeViewer(Render3d):
                 "res": flumpy.to_numpy(d_spacing_data).round(3),
             }
             # text = "id:{} panel:{panel} xyz:{x}{y}{z} res:{res}Å"
-            if "miller_index" in self.viewer.points_data and exp_id != -1:
+            if "miller_index" in self.rlv_window.points_data and exp_id != -1:
                 h, k, l = (
-                    self.viewer.points_data["miller_index"]
+                    self.rlv_window.points_data["miller_index"]
                     .select(sel)
                     .as_vec3_double()
                     .parts()
@@ -147,11 +166,11 @@ class ReciprocalLatticeViewer(Render3d):
                 link_layers([relps_layer, cell_layer], ("visible",))
 
         # Now add rotation axis. Code extracted from draw_axis
-        if self.viewer.minimum_covering_sphere is None:
-            self.viewer.update_minimum_covering_sphere()
-        s = self.viewer.minimum_covering_sphere
+        if self.rlv_window.minimum_covering_sphere is None:
+            self.rlv_window.update_minimum_covering_sphere()
+        s = self.rlv_window.minimum_covering_sphere
         scale = max(max(s.box_max()), abs(min(s.box_min())))
-        axis = self.viewer.rotation_axis
+        axis = self.rlv_window.rotation_axis
         axis_line = np.array(
             [[0, 0, 0], [axis[0] * scale, axis[1] * scale, axis[2] * scale]]
         )
@@ -195,7 +214,7 @@ class ReciprocalLatticeViewer(Render3d):
         self.set_beam_centre(self.settings.beam_centre_panel, self.settings.beam_centre)
         self.map_points_to_reciprocal_space()
         self.set_points()
-        self.viewer.update_settings(*args, **kwds)
+        self.rlv_window.update_settings(*args, **kwds)
 
 
 class RLVWindow:
