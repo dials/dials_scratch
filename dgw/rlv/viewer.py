@@ -65,13 +65,14 @@ class ReciprocalLatticeViewer(Render3d):
         self.napari_viewer = napari_viewer
 
     @magicgui(auto_call=True)
-    def rlv_geometry(self, invert_rotation_axis: bool):
+    def rlv_geometry(self, invert_rotation_axis: bool, crystal_frame: bool):
 
         # Clear current layers
         self.napari_viewer.layers.clear()
 
         # Set values
         self.settings.reverse_phi = invert_rotation_axis
+        self.settings.crystal_frame = crystal_frame
 
         self.add_layers()
 
