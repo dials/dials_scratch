@@ -16,6 +16,7 @@ from napari.experimental import link_layers
 
 from magicgui import magicgui
 import napari
+from enum import Enum
 
 phil_scope = libtbx.phil.parse(
     """
@@ -40,9 +41,20 @@ model_view_matrix = None
 )
 
 
+class OutlierStatus(Enum):
+    all = 0
+    inliers = 1
+    outliers = 2
+
+
 @magicgui(auto_call=True, d_min={"label": "high resolution", "step": 0.05})
 def rlv_display(
-    viewer: napari.Viewer, marker_size: int, d_min: float, z_min: int, z_max: int
+    viewer: napari.Viewer,
+    marker_size: int,
+    d_min: float,
+    z_min: int,
+    z_max: int,
+    outlier_status=OutlierStatus.all,
 ):
     for layer in viewer.layers:
         if layer.name.startswith("relps"):
@@ -50,6 +62,10 @@ def rlv_display(
             shown = layer.properties["res"] >= d_min
             shown = shown & (layer.properties["z"] >= z_min)
             shown = shown & (layer.properties["z"] <= z_max)
+            if outlier_status is OutlierStatus.inliers:
+                shown = shown & ~layer.properties["outlier_status"]
+            elif outlier_status is OutlierStatus.outliers:
+                shown = shown & layer.properties["outlier_status"]
             layer.shown = shown
             layer.refresh()
 
@@ -88,6 +104,10 @@ class ReciprocalLatticeViewer(Render3d):
         rlv_display.z_max.value = self.settings.z_max
         rlv_display.z_max.min = self.settings.z_min
         rlv_display.z_max.max = self.settings.z_max
+        if self.settings.outlier_display == "inliers":
+            rlv_display.outlier_status.value = OutlierStatus.inliers
+        if self.settings.outlier_display == "outliers":
+            rlv_display.outlier_status.value = OutlierStatus.outliers
 
         # Add the rlv_geometry widget and set values
         self.napari_viewer.window.add_dock_widget(
@@ -115,6 +135,14 @@ class ReciprocalLatticeViewer(Render3d):
             x, y, z = self.rlv_window.points_data["xyz"].select(sel).parts()
             panel_data = self.rlv_window.points_data["panel"].select(sel)
             d_spacing_data = self.rlv_window.points_data["d_spacing"].select(sel)
+            outlier_status = self.rlv_window.points_data["outlier_status"].select(sel)
+            unindexed_status = self.rlv_window.points_data["unindexed_status"].select(
+                sel
+            )
+            indexed_status = self.rlv_window.points_data["indexed_status"].select(sel)
+            integrated_status = self.rlv_window.points_data["integrated_status"].select(
+                sel
+            )
             point_properties = {
                 "id": flumpy.to_numpy(id_data),
                 "x": flumpy.to_numpy(x).round(1),
@@ -122,6 +150,10 @@ class ReciprocalLatticeViewer(Render3d):
                 "z": flumpy.to_numpy(z).round(1),
                 "panel": flumpy.to_numpy(panel_data),
                 "res": flumpy.to_numpy(d_spacing_data).round(3),
+                "outlier_status": flumpy.to_numpy(outlier_status),
+                "unindexed_status": flumpy.to_numpy(unindexed_status),
+                "indexed_status": flumpy.to_numpy(indexed_status),
+                "integrated_status": flumpy.to_numpy(integrated_status),
             }
             # text = "id:{} panel:{panel} xyz:{x}{y}{z} res:{res}Å"
             if "miller_index" in self.rlv_window.points_data and exp_id != -1:
@@ -246,6 +278,11 @@ class RLVWindow:
             "id": reflections["id"],
             "xyz": reflections["xyzobs.px.value"],
             "d_spacing": 1 / dstar,
+            "outlier_status": reflections.get_flags(reflections.flags.centroid_outlier),
+            "unindexed_status": reflections.get_flags(reflections.flags.strong)
+            & ~reflections.get_flags(reflections.flags.indexed),
+            "indexed_status": reflections.get_flags(reflections.flags.indexed),
+            "integrated_status": reflections.get_flags(reflections.flags.integrated),
         }
         if "miller_index" in reflections:
             self.points_data["miller_index"] = reflections["miller_index"]
