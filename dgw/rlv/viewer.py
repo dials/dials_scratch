@@ -47,6 +47,13 @@ class OutlierStatus(Enum):
     outliers = 2
 
 
+class ReflectionStatus(Enum):
+    all = 0
+    unindexed = 1
+    indexed = 2
+    integrated = 3
+
+
 @magicgui(auto_call=True, d_min={"label": "high resolution", "step": 0.05})
 def rlv_display(
     viewer: napari.Viewer,
@@ -55,6 +62,7 @@ def rlv_display(
     z_min: int,
     z_max: int,
     outlier_status=OutlierStatus.all,
+    reflection_status=ReflectionStatus.all,
 ):
     for layer in viewer.layers:
         if layer.name.startswith("relps"):
@@ -66,6 +74,12 @@ def rlv_display(
                 shown = shown & ~layer.properties["outlier_status"]
             elif outlier_status is OutlierStatus.outliers:
                 shown = shown & layer.properties["outlier_status"]
+            if reflection_status is ReflectionStatus.unindexed:
+                shown = shown & layer.properties["unindexed_status"]
+            if reflection_status is ReflectionStatus.indexed:
+                shown = shown & layer.properties["indexed_status"]
+            if reflection_status is ReflectionStatus.integrated:
+                shown = shown & layer.properties["integrated_status"]
             layer.shown = shown
             layer.refresh()
 
