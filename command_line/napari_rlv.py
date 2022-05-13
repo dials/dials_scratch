@@ -79,6 +79,9 @@ def run(args=None):
     # Set rotation around the origin
     napari_viewer.camera.center = (0, 0, 0)
 
+    # Make the last-added relps layer active rather than the rotation axis
+    napari_viewer.layers.selection.active = napari_viewer.layers[0]
+
     # Hide the layer controls - needs non-public access
     # napari_viewer.window._qt_viewer.dockLayerControls.setVisible(False)
 

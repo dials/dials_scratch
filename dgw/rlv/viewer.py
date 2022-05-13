@@ -15,6 +15,7 @@ from collections import namedtuple
 from napari.experimental import link_layers
 
 from magicgui import magicgui
+from magicgui.widgets import Label, Container
 import napari
 from enum import Enum
 
@@ -128,6 +129,16 @@ class ReciprocalLatticeViewer(Render3d):
             self.rlv_geometry, name="rlv geometry"
         )
         self.rlv_geometry.invert_rotation_axis.value = self.settings.reverse_phi
+        self.rlv_geometry.crystal_frame.value = self.settings.crystal_frame
+
+        # Add the relp status display
+        self.relp_status = Label(value="")
+        container = Container(
+            widgets=[
+                self.relp_status,
+            ]
+        )
+        self.napari_viewer.window.add_dock_widget(container, name="relp status")
 
     def add_layers(self):
         """Add the layers data to the napari viewer"""
@@ -197,6 +208,35 @@ class ReciprocalLatticeViewer(Render3d):
                 name=f"relps id: {exp_id}",
             )
             relps_layer.blending = "translucent_no_depth"
+
+            @relps_layer.mouse_drag_callbacks.append
+            def show_point_info(layer, event):
+                point_index = layer.get_value(
+                    position=event.position,
+                    view_direction=event.view_direction,
+                    dims_displayed=event.dims_displayed,
+                    world=True,
+                )
+                msg = [f"Active layer: {layer.name}"]
+                if point_index is not None:
+                    x = layer.properties["x"][point_index]
+                    y = layer.properties["y"][point_index]
+                    z = layer.properties["z"][point_index]
+                    h = layer.properties["h"][point_index]
+                    k = layer.properties["k"][point_index]
+                    l = layer.properties["l"][point_index]
+                    outlier = layer.properties["outlier_status"][point_index]
+                    panel = layer.properties["panel"][point_index]
+                    d_min = layer.properties["res"][point_index]
+
+                    msg.append(f"panel: {panel}")
+                    msg.append(f"xyz: {x:.1f} {y:.1f} {z:.1f}")
+                    msg.append(f"res: {d_min:.2f} Å")
+                    msg.append(f"outlier: {outlier}")
+                    if layer.properties["indexed_status"][point_index]:
+                        msg.append(f"hkl: ({h} {k} {l})")
+                    msg = "\n".join(msg)
+                    self.relp_status.value = msg
 
             # Add the cell as a shapes layer, if it exists
             cell = cells.get(exp_id)
