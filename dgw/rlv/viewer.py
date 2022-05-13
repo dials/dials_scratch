@@ -207,7 +207,7 @@ class ReciprocalLatticeViewer(Render3d):
                 size=self.settings.marker_size,
                 name=f"relps id: {exp_id}",
             )
-            relps_layer.blending = "translucent_no_depth"
+            relps_layer.blending = "opaque"
 
             @relps_layer.mouse_drag_callbacks.append
             def show_point_info(layer, event):
