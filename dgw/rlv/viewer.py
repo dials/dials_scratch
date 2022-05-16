@@ -126,6 +126,7 @@ class ReciprocalLatticeViewer(Render3d):
             rlv_display.outlier_status.value = OutlierStatus.inliers
         if self.settings.outlier_display == "outliers":
             rlv_display.outlier_status.value = OutlierStatus.outliers
+        rlv_display.max_height = 400  # not ideal workaround https://forum.image.sc/t/magicgui-widget-spacing/66954/3?u=dagewa
 
         # Add the rlv_geometry widget and set values
         self.napari_viewer.window.add_dock_widget(
