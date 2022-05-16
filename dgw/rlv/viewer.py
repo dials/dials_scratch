@@ -94,18 +94,21 @@ class ReciprocalLatticeViewer(Render3d):
         )
 
         self.napari_viewer = napari_viewer
+        self._rlv_layers = {}
 
     @magicgui(auto_call=True)
     def rlv_geometry(self, invert_rotation_axis: bool, crystal_frame: bool):
 
         # Clear current layers
-        self.napari_viewer.layers.clear()
+        # self.napari_viewer.layers.clear()
 
         # Set values
         self.settings.reverse_phi = invert_rotation_axis
         self.settings.crystal_frame = crystal_frame
 
-        self.add_layers()
+        self.update_settings()
+
+        self.update_layers()
 
     def add_rlv_widgets(self):
         # Add the rlv_display widget and set values and limits
@@ -140,8 +143,8 @@ class ReciprocalLatticeViewer(Render3d):
         )
         self.napari_viewer.window.add_dock_widget(container, name="relp status")
 
-    def add_layers(self):
-        """Add the layers data to the napari viewer"""
+    def update_layers(self):
+        """Add or update the layers data"""
 
         # Get the reciprocal cells for drawing
         cells = self.rlv_window.draw_cells()
@@ -200,54 +203,74 @@ class ReciprocalLatticeViewer(Render3d):
             # property values are displayed in the status bar, when the relevant
             # layer is selected
 
-            relps_layer = self.napari_viewer.add_points(
-                points,
-                properties=point_properties,
-                face_color=colors,
-                size=self.settings.marker_size,
-                name=f"relps id: {exp_id}",
-            )
-            relps_layer.blending = "opaque"
-
-            @relps_layer.mouse_drag_callbacks.append
-            def show_point_info(layer, event):
-                point_index = layer.get_value(
-                    position=event.position,
-                    view_direction=event.view_direction,
-                    dims_displayed=event.dims_displayed,
-                    world=True,
+            layer_name = f"relps id: {exp_id}"
+            if layer_name in self._rlv_layers:
+                # Update existing layer
+                relps_layer = self._rlv_layers[layer_name]
+                relps_layer.data = points
+                relps_layer.properties = point_properties
+                relps_layer.refresh()
+            else:
+                # Add new layer
+                relps_layer = self.napari_viewer.add_points(
+                    points,
+                    properties=point_properties,
+                    face_color=colors,
+                    size=self.settings.marker_size,
+                    name=layer_name,
                 )
-                msg = [f"Active layer: {layer.name}"]
-                if point_index is not None:
-                    x = layer.properties["x"][point_index]
-                    y = layer.properties["y"][point_index]
-                    z = layer.properties["z"][point_index]
-                    h = layer.properties["h"][point_index]
-                    k = layer.properties["k"][point_index]
-                    l = layer.properties["l"][point_index]
-                    outlier = layer.properties["outlier_status"][point_index]
-                    panel = layer.properties["panel"][point_index]
-                    d_min = layer.properties["res"][point_index]
+                relps_layer.blending = "opaque"
+                self._rlv_layers[layer_name] = relps_layer
 
-                    msg.append(f"panel: {panel}")
-                    msg.append(f"xyz: {x:.1f} {y:.1f} {z:.1f}")
-                    msg.append(f"res: {d_min:.2f} Å")
-                    msg.append(f"outlier: {outlier}")
-                    if layer.properties["indexed_status"][point_index]:
-                        msg.append(f"hkl: ({h} {k} {l})")
-                    msg = "\n".join(msg)
-                    self.relp_status.value = msg
+                @relps_layer.mouse_drag_callbacks.append
+                def show_point_info(layer, event):
+                    point_index = layer.get_value(
+                        position=event.position,
+                        view_direction=event.view_direction,
+                        dims_displayed=event.dims_displayed,
+                        world=True,
+                    )
+                    msg = [f"Active layer: {layer.name}"]
+                    if point_index is not None:
+                        x = layer.properties["x"][point_index]
+                        y = layer.properties["y"][point_index]
+                        z = layer.properties["z"][point_index]
+                        h = layer.properties["h"][point_index]
+                        k = layer.properties["k"][point_index]
+                        l = layer.properties["l"][point_index]
+                        outlier = layer.properties["outlier_status"][point_index]
+                        panel = layer.properties["panel"][point_index]
+                        d_min = layer.properties["res"][point_index]
+
+                        msg.append(f"panel: {panel}")
+                        msg.append(f"xyz: {x:.1f} {y:.1f} {z:.1f}")
+                        msg.append(f"res: {d_min:.2f} Å")
+                        msg.append(f"outlier: {outlier}")
+                        if layer.properties["indexed_status"][point_index]:
+                            msg.append(f"hkl: ({h} {k} {l})")
+                        msg = "\n".join(msg)
+                        self.relp_status.value = msg
 
             # Add the cell as a shapes layer, if it exists
             cell = cells.get(exp_id)
             if cell:
-                cell_layer = self.napari_viewer.add_shapes(
-                    cell.lines,
-                    shape_type="line",
-                    edge_width=0.5,
-                    edge_color=np.array(cell.colors),
-                    name=f"cell id: {exp_id}",
-                )
+                layer_name = f"cell id: {exp_id}"
+                if layer_name in self._rlv_layers:
+                    # Update existing layer
+                    cell_layer = self._rlv_layers[layer_name]
+                    # Currently update is disabled due to a bug: https://github.com/napari/napari/issues/4527
+                    # cell_layer.data = cell.lines
+                    cell_layer.refresh()
+                else:
+                    # Create new layer
+                    cell_layer = self.napari_viewer.add_shapes(
+                        cell.lines,
+                        shape_type="line",
+                        edge_width=0.5,
+                        edge_color=np.array(cell.colors),
+                        name=layer_name,
+                    )
+                    self._rlv_layers[layer_name] = cell_layer
 
                 # Link the visibility of the relps and cell layer
                 link_layers([relps_layer, cell_layer], ("visible",))
@@ -262,15 +285,24 @@ class ReciprocalLatticeViewer(Render3d):
             [[0, 0, 0], [axis[0] * scale, axis[1] * scale, axis[2] * scale]]
         )
 
-        axis_layer = self.napari_viewer.add_shapes(
-            [
-                axis_line,
-            ],
-            shape_type="line",
-            edge_width=0.5,
-            edge_color="white",
-            name="axis",
-        )
+        if "axis" in self._rlv_layers:
+            # Update existing layer
+            axis_layer = self._rlv_layers["axis"]
+            for a, b in zip(axis_layer.data, axis_line):
+                a = b
+            axis_layer.refresh()
+        else:
+            # Create new layer
+            axis_layer = self.napari_viewer.add_shapes(
+                [
+                    axis_line,
+                ],
+                shape_type="line",
+                edge_width=0.5,
+                edge_color="white",
+                name="axis",
+            )
+            self._rlv_layers["axis"] = axis_layer
 
         return
 
@@ -301,7 +333,7 @@ class ReciprocalLatticeViewer(Render3d):
         self.set_beam_centre(self.settings.beam_centre_panel, self.settings.beam_centre)
         self.map_points_to_reciprocal_space()
         self.set_points()
-        self.rlv_window.update_settings(*args, **kwds)
+        # self.rlv_window.update_settings(*args, **kwds)
 
 
 class RLVWindow:

@@ -74,7 +74,7 @@ def run(args=None):
     )
     rlv.load_models(experiments, reflections)
     rlv.add_rlv_widgets()
-    rlv.add_layers()
+    rlv.update_layers()
 
     # Set rotation around the origin
     napari_viewer.camera.center = (0, 0, 0)
