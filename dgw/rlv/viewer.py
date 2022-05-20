@@ -8,6 +8,7 @@ import libtbx.phil
 from libtbx import Auto
 from scitbx.array_family import flex
 from scitbx.math import minimum_covering_sphere
+from scitbx import matrix
 
 from dials_scratch.dgw.rlv import Render3d
 from dxtbx import flumpy
@@ -160,6 +161,10 @@ class ReciprocalLatticeViewer(Render3d):
             points = flumpy.to_numpy(self.rlv_window.points.select(sel))
             colors = flumpy.to_numpy(self.rlv_window.colors.select(sel))
 
+            # Napari uses a left-handed coordinate system, so invert Z
+            # https://forum.image.sc/t/3d-view-coordinate-system-is-left-handed/66995
+            points[:, 2] *= -1
+
             id_data = self.rlv_window.points_data["id"].select(sel)
             x, y, z = self.rlv_window.points_data["xyz"].select(sel).parts()
             panel_data = self.rlv_window.points_data["panel"].select(sel)
@@ -282,8 +287,9 @@ class ReciprocalLatticeViewer(Render3d):
         s = self.rlv_window.minimum_covering_sphere
         scale = max(max(s.box_max()), abs(min(s.box_min())))
         axis = self.rlv_window.rotation_axis
+        # Calculate line, taking into account Napari's left-handed coordinate system
         axis_line = np.array(
-            [[0, 0, 0], [axis[0] * scale, axis[1] * scale, axis[2] * scale]]
+            [[0, 0, 0], [axis[0] * scale, axis[1] * scale, -1 * axis[2] * scale]]
         )
 
         if "axis" in self._rlv_layers:
@@ -424,6 +430,13 @@ class RLVWindow:
 
     def cell_edges(self, axes):
         astar, bstar, cstar = axes[0], axes[1], axes[2]
+
+        # Invert Z to account for napari's LH coordinate system
+        M = matrix.sqr((1, 0, 0, 0, 1, 0, 0, 0, -1))
+        astar = M * astar
+        bstar = M * bstar
+        cstar = M * cstar
+
         farpoint = astar + bstar + cstar
 
         lines = [
