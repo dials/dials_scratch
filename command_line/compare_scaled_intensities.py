@@ -1,3 +1,4 @@
+import time
 import math
 import argparse
 
@@ -109,6 +110,8 @@ def matcher(d0, d1):
     n0 = merged["n0"].to_numpy()
     n1 = merged["n1"].to_numpy()
 
+    # print(d0.size(), d1.size())
+
     d0 = d0.select(flex.size_t(n0))
     d1 = d1.select(flex.size_t(n1))
 
@@ -167,6 +170,32 @@ def compare(data, wdir):
     plt.savefig(wdir / f"CC_intensities")
     plt.close()
 
+    # Plot CC one reflection at a time
+    # Tot number of subplots
+    Ntot = len(CC_I)
+    Cols = 1
+    Rows = Ntot // Cols
+    Rows += Ntot % Cols
+
+    Position = range(1, Ntot + 1)
+    fig = plt.figure(figsize=[20, 18])
+    fig.tight_layout()
+    # fig = plt.figure(dpi=300.)
+    fig.suptitle("Intensity correlation coefficient per reflection")
+    for n, cc in enumerate(CC_I):
+        ax = fig.add_subplot(Rows, Cols, Position[n])
+        ax.plot(cc, "o")
+        ax.set_title(f"Reflection {n}", size=8)
+        # ax.set_xlabel(f"refl {n}")
+        # ax.set_ylabel("cc")
+    plt.savefig(wdir / "CC_intensities_singles", orientation="landscape")
+    plt.close()
+
+    # for n,cc in enumerate(CC_I):
+    #    plt.plot(cc, "--", label=f"Refl {n+1}")
+    # plt.legend(loc=0)
+    # plt.show()
+
     # Save results to a file
     df = pd.DataFrame(tab)
     with open(wdir / f"Comparison_results.txt", "w") as f:
@@ -175,6 +204,7 @@ def compare(data, wdir):
 
 
 if __name__ == "__main__":
+    tic = time.process_time()
     args = parser.parse_args()
     data = [flex.reflection_table.from_file(arg) for arg in args.refl_files]
     data = [d.select(d.get_flags(d.flags.scaled)) for d in data]
@@ -186,3 +216,5 @@ if __name__ == "__main__":
         wdir = Path(".").expanduser().resolve()
 
     compare(data, wdir)
+    toc = time.process_time()
+    print(f"Time taken: {toc-tic:.4f} s.")
