@@ -6,12 +6,15 @@ from __future__ import annotations
 
 import copy
 import os
+import sys
 
 from scitbx.array_family import flex
 
 import dials.util.log
 from dials.util.options import ArgumentParser, reflections_and_experiments_from_files
 from dials_scratch.dgw.rlv.viewer import ReciprocalLatticeViewer, phil_scope
+
+from packaging import version
 
 try:
     import napari
@@ -90,5 +93,8 @@ def run(args=None):
 
 if __name__ == "__main__":
     if not napari:
+        sys.exit("Please install napari")
+    if version.parse(napari.__version__) < version.parse("0.4.16"):
         sys.exit("Please install napari >= 0.4.16")
+
     run()
