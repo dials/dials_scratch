@@ -267,8 +267,7 @@ class ReciprocalLatticeViewer(Render3d):
                 if layer_name in self._rlv_layers:
                     # Update existing layer
                     cell_layer = self._rlv_layers[layer_name]
-                    # Currently update is disabled due to a bug: https://github.com/napari/napari/issues/4527
-                    # cell_layer.data = cell.lines
+                    cell_layer.data = cell.lines
                     cell_layer.refresh()
                 else:
                     # Create new layer
