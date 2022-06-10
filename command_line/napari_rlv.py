@@ -7,13 +7,16 @@ from __future__ import annotations
 import copy
 import os
 
-import napari
-
 from scitbx.array_family import flex
 
 import dials.util.log
 from dials.util.options import ArgumentParser, reflections_and_experiments_from_files
 from dials_scratch.dgw.rlv.viewer import ReciprocalLatticeViewer, phil_scope
+
+try:
+    import napari
+except ImportError:
+    napari = None
 
 help_message = """
 Visualise the strong spots from spotfinding in reciprocal space.
@@ -89,4 +92,6 @@ def run(args=None):
 
 
 if __name__ == "__main__":
+    if not napari:
+        sys.exit("Please install napari >= 0.4.16")
     run()
