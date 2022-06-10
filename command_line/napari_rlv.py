@@ -85,9 +85,6 @@ def run(args=None):
     # Make the last-added relps layer active rather than the rotation axis
     napari_viewer.layers.selection.active = napari_viewer.layers[0]
 
-    # Hide the layer controls - needs non-public access
-    # napari_viewer.window._qt_viewer.dockLayerControls.setVisible(False)
-
     napari.run()
 
 

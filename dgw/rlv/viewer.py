@@ -100,9 +100,6 @@ class ReciprocalLatticeViewer(Render3d):
     @magicgui(auto_call=True)
     def rlv_geometry(self, invert_rotation_axis: bool, crystal_frame: bool):
 
-        # Clear current layers
-        # self.napari_viewer.layers.clear()
-
         # Set values
         self.settings.reverse_phi = invert_rotation_axis
         self.settings.crystal_frame = crystal_frame
@@ -192,7 +189,7 @@ class ReciprocalLatticeViewer(Render3d):
                 "indexed_status": flumpy.to_numpy(indexed_status),
                 "integrated_status": flumpy.to_numpy(integrated_status),
             }
-            # text = "id:{} panel:{panel} xyz:{x}{y}{z} res:{res}Å"
+
             if "miller_index" in self.rlv_window.points_data and exp_id != -1:
                 h, k, l = (
                     self.rlv_window.points_data["miller_index"]
@@ -206,11 +203,6 @@ class ReciprocalLatticeViewer(Render3d):
                 point_properties["h"] = flumpy.to_numpy(h)
                 point_properties["k"] = flumpy.to_numpy(k)
                 point_properties["l"] = flumpy.to_numpy(l)
-            #    text += " hkl:{hkl}"
-            # Currently not adding the text= to the points as this displays for
-            # *every* point. Need a mouseover or tooltip instead. However, the
-            # property values are displayed in the status bar, when the relevant
-            # layer is selected
 
             layer_name = f"relps id: {exp_id}"
             if layer_name in self._rlv_layers:
@@ -342,7 +334,6 @@ class ReciprocalLatticeViewer(Render3d):
         self.set_beam_centre(self.settings.beam_centre_panel, self.settings.beam_centre)
         self.map_points_to_reciprocal_space()
         self.set_points()
-        # self.rlv_window.update_settings(*args, **kwds)
 
 
 class RLVWindow:
