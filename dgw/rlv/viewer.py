@@ -221,6 +221,9 @@ class ReciprocalLatticeViewer(Render3d):
                     name=layer_name,
                 )
                 relps_layer.blending = "opaque"
+                # https://forum.image.sc/t/adjusting-depth-fading/68181/3
+                relps_layer.experimental_canvas_size_limits = [20, 10000]
+
                 self._rlv_layers[layer_name] = relps_layer
 
                 @relps_layer.mouse_drag_callbacks.append
