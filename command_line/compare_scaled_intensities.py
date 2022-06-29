@@ -170,32 +170,6 @@ def compare(data, wdir):
     plt.savefig(wdir / f"CC_intensities")
     plt.close()
 
-    # Plot CC one reflection at a time
-    # Tot number of subplots
-    Ntot = len(CC_I)
-    Cols = 1
-    Rows = Ntot // Cols
-    Rows += Ntot % Cols
-
-    Position = range(1, Ntot + 1)
-    fig = plt.figure(figsize=[20, 18])
-    fig.tight_layout()
-    # fig = plt.figure(dpi=300.)
-    fig.suptitle("Intensity correlation coefficient per reflection")
-    for n, cc in enumerate(CC_I):
-        ax = fig.add_subplot(Rows, Cols, Position[n])
-        ax.plot(cc, "o")
-        ax.set_title(f"Reflection {n}", size=8)
-        # ax.set_xlabel(f"refl {n}")
-        # ax.set_ylabel("cc")
-    plt.savefig(wdir / "CC_intensities_singles", orientation="landscape")
-    plt.close()
-
-    # for n,cc in enumerate(CC_I):
-    #    plt.plot(cc, "--", label=f"Refl {n+1}")
-    # plt.legend(loc=0)
-    # plt.show()
-
     # Save results to a file
     df = pd.DataFrame(tab)
     with open(wdir / f"Comparison_results.txt", "w") as f:
