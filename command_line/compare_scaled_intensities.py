@@ -83,6 +83,11 @@ def paired_T_test(x1, x2, alpha=0.05):
 def matcher(d0, d1):
     """Return the reflections which are common to d0, d1 in a common order"""
 
+    d0 = d0.select(d0["partiality"] > 0.99)
+    d1 = d1.select(d1["partiality"] > 0.99)
+
+    id0 = d0["id"].as_numpy_array()
+
     hkl = d0["miller_index"].as_vec3_double().parts()
     h0 = hkl[0].iround().as_numpy_array()
     k0 = hkl[1].iround().as_numpy_array()
@@ -90,9 +95,11 @@ def matcher(d0, d1):
     e0 = d0["entering"].as_numpy_array()
     n0 = np.array(range(len(e0)))
 
-    x0 = {"h": h0, "k": k0, "l": l0, "e": e0, "n0": n0}
+    x0 = {"h": h0, "k": k0, "l": l0, "e": e0, "id": id0, "n0": n0}
 
-    p0 = pd.DataFrame(data=x0, columns=["h", "k", "l", "e", "n0"])
+    p0 = pd.DataFrame(data=x0, columns=["h", "k", "l", "e", "id", "n0"])
+
+    id1 = d1["id"].as_numpy_array()
 
     hkl = d1["miller_index"].as_vec3_double().parts()
     h1 = hkl[0].iround().as_numpy_array()
@@ -101,11 +108,11 @@ def matcher(d0, d1):
     e1 = d1["entering"].as_numpy_array()
     n1 = np.array(range(len(e1)))
 
-    x1 = {"h": h1, "k": k1, "l": l1, "e": e1, "n1": n1}
+    x1 = {"h": h1, "k": k1, "l": l1, "e": e1, "id": id1, "n1": n1}
 
-    p1 = pd.DataFrame(data=x1, columns=["h", "k", "l", "e", "n1"])
+    p1 = pd.DataFrame(data=x1, columns=["h", "k", "l", "e", "id", "n1"])
 
-    merged = pd.merge(p0, p1, on=["h", "k", "l", "e"], how="inner")
+    merged = pd.merge(p0, p1, on=["h", "k", "l", "e", "id"], how="inner")
 
     n0 = merged["n0"].to_numpy()
     n1 = merged["n1"].to_numpy()
