@@ -34,7 +34,9 @@ def normal_probability_plot(x1, x2, v1, v2, filename):
     k = sum(x1 * x2) / sum(x2 ** 2)
     n = x1.size()
     dm_real = (x1 - k * x2) / flex.sqrt(v1 + k ** 2 * v2)
-    dm_real_sorted = np.sort(dm_real.as_numpy_array())
+    dm_idx = np.argsort(dm_real.as_numpy_array())
+    dm_real_sorted = dm_real.as_numpy_array()[dm_idx]
+    # dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
     res = probplot(dm_real_sorted, plot=plt)
     plt.text(-4, 14, f"slope = {res[1][0]:.3f}")
@@ -42,7 +44,7 @@ def normal_probability_plot(x1, x2, v1, v2, filename):
     if filename:
         plt.savefig(filename)
     plt.close()
-    return res[1]
+    return res, dm_idx
 
 
 # Paired T-test, 2-tailed, default confidence interval 5%
@@ -157,7 +159,7 @@ def compare(data, wdir):
             # Paired T-test
             p_val = paired_T_test(i1, i2)
             # Normal Probability Plot
-            npp = normal_probability_plot(
+            npp, idx = normal_probability_plot(
                 i1, i2, s1, s2, wdir / f"compare_refl{a}_and_{b}"
             )
             tab.append(
@@ -165,11 +167,28 @@ def compare(data, wdir):
                     "refl1": a,
                     "refl2": b,
                     "Correlation Coefficient": I,
-                    "Normal Probability Plot [slope, intercept]": [npp[0], npp[1]],
+                    "Normal Probability Plot [slope, intercept]": [
+                        npp[1][0],
+                        npp[1][1],
+                    ],
                     "Paired T-test [p-value]": p_val,
                     "Number of matched reflections": i1.size(),
                 }
             )
+
+            # Create a dataframe with the data
+            x = {
+                "refl1": a,
+                "refl2": b,
+                "I1": i1.as_numpy_array(),
+                "I2": i2.as_numpy_array(),
+                "index": idx,
+                "observations": npp[0][1],
+                "quantiles": npp[0][0],
+            }
+            DF = pd.DataFrame(data=x)
+        print(f"{a}, {b}, {DF.shape}")
+
     # Plot and save CC
     plt.title("Intensity correlation coefficient")
     plt.imshow(CC_I)
