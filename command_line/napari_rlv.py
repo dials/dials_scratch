@@ -94,7 +94,7 @@ def run(args=None):
 if __name__ == "__main__":
     if not napari:
         sys.exit("Please install napari")
-    if version.parse(napari.__version__) < version.parse("0.4.16"):
+    if version.parse(napari.__version__) <= version.parse("0.4.15"):
         sys.exit("Please install napari >= 0.4.16")
 
     run()
