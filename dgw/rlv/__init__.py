@@ -60,7 +60,7 @@ class Render3d:
         self.goniometer_orig = None
         self.rlv_window = None
         # Suitable scale factor to use typical point and edge sizes
-        self._scale_factor = 1000
+        self._scale_factor = 5000
 
     def load_models(self, experiments, reflections):
         self.experiments = experiments
