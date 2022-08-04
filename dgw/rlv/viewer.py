@@ -222,7 +222,12 @@ class ReciprocalLatticeViewer(Render3d):
                 )
                 relps_layer.blending = "opaque"
                 # https://forum.image.sc/t/adjusting-depth-fading/68181/4
-                relps_layer._antialias = 0.3
+                try:
+                    # Remove except block when this fix is released
+                    # https://github.com/napari/napari/issues/4683
+                    relps_layer.antialiasing = 0.3
+                except AttributeError:
+                    relps_layer._antialias = 0.3
 
                 self._rlv_layers[layer_name] = relps_layer
 
