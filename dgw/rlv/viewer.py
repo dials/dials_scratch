@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math import pi
+from math import pi, floor, ceil
 import numpy as np
 
 import libtbx.phil
@@ -114,12 +114,12 @@ class ReciprocalLatticeViewer(Render3d):
         rlv_display.marker_size.value = self.settings.marker_size
         rlv_display.d_min.value = self.settings.d_min
         rlv_display.d_min.min = self.settings.d_min
+        rlv_display.z_min.min = floor(self.settings.z_min)
+        rlv_display.z_min.max = ceil(self.settings.z_max)
         rlv_display.z_min.value = self.settings.z_min
-        rlv_display.z_min.min = self.settings.z_min
-        rlv_display.z_min.max = self.settings.z_max
+        rlv_display.z_max.min = floor(self.settings.z_min)
+        rlv_display.z_max.max = ceil(self.settings.z_max)
         rlv_display.z_max.value = self.settings.z_max
-        rlv_display.z_max.min = self.settings.z_min
-        rlv_display.z_max.max = self.settings.z_max
         if self.settings.outlier_display == "inliers":
             rlv_display.outlier_status.value = OutlierStatus.inliers
         if self.settings.outlier_display == "outliers":
