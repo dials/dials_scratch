@@ -221,6 +221,10 @@ class ReciprocalLatticeViewer(Render3d):
                     name=layer_name,
                 )
                 relps_layer.blending = "opaque"
+                try:
+                    relps_layer.canvas_size_limits = (2, 100)
+                except AttributeError:
+                    pass
                 # https://forum.image.sc/t/adjusting-depth-fading/68181/4
                 try:
                     # Remove except block when this fix is released
@@ -274,7 +278,7 @@ class ReciprocalLatticeViewer(Render3d):
                     cell_layer = self.napari_viewer.add_shapes(
                         cell.lines,
                         shape_type="line",
-                        edge_width=0.5,
+                        edge_width=2,
                         edge_color=np.array(cell.colors),
                         name=layer_name,
                     )
@@ -307,7 +311,7 @@ class ReciprocalLatticeViewer(Render3d):
                     axis_line,
                 ],
                 shape_type="line",
-                edge_width=0.5,
+                edge_width=2,
                 edge_color="white",
                 name="axis",
             )
@@ -327,7 +331,7 @@ class ReciprocalLatticeViewer(Render3d):
             # Set marker size depending on relp density, where
             # 1000 < density < 20000 ==> max_size < marker_size < min_size
             # XXX this does not take into account narrow wedges!
-            min_size, max_size = 1, 5
+            min_size, max_size = 1, 10
             grad = (max_size - min_size) / (20000 - 1000)
             intercept = max_size - 1000 * grad
             marker_size = grad * density + intercept
