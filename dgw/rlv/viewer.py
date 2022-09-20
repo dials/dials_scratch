@@ -287,17 +287,19 @@ class ReciprocalLatticeViewer(Render3d):
                 # Link the visibility of the relps and cell layer
                 link_layers([relps_layer, cell_layer], ("visible",))
 
-        # Now add rotation axis. Code extracted from draw_axis
+        # Determine suitable scale factor for lines. Code extracted from draw_axis
         if self.rlv_window.minimum_covering_sphere is None:
             self.rlv_window.update_minimum_covering_sphere()
         s = self.rlv_window.minimum_covering_sphere
         scale = max(max(s.box_max()), abs(min(s.box_min())))
+
+        # Calculate rotation axis line, taking into account Napari's left-handed coordinate system
         axis = self.rlv_window.rotation_axis
-        # Calculate line, taking into account Napari's left-handed coordinate system
         axis_line = np.array(
             [[0, 0, 0], [axis[0] * scale, axis[1] * scale, -1 * axis[2] * scale]]
         )
 
+        # Draw the rotation axis
         if "axis" in self._rlv_layers:
             # Update existing layer
             axis_layer = self._rlv_layers["axis"]
@@ -316,6 +318,39 @@ class ReciprocalLatticeViewer(Render3d):
                 name="axis",
             )
             self._rlv_layers["axis"] = axis_layer
+
+        # Calculate the beam vector line, taking into account Napari's left-handed coordinate system
+        beam_vector = self.rlv_window.beam_vector
+        beam_vector_line = np.array(
+            [
+                [0, 0, 0],
+                [
+                    beam_vector[0] * scale,
+                    beam_vector[1] * scale,
+                    -1 * beam_vector[2] * scale,
+                ],
+            ]
+        )
+
+        # Draw the beam vector
+        if "beam_vector" in self._rlv_layers:
+            # Update existing layer
+            beam_vector_layer = self._rlv_layers["beam_vector"]
+            for a, b in zip(beam_vector_layer.data, beam_vector_line):
+                a = b
+            beam_vector_layer.refresh()
+        else:
+            # Create new layer
+            beam_vector_layer = self.napari_viewer.add_shapes(
+                [
+                    beam_vector_line,
+                ],
+                shape_type="line",
+                edge_width=2,
+                edge_color="white",
+                name="beam_vector",
+            )
+            self._rlv_layers["beam_vector"] = beam_vector_layer
 
         return
 
