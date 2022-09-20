@@ -275,12 +275,23 @@ class ReciprocalLatticeViewer(Render3d):
                     cell_layer.refresh()
                 else:
                     # Create new layer
+                    labels = ["a*", "b*", "c*"] + [""] * 9
+                    properties = {"label": labels}
+                    text_parameters = {
+                        "text": "label",
+                        "size": 14,
+                        "color": np.array(cell.colors),
+                        "anchor": "center",
+                        "translation": [0, -5, 0],
+                    }
                     cell_layer = self.napari_viewer.add_shapes(
                         cell.lines,
                         shape_type="line",
                         edge_width=2,
                         edge_color=np.array(cell.colors),
                         name=layer_name,
+                        properties=properties,
+                        text=text_parameters,
                     )
                     self._rlv_layers[layer_name] = cell_layer
 
@@ -308,6 +319,17 @@ class ReciprocalLatticeViewer(Render3d):
             axis_layer.refresh()
         else:
             # Create new layer
+            labels = [
+                "phi",
+            ]
+            properties = {"label": labels}
+            text_parameters = {
+                "text": "label",
+                "size": 14,
+                "color": "white",
+                "anchor": "center",
+                "translation": [0, -20, 0],
+            }
             axis_layer = self.napari_viewer.add_shapes(
                 [
                     axis_line,
@@ -316,6 +338,8 @@ class ReciprocalLatticeViewer(Render3d):
                 edge_width=2,
                 edge_color="white",
                 name="axis",
+                properties=properties,
+                text=text_parameters,
             )
             self._rlv_layers["axis"] = axis_layer
 
@@ -341,6 +365,17 @@ class ReciprocalLatticeViewer(Render3d):
             beam_vector_layer.refresh()
         else:
             # Create new layer
+            labels = [
+                "beam",
+            ]
+            properties = {"label": labels}
+            text_parameters = {
+                "text": "label",
+                "size": 14,
+                "color": "white",
+                "anchor": "center",
+                "translation": [0, -20, 0],
+            }
             beam_vector_layer = self.napari_viewer.add_shapes(
                 [
                     beam_vector_line,
@@ -349,6 +384,8 @@ class ReciprocalLatticeViewer(Render3d):
                 edge_width=2,
                 edge_color="white",
                 name="beam_vector",
+                properties=properties,
+                text=text_parameters,
             )
             self._rlv_layers["beam_vector"] = beam_vector_layer
 
