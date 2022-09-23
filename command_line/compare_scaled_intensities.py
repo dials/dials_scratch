@@ -31,15 +31,18 @@ def lin_cc(x1, x2):
 
 # Normal probability plot
 def normal_probability_plot(x1, x2, v1, v2, filename):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
     k = sum(x1 * x2) / sum(x2 ** 2)
-    n = x1.size()
+    # n = x1.size()
     dm_real = (x1 - k * x2) / flex.sqrt(v1 + k ** 2 * v2)
     dm_idx = np.argsort(dm_real.as_numpy_array())
     dm_real_sorted = dm_real.as_numpy_array()[dm_idx]
     # dm_real_sorted = np.sort(dm_real.as_numpy_array())
 
-    res = probplot(dm_real_sorted, plot=plt)
-    plt.text(-4, 14, f"slope = {res[1][0]:.3f}")
+    res = probplot(dm_real_sorted, plot=ax)
+    plt.text(0, 1, f"slope = {res[1][0]:.3f}", transform=ax.transAxes)
 
     if filename:
         plt.savefig(filename)
@@ -180,8 +183,8 @@ def compare(data, wdir):
             x = {
                 "refl1": a,
                 "refl2": b,
-                "I1": i1.as_numpy_array(),
-                "I2": i2.as_numpy_array(),
+                "I1": i1.as_numpy_array()[idx],
+                "I2": i2.as_numpy_array()[idx],
                 "index": idx,
                 "observations": npp[0][1],
                 "quantiles": npp[0][0],
