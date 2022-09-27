@@ -1,6 +1,6 @@
 # LIBTBX_PRE_DISPATCHER_INCLUDE_SH export PHENIX_GUI_ENVIRONMENT=1
 # DIALS_ENABLE_COMMAND_LINE_COMPLETION
-# LIBTBX_SET_DISPATCHER_NAME dev.dials.napari_rlv
+# LIBTBX_SET_DISPATCHER_NAME dials_scratch.napari_rlv
 
 from __future__ import annotations
 
@@ -26,16 +26,16 @@ Visualise the strong spots from spotfinding in reciprocal space.
 
 Examples::
 
-  dev.dials.napari_rlv imported.expt strong.refl
+  dials_scratch.napari_rlv imported.expt strong.refl
 
-  dev.dials.napari_rlv indexed.expt indexed.refl
+  dials_scratch.napari_rlv indexed.expt indexed.refl
 """
 
 
 @dials.util.show_mail_handle_errors()
 def run(args=None):
     dials.util.log.print_banner()
-    usage = "dev.dials.napari_rlv [options] models.expt observations.refl"
+    usage = "dials_scratch.napari_rlv [options] models.expt observations.refl"
 
     parser = ArgumentParser(
         usage=usage,
