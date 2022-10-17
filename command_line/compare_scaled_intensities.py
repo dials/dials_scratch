@@ -130,11 +130,28 @@ def matcher(d0, d1):
     return d0, d1
 
 
+def extract_hkl_and_xyz(r1, r2, idx):
+    hkl = []
+    xyz1 = []
+    xyz2 = []
+    miller = r1[
+        "miller_index"
+    ].as_vec3_double()  # matching done by hkl so just one should be enough
+    pos1 = r1["xyzobs.px.value"]
+    pos2 = r2["xyzobs.px.value"]
+    for i in idx:
+        hkl.append(miller[i])
+        xyz1.append(pos1[i])
+        xyz2.append(pos2[i])
+    return hkl, xyz1, xyz2
+
+
 def compare(data, wdir):
     tab = []
     l = len(data)
     CC_I = np.full((l, l), 0.0)  # Correlation coefficient matrix for intensities
     # CC_s = np.full((l, l), 0.0)     # Correlation coefficient matrix for variances
+    DF = pd.DataFrame()
 
     for a in range(l):
         CC_I[(a, a)] = 1.0
@@ -179,18 +196,24 @@ def compare(data, wdir):
                 }
             )
 
+            # Get hkl and positions
+            HKL, XYZ1, XYZ2 = extract_hkl_and_xyz(r1, r2, idx)
             # Create a dataframe with the data
             x = {
-                "refl1": a,
-                "refl2": b,
+                "reflections": f"{a} - {b}",
                 "I1": i1.as_numpy_array()[idx],
+                "s1": s1.as_numpy_array()[idx],
                 "I2": i2.as_numpy_array()[idx],
+                "s2": s2.as_numpy_array()[idx],
                 "index": idx,
+                "hkl": HKL,
+                "xyzobs1": XYZ1,
+                "xyzobs2": XYZ2,
                 "observations": npp[0][1],
                 "quantiles": npp[0][0],
             }
-            DF = pd.DataFrame(data=x)
-        print(f"{a}, {b}, {DF.shape}")
+            df = pd.DataFrame(data=x)
+            DF = pd.concat([DF, df])
 
     # Plot and save CC
     plt.title("Intensity correlation coefficient")
@@ -200,10 +223,13 @@ def compare(data, wdir):
     plt.close()
 
     # Save results to a file
-    df = pd.DataFrame(tab)
+    res = pd.DataFrame(tab)
     with open(wdir / f"Comparison_results.txt", "w") as f:
         f.write("Summary of scaled intensities comparison.\n")
-        f.write(tabulate(df, headers="keys", tablefmt="psql", showindex=False))
+        f.write(tabulate(res, headers="keys", tablefmt="psql", showindex=False))
+
+    # Save dataframe to a csv file for further processing (can be opened with pd.read_csv(filename, index_col=0))
+    DF.to_csv(wdir / "Reflections.csv")
 
 
 if __name__ == "__main__":
