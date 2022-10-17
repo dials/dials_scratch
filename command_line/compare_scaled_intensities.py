@@ -1,6 +1,8 @@
+import sys
 import time
 import math
 import argparse
+import logging
 
 import numpy as np
 import pandas as pd
@@ -12,6 +14,14 @@ from scipy.stats import t, probplot
 from matplotlib import pyplot as plt
 
 from dials.array_family import flex
+
+logger = logging.getLogger("CompareScaledIntensities")
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(levelname)s    ||  %(message)s")
+CH = logging.StreamHandler(sys.stdout)
+CH.setLevel(logging.DEBUG)
+CH.setFormatter(formatter)
+logger.addHandler(CH)
 
 parser = argparse.ArgumentParser(description="Compare scaled intensities.")
 parser.add_argument("refl_files", nargs="*")
@@ -149,6 +159,7 @@ def extract_hkl_and_xyz(r1, r2, idx):
 def compare(data, wdir):
     tab = []
     l = len(data)
+    logger.info(f"Number of reflection files: {l}.")
     CC_I = np.full((l, l), 0.0)  # Correlation coefficient matrix for intensities
     # CC_s = np.full((l, l), 0.0)     # Correlation coefficient matrix for variances
     DF = pd.DataFrame()
@@ -167,20 +178,29 @@ def compare(data, wdir):
         )
 
         for b in range(a + 1, l):
+            logger.info(f"Match reflections {a} with {b}.")
             # Match reflections
             r1, r2 = matcher(data[a], data[b])
             i1 = r1["intensity.scale.value"]
             i2 = r2["intensity.scale.value"]
             s1 = r1["intensity.scale.variance"]
             s2 = r2["intensity.scale.variance"]
+            logger.info(f"Number of matched reflections: {i1.size()}")
             # Find correlation coefficient
             I = lin_cc(i1, i2)
+            logger.info(f"Correlation coefficient: {I}")
             CC_I[(a, b)] = CC_I[(b, a)] = I
             # Paired T-test
             p_val = paired_T_test(i1, i2)
+            logger.info(
+                f"P-value for paired t-test with 5% confidence interval: {p_val}"
+            )
             # Normal Probability Plot
             npp, idx = normal_probability_plot(
                 i1, i2, s1, s2, wdir / f"compare_refl{a}_and_{b}"
+            )
+            logger.info(
+                f"Normal Probability Plot \n slope: {npp[1][0]} \n intercept: {npp[1][1]} \n"
             )
             tab.append(
                 {
@@ -224,16 +244,19 @@ def compare(data, wdir):
 
     # Save results to a file
     res = pd.DataFrame(tab)
+    logger.info("Save results table to a txt file.")
     with open(wdir / f"Comparison_results.txt", "w") as f:
         f.write("Summary of scaled intensities comparison.\n")
         f.write(tabulate(res, headers="keys", tablefmt="psql", showindex=False))
 
     # Save dataframe to a csv file for further processing (can be opened with pd.read_csv(filename, index_col=0))
+    logger.info("Save Reflections dataframe to a csv file.")
     DF.to_csv(wdir / "Reflections.csv")
 
 
 if __name__ == "__main__":
     tic = time.process_time()
+    logger.info("Look through reflection files and compare scaled intensities.")
     args = parser.parse_args()
     data = [flex.reflection_table.from_file(arg) for arg in args.refl_files]
     data = [d.select(d.get_flags(d.flags.scaled)) for d in data]
@@ -243,7 +266,9 @@ if __name__ == "__main__":
         wdir.mkdir(exist_ok=True)
     else:
         wdir = Path(".").expanduser().resolve()
+    logger.info(f"Results will be saved in {wdir}.")
 
     compare(data, wdir)
     toc = time.process_time()
-    print(f"Time taken: {toc-tic:.4f} s.")
+    # print(f"Time taken: {toc-tic:.4f} s.")
+    logger.info(f"Time taken: {toc-tic:.4f} s.")
