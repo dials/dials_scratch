@@ -229,6 +229,7 @@ def compare(data, wdir):
                 "hkl": HKL,
                 "xyzobs1": XYZ1,
                 "xyzobs2": XYZ2,
+                "# matched reflections": i1.size(),
                 "observations": npp[0][1],
                 "quantiles": npp[0][0],
             }
