@@ -7,6 +7,7 @@ from dials.util import Sorry, show_mail_handle_errors
 from dials.util.options import ArgumentParser, flatten_experiments
 
 from dials.algorithms.image.filter import convolve
+import numpy as np
 
 # from matplotlib import pyplot
 # fig = pyplot.figure()
@@ -59,7 +60,7 @@ def run(args=None):
         epilog=help_message,
     )
 
-    params, options = parser.parse_args(args, show_diff_phil=True)
+    params, options = parser.parse_args(args, show_diff_phil=False)
 
     # Ensure we have either a data block or an experiment list
     experiments = flatten_experiments(params.input.experiments)
@@ -132,6 +133,14 @@ def run(args=None):
 
     beam_centres = [find_beam_centre(im) for im in images]
     x, y = zip(*beam_centres)
+
+    # Need to be robust against blank images. Remove any value more than 5 px
+    # from the median
+    med_x = np.median(x)
+    med_y = np.median(y)
+    x = [e for e in x if abs(e - med_x) < 5]
+    y = [e for e in y if abs(e - med_y) < 5]
+
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
 
