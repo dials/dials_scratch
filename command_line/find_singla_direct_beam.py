@@ -145,8 +145,8 @@ def run(args=None):
     mean_y = sum(y) / len(y)
 
     # Offset of the ROI and shift to centre pixel
-    fast = xc - 100 + mean_x - 0.5
-    slow = yc - 100 + mean_y - 0.5
+    fast = xc - 100 + mean_x + 0.5
+    slow = yc - 100 + mean_y + 0.5
 
     print(f"fast_slow_beam_centre={fast,slow}")
 
