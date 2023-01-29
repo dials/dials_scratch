@@ -8,6 +8,7 @@
  *  This code is distributed under the BSD license, a copy of which is
  *  included in the root directory of this package.
  */
+#include <memory>
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 #include <dials_scratch/idy/algorithms/spot_prediction/reflection_predictor.h>
@@ -37,7 +38,7 @@ namespace dials { namespace algorithms { namespace boost_python {
 
     class_<Predictor>("StillsExperimentalReflectionPredictor", no_init)
       .def(init<
-          const boost::shared_ptr<BeamBase>,
+          const std::shared_ptr<BeamBase>,
           const Detector&,
           mat3<double>,
           const cctbx::uctbx::unit_cell&,
