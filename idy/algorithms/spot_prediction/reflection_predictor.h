@@ -10,6 +10,7 @@
 #define IDY_ALGORITHMS_SPOT_PREDICTION_REFLECTION_PREDICTOR_H
 
 #include <algorithm>
+#include <memory>
 #include <scitbx/constants.h>
 #include <dxtbx/model/beam.h>
 #include <dxtbx/model/detector.h>
@@ -28,7 +29,7 @@ namespace dials { namespace algorithms {
   public:
 
     StillsExperimentalReflectionPredictor(
-        const boost::shared_ptr<BeamBase> beam,
+        const std::shared_ptr<BeamBase> beam,
         const Detector &detector,
         mat3<double> ub,
         const cctbx::uctbx::unit_cell &unit_cell,
