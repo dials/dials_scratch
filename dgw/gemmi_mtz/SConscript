@@ -1,0 +1,9 @@
+Import("env")
+
+env.SharedLibrary(
+    target="#/lib/dials_scratch_gemmi_mtz_ext",
+    source=[
+        "boost_python/gemmi_mtz.cc",
+    ],
+    LIBS=env["LIBS"],
+)
