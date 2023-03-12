@@ -208,7 +208,7 @@ class ComputeEsdBeamDivergence(object):
         angles = flex.double([s1_centroid.angle(matrix.col(s)) for s in s1])
 
         # Calculate the variance of the angles
-        return flex.sum(values * (angles ** 2)) / flex.sum(values)
+        return flex.sum(values * (angles**2)) / flex.sum(values)
 
     def _compute_esd(self, variance):
         """Calculate the beam divergence as the sum of centroid variance of the

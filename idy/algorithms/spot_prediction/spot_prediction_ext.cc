@@ -9,15 +9,18 @@
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 
-namespace dials { namespace algorithms { namespace boost_python {
+namespace dials {
+namespace algorithms {
+namespace boost_python {
 
-  using namespace boost::python;
+using namespace boost::python;
 
-  void export_experimental_reflection_predictor();
+void export_experimental_reflection_predictor();
 
-  BOOST_PYTHON_MODULE(idy_algorithms_spot_prediction_ext)
-  {
-    export_experimental_reflection_predictor();
-  }
+BOOST_PYTHON_MODULE(idy_algorithms_spot_prediction_ext) {
+  export_experimental_reflection_predictor();
+}
 
-}}} // namespace = dials::algorithms::boost_python
+} // namespace boost_python
+} // namespace algorithms
+} // namespace dials

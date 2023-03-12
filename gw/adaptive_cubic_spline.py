@@ -357,7 +357,7 @@ class bicubic_bilinear_spline(object):
 
         for i in range(4):
             for j in range(4):
-                X[i, j] = (_x ** j) * (_y ** j)
+                X[i, j] = (_x**j) * (_y**j)
 
         aij = self._aij(self._point_array[y0 - 1 : y0 + 3, x0 - 1 : x0 + 3])
 

@@ -19,7 +19,7 @@ logger = logging.getLogger("dials.cluster_filter")
 
 
 def gaussian_prob_vec(xs, vars, mu, sigma):
-    comb_sigmasq = sigma ** 2 + vars
+    comb_sigmasq = sigma**2 + vars
     u = (xs - mu) ** 2 / (2 * comb_sigmasq)
     return np.exp(-u) / np.sqrt(2 * pi * comb_sigmasq)
 
@@ -146,11 +146,11 @@ def run():
         sel[group_idx] = True
         sel_block = block.select_on_groups(sel)
 
-        sel = sel_block.intensities / (sel_block.variances ** 0.5) > -1.0
+        sel = sel_block.intensities / (sel_block.variances**0.5) > -1.0
         sel_block = sel_block.select(sel)
         if sel_block.size:
             I = sel_block.intensities / sel_block.inverse_scale_factors
-            V = sel_block.variances / (sel_block.inverse_scale_factors ** 2)
+            V = sel_block.variances / (sel_block.inverse_scale_factors**2)
             result = test_group(I, V, sel_block.asu_miller_index[0])
             if result:
                 in_real = result[0]

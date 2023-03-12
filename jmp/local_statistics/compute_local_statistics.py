@@ -69,7 +69,7 @@ def compute_local_mean_over_variance(reflections, kernel_size):
     # Select data points
     convolved_data = flex.double(convolved_data)
     convolved_mask = flex.double(convolved_mask)
-    selection = (convolved_mask > 0.5 * kernel_size ** 3).as_1d()
+    selection = (convolved_mask > 0.5 * kernel_size**3).as_1d()
     R_sub = convolved_data.as_1d().select(selection)
     N_sub = convolved_mask.as_1d().select(selection)
     R_sub /= N_sub
@@ -108,7 +108,7 @@ def compute_local_mean_over_variance2(reflections, kernel_size):
         assert x >= 0 and y >= 0 and z >= 0
         N_array[z, y, x] += 1
         I_array[z, y, x] += intensity
-        S_array[z, y, x] += intensity ** 2
+        S_array[z, y, x] += intensity**2
         H_array[z, y, x] = h
         K_array[z, y, x] = k
         L_array[z, y, x] = l
@@ -126,7 +126,7 @@ def compute_local_mean_over_variance2(reflections, kernel_size):
     convolved_S = flex.double(convolved_S)
     convolved_N = flex.double(convolved_N)
     print(max(convolved_N))
-    selection = (convolved_N >= 0.5 * kernel_size ** 3).as_1d()
+    selection = (convolved_N >= 0.5 * kernel_size**3).as_1d()
     I_sub = convolved_I.as_1d().select(selection)
     S_sub = convolved_S.as_1d().select(selection)
     N_sub = convolved_N.as_1d().select(selection)
@@ -184,7 +184,7 @@ def compute_local_cchalf(reflections, kernel_size):
         assert x >= 0 and y >= 0 and z >= 0
         num_array[z, y, x] += 1
         sum_array[z, y, x] += intensity
-        sum_sq_array[z, y, x] += intensity ** 2
+        sum_sq_array[z, y, x] += intensity**2
         H_array[z, y, x] = h
         K_array[z, y, x] = k
         L_array[z, y, x] = l

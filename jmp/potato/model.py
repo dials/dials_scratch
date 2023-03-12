@@ -135,7 +135,7 @@ class SimpleProfileModelBase(ProfileModelBase):
 
             partiality[k] = exp(-0.5 * eps * (1 / S22) * eps) * sqrt(S00 / S22)
             partiality_variance[k] = (
-                var_eps * (eps ** 2 / (S00 * S22)) * exp(eps ** 2 / S22)
+                var_eps * (eps**2 / (S00 * S22)) * exp(eps**2 / S22)
             )
 
         reflections["partiality"] = partiality
@@ -313,7 +313,7 @@ class AngularProfileModelBase(ProfileModelBase):
             S00 = S22  # FIXME
             partiality[k] = exp(-0.5 * eps * (1 / S22) * eps) * sqrt(S00 / S22)
             partiality_variance[k] = (
-                var_eps * (eps ** 2 / (S00 * S22)) * exp(eps ** 2 / S22)
+                var_eps * (eps**2 / (S00 * S22)) * exp(eps**2 / S22)
             )
 
         reflections["partiality"] = partiality

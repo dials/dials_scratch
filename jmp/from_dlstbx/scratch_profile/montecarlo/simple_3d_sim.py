@@ -103,10 +103,10 @@ if __name__ == "__main__":
         h = sqrt(g)
         t1 = (a + h) / e
         t2 = (a - h) / e
-        cosx1 = (1 - t1 ** 2) / (1 + t1 ** 2)
-        cosx2 = (1 - t2 ** 2) / (1 + t2 ** 2)
-        sinx1 = (2 * t1) / (1 + t1 ** 2)
-        sinx2 = (2 * t2) / (1 + t2 ** 2)
+        cosx1 = (1 - t1**2) / (1 + t1**2)
+        cosx2 = (1 - t2**2) / (1 + t2**2)
+        sinx1 = (2 * t1) / (1 + t1**2)
+        sinx2 = (2 * t2) / (1 + t2**2)
         angle1 = atan2(sinx1, cosx1)
         angle2 = atan2(sinx2, cosx2)
 

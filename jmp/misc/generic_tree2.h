@@ -3,37 +3,35 @@
 #define DXTBX_MODEL_GENERIC_TREE_H
 
 #include <algorithm>
+#include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <list>
-#include <boost/shared_ptr.hpp>
 
-namespace dxtbx { namespace model {
+namespace dxtbx {
+namespace model {
 
-  template <typename T>
-  class generic_tree : public std::list< generic_tree<T> > , public T {
-  public:
+template <typename T>
+class generic_tree : public std::list<generic_tree<T>>, public T {
+public:
+  typedef std::list<generic_tree<T>> base_type;
+  typedef typename base_type::size_type size_type;
+  typedef typename base_type::reference reference;
+  typedef typename base_type::const_reference const_reference;
+  typedef typename base_type::pointer pointer;
+  typedef typename base_type::const_pointer const_pointer;
+  typedef typename base_type::iterator iterator;
+  typedef typename base_type::const_iterator const_iterator;
+  typedef typename base_type::reverse_iterator reverse_iterator;
+  typedef typename base_type::const_reverse_iterator const_reverse_iterator;
 
-    typedef std::list< generic_tree<T> >  base_type;
-    typedef typename base_type::size_type size_type;
-    typedef typename base_type::reference reference;
-    typedef typename base_type::const_reference const_reference;
-    typedef typename base_type::pointer pointer;
-    typedef typename base_type::const_pointer const_pointer;
-    typedef typename base_type::iterator iterator;
-    typedef typename base_type::const_iterator const_iterator;
-    typedef typename base_type::reverse_iterator reverse_iterator;
-    typedef typename base_type::const_reverse_iterator const_reverse_iterator;
+  generic_tree() {}
 
-    generic_tree() {}
+  generic_tree(int a) : T(a) {}
 
-    generic_tree(int a) : T(a) {}
-
-    generic_tree(const generic_tree &a)
-      : base_type(a), T(a) {
-      std::cout << "copy" << a.a << std::endl;
-    }
-
-  };
+  generic_tree(const generic_tree &a) : base_type(a), T(a) {
+    std::cout << "copy" << a.a << std::endl;
+  }
+};
 
 //  template <typename T>
 //  class generic_tree : public generic_tree_node<T>::iterator {
@@ -62,6 +60,7 @@ namespace dxtbx { namespace model {
 //    node_type root_node_;
 //  };
 
-}} // namespace dxtbx::model
+} // namespace model
+} // namespace dxtbx
 
 #endif // DXTBX_MODEL_GENERIC_TREE_H

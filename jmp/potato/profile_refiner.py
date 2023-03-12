@@ -337,7 +337,7 @@ class ReflectionData(object):
 
         # Compute the marginal likelihood
         m_d = s0.length() - s2.length()
-        m_lnL = log(S22) + S22_inv * m_d ** 2
+        m_lnL = log(S22) + S22_inv * m_d**2
 
         # Compute the conditional likelihood
         c_d = mobs - mubar
@@ -383,7 +383,7 @@ class ReflectionData(object):
 
             I = matrix.sqr((1, 0, 0, 1))
 
-            U = S22_inv * dS22[i] * (1 - S22_inv * m_d ** 2)
+            U = S22_inv * dS22[i] * (1 - S22_inv * m_d**2)
             V = (
                 Sbar_inv
                 * dSbar[i]
@@ -440,9 +440,9 @@ class ReflectionData(object):
 
                 I = matrix.sqr((1, 0, 0, 1))
 
-                A1 = S22_inv * d2S22[j, i] * (1 - S22_inv * m_d ** 2)
+                A1 = S22_inv * d2S22[j, i] * (1 - S22_inv * m_d**2)
                 A2 = (
-                    S22_inv * dS22[j] * S22_inv * dS22[i] * (1 - 2 * S22_inv * m_d ** 2)
+                    S22_inv * dS22[j] * S22_inv * dS22[i] * (1 - 2 * S22_inv * m_d**2)
                 )
                 B1 = (
                     Sbar_inv

@@ -80,7 +80,7 @@ def compute_centroid(profile):
 
     xv3 = flex.sum(W * ((X - xc) ** 2 + 1 / 12.0)) / flex.sum(W)
 
-    xv3 = (1.0 / 12.0) * (1.0 / flex.sum(profile) ** 2) * flex.sum(profile ** 2)
+    xv3 = (1.0 / 12.0) * (1.0 / flex.sum(profile) ** 2) * flex.sum(profile**2)
 
     return xc, xv, xv2, xv2 + xv3
 

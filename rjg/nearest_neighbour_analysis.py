@@ -37,7 +37,7 @@ figsize = 12, 8
 
 @ticker.FuncFormatter
 def resolution_formatter(d_star_sq, pos):
-    d = 1 / d_star_sq ** 0.5 if d_star_sq > 0 else 0
+    d = 1 / d_star_sq**0.5 if d_star_sq > 0 else 0
     return f"{d:.2f}"
 
 

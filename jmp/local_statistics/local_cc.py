@@ -66,7 +66,7 @@ def compute_local_cchalf(reflections, kernel_size):
         assert x >= 0 and y >= 0 and z >= 0
         num_array[z, y, x] += 1
         sum_array[z, y, x] += intensity
-        sum_sq_array[z, y, x] += intensity ** 2
+        sum_sq_array[z, y, x] += intensity**2
         H_array[z, y, x] = h
         K_array[z, y, x] = k
         L_array[z, y, x] = l

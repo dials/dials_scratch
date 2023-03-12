@@ -318,7 +318,7 @@ def pixel_polygon_area(experiment, i, j):
 
     A = ((A - B).cross(A - D)).length() / 2.0 + ((C - B).cross(C - D)).length() / 2.0
 
-    Linv = m2.dot(s1.cross(s0)) / s0_length ** 2
+    Linv = m2.dot(s1.cross(s0)) / s0_length**2
 
     V = abs(A * DPHI * Linv * s0_length)
 
@@ -378,7 +378,7 @@ def pixel_volume(experiment, i, j):
     Ba = acos(cosB)
     Ca = acos(cosC)
 
-    A1 = (Aa + Ba + Ca - pi) * s0_length ** 2
+    A1 = (Aa + Ba + Ca - pi) * s0_length**2
 
     cosa = D.dot(C)
     cosb = A.dot(C)
@@ -396,10 +396,10 @@ def pixel_volume(experiment, i, j):
     Ba = acos(cosB)
     Ca = acos(cosC)
 
-    A2 = (Aa + Ba + Ca - pi) * s0_length ** 2
+    A2 = (Aa + Ba + Ca - pi) * s0_length**2
 
     A = A1 + A2
-    Linv = m2.dot(s1.cross(s0)) / s0_length ** 2
+    Linv = m2.dot(s1.cross(s0)) / s0_length**2
 
     V = abs(A * DPHI * Linv * s0_length)
 

@@ -11,14 +11,15 @@
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
 
-namespace dials { namespace scratch { namespace boost_python {
-  using namespace boost::python;
+namespace dials {
+namespace scratch {
+namespace boost_python {
+using namespace boost::python;
 
-  void luiso_s_scratch_ext();
+void luiso_s_scratch_ext();
 
-  BOOST_PYTHON_MODULE(luiso_s_scratch_ext)
-  {
-    luiso_s_scratch_ext();
-  }
+BOOST_PYTHON_MODULE(luiso_s_scratch_ext) { luiso_s_scratch_ext(); }
 
-}}}
+} // namespace boost_python
+} // namespace scratch
+} // namespace dials

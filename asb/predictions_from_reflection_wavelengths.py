@@ -370,8 +370,8 @@ def wavelengths_from_gaussians(experiments, reflections, mosaic_parameters):
         Medical School, Univ. Manchester, Manchester, UK, Tech. Rep, vol. 3,
         p. 2003, 2003.
         """
-        ssq1 = sigma1 ** 2
-        ssq2 = sigma2 ** 2
+        ssq1 = sigma1**2
+        ssq2 = sigma2**2
         mean = ((mean1 * ssq2) + (mean2 * ssq1)) / (ssq1 + ssq2)
         sigma = flex.sqrt((ssq1 * ssq2) / (ssq1 + ssq2))
         return mean, sigma

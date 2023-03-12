@@ -186,7 +186,7 @@ def linesearch2(c, b, s, x0, p):
         for i in range(len(c)):
             den = (x0[0] * b[i] + x0[1] * s[i]) + alpha * (p[0] * b[i] + p[1] * s[i])
             assert den > 0
-            sumc += c[i] * (p[0] * b[i] + p[1] * s[i]) ** 2 / den ** 2
+            sumc += c[i] * (p[0] * b[i] + p[1] * s[i]) ** 2 / den**2
         return sumc
 
     f = psi(0)

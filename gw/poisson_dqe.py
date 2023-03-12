@@ -56,7 +56,7 @@ print("Measurements mean: {0:.3f}, var: {1:.3f}".format(mmean, mvar))
 # said to be (1/dqe^2) * mvar
 print(
     "Theoretical reconstructed signal mean: {0:.3f}, var: {1:.3f}".format(
-        1.0 / dqe * mmean, (1.0 / dqe ** 2) * mvar
+        1.0 / dqe * mmean, (1.0 / dqe**2) * mvar
     )
 )
 
@@ -70,5 +70,5 @@ print("Observed signal mean: {0:.3f}, var: {1:.3f}".format(rmean, rvar))
 # The theoretical and observed signal variances are identical.
 from libtbx.test_utils import approx_equal
 
-assert approx_equal((1.0 / dqe ** 2) * mvar, rvar)
+assert approx_equal((1.0 / dqe**2) * mvar, rvar)
 print("OK")

@@ -7,7 +7,7 @@ from scitbx import matrix
 def forward(x, h, l):
     from math import sqrt
 
-    return x + x * l / sqrt(h ** 2 + x ** 2)
+    return x + x * l / sqrt(h**2 + x**2)
 
 
 def durand_kerner_iteration(poly, roots):
@@ -85,9 +85,9 @@ def laguerre_iteration(poly, deriv, deriv2, x, n, div_items):
     pp_x = deriv(x) / div
     ppp_x = deriv2(x) / div
     G = pp_x / p_x
-    H = G ** 2 - ppp_x / p_x
+    H = G**2 - ppp_x / p_x
 
-    den_n = sqrt((n - 1) * (n * H - G ** 2))
+    den_n = sqrt((n - 1) * (n * H - G**2))
     if abs(G) < 0:
         den = G - den_n
     else:
@@ -125,8 +125,8 @@ d = 10.0
 l = 0.1
 
 p = -2.0 * d
-q = h ** 2 + d ** 2 - l ** 2
-r = -2.0 * d * h ** 2
+q = h**2 + d**2 - l**2
+r = -2.0 * d * h**2
 s = (h * d) ** 2
 
 print(p, q, r, s)
@@ -136,15 +136,15 @@ print(forward(9.99500872462, h, l))
 
 def poly_func(x):
 
-    return x ** 4 + p * x ** 3 + q * x ** 2 + r * x + s
+    return x**4 + p * x**3 + q * x**2 + r * x + s
 
 
 def poly_derivative(x):
-    return 4 * x ** 3 + 3 * p * x ** 2 + 2 * q * x + r
+    return 4 * x**3 + 3 * p * x**2 + 2 * q * x + r
 
 
 def poly_2nd_derivative(x):
-    return 12 * x ** 2 + 6 * p * x + 2 * q
+    return 12 * x**2 + 6 * p * x + 2 * q
 
 
 roots = [(0.4 + 0.9j) ** 0, (0.4 + 0.9j) ** 1, (0.4 + 0.9j) ** 2, (0.4 + 0.9j) ** 3]

@@ -57,9 +57,9 @@ def cc_slope(a, b):
     sum_b = flex.sum(fb)
     sum_aa = flex.sum(aa)
     sum_bb = flex.sum(bb)
-    slope = (N * sum_ab - sum_a * sum_b) / (N * sum_aa - sum_a ** 2)
+    slope = (N * sum_ab - sum_a * sum_b) / (N * sum_aa - sum_a**2)
     corr = (N * sum_ab - sum_a * sum_b) / (
-        math.sqrt(N * sum_aa - sum_a ** 2) * math.sqrt(N * sum_bb - sum_b ** 2)
+        math.sqrt(N * sum_aa - sum_a**2) * math.sqrt(N * sum_bb - sum_b**2)
     )
 
     return corr, slope

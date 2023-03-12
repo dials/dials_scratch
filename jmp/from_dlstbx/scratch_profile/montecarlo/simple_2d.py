@@ -10,10 +10,10 @@ from __future__ import print_function
 def pdf(a, b, sigma, phi, theta):
     from math import pi, exp, cos, sin
 
-    C1 = 1.0 / (2 * pi * sigma ** 2)
-    C2 = (2 * a ** 2 + b ** 2) / (2.0 * sigma ** 2)
+    C1 = 1.0 / (2 * pi * sigma**2)
+    C2 = (2 * a**2 + b**2) / (2.0 * sigma**2)
     C3 = (a * a * cos(phi) + a * b * sin(phi) * sin(theta)) / (
-        sigma ** 2
+        sigma**2
     )  # (cos(phi)*cos(theta)+sin(phi)*sin(theta)) /(sigma**2)
     # print -(C2-C3)
     C4 = exp(-(C2 - C3))
@@ -32,12 +32,12 @@ def pdf2(a, b, sigma, phi0, phi, theta):
     # D6 = D4*D5
     # D7 = D3 * D6
 
-    C1 = 1.0 / (2 * pi * sigma ** 2)
-    C2 = 2.0 * a ** 2 + b ** 2
+    C1 = 1.0 / (2 * pi * sigma**2)
+    C2 = 2.0 * a**2 + b**2
     C3 = 2 * a * b * cos(theta - phi0)
     C4 = 2 * a * a * cos(phi - phi0)
     C5 = 2 * a * b * cos(phi - theta)
-    C6 = -1.0 / (2 * sigma ** 2)
+    C6 = -1.0 / (2 * sigma**2)
     C8 = C1 * exp(C6 * (C2 + C3 - C4 - C5))
     return C8
 
@@ -46,11 +46,11 @@ def pdf3(a, b, sigma, phi0, phi, theta):
     from math import pi, exp, cos, sin
     from scipy.special import iv
 
-    D1 = (a * a * cos(phi0) + a * b * cos(theta)) / (sigma ** 2)
-    D2 = (a * a * sin(phi0) + a * b * sin(theta)) / (sigma ** 2)
+    D1 = (a * a * cos(phi0) + a * b * cos(theta)) / (sigma**2)
+    D2 = (a * a * sin(phi0) + a * b * sin(theta)) / (sigma**2)
     D3 = 2 * pi * iv(0, sqrt(D1 * D1 + D2 * D2))
-    D4 = 1.0 / (2 * pi * sigma ** 2)
-    D5 = exp(-(2 * a * a + b * b + 2 * a * b * cos(theta - phi0)) / (2 * sigma ** 2))
+    D4 = 1.0 / (2 * pi * sigma**2)
+    D5 = exp(-(2 * a * a + b * b + 2 * a * b * cos(theta - phi0)) / (2 * sigma**2))
     D6 = D4 * D5
     # D7 = D3 * D6
     return D6 * exp(D1 * cos(phi) + D2 * sin(phi))

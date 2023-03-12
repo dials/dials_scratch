@@ -243,7 +243,7 @@ def log_likelihood(params, s0, s2_list, xbar_list, ctot_list, Sobs_list):
             raise
             lnL += -1e15
 
-    if wavelength_variance > 0.10 ** 2:
+    if wavelength_variance > 0.10**2:
         lnL += -1e15
     # if max(spot_covariance[0], spot_covariance[4], spot_covariance[8]) > 1e-5:
     #   lnL += -1e15
@@ -385,7 +385,7 @@ def tst_ideal():
     # The covariance matrix
     spot_covariance = matrix.sqr((1e-7, 0, 0, 0, 2e-7, 0, 0, 0, 3e-7))
 
-    wavelength_variance = 0.05 ** 2  # 1e-4 # variance
+    wavelength_variance = 0.05**2  # 1e-4 # variance
 
     # The number of reflections
     N = 100

@@ -33,7 +33,7 @@ def run(experiment):
     sigma_c = 0.01
 
     # The covariance matrix for the normal distribution
-    sigma = matrix.sqr((sigma_a ** 2, 0, 0, 0, sigma_b ** 2, 0, 0, 0, sigma_c ** 2))
+    sigma = matrix.sqr((sigma_a**2, 0, 0, 0, sigma_b**2, 0, 0, 0, sigma_c**2))
     sigmam1 = sigma.inverse()
 
     sigma_w_a = 0.01

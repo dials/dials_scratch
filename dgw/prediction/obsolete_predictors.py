@@ -67,7 +67,7 @@ class ScanVaryingReflectionPredictor(object):
         # resolution limit
         self._dmin = dmin
         self._dstarmax = 1.0 / dmin
-        self._dstarmax_sq = self._dstarmax ** 2
+        self._dstarmax_sq = self._dstarmax**2
 
         # reciprocal space beam vector
         self._s0 = matrix.col(self._beam.get_s0())
@@ -493,7 +493,7 @@ class AnglePredictor_py(object):
         self._gonio = gonio
 
         self._dstarmax = 1.0 / dmin
-        self._dstarmax_sq = self._dstarmax ** 2
+        self._dstarmax_sq = self._dstarmax**2
 
     def _prepare(self):
         """Cache required quantities that are not dependent on hkl"""
@@ -537,7 +537,7 @@ class AnglePredictor_py(object):
         r0_dot_axis = r0.dot(self._axis)
 
         # Test if the projection of relp lies outside the Ewald sphere
-        r0_dot_axis_sq = r0_dot_axis ** 2
+        r0_dot_axis_sq = r0_dot_axis**2
         Cn_rad_sq = self._s0mag_sq - r0_dot_axis_sq
         if Cn_rad_sq <= 0.0:
             return None
@@ -567,7 +567,7 @@ class AnglePredictor_py(object):
         # The prediction formula is of form
         # alpha * cos(phi) + beta * sin(phi) = gamma. We solve this following
         # the method in DSTAR from MOSFLM
-        tst = alpha ** 2 + beta ** 2
+        tst = alpha**2 + beta**2
         if tst <= 0.0:
             return None  # Relp on rotation axis
         x = gamma / sqrt(tst)

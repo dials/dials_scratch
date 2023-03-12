@@ -48,7 +48,7 @@ def maximum_deviation(histo):
     imax = -1
     for i, y in enumerate(histo):
         x = i + 0.5
-        d = abs(m * x - y + c) / sqrt(m ** 2 + 1)
+        d = abs(m * x - y + c) / sqrt(m**2 + 1)
         if d > dmax:
             dmax = d
             imax = i

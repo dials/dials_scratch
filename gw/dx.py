@@ -106,9 +106,9 @@ def dR_drs_calc(r, s, t):
     dRdr = matrix.sqr(
         [
             -1 / 2 * (cs2 * sr2 - sr2) * ct + 1 / 2 * cs2 * sr2 - cr * sr,
-            cr ** 2 - 1 / 2 * cr2 * cs2 + 1 / 2 * (cr2 * cs2 - cr2) * ct - 1 / 2,
+            cr**2 - 1 / 2 * cr2 * cs2 + 1 / 2 * (cr2 * cs2 - cr2) * ct - 1 / 2,
             1 / 2 * ct * sr * ss2 + cr * ss * st - 1 / 2 * sr * ss2,
-            cr ** 2 - 1 / 2 * cr2 * cs2 + 1 / 2 * (cr2 * cs2 - cr2) * ct - 1 / 2,
+            cr**2 - 1 / 2 * cr2 * cs2 + 1 / 2 * (cr2 * cs2 - cr2) * ct - 1 / 2,
             1 / 2 * (cs2 * sr2 - sr2) * ct - 1 / 2 * cs2 * sr2 + cr * sr,
             -1 / 2 * cr * ct * ss2 + sr * ss * st + 1 / 2 * cr * ss2,
             1 / 2 * ct * sr * ss2 - cr * ss * st - 1 / 2 * sr * ss2,

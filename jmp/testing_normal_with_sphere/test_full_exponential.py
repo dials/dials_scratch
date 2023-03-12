@@ -295,25 +295,25 @@ def compute_peak_g2_it(mu, sigma):
 
 
 def f(x, mu1, mu2, s1, s2):
-    A = mu1 ** 2 * (1 - x * s2) ** 2
-    B = mu2 ** 2 * (1 - x * s1) ** 2
+    A = mu1**2 * (1 - x * s2) ** 2
+    B = mu2**2 * (1 - x * s1) ** 2
     C = (1 - x * s1) ** 2 * (1 - x * s2) ** 2
     return A * B - C
 
 
 def df(x, mu1, mu2, s1, s2):
-    A = mu1 ** 2 * s2 * (1 - x * s2)
-    B = mu2 ** 2 * s1 * (1 - x * s1)
+    A = mu1**2 * s2 * (1 - x * s2)
+    B = mu2**2 * s1 * (1 - x * s1)
     C = s1 * (1 - x * s2) ** 2 * (1 - x * s1)
     D = s2 * (1 - x * s1) ** 2 * (1 - x * s2)
     return -2 * (A + B - C - D)
 
 
 def d2f(x, mu1, mu2, s1, s2):
-    A = mu1 ** 2 * s2 ** 2
-    B = mu2 ** 2 * s1 ** 2
-    C = s1 ** 2 * (1 - x * s2) ** 2
-    D = s2 ** 2 * (1 - x * s1) ** 2
+    A = mu1**2 * s2**2
+    B = mu2**2 * s1**2
+    C = s1**2 * (1 - x * s2) ** 2
+    D = s2**2 * (1 - x * s1) ** 2
     E = 4 * s1 * s2 * (1 - x * s1) * (1 - x * s2)
     return 2 * (A + B - C - D - E)
 
@@ -457,8 +457,8 @@ peak_g2_it = compute_peak_g2_it(mu, sigma)
 x_f_search = matrix.col((cos(peak_f), sin(peak_f)))
 
 x_g_search = matrix.col((cos(peak_g), sin(peak_g)))
-x_g1_search = matrix.col((peak_x, sqrt(1 - peak_x ** 2)))
-x_g2_search = matrix.col((sqrt(1 - peak_y ** 2), peak_y))
+x_g1_search = matrix.col((peak_x, sqrt(1 - peak_x**2)))
+x_g2_search = matrix.col((sqrt(1 - peak_y**2), peak_y))
 
 
 print("---")

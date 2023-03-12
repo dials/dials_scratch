@@ -66,12 +66,12 @@ def GetBitmap_from_np_array(data2d):
 def build_np_img(width=64, height=64):
     data2d = np.zeros((width, height), "float")
     print("width, height =", width, height)
-    tot_lng = np.sqrt(width ** 2.0 + height ** 2.0)
+    tot_lng = np.sqrt(width**2.0 + height**2.0)
     for x in range(0, width):
         for y in range(0, height):
             dx = float(width - x)
             dy = float(height - y)
-            data2d[x, y] = tot_lng - np.sqrt(dx ** 2.0 + dy ** 2.0)
+            data2d[x, y] = tot_lng - np.sqrt(dx**2.0 + dy**2.0)
 
     print("data2d.max =", data2d.max())
     return data2d

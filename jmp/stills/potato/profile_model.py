@@ -264,7 +264,7 @@ class ReflectionProfileModel(object):
 
         # Compute the likelihood
         d = self.s0.length() - self.s2.length()
-        A = self.ctot * (log(S22) + S22_inv * d ** 2)
+        A = self.ctot * (log(S22) + S22_inv * d**2)
         B = log(Sbar_det) * self.ctot + (Sbar_inv * Sobs).trace()
         return -0.5 * (A + B)
 
@@ -293,7 +293,7 @@ class ReflectionProfileModel(object):
 
             I = matrix.sqr((1, 0, 0, 1))
 
-            U = S22_inv * dS22[i] * (1 - S22_inv * d ** 2)
+            U = S22_inv * dS22[i] * (1 - S22_inv * d**2)
             V = (Sbar_inv * dSbar[i] * (self.ctot * I - Sbar_inv * self.Sobs)).trace()
 
             dL.append(-0.5 * (U + V))
@@ -329,8 +329,8 @@ class ReflectionProfileModel(object):
 
                 I = matrix.sqr((1, 0, 0, 1))
 
-                A1 = S22_inv * d2S22[j, i] * (1 - S22_inv * d ** 2)
-                A2 = S22_inv * dS22[j] * S22_inv * dS22[i] * (1 - 2 * S22_inv * d ** 2)
+                A1 = S22_inv * d2S22[j, i] * (1 - S22_inv * d**2)
+                A2 = S22_inv * dS22[j] * S22_inv * dS22[i] * (1 - 2 * S22_inv * d**2)
                 B1 = Sbar_inv * d2Sbar[j][i] * (self.ctot * I - Sbar_inv * self.Sobs)
                 B2 = (
                     Sbar_inv

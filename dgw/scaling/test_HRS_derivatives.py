@@ -47,7 +47,7 @@ def grad_av_I(I, w, g, iparam):
     du_dp = sum([a * b * c for (a, b, c) in zip(w, dg, I)])
     dv_dp = sum([2.0 * a * b * c for (a, b, c) in zip(w, g, dg)])
 
-    result = (du_dp * v - dv_dp * u) / (v ** 2)
+    result = (du_dp * v - dv_dp * u) / (v**2)
     return result
 
 

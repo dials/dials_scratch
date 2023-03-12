@@ -122,7 +122,7 @@ class refinery(object):
             mean_I = merged_intensities.data()[p[0]]
             unmerged_I = self.unmerged_intensities.data()[i]
             delta = unmerged_I - k * mean_I
-            f += w * delta ** 2
+            f += w * delta**2
             g[j] += -2 * w * mean_I * delta
 
         # print f

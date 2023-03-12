@@ -514,7 +514,7 @@ def single(B, S):
     from math import exp
 
     background_shape = [1.0 / 20.0 for i in range(20)]
-    signal_shape = [exp(-((x - 10.0) ** 2) / (2 * 3.0 ** 2)) for x in range(20)]
+    signal_shape = [exp(-((x - 10.0) ** 2) / (2 * 3.0**2)) for x in range(20)]
     signal_shape = [ss / sum(signal_shape) for ss in signal_shape]
 
     background = [poisson(bb * B, 1)[0] for bb in background_shape]

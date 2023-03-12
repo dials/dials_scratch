@@ -12,16 +12,16 @@
 #include <boost/python/def.hpp>
 #include <dials/algorithms/scaling/scale_parameterisation_helpers.h>
 
-namespace dials { namespace scaling { namespace boost_python {
+namespace dials {
+namespace scaling {
+namespace boost_python {
 
-  using namespace boost::python;
+using namespace boost::python;
 
-  void export_row_multiply()
-  {
-    def("row_multiply", &row_multiply, (
-      arg("m"),
-      arg("v")));
-  }
+void export_row_multiply() {
+  def("row_multiply", &row_multiply, (arg("m"), arg("v")));
+}
 
-}}} // namespace = dials::algorithms::boost_python
-
+} // namespace boost_python
+} // namespace scaling
+} // namespace dials

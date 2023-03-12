@@ -26,11 +26,11 @@ def func_f_gradient(theta, phi, mu, s_sq):
     cos_theta = cos(theta)
     sin_phi = sin(phi)
     cos_phi = cos(phi)
-    A = (sin_theta * cos_theta * cos_phi ** 2 - mu[0] * cos_theta * cos_phi) / s_sq[0]
-    B = (sin_theta * cos_theta * sin_phi ** 2 - mu[1] * cos_theta * sin_phi) / s_sq[1]
+    A = (sin_theta * cos_theta * cos_phi**2 - mu[0] * cos_theta * cos_phi) / s_sq[0]
+    B = (sin_theta * cos_theta * sin_phi**2 - mu[1] * cos_theta * sin_phi) / s_sq[1]
     C = (cos_theta * sin_theta - mu[2] * sin_theta) / s_sq[2]
-    D = (sin_theta ** 2 * sin_phi * cos_phi - mu[0] * sin_theta * sin_phi) / s_sq[0]
-    E = (sin_theta ** 2 * sin_phi * cos_phi - mu[1] * sin_theta * cos_phi) / s_sq[1]
+    D = (sin_theta**2 * sin_phi * cos_phi - mu[0] * sin_theta * sin_phi) / s_sq[0]
+    E = (sin_theta**2 * sin_phi * cos_phi - mu[1] * sin_theta * cos_phi) / s_sq[1]
     return matrix.col((A + B - C, -D + E))
 
 
@@ -43,13 +43,13 @@ def func_f_hessian(theta, phi, mu, s_sq):
     sin_2theta = sin(2 * theta)
     sin_2phi = sin(2 * phi)
     cos_2phi = cos(2 * phi)
-    A = (cos_2theta * cos_theta ** 2 + mu[0] * sin_theta * cos_phi) / s_sq[0]
-    B = (cos_2theta * sin_theta ** 2 + mu[1] * sin_theta * sin_phi) / s_sq[1]
+    A = (cos_2theta * cos_theta**2 + mu[0] * sin_theta * cos_phi) / s_sq[0]
+    B = (cos_2theta * sin_theta**2 + mu[1] * sin_theta * sin_phi) / s_sq[1]
     C = (cos_2theta - mu[2] * cos_theta) / s_sq[2]
     D = (0.5 * sin_2theta * sin_2phi - mu[0] * cos_theta * sin_phi) / s_sq[0]
     E = (0.5 * sin_2theta * sin_2phi - mu[1] * cos_theta * cos_phi) / s_sq[1]
-    F = (sin_theta ** 2 * cos_2phi - mu[0] * sin_theta * cos_phi) / s_sq[0]
-    G = (sin_theta ** 2 * cos_2phi + mu[1] * sin_theta * sin_phi) / s_sq[1]
+    F = (sin_theta**2 * cos_2phi - mu[0] * sin_theta * cos_phi) / s_sq[0]
+    G = (sin_theta**2 * cos_2phi + mu[1] * sin_theta * sin_phi) / s_sq[1]
     H1 = A + B - C
     H2 = -D + E
     H3 = -F + G

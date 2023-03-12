@@ -22,7 +22,7 @@ def sph_harm_surf(l, m):
     phi = numpy.linspace(0, numpy.pi, STEPS)
 
     THETA, PHI = numpy.meshgrid(theta, phi)
-    R = numpy.cos(PHI ** 2)
+    R = numpy.cos(PHI**2)
     C = numpy.empty(THETA.shape, dtype=str)
 
     sqrt2 = pymath.sqrt(2)

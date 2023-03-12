@@ -20,7 +20,7 @@ if __name__ == "__main__":
             r = sqrt(x * x + y * y)
             t = atan2(y, x)
             C1 = 1.0 / (sqrt(2 * pi) * sr)
-            C2 = 1.0 / (2 * sr ** 2)
+            C2 = 1.0 / (2 * sr**2)
             C3 = (r - 2 * mr * cos(t - tc)) ** 2
             C4 = exp(-C2 * C3)
             f[j, i] = C1 * C4

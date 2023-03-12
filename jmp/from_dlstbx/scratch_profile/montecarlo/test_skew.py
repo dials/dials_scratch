@@ -14,7 +14,7 @@ E = matrix.sqr((e1[0], e2[0], e1[1], e2[1]))
 
 E1 = E.inverse()
 
-SIG = matrix.sqr((0.1 ** 2, 0, 0, 0.1 ** 2))
+SIG = matrix.sqr((0.1**2, 0, 0, 0.1**2))
 SIG1 = SIG.inverse()
 
 data1 = flex.double(flex.grid(100, 100))

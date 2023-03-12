@@ -4,7 +4,7 @@ from __future__ import print_function
 def normal(x, mu, sigma):
     from math import sqrt, pi, exp
 
-    return (1.0 / (sqrt(2.0 * pi) * sigma)) * exp(-0.5 * (x - mu) ** 2 / sigma ** 2)
+    return (1.0 / (sqrt(2.0 * pi) * sigma)) * exp(-0.5 * (x - mu) ** 2 / sigma**2)
 
 
 from math import sqrt
@@ -30,7 +30,7 @@ for t in range(1000):
     y1 = normal(x, mu1, sig1)
     y2 = normal(x, mu2, sig2)
     y3 = y1 * y2
-    y4 = normal(x, 0, sqrt(sig1 ** 2 + sig2 ** 2))
+    y4 = normal(x, 0, sqrt(sig1**2 + sig2**2))
 
     X.append(x)
     Y1.append(y1)

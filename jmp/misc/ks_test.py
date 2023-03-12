@@ -7,7 +7,7 @@ from scipy.special import gammaln
 def smirnov(n, e):
     from math import floor, log, exp
 
-    MAXLOG = 2 ** 1022
+    MAXLOG = 2**1022
     assert n > 0 and e >= 0.0 and e <= 1.0
 
     if e == 0.0:
@@ -63,7 +63,7 @@ def smirnov2(n, e):
 def smirnov3(n, e):
     from math import floor, log, exp
 
-    MAXLOG = 2 ** 1022
+    MAXLOG = 2**1022
     nn = int(floor(n * (1.0 - e)))
     p = 0.0
     lgamnp1 = gammaln(n + 1)

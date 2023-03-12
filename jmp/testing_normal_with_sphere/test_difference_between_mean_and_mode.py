@@ -20,23 +20,23 @@ def normal_3d(x, mu, sigma):
 
 
 def f(x, mu1, mu2, mu3, s1, s2, s3):
-    A = mu1 ** 2 / (1 - x * s1) ** 2
-    B = mu2 ** 2 / (1 - x * s2) ** 2
-    C = mu3 ** 2 / (1 - x * s3) ** 2
+    A = mu1**2 / (1 - x * s1) ** 2
+    B = mu2**2 / (1 - x * s2) ** 2
+    C = mu3**2 / (1 - x * s3) ** 2
     return A + B + C - 1
 
 
 def df(x, mu1, mu2, mu3, s1, s2, s3):
-    A = 2 * s1 * mu1 ** 2 / (1 - x * s1) ** 3
-    B = 2 * s2 * mu2 ** 2 / (1 - x * s2) ** 3
-    C = 2 * s3 * mu3 ** 2 / (1 - x * s3) ** 3
+    A = 2 * s1 * mu1**2 / (1 - x * s1) ** 3
+    B = 2 * s2 * mu2**2 / (1 - x * s2) ** 3
+    C = 2 * s3 * mu3**2 / (1 - x * s3) ** 3
     return A + B + C
 
 
 def d2f(x, mu1, mu2, mu3, s1, s2, s3):
-    A = 6 * s1 * mu1 ** 2 / (1 - x * s1) ** 4
-    B = 6 * s2 * mu2 ** 2 / (1 - x * s2) ** 4
-    C = 6 * s3 * mu3 ** 2 / (1 - x * s3) ** 4
+    A = 6 * s1 * mu1**2 / (1 - x * s1) ** 4
+    B = 6 * s2 * mu2**2 / (1 - x * s2) ** 4
+    C = 6 * s3 * mu3**2 / (1 - x * s3) ** 4
     return A + B + C
 
 
@@ -64,7 +64,7 @@ def compute_mode(mu, sigma):
         U = f(l0, mu1, mu2, mu3, s1, s2, s3)
         Up = df(l0, mu1, mu2, mu3, s1, s2, s3)
         Up2 = d2f(l0, mu1, mu2, mu3, s1, s2, s3)
-        l = l0 - 2 * U * Up / (2 * Up ** 2 - U * Up2)
+        l = l0 - 2 * U * Up / (2 * Up**2 - U * Up2)
         if abs(l - l0) < 1e-7:
             break
         l0 = l

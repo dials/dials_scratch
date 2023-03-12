@@ -71,9 +71,9 @@ B0 = 1
 A1 = sum([log(factorial(cc)) for cc in c])
 A2 = sum(b)
 A3 = sum(s)
-K1 = -d2fdb2(c, b, s, B0, S) * B0 ** 2 / A2
+K1 = -d2fdb2(c, b, s, B0, S) * B0**2 / A2
 K2 = (1.0 / B0) * exp(
-    A1 + A2 * B0 + f(c, b, s, B0, S) / (d2fdb2(c, b, s, B0, S) * B0 ** 2)
+    A1 + A2 * B0 + f(c, b, s, B0, S) / (d2fdb2(c, b, s, B0, S) * B0**2)
 )
 K3 = 1.0
 for i in range(100):

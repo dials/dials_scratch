@@ -222,7 +222,7 @@ class ReflectionLikelihood(object):
 
         # Compute the marginal likelihood
         m_d = s0.length() - mu2
-        m_lnL = m_w * (log(S22) + S22_inv * m_d ** 2)
+        m_lnL = m_w * (log(S22) + S22_inv * m_d**2)
 
         # Compute the conditional likelihood
         c_d = mobs - mubar
@@ -278,7 +278,7 @@ class ReflectionLikelihood(object):
             I = matrix.sqr((1, 0, 0, 1))
 
             U = m_w * (
-                S22_inv * dS22[i] * (1 - S22_inv * epsilon ** 2)
+                S22_inv * dS22[i] * (1 - S22_inv * epsilon**2)
                 + 2 * S22_inv * epsilon * dep
             )
             V = (
@@ -394,7 +394,7 @@ class MaximumLikelihoodTarget(object):
             xyzobs = self.model.experiment.detector[0].get_ray_intersection_px(s3)
             r_x = xyzcal[0] - xyzobs[0]
             r_y = xyzcal[1] - xyzobs[1]
-            mse += matrix.col((r_x ** 2, r_y ** 2))
+            mse += matrix.col((r_x**2, r_y**2))
         mse /= len(self.data)
         return matrix.col((sqrt(mse[0]), sqrt(mse[1])))
 

@@ -71,12 +71,15 @@ for i in xrange(8):
         os.makedirs(trial)
     os.chdir(trial)
 
-    command = "cspad.cbf_metrology %s tag=t%s refine_to_hierarchy_level=%d rmsd_filter.enable=False panel_filter=%s %s" % (
-        os.path.join(cwd, "indexing", trial),
-        trial,
-        levels[i],
-        ",".join(["%d" % p for p in steps[i]]),
-        refinement_phil,
+    command = (
+        "cspad.cbf_metrology %s tag=t%s refine_to_hierarchy_level=%d rmsd_filter.enable=False panel_filter=%s %s"
+        % (
+            os.path.join(cwd, "indexing", trial),
+            trial,
+            levels[i],
+            ",".join(["%d" % p for p in steps[i]]),
+            refinement_phil,
+        )
     )
 
     print(command)

@@ -4,22 +4,22 @@ from math import sqrt, log
 
 def f(x, mu, s):
     A = mu
-    B = 1 - s ** 2
+    B = 1 - s**2
     C = -(1 + mu)
-    D = -(s ** 2)
-    return A * x ** 3 + B * x ** 2 + C * x + D
+    D = -(s**2)
+    return A * x**3 + B * x**2 + C * x + D
 
 
 def df(x, mu, s):
     A = mu
-    B = 1 - s ** 2
+    B = 1 - s**2
     C = -(1 + mu)
-    return 3 * A * x ** 2 + 2 * B * x + C
+    return 3 * A * x**2 + 2 * B * x + C
 
 
 def d2f(x, mu, s):
     A = mu
-    B = 1 - s ** 2
+    B = 1 - s**2
     return 6 * A * x + 2 * B
 
 
@@ -29,12 +29,12 @@ def compute_peak(mu, s):
         U = f(l0, mu, s)
         Up = df(l0, mu, s)
         Up2 = d2f(l0, mu, s)
-        l = l0 - 2 * U * Up / (2 * Up ** 2 - U * Up2)
+        l = l0 - 2 * U * Up / (2 * Up**2 - U * Up2)
         if abs(l - l0) < 1e-7:
             break
         l0 = l
 
-    x = ((1 + 2 * l) + s ** 2) / mu
+    x = ((1 + 2 * l) + s**2) / mu
     return x
 
 
@@ -56,7 +56,7 @@ Y = []
 
 for i in range(200000):
     x = 0.00001 + i * 0.00001
-    y = 0.5 * (x - m) ** 2 - s ** 2 * log(x)
+    y = 0.5 * (x - m) ** 2 - s**2 * log(x)
 
     X.append(x)
     Y.append(y)

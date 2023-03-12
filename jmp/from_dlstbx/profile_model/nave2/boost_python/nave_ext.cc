@@ -20,20 +20,13 @@ namespace profile_model {
 namespace nave {
 namespace boost_python {
 
-  using namespace boost::python;
+using namespace boost::python;
 
-  BOOST_PYTHON_MODULE(dlstbx_algorithms_profile_model_nave2_ext)
-  {
-    class_<Model>("Model", no_init)
-      .def(init<mat3<double>,
-                mat3<double>,
-                vec3<double>,
-                vec3<double>,
-                vec3<double>,
-                double,
-                vec3<double>,
-                vec3<double>,
-                vec3<double> >())
+BOOST_PYTHON_MODULE(dlstbx_algorithms_profile_model_nave2_ext) {
+  class_<Model>("Model", no_init)
+      .def(init<mat3<double>, mat3<double>, vec3<double>, vec3<double>,
+                vec3<double>, double, vec3<double>, vec3<double>,
+                vec3<double>>())
       .def("D", &Model::D)
       .def("A", &Model::A)
       .def("s0", &Model::s0)
@@ -46,24 +39,20 @@ namespace boost_python {
       .def("R", &Model::R)
       .def("r", &Model::r)
       .def("Dm", &Model::Dm)
-      .def("P", &Model::P)
-      ;
+      .def("P", &Model::P);
 
-    class_<Support>("Support", no_init)
-      .def(init<const Beam&,
-                const Detector&,
-                const Goniometer&,
-                const Scan&,
-                const mat3<double>&,
-                const vec3<double>&,
-                const vec3<double>&,
-                const vec3<double>&,
-                double>())
+  class_<Support>("Support", no_init)
+      .def(init<const Beam &, const Detector &, const Goniometer &,
+                const Scan &, const mat3<double> &, const vec3<double> &,
+                const vec3<double> &, const vec3<double> &, double>())
       .def("compute_bbox", &Support::compute_bbox)
       .def("compute_mask", &Support::compute_mask)
       .def("compute_prof", &Support::compute_prof)
-      .def("compute_image_mask", &Support::compute_image_mask)
-      ;
-  }
+      .def("compute_image_mask", &Support::compute_image_mask);
+}
 
-}}}}} // namespace = dlstbx::algorithms::profile_model::nave::boost_python
+} // namespace boost_python
+} // namespace nave
+} // namespace profile_model
+} // namespace algorithms
+} // namespace dlstbx

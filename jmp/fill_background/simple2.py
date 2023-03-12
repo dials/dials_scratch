@@ -15,7 +15,7 @@ def ice_background(j, i, height, width):
     rc = 20
     rs = 1
 
-    g = A * exp(-((r - rc) ** 2) / (2 * rs ** 2))
+    g = A * exp(-((r - rc) ** 2) / (2 * rs**2))
     return poisson(g)
 
 

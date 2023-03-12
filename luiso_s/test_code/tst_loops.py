@@ -21,7 +21,7 @@ cont = 0
 for f in range(f_size):
     for r in range(r_size):
         for c in range(c_size):
-            data.append((f, r, c, cont ** 2))
+            data.append((f, r, c, cont**2))
             cont += 1
 
 print("data =", data)

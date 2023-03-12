@@ -451,7 +451,7 @@ def generate_with_wavelength_spread(s0, sigma_spot, sigma_wavelength, N=100):
         R = compute_change_of_basis_operation(s0, s2_direction)
         sigmap = R * sigma_spot * R.transpose()
         s2_magnitude = normal(
-            s0.length(), sqrt(sigmap[8] + sigma_wavelength_local ** 2)
+            s0.length(), sqrt(sigmap[8] + sigma_wavelength_local**2)
         )
         # s2_magnitude = normal(s0.length(), sqrt(sigmap[8]))
         s2 = s2_direction * s2_magnitude
@@ -463,7 +463,7 @@ def generate_with_wavelength_spread(s0, sigma_spot, sigma_wavelength, N=100):
         # Apply the wavelength spread to the sigma
         Sigma1_inv = sigmap.inverse()
         Sigma2_inv = matrix.sqr(
-            (0, 0, 0, 0, 0, 0, 0, 0, 1 / sigma_wavelength_local ** 2)
+            (0, 0, 0, 0, 0, 0, 0, 0, 1 / sigma_wavelength_local**2)
         )
         Sigma3_inv = Sigma1_inv + Sigma2_inv
         Sigma3 = Sigma3_inv.inverse()

@@ -215,7 +215,7 @@ class Script(object):
             var_x_px, var_y_px, var_z_px = obs_refs["xyzobs.px.variance"].parts()
             var_x_mm = var_x_px * px_size_mm[0] ** 2
             var_y_mm = var_y_px * px_size_mm[1] ** 2
-            var_z_rd = var_z_px * image_width_rad ** 2
+            var_z_rd = var_z_px * image_width_rad**2
             obs_refs["xyzobs.mm.variance"] = flex.vec3_double(
                 var_x_mm, var_y_mm, var_z_rd
             )

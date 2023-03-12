@@ -86,7 +86,7 @@ def ingest(host, master, dcid):
     ingester = Ingester(host)
     r, t = ingester.ingest(master, master.replace("_master.h5", "_meta.h5"), str(dcid))
 
-    print("{0} GB read in {1}s".format(r / (1024.0 ** 3), t))
+    print("{0} GB read in {1}s".format(r / (1024.0**3), t))
 
 
 if __name__ == "__main__":

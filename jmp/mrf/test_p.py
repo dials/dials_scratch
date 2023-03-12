@@ -5,7 +5,7 @@ from __future__ import print_function
 def P(mu, x):
     from math import exp, factorial
 
-    return exp(-mu) * (mu ** x) / factorial(x)
+    return exp(-mu) * (mu**x) / factorial(x)
 
 
 def prd(x):

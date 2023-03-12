@@ -111,8 +111,8 @@ def meansd(values):
 if __name__ == "__main__":
     print(" nG    nI   rmsG  rmsI")
     for pnG in range(3, 9):
-        nG = 2 ** pnG
+        nG = 2**pnG
         for pnI in range(3, 9):
-            nI = 2 ** pnI
+            nI = 2**pnI
             rmsG, rmsI, s = test(nG, nI)
             print("%5d %5d %.3f %.3f %.3f" % (nG, nI, rmsG, rmsI, s))

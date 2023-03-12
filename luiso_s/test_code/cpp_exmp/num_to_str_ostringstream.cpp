@@ -1,9 +1,8 @@
-#include <sstream>     // for ostringstream
-#include <string>
 #include <iostream>
+#include <sstream> // for ostringstream
+#include <string>
 
-int main()
-{
+int main() {
   const float fltValue = 1234.567890f;
   std::ostringstream ostr;
 

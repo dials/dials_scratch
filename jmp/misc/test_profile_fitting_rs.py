@@ -272,7 +272,7 @@ class Test(object):
                         dx = 5 * (i - 4.5) / 4.5
                         dy = 5 * (j - 4.5) / 4.5
                         dz = 5 * (k - 4.5) / 4.5
-                        dd = sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+                        dd = sqrt(dx**2 + dy**2 + dz**2)
                         if dd <= 3:
                             mask[k, j, i] = True
 
@@ -289,7 +289,7 @@ class Test(object):
                         dx = 5 * (i - 4.5) / 4.5
                         dy = 5 * (j - 4.5) / 4.5
                         dz = 5 * (k - 4.5) / 4.5
-                        dd = sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+                        dd = sqrt(dx**2 + dy**2 + dz**2)
                         if dd <= 3:
                             mask[k, j, i] = True
             mask = mask.as_1d() & (ref_P.as_1d() > 0)
@@ -310,7 +310,7 @@ class Test(object):
                         dx = 5 * (i - 4.5) / 4.5
                         dy = 5 * (j - 4.5) / 4.5
                         dz = 5 * (k - 4.5) / 4.5
-                        dd = sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+                        dd = sqrt(dx**2 + dy**2 + dz**2)
                         if dd <= 3:
                             mask[k, j, i] = True
 

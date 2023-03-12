@@ -37,7 +37,7 @@ with h5py.File(master, "r") as f:
 
             # only need to overwrite values if read and used in 16-bit mode
             if dtype == numpy.uint16:
-                bad = 2 ** 16 - 1
+                bad = 2**16 - 1
                 sel = image.as_1d() >= bad
                 image.as_1d().set_selected(sel, -1)
 
@@ -49,4 +49,4 @@ with h5py.File(master, "r") as f:
 
     t1 = time.time()
 
-print("{0} GB read in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
+print("{0} GB read in {1}s".format(total_read / (1024.0**3), t1 - t0))

@@ -135,7 +135,7 @@ def pull_calculated(integrate_pkl):
     for r in r_list:
         if not r.is_valid():
             continue
-        if r.intensity ** 2 < r.intensity_variance:
+        if r.intensity**2 < r.intensity_variance:
             continue
         if r.intensity <= 0.0:
             continue

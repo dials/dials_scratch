@@ -334,7 +334,7 @@ class Scaler(object):
             residuals = (I_obs - mu) / flex.sqrt(V_obs)
 
             # Print out some information
-            cost = flex.sum(residuals ** 2)
+            cost = flex.sum(residuals**2)
             logger.info(
                 "%d: cost=%.5e V=%.5f S=%.5f B=%.3f G=%.3f"
                 % (self.it, cost, V, S, B, G)
@@ -370,20 +370,20 @@ class Scaler(object):
             # Compute the derivative of p(V,S) wrt V
             num = (
                 V
-                * (S ** 2 * V + epsilon ** 2)
+                * (S**2 * V + epsilon**2)
                 * flex.log(1 + (1 / V) * (epsilon / S) ** 2)
-                - (V + 1) * epsilon ** 2
+                - (V + 1) * epsilon**2
             )
-            den = 2 * V * (S ** 2 * V + epsilon ** 2)
+            den = 2 * V * (S**2 * V + epsilon**2)
             dp_dV = -p * num / den
 
             # Compute the derivative of p(V,S) wrt S
             num = (
                 (1 + (1 / V) * (epsilon / S) ** 2) ** (-(V + 1) / 2 - 1)
                 * (V + 1)
-                * epsilon ** 2
+                * epsilon**2
             )
-            den = S ** 3 * V
+            den = S**3 * V
             dp_dS = num / den
 
             # The derivatives of each expected value wrt to parameters that effect them

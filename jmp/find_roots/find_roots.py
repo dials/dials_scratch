@@ -277,7 +277,7 @@ def func(x):
     d = 10
     l = 200
     h = 200
-    return d - x * (1 + l / sqrt(h ** 2 + x ** 2))
+    return d - x * (1 + l / sqrt(h**2 + x**2))
 
 
 def dfunc(x):
@@ -286,7 +286,7 @@ def dfunc(x):
     d = 10
     l = 200
     h = 200
-    return -h * h * l / sqrt(h ** 2 + x ** 2) ** 3 - 1
+    return -h * h * l / sqrt(h**2 + x**2) ** 3 - 1
 
 
 def time_func(func):

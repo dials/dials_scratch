@@ -384,7 +384,7 @@ if __name__ == "__main__":
                 "Cannot set both iid_xyzobs_variances and iid_xyzobs_sigmas"
             )
         # convert sigmas to variances
-        xyzvar = [e ** 2 for e in err.iid_xyzobs_sigmas]
+        xyzvar = [e**2 for e in err.iid_xyzobs_sigmas]
 
     # convert units if necessary
     if err.units == "px":
@@ -398,7 +398,7 @@ if __name__ == "__main__":
         xyzvar = (
             xyzvar[0] * px_size_mm[0] ** 2,
             xyzvar[1] * px_size_mm[0] ** 2,
-            xyzvar[2] * image_width_rad ** 2,
+            xyzvar[2] * image_width_rad**2,
         )
 
     info(

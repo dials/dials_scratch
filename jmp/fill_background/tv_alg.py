@@ -16,7 +16,7 @@ def ice_background(j, i, height, width):
     rc = 20
     rs = 1
 
-    g = A * exp(-((r - rc) ** 2) / (2 * rs ** 2))
+    g = A * exp(-((r - rc) ** 2) / (2 * rs**2))
     return poisson(g)
 
 
@@ -117,7 +117,7 @@ def tv_alg(image, mask, tolerance=1e-3, max_iter=10):
         # Break if reached convergence
         from math import sqrt
 
-        l2norm = sqrt(sum([u ** 2 for u in (UCURR - UPREV)]))
+        l2norm = sqrt(sum([u**2 for u in (UCURR - UPREV)]))
         print(l2norm)
         if l2norm < tolerance:
             break

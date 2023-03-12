@@ -398,7 +398,7 @@ class ReciprocalLatticeViewer(Render3d):
             pass
         if self.settings.marker_size is Auto:
             max_radius = max(self.reflections["rlp"].norms())
-            volume = 4 / 3 * pi * max_radius ** 3
+            volume = 4 / 3 * pi * max_radius**3
             density = len(self.reflections) / volume
             # Set marker size depending on relp density, where
             # 1000 < density < 20000 ==> max_size < marker_size < min_size

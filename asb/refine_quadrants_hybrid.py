@@ -135,10 +135,10 @@ def check_experiment(experiment, reflections):
 
     # calculate residuals and assign columns
     x_resid = x_calc - x_obs
-    x_resid2 = x_resid ** 2
+    x_resid2 = x_resid**2
     y_resid = y_calc - y_obs
-    y_resid2 = y_resid ** 2
-    delpsical2 = delpsi ** 2
+    y_resid2 = y_resid**2
+    delpsical2 = delpsi**2
     r_x = flex.sum(x_resid2)
     r_y = flex.sum(y_resid2)
     r_z = flex.sum(delpsical2)

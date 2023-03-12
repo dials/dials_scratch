@@ -81,7 +81,7 @@ def plot_angles(images, angles):  # type: (Iterable[int], Iterable[float]) -> No
     locations = np.where(locations == 0, 1, locations)
     ax.xaxis.set_major_locator(ticker.FixedLocator(locations))
     # Format the rotation magnitude (tumbling angle) axis tick labels in degrees.
-    ax.yaxis.set_major_formatter(ticker.PercentFormatter(symbol=u"°", decimals=1))
+    ax.yaxis.set_major_formatter(ticker.PercentFormatter(symbol="°", decimals=1))
 
     fig.savefig("tumbling_angle")
 

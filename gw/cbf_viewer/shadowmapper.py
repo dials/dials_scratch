@@ -61,9 +61,9 @@ class Shadow(object):
         # r_k is the kappa rotation matrix.
         r_k = np.array(
             [
-                [u ** 2 + ((v ** 2) * cosk), u * v * (1.0 - cosk), -v * sink],
-                [u * v * (1 - cosk), v ** 2 + ((u ** 2) * cosk), u * sink],
-                [v * sink, -u * sink, (u ** 2 + v ** 2) * cosk],
+                [u**2 + ((v**2) * cosk), u * v * (1.0 - cosk), -v * sink],
+                [u * v * (1 - cosk), v**2 + ((u**2) * cosk), u * sink],
+                [v * sink, -u * sink, (u**2 + v**2) * cosk],
             ]
         )
         # rot_k is the gonio coords after kappa rotation.
@@ -137,7 +137,7 @@ class Shadow(object):
             # This line prevents the entire detector being covered by
             # the shadow when it shouldn't be. This occurs when a z
             # coord in new_coords is very close to zero.
-            if dist[i] < 0.0 and abs(new_coords[i, 2]) > 10.0 ** -10:
+            if dist[i] < 0.0 and abs(new_coords[i, 2]) > 10.0**-10:
                 shadow_coords += (x_det2[i], y_det2[i])
 
         draw = PIL.ImageDraw.Draw(tex_shadow)

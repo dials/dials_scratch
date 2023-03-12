@@ -18,7 +18,7 @@ def centroidify(width, shift, count):
     hist_var = sum([(v / total) ** 2 * (1.0 / 12.0) for v in hist.slots()])
 
     # print input setings
-    print("%8.5f %4.1f %4d" % (width ** 2 / count, shift, count), end=" ")
+    print("%8.5f %4.1f %4d" % (width**2 / count, shift, count), end=" ")
 
     # true variance / mean of distribution
     print("%6.3f %8.5f" % (true_mean, true_variance / values.size()), end=" ")

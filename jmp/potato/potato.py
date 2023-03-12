@@ -311,7 +311,7 @@ class Indexer(object):
         # Compute the epsilon residual
         s0_length = 1.0 / self.experiments[0].beam.get_wavelength()
         s1x, s1y, s1z = self.reflections["s2"].parts()
-        s1_length = flex.sqrt(s1x ** 2 + s1y ** 2 + s1z ** 2)
+        s1_length = flex.sqrt(s1x**2 + s1y**2 + s1z**2)
         Eres = s1_length - s0_length
 
         # Initialise the fast_mcd outlier algorithm
@@ -331,7 +331,7 @@ class Indexer(object):
         # compare to the threshold and select reflections
         selection1 = d2s < mahasq_cutoff
         selection2 = (
-            flex.sqrt(Xres ** 2 + Yres ** 2) < self.params.refinement.max_separation
+            flex.sqrt(Xres**2 + Yres**2) < self.params.refinement.max_separation
         )
         selection = selection1 & selection2
         self.reflections = self.reflections.select(selection)
@@ -346,9 +346,9 @@ class Indexer(object):
         logger.info(" Max X residual: %f" % flex.max(flex.abs(Xres)))
         logger.info(" Max Y residual: %f" % flex.max(flex.abs(Yres)))
         logger.info(" Max E residual: %f" % flex.max(flex.abs(Eres)))
-        logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres ** 2) / len(Xres))))
-        logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres ** 2) / len(Yres))))
-        logger.info(" Mean E RMSD: %f" % (sqrt(flex.sum(Eres ** 2) / len(Eres))))
+        logger.info(" Mean X RMSD: %f" % (sqrt(flex.sum(Xres**2) / len(Xres))))
+        logger.info(" Mean Y RMSD: %f" % (sqrt(flex.sum(Yres**2) / len(Yres))))
+        logger.info(" Mean E RMSD: %f" % (sqrt(flex.sum(Eres**2) / len(Eres))))
         logger.info(" MCD location estimate: %.4f, %.4f" % tuple(T))
         logger.info(
             """ MCD scatter estimate:

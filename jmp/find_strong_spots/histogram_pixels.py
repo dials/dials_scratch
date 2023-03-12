@@ -35,7 +35,7 @@ def wvar(values, weights):
     vary = numpy.dot(weights, (valy - avry) ** 2) / numpy.sum(weights)
     varz = numpy.dot(weights, (valz - avrz) ** 2) / numpy.sum(weights)
 
-    return sqrt(varx ** 2 + vary ** 2 + varz ** 2)
+    return sqrt(varx**2 + vary**2 + varz**2)
 
 
 def wcovar(values, weights):
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
         mean = numpy.mean(image)
         sdev = numpy.std(image)
-        var = sdev ** 2
+        var = sdev**2
 
         temp = histogram(image, trusted_range[0], trusted_range[1], trusted_range[1])
         temp = temp / numpy.sum(temp)

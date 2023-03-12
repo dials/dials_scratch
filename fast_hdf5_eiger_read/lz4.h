@@ -48,8 +48,9 @@ extern "C" {
 /**************************************
  *  Version
  **************************************/
-#define LZ4_VERSION_MAJOR 1   /* for breaking interface changes  */
-#define LZ4_VERSION_MINOR 7   /* for new (non-breaking) interface capabilities \
+#define LZ4_VERSION_MAJOR 1 /* for breaking interface changes  */
+#define LZ4_VERSION_MINOR                                                      \
+  7                           /* for new (non-breaking) interface capabilities \
                                */
 #define LZ4_VERSION_RELEASE 1 /* for tweaks, bug-fixes, or development */
 #define LZ4_VERSION_NUMBER                                                     \

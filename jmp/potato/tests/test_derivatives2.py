@@ -18,7 +18,7 @@ def second_derivative(func, x, y=None, h=None):
         C = func(x)
         D = func(x - h)
         E = func(x - 2 * h)
-        return (-(1 / 12) * (A + E) + (4 / 3) * (B + D) - (5 / 2) * C) / h ** 2
+        return (-(1 / 12) * (A + E) + (4 / 3) * (B + D) - (5 / 2) * C) / h**2
     else:
         A = func(x - h, y - h)
         B = func(x - h, y)
@@ -27,7 +27,7 @@ def second_derivative(func, x, y=None, h=None):
         E = func(x, y + h)
         F = func(x + h, y)
         G = func(x + h, y + h)
-        return (A - B - C + 2 * D - E - F + G) / (2 * h ** 2)
+        return (A - B - C + 2 * D - E - F + G) / (2 * h**2)
 
 
 def generate_data():

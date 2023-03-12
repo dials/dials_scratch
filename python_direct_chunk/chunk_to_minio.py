@@ -56,7 +56,7 @@ with h5py.File(master, "r") as f:
 
     t1 = time.time()
 
-print("{0} GB read in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
+print("{0} GB read in {1}s".format(total_read / (1024.0**3), t1 - t0))
 
 # now read back every object from the bucket
 total_read = 0
@@ -66,7 +66,7 @@ for o in client.list_objects(bucket):
     total_read += len(back)
 t1 = time.time()
 
-print("{0} GB read back in {1}s".format(total_read / (1024.0 ** 3), t1 - t0))
+print("{0} GB read back in {1}s".format(total_read / (1024.0**3), t1 - t0))
 
 # now clean up
 # for o in client.list_objects(bucket):

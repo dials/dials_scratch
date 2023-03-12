@@ -10,7 +10,7 @@ def include_ref(m2, e1, e3, ps, dm):
     m2e1 = m2.dot(e1)
     m2e3 = m2.dot(e3)
     m2ps = m2.dot(ps)
-    return dm ** 2 - 2 * dm * m2e3 * m2ps - m2e3 ** 2 >= 0.0
+    return dm**2 - 2 * dm * m2e3 * m2ps - m2e3**2 >= 0.0
 
 
 from math import pi, acos

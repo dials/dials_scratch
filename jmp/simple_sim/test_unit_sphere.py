@@ -42,7 +42,7 @@ def integrate_scaled(s0, r, sigma):
     l = 1.0 / s0.length()
 
     # sigma = l**2 * sigma
-    sigma = l ** 2 * sigma
+    sigma = l**2 * sigma
 
     r = r / s0.length()
     s0 = s0.normalize()

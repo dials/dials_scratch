@@ -264,9 +264,9 @@ def predict_angles(p0_star, experiment, s0=None):
     p0_sqr = p0_star.dot(p0_star)
     rho = math.sqrt(p0_sqr - p0_star.dot(m2) ** 2)
     p_star_m3 = (-0.5 * p0_sqr - p0_star.dot(m2) * b.dot(m2)) / b.dot(m3)
-    if rho ** 2 < p_star_m3 ** 2:
+    if rho**2 < p_star_m3**2:
         return None
-    p_star_m1 = math.sqrt(rho ** 2 - p_star_m3 ** 2)
+    p_star_m1 = math.sqrt(rho**2 - p_star_m3**2)
 
     p0_star_m1 = p0_star.dot(m1)
     p0_star_m3 = p0_star.dot(m3)

@@ -49,7 +49,7 @@ def calculate_dcritical(n, x):
     result = 0.0
     for k in range(1, n):
         a = (2.0 * k - 1) ** 2
-        b = exp(-a * pi ** 2 / (8 * x ** 2))
+        b = exp(-a * pi**2 / (8 * x**2))
         result += b
 
     result *= sqrt(2.0 * pi) / x

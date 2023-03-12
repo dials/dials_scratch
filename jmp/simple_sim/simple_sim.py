@@ -16,9 +16,9 @@ def vonmises_fisher(mu, kappa):
     p = len(mu)
     assert p == 3
 
-    b = (-2 * kappa + sqrt(4 * kappa ** 2 + (p - 1) ** 2)) / (p - 1)
+    b = (-2 * kappa + sqrt(4 * kappa**2 + (p - 1) ** 2)) / (p - 1)
     x0 = (1 - b) / (1 + b)
-    c = kappa * x0 + (p - 1) * log(1 - x0 ** 2)
+    c = kappa * x0 + (p - 1) * log(1 - x0**2)
     while True:
         z = beta((p - 1) / 2.0, (p - 1) / 2.0)
         u = uniform(0, 1)
@@ -29,7 +29,7 @@ def vonmises_fisher(mu, kappa):
     # Construct a uniform unit vector on a p-1 sphere
     v = matrix.col((uniform(-1, 1), uniform(-1, 1))).normalize()
 
-    y = sqrt(1 - w ** 2)
+    y = sqrt(1 - w**2)
 
     # Construct the vmF distributed vector about (0, 0, 1)
     x = matrix.col((y * v[0], y * v[1], w))
