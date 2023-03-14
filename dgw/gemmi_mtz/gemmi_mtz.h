@@ -3,6 +3,7 @@
 #define DIALS_GEMMI_MTZ_H
 #include <cctbx/miller.h>
 #include <dials/array_family/reflection_table.h>
+#define GEMMI_WRITE_IMPLEMENTATION
 #include <gemmi/mtz.hpp>
 #include <gemmi/unitcell.hpp>
 #include <iostream>
@@ -41,6 +42,7 @@ void create_mtz(const char *title, af::reflection_table reflections) {
 
   // Get columns out of the table
   af::const_ref<miller_index> h = reflections["miller_index"];
+  af::const_ref<int> batch = reflections["batch"];
   af::const_ref<double> isum = reflections["intensity.sum.value"];
   af::const_ref<double> sigisum = reflections["intensity.sum.variance"];
   af::const_ref<double> iprf = reflections["intensity.prf.value"];
@@ -63,7 +65,7 @@ void create_mtz(const char *title, af::reflection_table reflections) {
     for (size_t j = 0; j != 3; ++j)
       mtz.data[k++] = (float)hkl[j]; // HKL
     mtz.data[k++] = (float)isym;     // M/ISYM
-    int frame = 0;                   // FIXME
+    int frame = (float)batch[i];
     frames.insert(frame);
     mtz.data[k++] = (float)frame;      // BATCH
     mtz.data[k++] = (float)isum[i];    // I
@@ -74,7 +76,8 @@ void create_mtz(const char *title, af::reflection_table reflections) {
 
   mtz.sort(5);
   // std::cout << "writing file" << std::endl;
-  // mtz.write_to_file("foo.mtz");
+  const char *output_path = "foo.mtz";
+  mtz.write_to_file(output_path);
   return;
 }
 
