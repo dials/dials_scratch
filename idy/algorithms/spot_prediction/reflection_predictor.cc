@@ -10,6 +10,7 @@
  */
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
+#include <dials/array_family/reflection_table.h>
 #include <dials_scratch/idy/algorithms/spot_prediction/reflection_predictor.h>
 #include <memory>
 
