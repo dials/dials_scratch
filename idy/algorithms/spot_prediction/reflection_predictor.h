@@ -10,10 +10,10 @@
 #define IDY_ALGORITHMS_SPOT_PREDICTION_REFLECTION_PREDICTOR_H
 
 #include <algorithm>
+#include <dials/array_family/reflection_table.h>
 #include <dials/algorithms/spot_prediction/ray_predictor.h>
 #include <dials/algorithms/spot_prediction/reeke_index_generator.h>
 #include <dials/algorithms/spot_prediction/reflection_predictor.h>
-#include <dials/array_family/reflection_table.h>
 #include <dials_scratch/idy/algorithms/spot_prediction/stills_ray_predictor.h>
 #include <dxtbx/model/beam.h>
 #include <dxtbx/model/detector.h>
