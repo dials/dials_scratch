@@ -47,7 +47,7 @@ def demo_no_converter_for_const_ref():
         bb.get_const_ref_hkl()
     except TypeError as e:
         print("This fails with a TypeError and this message:")
-        print(e.message)
+        print(e)
 
     # however, can return an af::shared copy of the stored data
     print("Now access the contained array as an af::shared.")
@@ -117,7 +117,7 @@ def demo_cannot_pass_versa_from_python():
         broken.set_array_data(array)
     except TypeError as e:
         print("This fails with a Boost.Python.ArgumentError and this message:")
-        print(e.message)
+        print(e)
 
     # Can pass the array from Python as const_ref
     print("Now attempt to pass the array to a C++ extension as an af::const_ref.")
