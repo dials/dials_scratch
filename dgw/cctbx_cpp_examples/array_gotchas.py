@@ -130,6 +130,27 @@ def demo_cannot_pass_versa_from_python():
     print("This works, and the data can be passed back to Python via af::versa")
 
 
+def demo_vector_of_arrays_segfault():
+
+    from dials_scratch_cctbx_cpp_examples_ext import VectorOfArrays
+    from cctbx.array_family import flex
+
+    voa = VectorOfArrays()
+
+    # Make some float arrays to add to the cache.
+    py_sum = 0
+    for i in range(10):
+        arr = flex.random_double(10000).as_float()
+        py_sum += flex.sum(arr)
+        voa.add_array_to_vector(arr)
+
+    # Attempt to print the values
+    print(py_sum)
+    print(voa.get_sum())
+
+    # Values are different, and if the cache is big enough it segfaults :-/
+
+
 if __name__ == "__main__":
 
     runner(demo_no_converter_for_const_ref)

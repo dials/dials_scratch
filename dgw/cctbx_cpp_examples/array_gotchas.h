@@ -12,6 +12,8 @@
 #ifndef DIALS_SCRATCH_EXAMPLES_ARRAY_GOTCHAS_H
 #define DIALS_SCRATCH_EXAMPLES_ARRAY_GOTCHAS_H
 
+#include <vector>
+
 #include <scitbx/array_family/ref.h>
 #include <scitbx/array_family/shared.h>
 
@@ -77,6 +79,30 @@ public:
 private:
   // Store the array as versa<double>
   scitbx::af::versa<double, scitbx::af::c_grid<2>> array_data_;
+};
+
+class VectorOfArrays {
+public:
+  VectorOfArrays() {}
+
+  void add_array_to_vector(scitbx::af::const_ref<float> const &values) {
+    array_cache_.push_back(values);
+  }
+
+  float get_sum() {
+
+    float total = 0.0;
+    for (std::size_t i = 0; i < array_cache_.size(); i++) {
+      scitbx::af::const_ref<float> &col = array_cache_[i];
+      for (std::size_t j = 0; j < col.size(); j++) {
+        total += col[j];
+      }
+    }
+    return total;
+  }
+
+private:
+  std::vector<scitbx::af::const_ref<float>> array_cache_;
 };
 
 } // namespace examples
