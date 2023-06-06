@@ -130,8 +130,42 @@ def demo_cannot_pass_versa_from_python():
     print("This works, and the data can be passed back to Python via af::versa")
 
 
+def demo_vector_of_arrays(
+    n_arrays=10, arr_len=10000, use_bad_version_that_may_segfault=False
+):
+    """Demonstrate the use of a class that stores a cache of scitbx double
+    arrays using a std::vector. The right way to do that is to pass the arrays
+    in as shared. The bad version using const_ref may segfault."""
+
+    from dials_scratch_cctbx_cpp_examples_ext import VectorOfArrays, BadVectorOfArrays
+    from cctbx.array_family import flex
+
+    if use_bad_version_that_may_segfault:
+        voa = BadVectorOfArrays()
+    else:
+        voa = VectorOfArrays()
+
+    # Make some float arrays to add to the cache.
+    py_sum = 0
+    for i in range(n_arrays):
+        arr = flex.random_double(int(arr_len))
+        py_sum += flex.sum(arr)
+        voa.add_array_to_vector(arr)
+
+    # Attempt to print the values
+    print(py_sum)
+    print(voa.get_sum())
+
+    # For the BadVectorOfArrays, the values are different, and if the cache is
+    # big enough it segfaults :-/
+
+    assert py_sum == voa.get_sum()
+    # We only get here with the good version
+
+
 if __name__ == "__main__":
 
     runner(demo_no_converter_for_const_ref)
     runner(demo_data_loss_with_const_ref_storage)
     runner(demo_cannot_pass_versa_from_python)
+    runner(demo_vector_of_arrays)

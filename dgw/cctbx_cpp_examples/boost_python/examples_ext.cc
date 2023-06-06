@@ -14,6 +14,7 @@ void export_print_array();
 void export_print_array_head();
 void export_create_sparse_matrix();
 void export_mat_sum();
+void export_vector_of_arrays();
 
 BOOST_PYTHON_MODULE(dials_scratch_cctbx_cpp_examples_ext) {
   export_bad_bucket();
@@ -22,6 +23,7 @@ BOOST_PYTHON_MODULE(dials_scratch_cctbx_cpp_examples_ext) {
   export_print_array_head();
   export_create_sparse_matrix();
   export_mat_sum();
+  export_vector_of_arrays();
 }
 
 } // namespace boost_python
