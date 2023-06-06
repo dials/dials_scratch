@@ -81,19 +81,21 @@ private:
   scitbx::af::versa<double, scitbx::af::c_grid<2>> array_data_;
 };
 
-class VectorOfArrays {
+class BadVectorOfArrays {
 public:
-  VectorOfArrays() {}
+  BadVectorOfArrays() {}
 
-  void add_array_to_vector(scitbx::af::const_ref<float> const &values) {
+  // Use of const_ref here means the lifetime is determined externally, and
+  // when we later access the values we get undefined behaviour
+  void add_array_to_vector(scitbx::af::const_ref<double> const &values) {
     array_cache_.push_back(values);
   }
 
-  float get_sum() {
+  double get_sum() {
 
-    float total = 0.0;
+    double total = 0.0;
     for (std::size_t i = 0; i < array_cache_.size(); i++) {
-      scitbx::af::const_ref<float> &col = array_cache_[i];
+      scitbx::af::const_ref<double> &col = array_cache_[i];
       for (std::size_t j = 0; j < col.size(); j++) {
         total += col[j];
       }
@@ -102,7 +104,32 @@ public:
   }
 
 private:
-  std::vector<scitbx::af::const_ref<float>> array_cache_;
+  std::vector<scitbx::af::const_ref<double>> array_cache_;
+};
+
+class VectorOfArrays {
+public:
+  VectorOfArrays() {}
+
+  // The version using shared works fine
+  void add_array_to_vector(scitbx::af::shared<double> const &values) {
+    array_cache_.push_back(values);
+  }
+
+  double get_sum() {
+
+    double total = 0.0;
+    for (std::size_t i = 0; i < array_cache_.size(); i++) {
+      scitbx::af::shared<double> &col = array_cache_[i];
+      for (std::size_t j = 0; j < col.size(); j++) {
+        total += col[j];
+      }
+    }
+    return total;
+  }
+
+private:
+  std::vector<scitbx::af::shared<double>> array_cache_;
 };
 
 } // namespace examples

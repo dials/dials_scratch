@@ -46,6 +46,11 @@ void export_two_dimensional_array() {
 
 void export_vector_of_arrays() {
   // Broken version (segfaults)
+  class_<BadVectorOfArrays>("BadVectorOfArrays")
+      .def("add_array_to_vector", &BadVectorOfArrays::add_array_to_vector)
+      .def("get_sum", &BadVectorOfArrays::get_sum);
+
+  // Working version
   class_<VectorOfArrays>("VectorOfArrays")
       .def("add_array_to_vector", &VectorOfArrays::add_array_to_vector)
       .def("get_sum", &VectorOfArrays::get_sum);
