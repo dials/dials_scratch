@@ -9,6 +9,8 @@ The test data in XRDa apparently didn't undergo the swapping of the fast and slo
 
 ## How to solve the structure
 
+### Sweep 1
+
 ```
 cd WORKDIR
 parallel -P32  dials.python ~/prog/dials_scratch/tn/SPring-8-BL02B1/sp8bl02b1-cbf2smv.py {} {/.}.img ::: ~/data/XRDa-155-BL02B1-ZnTPP/ZNTPP_full_01*.cbf
@@ -56,10 +58,19 @@ d_max  d_min   #obs  #uniq  mult.  %comp     <I>  <I/sI>  r_mrg  r_meas  r_pim  
 10.69   0.42  33569  18238   1.84  63.30   184.8    16.7  0.064   0.090  0.063   0.131  0.970*   0.000
 ```
 
+## Sweep 4
+
+This worked in the same way as the sweep 1.
+
+## Sweep 1+4
+
+This didn't work. Clearly the fixed rotation and/or the setting rotation are wrong.
+
 ## Issues
 
-- [] This is PAD, not CCD.
-- [] Test other sweeps with non-zero two theta angles.
-- [] The beam center is off; is the header wrong or is my interpretation wrong?
-- [] I don't know if the hand is correct; the test data is P-1 so I cannot check.
-- [] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
+- [ ] This is PAD, not CCD.
+- [ ] Test sweeps with non-zero two theta angles (XRDa-155 does not have such sweeps, though).
+- [ ] Multi-sweep indexing is not working.
+- [ ] The beam center is off; is the header wrong or is my interpretation wrong?
+- [ ] I don't know if the hand is correct; the test data is P-1 so I cannot check.
+- [ ] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
