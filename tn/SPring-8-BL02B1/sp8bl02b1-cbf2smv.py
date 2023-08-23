@@ -45,6 +45,9 @@ with open(inffile, "r") as inf:
         elif line.startswith("SATURATED_VALUE="):
             # The trusted range is [1,65533] (65535 == -1 == panel gaps, 65534 == -2 == bad pixels)
             line = "SATURATED_VALUE=65533;"
+        elif line.startswith("CRYSTAL_GONIO_VECTORS="):
+            # The CHI axis is along (0, 0, 1), i.e., parallel to the beam towards the source, not (0, -1, 0)!!
+            line = "CRYSTAL_GONIO_VECTORS=1.0000 0.0000 0.0000 0.0000 0.0000 1.0000 1.0000 0.0000 0.0000;"
 
         header_items.append(line)
 

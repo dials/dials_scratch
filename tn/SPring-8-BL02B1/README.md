@@ -62,15 +62,17 @@ d_max  d_min   #obs  #uniq  mult.  %comp     <I>  <I/sI>  r_mrg  r_meas  r_pim  
 
 This worked in the same way as the sweep 1.
 
-## Sweep 1+4
+## Multi-sweep indexing
 
-This didn't work. Clearly the fixed rotation and/or the setting rotation are wrong.
+The CHI axis is along (0, 0, 1), i.e., parallel to the beam towards the source, not (0, -1, 0)!!
+
+After fixing this, multi-sweep indexing worked.
 
 ## Issues
 
 - [ ] This is PAD, not CCD.
 - [ ] Test sweeps with non-zero two theta angles (XRDa-155 does not have such sweeps, though).
-- [ ] Multi-sweep indexing is not working.
+- [X] Multi-sweep indexing.
 - [ ] The beam center is off; is the header wrong or is my interpretation wrong?
 - [ ] I don't know if the hand is correct; the test data is P-1 so I cannot check.
 - [ ] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
