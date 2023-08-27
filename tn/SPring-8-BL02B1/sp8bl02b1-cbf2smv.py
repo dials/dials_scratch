@@ -6,8 +6,10 @@ from dxtbx.format.FormatCBFMini import FormatCBFMini
 # The CBF header does not contain Distance and Start_angle
 # so we have to avoid reading them.
 
+
 def dummy_func(self):
     return None
+
 
 FormatCBFMini._detector = dummy_func
 FormatCBFMini._scan = dummy_func
@@ -19,7 +21,7 @@ if len(sys.argv) != 3:
 cbffile = sys.argv[1]
 reader = FormatCBFMini(cbffile)
 image_data = np.array(reader.get_raw_data())
-#print(image_data.shape, image_data.dtype)
+# print(image_data.shape, image_data.dtype)
 
 assert cbffile.endswith(".cbf")
 inffile = cbffile[:-3] + "inf"
@@ -27,16 +29,19 @@ inffile = cbffile[:-3] + "inf"
 header_items = []
 two_theta = 0
 with open(inffile, "r") as inf:
-    inf.readline() # skip {
+    inf.readline()  # skip {
     for line in inf:
         line = line.rstrip()
-        if line == "}": break
+        if line == "}":
+            break
 
         assert line.endswith(";")
         if line.startswith("DETECTOR_NAMES="):
             # This is used as the prefix for items like DETECTOR_DIMENSIONS.
             line = "DETECTOR_NAMES=CCD_;"
-        elif line.startswith("CCD_DETECTOR_DESCRIPTION=") or line.startswith("CCD_DETECTOR_IDENTIFICATION"):
+        elif line.startswith("CCD_DETECTOR_DESCRIPTION=") or line.startswith(
+            "CCD_DETECTOR_IDENTIFICATION"
+        ):
             # to satisfy FormatSMVRigakuSaturn.understand()
             line = line[:-1] + " fake saturn;"
         elif line.startswith("CCD_DETECTOR_VECTORS="):
@@ -67,7 +72,9 @@ if two_theta != 0:
         if item.startswith("CCD_GONIO_VALUES="):
             items = [float(x) for x in item[17:-1].split()]
             items[1] = two_theta
-            header_items[idx] = "CCD_GONIO_VALUES=" + " ".join([str(x) for x in items]) + ";"
+            header_items[idx] = (
+                "CCD_GONIO_VALUES=" + " ".join([str(x) for x in items]) + ";"
+            )
             break
 
 smvfile = sys.argv[2]
@@ -77,6 +84,6 @@ with open(smvfile, "wb") as out:
         out.write(bytes(item + "\n", "ascii"))
     out.write(bytes("}\n", "ascii"))
 
-    out.seek(4096, 0) # hard coded
+    out.seek(4096, 0)  # hard coded
     # FIXME: will this overflow?
     out.write(image_data.astype(np.uint16).tobytes())
