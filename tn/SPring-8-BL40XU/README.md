@@ -182,6 +182,5 @@ I don't know why it complains:
 The item `/entry/title` has `minOccur="0"` in [NXmx.nxdl.xml](https://github.com/nexusformat/definitions/blob/d669ffb4/applications/NXmx.nxdl.xml#L89),
 so it should be optional. The same applies to `end_time`.
 
-I also don't know whether `countrate_correction_applied` is necessary or not.
-[NXmx.nxdl.xml](https://github.com/nexusformat/definitions/blob/d669ffb4/applications/NXmx.nxdl.xml#628)
-says optional, but [the document](https://manual.nexusformat.org/classes/applications/NXmx.html) says required.
+I also don't understand whether/why `countrate_correction_lookup_table` is really required. Some detectors don't apply this correction
+and we don't necessarily know the table.

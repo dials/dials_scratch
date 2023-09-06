@@ -126,12 +126,8 @@ fixed["/entry/sample/name"] = np.string_("Unknown sample")
 fixed["/entry/source/name"] = np.string_("SPring-8")
 fixed["/entry/source/"].attrs["NX_class"] = np.string_("NXsource")
 
-# /entry/detector/countrate_correction_lookup_tablea
+# /entry/detector/countrate_correction_lookup_table
 #  FIXME: Is this really required!? Some detectors don't apply this correction.
-#  Is this a bug in the NXmx definition?
-# https://manual.nexusformat.org/classes/applications/NXmx.html says required but
-# https://github.com/nexusformat/definitions/blob/main/applications/NXmx.nxdl.xml says
-# minOccurs="0", i.e. optional.
 
 out_file = h5py.File(fn_out, "w")
 fixed.copy("entry", out_file)
