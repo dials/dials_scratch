@@ -124,6 +124,8 @@ d_max  d_min    #obs  #uniq  mult.   %comp    <I>  <I/sI>  r_mrg  r_meas  r_pim 
 - [ ] This is PAD, not CCD.
 - [X] Sweeps with non-zero two theta angles.
 - [X] Multi-sweep indexing.
+- [ ] dials.image_viewer shows the origin at upper left when fs=(1,0,0) and ss=(0,1-,0).  
+      However, ours have fs=(-1,0,0) and ss=(0,1,0) so the origin is at the lower right. Is this correct?
 - [ ] The beam center is off; is the header wrong or is my interpretation wrong?
 - [ ] I don't know if the hand is correct; the test data is P-1 so I cannot check.
 - [ ] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
