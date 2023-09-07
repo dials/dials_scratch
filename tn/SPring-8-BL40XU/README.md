@@ -170,7 +170,7 @@ pip install pyRestTable pyQt5 punx # I don't know why dependencies are not autom
 punx install
 # This installed
 # main          user   2023-06-26 08:57:16 d669ffb /home1/XXXX/.config/punx/main
-punx validate 127.nxs
+punx validate 377.nxs
 ```
 
 I don't know why it complains:
@@ -183,4 +183,31 @@ The item `/entry/title` has `minOccur="0"` in [NXmx.nxdl.xml](https://github.com
 so it should be optional. The same applies to `end_time`.
 
 I also don't understand whether/why `countrate_correction_lookup_table` is really required. Some detectors don't apply this correction
-and we don't necessarily know the table.
+and we don't necessarily know the table. Aaron Brewster (@phyy-nx) agreed with me and raised [the issue](https://github.com/nexusformat/definitions/issues/1310).
+
+Aaron also suggested I tried cnxvalidate.
+
+```
+git clone https://github.com/nexusformat/cnxvalidate.git
+git clone https://github.com/nexusformat/definitions.git
+
+cd cnxvalidate
+mkdir build
+cd build
+# Without HDF5_ROOT, this picked up libhdf5 from CCP4 and failed.
+# -DCMAKE_POLICY_DEFAULT_CMP0074=NEW is necessary to respect HDF5_ROOT.
+cmake .. -DHDF5_ROOT=/home1/app/dials/conda_base/ -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
+make
+
+nxvalidate -l ~/data/nexus_definitions/ 377.nxs
+```
+
+This said:
+```
+definition=NXmx.nxdl.xml message="Required field missing" nxdlPath=/NXentry/NXinstrument/NXdetector/countrate_correction_lookup_table sev=error dataPath=/entry/instrument/detector/countrate_correction_lookup_table dataFile=377.nxs
+definition=NXmx.nxdl.xml message="Required group missing" nxdlPath=/NXentry/NXinstrument/NXbeam sev=error dataPath=/entry/instrument dataFile=377.nxs
+5 errors and 74 warnings found when validating 377.nxs
+```
+
+I don't understand why it wrote "5 errors" while only two lines were printed.
+I also don't know why `/entry/instrument/beam` was not picked up (`punx` found it).

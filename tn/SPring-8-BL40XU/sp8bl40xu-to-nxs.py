@@ -68,10 +68,10 @@ fixed["/entry/sample/depends_on"] = np.string_("/entry/sample/transformations/ph
 
 # Set up two theta
 fixed.copy("/entry/instrument/detector/goniometer/two_theta", "/entry/instrument/detector/transformations/two_theta")
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = (0, -1, 0)
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = (0.0, -1.0, 0.0)
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs["units"] = np.string_("degree")
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs["transformation_type"] = np.string_("rotation")
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = 0
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = (0.0, 0.0, 0.0)
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs["depends_on"] = np.string_(".")
 fixed["/entry/instrument/detector/transformations/translation"].attrs["depends_on"] = np.string_("/entry/instrument/detector/transformations/two_theta")
 
@@ -83,14 +83,15 @@ fixed.copy("/entry/sample/goniometer/phi", "/entry/sample/transformations/phi")
 fixed["/entry/sample/transformations/phi"].attrs["vector"] = (-0.0106, -0.7094, -0.7047)
 fixed["/entry/sample/transformations/phi"].attrs["units"] = np.string_("degree")
 fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_("rotation")
-fixed["/entry/sample/transformations/phi"].attrs["offset"] = 0
+fixed["/entry/sample/transformations/phi"].attrs["offset"] = (0.0, 0.0, 0.0)
 fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_("/entry/sample/transformations/omega")
 
 # Update omega
 # I don't know why but EigerNXmxFixer recalculates omega from /entry/sample/goniometer/omega_range_average,
 # not using per-frame values
 fixed["/entry/sample/transformations/omega"][()] = fixed["/entry/sample/goniometer/omega"][()]
-fixed["/entry/sample/transformations/omega"].attrs["vector"] = (0, -1, 0)
+fixed["/entry/sample/transformations/omega"].attrs["vector"] = (0.0, -1.0, 0.0)
+fixed["/entry/sample/transformations/omega"].attrs["offset"] = (0.0, 0.0, 0.0)
 
 # Delete redundant information
 
@@ -113,7 +114,20 @@ for key, newitem in update.items():
     del fixed["entry/data"][key]
     fixed["/entry/data"][key] = newitem
 
-# Mandatory NXmx entries
+# Fix data type
+fixed["/entry/instrument/detector/transformations/translation"].attrs["offset"] = (0.0, 0.0, 0.0)
+
+# suppress expected "NX_BOOLEAN, got H5T_STD_I32LE"
+for item in ["/entry/instrument/detector/countrate_correction_applied",
+             "/entry/instrument/detector/pixel_mask_applied"]:
+    val = np.int8(fixed[item][()])
+    del fixed[item]
+    fixed[item] = val
+    fixed[item].attrs["NX_CLASS"] = np.string_("NX_BOOLEAN")
+
+# Add mandatory NXmx entries
+fixed["/entry/instrument/name"] = np.string_("BL40XU")
+
 fixed["/entry/start_time"] = fixed["/entry/instrument/detector/detectorSpecific/data_collection_date"][()]
 
 start_time = datetime.fromisoformat(fixed["/entry/start_time"][()].decode("ascii"))
