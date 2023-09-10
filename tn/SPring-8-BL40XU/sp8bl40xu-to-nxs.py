@@ -19,7 +19,9 @@ orig = h5py.File(fn_in, "r")
 basedir = Path(fn_in).parent.absolute()
 outputdir = Path(fn_out).parent.absolute()
 if basedir != outputdir:
-    sys.stderr.write("The output file must be in the same directory as the input files.\n")
+    sys.stderr.write(
+        "The output file must be in the same directory as the input files.\n"
+    )
     sys.stderr.write("If not, please make symbolic links.\n")
     exit(-1)
 
@@ -28,10 +30,20 @@ if False:
     print("Chi:", orig["entry"]["sample"]["goniometer"]["chi"][()])
     print("Kappa:", orig["entry"]["sample"]["goniometer"]["kappa"][()])
     print("Phi:", orig["entry"]["sample"]["goniometer"]["phi"][()])
-    print("Two theta:", orig["entry"]["instrument"]["detector"]["goniometer"]["two_theta"][()])
-    print("beam_center_x:", orig["entry"]["instrument"]["detector"]["beam_center_x"][()])
-    print("beam_center_y:", orig["entry"]["instrument"]["detector"]["beam_center_y"][()])
-    print("detector_distance:", orig["entry"]["instrument"]["detector"]["detector_distance"][()])
+    print(
+        "Two theta:",
+        orig["entry"]["instrument"]["detector"]["goniometer"]["two_theta"][()],
+    )
+    print(
+        "beam_center_x:", orig["entry"]["instrument"]["detector"]["beam_center_x"][()]
+    )
+    print(
+        "beam_center_y:", orig["entry"]["instrument"]["detector"]["beam_center_y"][()]
+    )
+    print(
+        "detector_distance:",
+        orig["entry"]["instrument"]["detector"]["detector_distance"][()],
+    )
 
 temp_file = "tmp_master_%s.nxs" % ersatz_uuid4()
 fixed = EigerNXmxFixer(fn_in, temp_file).handle
@@ -67,29 +79,54 @@ del fixed["/entry/sample/depends_on"]
 fixed["/entry/sample/depends_on"] = np.string_("/entry/sample/transformations/phi")
 
 # Set up two theta
-fixed.copy("/entry/instrument/detector/goniometer/two_theta", "/entry/instrument/detector/transformations/two_theta")
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = (0.0, -1.0, 0.0)
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["units"] = np.string_("degree")
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["transformation_type"] = np.string_("rotation")
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = (0.0, 0.0, 0.0)
-fixed["/entry/instrument/detector/transformations/two_theta"].attrs["depends_on"] = np.string_(".")
-fixed["/entry/instrument/detector/transformations/translation"].attrs["depends_on"] = np.string_("/entry/instrument/detector/transformations/two_theta")
+fixed.copy(
+    "/entry/instrument/detector/goniometer/two_theta",
+    "/entry/instrument/detector/transformations/two_theta",
+)
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = (
+    0.0,
+    -1.0,
+    0.0,
+)
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
+    "units"
+] = np.string_("degree")
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
+    "transformation_type"
+] = np.string_("rotation")
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = (
+    0.0,
+    0.0,
+    0.0,
+)
+fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
+    "depends_on"
+] = np.string_(".")
+fixed["/entry/instrument/detector/transformations/translation"].attrs[
+    "depends_on"
+] = np.string_("/entry/instrument/detector/transformations/two_theta")
 
 # Set up phi
 fixed.copy("/entry/sample/goniometer/phi", "/entry/sample/transformations/phi")
-#sin45 = math.sin(math.pi * 45 / 180.0) # = cos45
-#fixed["/entry/sample/transformations/phi"].attrs["vector"] = (0, -sin45, -sin45)
+# sin45 = math.sin(math.pi * 45 / 180.0) # = cos45
+# fixed["/entry/sample/transformations/phi"].attrs["vector"] = (0, -sin45, -sin45)
 # Refined values based on XRDa-159
 fixed["/entry/sample/transformations/phi"].attrs["vector"] = (-0.0106, -0.7094, -0.7047)
 fixed["/entry/sample/transformations/phi"].attrs["units"] = np.string_("degree")
-fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_("rotation")
+fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_(
+    "rotation"
+)
 fixed["/entry/sample/transformations/phi"].attrs["offset"] = (0.0, 0.0, 0.0)
-fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_("/entry/sample/transformations/omega")
+fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_(
+    "/entry/sample/transformations/omega"
+)
 
 # Update omega
 # I don't know why but EigerNXmxFixer recalculates omega from /entry/sample/goniometer/omega_range_average,
 # not using per-frame values
-fixed["/entry/sample/transformations/omega"][()] = fixed["/entry/sample/goniometer/omega"][()]
+fixed["/entry/sample/transformations/omega"][()] = fixed[
+    "/entry/sample/goniometer/omega"
+][()]
 fixed["/entry/sample/transformations/omega"].attrs["vector"] = (0.0, -1.0, 0.0)
 fixed["/entry/sample/transformations/omega"].attrs["offset"] = (0.0, 0.0, 0.0)
 
@@ -98,9 +135,13 @@ fixed["/entry/sample/transformations/omega"].attrs["offset"] = (0.0, 0.0, 0.0)
 # /entry/sample/beam is copied from /entry/instrument/beam by EigerNXmxFixer but actually the old place
 # is correct according to NXmx.
 del fixed["/entry/sample/beam"]
-del fixed["/entry/sample/goniometer"] # re-written in /entry/sample/transformations
-del fixed["/entry/instrument/detector/geometry"] # re-written in /entry/instrument/detector/transformations
-del fixed["/entry/instrument/detector/goniometer"] # re-written in /entry/instrument/detector/transformations
+del fixed["/entry/sample/goniometer"]  # re-written in /entry/sample/transformations
+del fixed[
+    "/entry/instrument/detector/geometry"
+]  # re-written in /entry/instrument/detector/transformations
+del fixed[
+    "/entry/instrument/detector/goniometer"
+]  # re-written in /entry/instrument/detector/transformations
 
 # Make the links in /entry/data relative (again!)
 update = {}
@@ -115,11 +156,17 @@ for key, newitem in update.items():
     fixed["/entry/data"][key] = newitem
 
 # Fix data type
-fixed["/entry/instrument/detector/transformations/translation"].attrs["offset"] = (0.0, 0.0, 0.0)
+fixed["/entry/instrument/detector/transformations/translation"].attrs["offset"] = (
+    0.0,
+    0.0,
+    0.0,
+)
 
 # suppress expected "NX_BOOLEAN, got H5T_STD_I32LE"
-for item in ["/entry/instrument/detector/countrate_correction_applied",
-             "/entry/instrument/detector/pixel_mask_applied"]:
+for item in [
+    "/entry/instrument/detector/countrate_correction_applied",
+    "/entry/instrument/detector/pixel_mask_applied",
+]:
     val = np.int8(fixed[item][()])
     del fixed[item]
     fixed[item] = val
@@ -128,11 +175,15 @@ for item in ["/entry/instrument/detector/countrate_correction_applied",
 # Add mandatory NXmx entries
 fixed["/entry/instrument/name"] = np.string_("BL40XU")
 
-fixed["/entry/start_time"] = fixed["/entry/instrument/detector/detectorSpecific/data_collection_date"][()]
+fixed["/entry/start_time"] = fixed[
+    "/entry/instrument/detector/detectorSpecific/data_collection_date"
+][()]
 
 start_time = datetime.fromisoformat(fixed["/entry/start_time"][()].decode("ascii"))
 number_of_frames = fixed["/entry/sample/transformations/omega"].shape[0]
-collection_time = timedelta(seconds=fixed["/entry/instrument/detector/frame_time"][()] * number_of_frames)
+collection_time = timedelta(
+    seconds=fixed["/entry/instrument/detector/frame_time"][()] * number_of_frames
+)
 end_time_estimated = start_time + collection_time
 fixed["/entry/end_time_estimated"] = np.string_(end_time_estimated.isoformat())
 
