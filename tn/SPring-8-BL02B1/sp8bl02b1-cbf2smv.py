@@ -6,16 +6,14 @@ from dxtbx.format.FormatCBFMini import FormatCBFMini
 # The CBF header does not contain Distance and Start_angle
 # so we have to avoid reading them.
 
-
 def dummy_func(self):
     return None
-
 
 FormatCBFMini._detector = dummy_func
 FormatCBFMini._scan = dummy_func
 
 if len(sys.argv) != 3:
-    sys.stderr.write("Usage: cbf2smv.py input.cbf output.img\n")
+    sys.stderr.write("Usage: sp8bl02b1-cbf2smv.py input.cbf output.img\n")
     exit(-1)
 
 cbffile = sys.argv[1]

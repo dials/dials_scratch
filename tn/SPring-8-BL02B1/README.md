@@ -7,7 +7,97 @@
 
 The test data in XRDa apparently didn't undergo the swapping of the fast and slow axes unlike the dataset @ndevenish got.
 
-## How to solve the structure
+The deposited dataset contains CBF files written by PILATUS and metadata in INF files.
+The INF files are similar to the RIGAKU SMV header.
+
+## Conversion to full CBF
+
+I wrote a converter from CBF+INF to full CBF.
+
+```
+parallel -P36 dials.python ~/prog/dials_scratch/tn/SPring-8-BL02B1/sp8bl02b1-fullcbf.py {} {/.}.cbf :::  ~/data/XRDa-155-BL02B1-ZnTPP/ZNTPP_full_*.cbf
+
+mkdir process
+cd process
+dials.import ../ZNTPP_full_*.cbf
+
+dials.find_spots nproc=36 imported.expt
+
+dials.index optimised.expt strong.refl
+dials.refine indexed.{expt,refl} scan_varying=True
+
+dials.integrate refined.* nproc=36
+
+dials.two_theta_refine integrated.{expt,refl}
+dials.scale refined_cell.expt integrated.refl d_min=0.40
+
+dials.export scaled.{expt,refl}
+xia2.to_shelx scaled.mtz ZnTPP ZnC44N4
+# Trivially solved and refined in Olex2 and Servalcat
+# Bonding electrons were visible :)
+```
+
+```
+Shift: 0.01, 2.07 mm (0.1, 12.0 px)
+
++------------+-------------+---------------+-------------+
+|   Imageset |   # indexed |   # unindexed | % indexed   |
+|------------+-------------+---------------+-------------|
+|          0 |       20137 |           137 | 99.3%       |
+|          1 |       11350 |            37 | 99.7%       |
+|          2 |       10750 |            82 | 99.2%       |
+|          3 |       15769 |           133 | 99.2%       |
+|          4 |        8894 |            54 | 99.4%       |
+|          5 |        5811 |            19 | 99.7%       |
+|          6 |        5691 |            75 | 98.7%       |
+|          7 |        8397 |           132 | 98.5%       |
++------------+-------------+---------------+-------------+
+
+RMSDs by experiment:
++-------+--------+----------+----------+------------+
+|   Exp |   Nref |   RMSD_X |   RMSD_Y |     RMSD_Z |
+|    id |        |     (px) |     (px) |   (images) |
+|-------+--------+----------+----------+------------|
+|     0 |  17890 |  0.165   |  0.16745 |    0.21241 |
+|     1 |   9093 |  0.15843 |  0.15011 |    0.22843 |
+|     2 |   9045 |  0.14796 |  0.1843  |    0.20834 |
+|     3 |  13107 |  0.15457 |  0.21879 |    0.22071 |
+|     4 |   7841 |  0.13846 |  0.16304 |    0.21424 |
+|     5 |   4760 |  0.14229 |  0.13068 |    0.22278 |
+|     6 |   4904 |  0.12599 |  0.15705 |    0.20286 |
+|     7 |   7058 |  0.11939 |  0.17651 |    0.22187 |
++-------+--------+----------+----------+------------+
+
+  d_max  d_min    #obs  #uniq  mult.   %comp    <I>  <I/sI>  r_mrg  r_meas  r_pim  r_anom  cc1/2  cc_ano
+  10.70   1.09   17814   1662  10.72  100.00  514.1    44.6  0.056   0.058  0.018   0.039  0.999*  0.118*
+   1.09   0.86   18773   1666  11.27  100.00  181.2    37.2  0.066   0.070  0.021   0.045  0.998*  0.090*
+   0.86   0.75   16055   1669   9.62  100.00   94.5    28.5  0.080   0.085  0.027   0.061  0.996*  0.050
+   0.75   0.68   16280   1633   9.97  100.00   73.4    24.4  0.091   0.096  0.030   0.063  0.997*  0.023
+   0.68   0.63   17722   1684  10.52  100.00   52.8    21.6  0.111   0.116  0.036   0.073  0.996* -0.071
+   0.63   0.60   17557   1642  10.69  100.00   44.0    18.9  0.124   0.131  0.040   0.081  0.996*  0.014
+   0.60   0.57   17784   1652  10.77  100.00   34.4    16.4  0.146   0.154  0.047   0.092  0.995*  0.046
+   0.57   0.54   17849   1666  10.71  100.00   24.3    13.5  0.184   0.194  0.059   0.108  0.993*  0.010
+   0.54   0.52   17427   1673  10.42  100.00   17.7    10.8  0.237   0.250  0.077   0.139  0.989*  0.001
+   0.52   0.50   14336   1667   8.60  100.00   15.6     8.7  0.263   0.280  0.095   0.175  0.979* -0.036
+   0.50   0.49   11534   1647   7.00   99.94   13.5     6.8  0.296   0.320  0.120   0.229  0.967*  0.003
+   0.49   0.47    8731   1610   5.42   98.77   12.6     5.3  0.309   0.343  0.144   0.296  0.942*  0.001
+   0.47   0.46    8121   1696   4.79   97.86   10.5     4.4  0.344   0.385  0.170   0.368  0.919*  0.008
+   0.46   0.45    6963   1607   4.33   98.65    8.5     3.2  0.437   0.497  0.230   0.477  0.880*  0.015
+   0.45   0.44    6497   1669   3.89   99.23    6.9     2.6  0.522   0.604  0.295   0.626  0.794*  0.018
+   0.44   0.43    5493   1616   3.40   99.38    6.1     2.1  0.572   0.679  0.356   0.751  0.758* -0.092
+   0.43   0.42    5003   1646   3.04   99.58    5.6     1.8  0.638   0.777  0.435   0.934  0.717* -0.003
+   0.42   0.41    4552   1659   2.74   99.88    5.3     1.5  0.689   0.860  0.508   1.024  0.642*  0.054
+   0.41   0.41    4449   1674   2.66   99.76    4.3     1.2  0.865   1.088  0.653   1.211  0.542* -0.118
+   0.41   0.40    4401   1671   2.63   99.70    3.5     1.0  0.966   1.216  0.732   1.327  0.487*  0.045
+  10.70   0.40  237341  33109   7.17   99.63   56.6    12.7  0.089   0.095  0.032   0.086  0.999*  0.121*
+```
+
+## How to solve the structure (old way)
+
+This is my old approach.
+
+Here I converted CBF+INF files into the RIGAKU Saturn SMV format.
+This worked but I don't like this approach because the format is proprietary and not well-defined.
 
 ### Sweep 1
 
@@ -121,11 +211,11 @@ d_max  d_min    #obs  #uniq  mult.   %comp    <I>  <I/sI>  r_mrg  r_meas  r_pim 
 
 ## Issues
 
-- [ ] This is PAD, not CCD.
+- [X] This is PAD, not CCD. => Solved with the full CBF.
 - [X] Sweeps with non-zero two theta angles.
 - [X] Multi-sweep indexing.
 - [ ] dials.image_viewer shows the origin at upper left when fs=(1,0,0) and ss=(0,1-,0).  
       However, ours have fs=(-1,0,0) and ss=(0,1,0) so the origin is at the lower right. Is this correct?
-- [ ] The beam center is off; is the header wrong or is my interpretation wrong?
+- [X] The beam center is off => I guess the header is not accurate.
 - [ ] I don't know if the hand is correct; the test data is P-1 so I cannot check.
-- [ ] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
+- [X] Ideally SPring-8 people should use full CBF. If they don't, our converter should write full CBF.
