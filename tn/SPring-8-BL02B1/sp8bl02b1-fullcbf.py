@@ -6,8 +6,10 @@ from dxtbx.format.FormatCBFMini import FormatCBFMini
 # The CBF header does not contain Distance and Start_angle
 # so we have to avoid reading them.
 
+
 def dummy_func(self):
     return None
+
 
 FormatCBFMini._detector = dummy_func
 FormatCBFMini._scan = dummy_func
@@ -31,11 +33,11 @@ with open(inffile, "r") as inf:
 
         assert line.endswith(";")
         idx = line.index("=")
-        header_items[line[:idx]] = line[(idx + 1):-1]
+        header_items[line[:idx]] = line[(idx + 1) : -1]
 
 reader = FormatCBFMini(cbffile)
-#print(reader._cif_header_dictionary)
-#print(header_items)
+# print(reader._cif_header_dictionary)
+# print(header_items)
 
 fullcbf_out = """
 # Takanori Nakane (Institute for Protein Research, Osaka University)
@@ -115,15 +117,18 @@ GONIOMETER GONIOMETER_KAPPA
 GONIOMETER GONIOMETER_PHI
 """
 
-wavelength=float(header_items["SCAN_WAVELENGTH"])
+wavelength = float(header_items["SCAN_WAVELENGTH"])
 
-fullcbf_out += """
+fullcbf_out += (
+    """
 loop_
 _diffrn_radiation_wavelength.id
 _diffrn_radiation_wavelength.wavelength
 _diffrn_radiation_wavelength.wt
 WAVELENGTH1 %f 1
-""" % wavelength
+"""
+    % wavelength
+)
 
 assert header_items["CRYSTAL_GONIO_NAMES"] == " Omega Chi Phi"
 assert header_items["ROTATION_AXIS_NAME"] == "Omega"
@@ -154,7 +159,15 @@ SCAN1 DETECTOR_X 0.0 0.0 0.0 0.0 0.0 0.0
 
 # Because this file contains only a single frame, angle_start == angle_range.
 # FIXME: Am I correct?
-""" % (omega, omega_incr, omega_incr, kappa, phi, two_theta, distance)
+""" % (
+    omega,
+    omega_incr,
+    omega_incr,
+    kappa,
+    phi,
+    two_theta,
+    distance,
+)
 
 exp_time = float(reader._cif_header_dictionary["Exposure_time"].split()[0])
 exp_period = float(reader._cif_header_dictionary["Exposure_period"].split()[0])
@@ -174,7 +187,11 @@ FRAME1 1 %f %f SCAN1 %s
 # `diffrn_scan_frame.integration_time` was taken from the miniCIF header `Exposure_time`.
 # `diffrn_scan_frame.exposure_time` (non-standard in imgCIF) was from the miniCIF header `Exposure_period`.
 # See also https://www.iucr.org/__data/iucr/lists/imgcif-archive/msg00349.html
-""" % (exp_time, exp_period, date)
+""" % (
+    exp_time,
+    exp_period,
+    date,
+)
 
 fullcbf_out += """
 loop_
@@ -189,12 +206,20 @@ FRAME1 DETECTOR_2THETA %.4f 0.0
 FRAME1 DETECTOR_Z 0.0 %.2f
 FRAME1 DETECTOR_Y 0.0 0.0
 FRAME1 DETECTOR_X 0.0 0.0
-""" % (omega, kappa, phi, two_theta, distance)
+""" % (
+    omega,
+    kappa,
+    phi,
+    two_theta,
+    distance,
+)
 
 # Same information in "Pixel_size" (but in meter)
 # below are in mm.
-_, _, pixelsize_x, pixelsize_y = [float(x) for x in header_items["CCD_SPATIAL_DISTORTION_INFO"].split()]
-shift_x = float(header_items["CCD_SPATIAL_BEAM_POSITION"].split()[0]) * pixelsize_x 
+_, _, pixelsize_x, pixelsize_y = [
+    float(x) for x in header_items["CCD_SPATIAL_DISTORTION_INFO"].split()
+]
+shift_x = float(header_items["CCD_SPATIAL_BEAM_POSITION"].split()[0]) * pixelsize_x
 shift_y = -float(header_items["CCD_SPATIAL_BEAM_POSITION"].split()[1]) * pixelsize_y
 
 fullcbf_out += """
@@ -218,7 +243,10 @@ ELEMENT_X        translation detector DETECTOR_X -1 0 0 %.2f %.2f 0
 ELEMENT_Y        translation detector ELEMENT_X 0 1 0 0 0 0
 
 # The unit of axis_offset is mm.
-""" % (shift_x, shift_y)
+""" % (
+    shift_x,
+    shift_y,
+)
 
 # Same information in CCD_DETECTOR_DIMENSIONS or SIZE1/SIZE2
 fs = int(reader._cif_header_dictionary["X-Binary-Size-Fastest-Dimension"])
@@ -246,7 +274,10 @@ ARRAY1 2 %d 2 increasing ELEMENT_Y
 
 # CHECKME: Is `array_structure_list.direction` ignored in DIALS?
 # Changing this does not flip images...
-""" % (fs, ss)
+""" % (
+    fs,
+    ss,
+)
 
 fullcbf_out += """
 loop_
@@ -268,7 +299,12 @@ ARRAY1 1 %f
 ARRAY1 2 %f
 
 # `array_element_size.size` is in m, while `array_structure_list_axis.displacement_increment` is in mm!
-""" % (pixelsize_x, pixelsize_y, pixelsize_x / 1000.0, pixelsize_y / 1000.0)
+""" % (
+    pixelsize_x,
+    pixelsize_y,
+    pixelsize_x / 1000.0,
+    pixelsize_y / 1000.0,
+)
 
 cbf_cutoff = int(reader._cif_header_dictionary["Count_cutoff"].split()[0])
 cutoff = int(header_items["SATURATED_VALUE"])
@@ -287,7 +323,10 @@ ARRAY1 1 linear 1.0 . %d -1
 # `array_intensities.overload` was taken from `SATURATED_VALUE`;
 # the miniCBF header `Count_cutoff` says %d instead.
 # FIXME: I am not sure which is correct.
-""" % (cutoff, cbf_cutoff)
+""" % (
+    cutoff,
+    cbf_cutoff,
+)
 
 fullcbf_out += """
 loop_

@@ -6,8 +6,10 @@ from dxtbx.format.FormatCBFMini import FormatCBFMini
 # The CBF header does not contain Distance and Start_angle
 # so we have to avoid reading them.
 
+
 def dummy_func(self):
     return None
+
 
 FormatCBFMini._detector = dummy_func
 FormatCBFMini._scan = dummy_func
