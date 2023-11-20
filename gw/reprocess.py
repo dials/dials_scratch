@@ -56,11 +56,12 @@ def reprocess(params, experiments, reflections):
     # get and apply the original error model: TODO make this more general
     scaling_model = experiments[0].scaling_model
     scaling_model.load_error_model(error_scope.extract())
-    reflections[
-        "intensity.scale.variance"
-    ] = flex.double(scaling_model.error_model.update_variances(
-        reflections["intensity.scale.variance"], reflections["intensity.scale.value"]
-    ))
+    reflections["intensity.scale.variance"] = flex.double(
+        scaling_model.error_model.update_variances(
+            reflections["intensity.scale.variance"],
+            reflections["intensity.scale.value"],
+        )
+    )
 
     reflections.as_file(params.output.reflections)
     experiments.as_file(params.output.experiments)
