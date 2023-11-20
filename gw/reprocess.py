@@ -2,6 +2,9 @@ import sys
 
 from libtbx.phil import parse
 
+from dxtbx.model.experiment_list import ExperimentList
+from dials.array_family import flex
+
 from dials.util.options import OptionParser, reflections_and_experiments_from_files
 from dials.algorithms.integration.integrator import create_integrator
 from dials.command_line.integrate import working_phil as original_phil
@@ -14,6 +17,9 @@ output {
   reflections = reprocessed.refl
     .type = path
     .help = "Output filename for reprocessed data"
+  experiments = reprocessed.expt
+    .type = path
+    .help = "Output filename for reprocessed models (for reference)"
 }
 """
 )
@@ -52,11 +58,12 @@ def reprocess(params, experiments, reflections):
     scaling_model.load_error_model(error_scope.extract())
     reflections[
         "intensity.scale.variance"
-    ] = scaling_model.error_model.update_variances(
+    ] = flex.double(scaling_model.error_model.update_variances(
         reflections["intensity.scale.variance"], reflections["intensity.scale.value"]
-    )
+    ))
 
     reflections.as_file(params.output.reflections)
+    experiments.as_file(params.output.experiments)
 
 
 if __name__ == "__main__":
@@ -67,13 +74,16 @@ if __name__ == "__main__":
         read_reflections=True,
     )
 
-    params, options = parser.parse_args(args=sys.argv[1:], show_diff_phil=True)
+    imported = ExperimentList.from_file(sys.argv[1])
+
+    params, options = parser.parse_args(args=sys.argv[2:], show_diff_phil=True)
 
     reflections, experiments = reflections_and_experiments_from_files(
         params.input.reflections, params.input.experiments
     )
 
-    assert len(experiments) == 1
+    experiments[0].imageset = imported[0].imageset
+
     reflections = reflections[0]
     reflections = reflections.select(reflections.get_flags(reflections.flags.scaled))
 
