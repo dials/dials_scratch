@@ -1,25 +1,20 @@
 """Script for simulating still images with electron diffraction geometry
 and a tetragonal lyzozyme cell"""
 
-from __future__ import division
-from __future__ import print_function
 from scitbx.array_family import flex
 from simtbx.nanoBragg import shapetype
 from simtbx.nanoBragg import nanoBragg
-import libtbx.load_env  # possibly implicit
+
 from scitbx import matrix
-from cctbx.eltbx import sasaki, henke
+from cctbx.eltbx import henke
 from dxtbx.model.detector import DetectorFactory
-from dxtbx.model.beam import Beam, BeamFactory
-from dxtbx.model.scan import ScanFactory
-from dxtbx.model.goniometer import GoniometerFactory
+from dxtbx.model.beam import BeamFactory
 from dxtbx.model import Crystal
 from dxtbx.model.experiment_list import Experiment
 from dxtbx.model.experiment_list import ExperimentList
 from multiprocessing import Pool
 import argparse
 from random import uniform, seed
-from math import pi
 
 pdb_lines = """HEADER TEST
 CRYST1   78.840   78.840   38.290  90.00  90.00  90.00 P 43 21 2
@@ -244,7 +239,7 @@ class Simulation(object):
         self.set_imageset(fileout, expr_no)
 
         self.experiments[expr_no : expr_no + 1].as_file(
-            "experiments_%03d.json" % image_no
+            "experiments_%05d.json" % image_no
         )
 
     def generate_all_images(self):
