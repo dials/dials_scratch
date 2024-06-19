@@ -35,32 +35,32 @@ class Simulation(object):
         self.num = num
         assert self.start > 0 and self.num > 1
 
+        self._setup_models()
+
+    def _setup_models(self):
+
         # Set up detector
-        distance = 1590.00
-        pixel_size = 0.055
         image_size = (1024, 1024)
         beam_centre_mm = (
-            pixel_size * image_size[0] / 2,
-            pixel_size * image_size[1] / 2,
+            self.pixel_size * image_size[0] / 2,
+            self.pixel_size * image_size[1] / 2,
         )
         self.detector = DetectorFactory().simple(
             "PAD",
-            distance,
+            self.distance,
             beam_centre_mm,
             "+x",
             "-y",
-            (pixel_size, pixel_size),
+            (self.pixel_size, self.pixel_size),
             image_size,
             trusted_range=(-1, 1000000),
         )
 
-        # Set up unpolarized 200 keV beam
-        wavelength = 0.02508
         self.beam = BeamFactory().make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
-            wavelength=wavelength,
+            wavelength=self.wavelength,
             polarization=(0, 1, 0),
-            polarization_fraction=0.5,
+            polarization_fraction=self.polarization_fraction,
         )
 
         # Set up simulated structure factors
@@ -107,7 +107,7 @@ class Simulation(object):
 
         pdb_inp = pdb.input(source_info=None, lines=pdb_lines)
         xray_structure = pdb_inp.xray_structure_simple()
-        wavelength = self.beam.get_wavelength()
+        wavelength = self.wavelength
 
         # Assuming X-ray scattering here - does not matter for the geometry. How
         # would one use electron scattering instead?
@@ -165,16 +165,17 @@ class Simulation(object):
 
         # WORKAROUND: Instead, use nanoBragg to set the A matrix by missets, then
         # update the dxtbx crystal to keep track
+        seed(image_no)
         SIM.missets_deg = (uniform(0, 360), uniform(0, 360), uniform(0, 360))
         # Apparently this needs the transpose
         crystal.set_A(matrix.sqr(SIM.Amatrix).transpose())
 
         SIM.xtal_shape = shapetype.Gauss  # fastest option, least realistic
-        SIM.flux = 1e12  # photons/s
-        SIM.beamsize_mm = 0.01  # assumes round beam
+        SIM.flux = 1e12  # quanta/s
+        SIM.beamsize_mm = self.beamsize_mm  # assumes round beam
         SIM.exposure_s = 0.1
 
-        SIM.divergence_hv_mrad = 0.07, 0.07
+        SIM.divergence_hv_mrad = self.divergence_hv_mrad
         SIM.divsteps_hv = 6, 6
 
         # Set mosaic spread _before_ setting the number of domains.  If the
@@ -191,7 +192,7 @@ class Simulation(object):
         SIM.add_nanoBragg_spots()
 
         # Amplify spot signal
-        SIM.raw_pixels *= 100
+        SIM.raw_pixels *= self.amplifying_factor
 
         # Write out the noise-free image with a pedestal matching that reported in
         # the header
@@ -207,7 +208,7 @@ class Simulation(object):
         scatt = 70 * flex.exp(-7 * stol)
         bg = flex.vec2_double(stol, scatt)
         SIM.Fbg_vs_stol = bg
-        SIM.amorphous_sample_thick_mm = 0.3
+        SIM.amorphous_sample_thick_mm = self.amorphous_sample_thick_mm
         SIM.amorphous_density_gcm3 = 1
         SIM.amorphous_molecular_weight_Da = 18
         SIM.add_background()
@@ -251,6 +252,52 @@ class Simulation(object):
             pool.map(self.generate_image, range(self.start, self.start + self.num))
 
 
+class SimulationED(Simulation):
+    def __init__(self, start, num):
+
+        self.start = start
+        self.num = num
+        assert self.start > 0 and self.num > 1
+
+        self.distance = 1590.00
+        self.pixel_size = 0.055
+
+        # unpolarized 200 keV beam
+        self.wavelength = 0.02508
+        self.polarization_fraction = 0.5
+
+        # Values found by trial-and-error to produce reasonable images
+        self.beamsize_mm = 0.01
+        self.divergence_hv_mrad = 0.07, 0.07
+        self.amplifying_factor = 100
+        self.amorphous_sample_thick_mm = 0.3
+
+        self._setup_models()
+
+
+class SimulationMX(Simulation):
+    def __init__(self, start, num):
+
+        self.start = start
+        self.num = num
+        assert self.start > 0 and self.num > 1
+
+        self.distance = 100.0
+        self.pixel_size = 0.172
+
+        # Unpolarized 12 keV beam
+        self.wavelength = 1.0332
+        self.polarization_fraction = 0.5
+
+        # Values found by trial-and-error to produce reasonable images
+        self.beamsize_mm = 0.1
+        self.divergence_hv_mrad = 3.2, 3.2
+        self.amplifying_factor = 1e7
+        self.amorphous_sample_thick_mm = 0.0001
+
+        self._setup_models()
+
+
 def run():
     p = argparse.ArgumentParser()
     p.add_argument("start", type=int)
@@ -258,9 +305,8 @@ def run():
     p.add_argument("proc", type=int)
     args = p.parse_args()
 
-    seed(args.start)
-
-    sim = Simulation(int(args.start), int(args.num))
+    # Edit here to SimulationMX if required
+    sim = SimulationED(int(args.start), int(args.num))
     sim.generate_all_in_parallel(args.proc)
 
 
