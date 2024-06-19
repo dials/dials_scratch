@@ -13,10 +13,23 @@ from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.algorithms.indexing.compare_orientation_matrices import (
     difference_rotation_matrix_axis_angle,
 )
+from time import perf_counter_ns
+import json
 
 
 class Script(object):
-    def __init__(self):
+    def __init__(
+        self,
+        prefix="noiseimage_",
+        extension="img",
+        spotfind_cmds=[
+            "min_spot_size=3",
+        ],
+    ):
+
+        self.prefix = prefix
+        self.extension = extension
+        self.spotfind_cmds = spotfind_cmds
 
         self.cmds = [
             (
@@ -26,9 +39,9 @@ class Script(object):
                 "stills.indexer=sequences",
                 "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000",
                 "space_group=P43212",
-                "indexing.method=real_space_grid_search",
                 "n_macro_cycles=2",
                 "detector.fix=distance",
+                "indexing.method=real_space_grid_search",
             ),  # RSGS
             (
                 shutil.which("dials.index"),
@@ -37,9 +50,9 @@ class Script(object):
                 "stills.indexer=sequences",
                 "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000",
                 "space_group=P43212",
-                "indexing.method=low_res_spot_match",
                 "n_macro_cycles=2",
                 "detector.fix=distance",
+                "indexing.method=low_res_spot_match",
             ),  # lrsm
             (
                 shutil.which("dials.index"),
@@ -48,22 +61,35 @@ class Script(object):
                 "stills.indexer=sequences",
                 "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000",
                 "space_group=P43212",
-                "indexing.method=low_res_spot_match",
                 "n_macro_cycles=2",
                 "detector.fix=distance",
                 "bootstrap_crystal=True",
+                "indexing.method=low_res_spot_match",
             ),  # lrsm + bootstrap crystal
+            (
+                shutil.which("dials.index"),
+                "imported.expt",
+                "strong.refl",
+                "stills.indexer=sequences",
+                "unit_cell=78.840,78.840,38.290,90.000,90.000,90.000",
+                "space_group=P43212",
+                "n_macro_cycles=2",
+                "detector.fix=distance",
+                "indexing.method=pink_indexer",
+                "percent_bandwidth=2",
+                "min_lattices=5",
+            ),  # pink_indexer
         ]
 
-        self.images = sorted(glob.glob("noiseimage_*.img"))
+        self.images = sorted(glob.glob(self.prefix + "*." + self.extension))
         print(
-            "Found {0} images matching noiseimage_*.img in the current working directory".format(
-                len(self.images)
-            )
+            f"Found {len(self.images)} images matching {self.prefix}*.{self.extension} in the current working directory"
         )
 
     def run(self):
         results = [self.process(image) for image in self.images]
+        with open("indigo_results.json", "w") as f:
+            json.dump(results, f)
 
         header = (
             ["Image", "Num spots"]
@@ -96,7 +122,7 @@ class Script(object):
 
     @staticmethod
     def compare_orientation_matrices(image):
-        serialno = image.lstrip("noiseimage_").rstrip(".img")
+        serialno = image.lstrip(self.prefix).rstrip("." + self.extension)
         exp1 = ExperimentListFactory.from_json_file("experiments_" + serialno + ".json")
         exp2 = ExperimentListFactory.from_json_file("indexed.expt")
         R_ij, axis, angle, cb_op = difference_rotation_matrix_axis_angle(
@@ -108,15 +134,18 @@ class Script(object):
         print(f"processing {image}")
         cmd = (shutil.which("dials.import"), image)
         result = subprocess.run(cmd)
-        cmd = (shutil.which("dials.find_spots"), "imported.expt", "min_spot_size=3")
+        cmd = (shutil.which("dials.find_spots"), "imported.expt") + self.spotfind_cmds
         result = subprocess.run(cmd)
         strong = flex.reflection_table.from_file("strong.refl")
         d = {"nspots": len(strong)}
 
         nindexed = []
         offset_deg = []
+        elapsed = []
         for cmd in self.cmds:
+            start = perf_counter_ns()
             result = subprocess.run(cmd)
+            elapsed.append(perf_counter_ns() - start)
             if os.path.isfile("indexed.refl"):
                 idx = flex.reflection_table.from_file("indexed.refl")
                 nindexed.append(idx.get_flags(idx.flags.indexed).count(True))
@@ -129,6 +158,7 @@ class Script(object):
 
         d["nindexed"] = nindexed
         d["offset_deg"] = offset_deg
+        d["elapsed"] = elapsed
 
         print(
             "#Spots:{0} ".format(d["nspots"])
@@ -139,5 +169,12 @@ class Script(object):
 
 
 if __name__ == "__main__":
-    script = Script()
+    # Edit prefix, extension and spotfinding commands as needed
+    script = Script(
+        prefix="noiseimage_",
+        extension="img",
+        spotfind_cmds=[
+            "min_spot_size=3",
+        ],
+    )
     script.run()
