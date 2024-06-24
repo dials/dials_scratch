@@ -126,18 +126,38 @@ class Script(object):
         st = simple_table(rows, header)
         print(st.format())
 
-    def compare_orientation_matrices(self, image):
+    def reindex_to_ground_truth(self, image):
+        """Calculate reindexing operation required to take the indexed image to
+        the ground truth model, reindex the experiments and reflections,
+        and return the offset angle in degrees."""
+
+        # Calculate the cb_op and rotation required
         serialno = image.replace(self.prefix, "").replace("." + self.extension, "")
         exp1 = ExperimentListFactory.from_json_file("experiments_" + serialno + ".json")
         exp2 = ExperimentListFactory.from_json_file("indexed.expt")
         R_ij, axis, angle, cb_op = difference_rotation_matrix_axis_angle(
             exp1[0].crystal, exp2[0].crystal
         )
+
+        # Do the reindexing
+        exp2 = reindex_experiments(exp2, cb_op)
+        # exp2.as_file("indexed.expt")
+        # indexed = flex.reflection_table.from_file("indexed.refl")
+        # indexed = reindex_reflections(indexed, cb_op)
+        # indexed.as_file("indexed.refl")
+        cmd = (
+            shutil.which("dials.reindex"),
+            "indexed.expt",
+            "indexed.refl",
+            f"change_of_basis_op={str(cb_op)}",
+            "output.experiments=indexed.expt",
+            "output.reflections=indexed.refl",
+        )
+        result = subprocess.run(cmd)
         return abs(angle)
 
     def check_hkl(self, idx):
         ground_truth = flex.reflection_table.from_file("ground_truth.refl")
-        nref = len(ground_truth)
 
         # Select reflections indexed in both
         sel = idx.get_flags(idx.flags.indexed) & ground_truth.get_flags(
@@ -156,7 +176,7 @@ class Script(object):
         n_inverse = (idx_hkl + gt_hkl).norms().count(0.0)
 
         # Return the fraction of correctly indexed reflections
-        return max(n_direct, n_inverse) / nref
+        return max(n_direct, n_inverse) / len(ground_truth)
 
     def process(self, image):
         print(f"processing {image}")
@@ -190,9 +210,9 @@ class Script(object):
             result = subprocess.run(cmd)
             elapsed.append(perf_counter() - start)
             if os.path.isfile("indexed.refl"):
+                offset_deg.append(self.reindex_to_ground_truth(image))
                 idx = flex.reflection_table.from_file("indexed.refl")
                 nindexed.append(idx.get_flags(idx.flags.indexed).count(True))
-                offset_deg.append(self.compare_orientation_matrices(image))
                 correct_hkl.append(self.check_hkl(idx))
                 os.remove("indexed.refl")
                 os.remove("indexed.expt")
