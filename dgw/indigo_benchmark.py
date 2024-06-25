@@ -4,6 +4,7 @@ Script to compare various methods of indexing ED stills
 """
 
 import os
+import sys
 import glob
 import subprocess
 import shutil
@@ -140,7 +141,7 @@ class Script(object):
         )
 
         # Do the reindexing
-        exp2 = reindex_experiments(exp2, cb_op)
+        # exp2 = reindex_experiments(exp2, cb_op)
         # exp2.as_file("indexed.expt")
         # indexed = flex.reflection_table.from_file("indexed.refl")
         # indexed = reindex_reflections(indexed, cb_op)
@@ -159,7 +160,12 @@ class Script(object):
     def check_hkl(self, idx):
         ground_truth = flex.reflection_table.from_file("ground_truth.refl")
 
-        # Select reflections indexed in both
+        # Match reflections by position
+        id1, id2, _ = ground_truth.match(idx)
+        ground_truth = ground_truth.select(id1)
+        idx = idx.select(id2)
+
+        # Select only reflections indexed in both
         sel = idx.get_flags(idx.flags.indexed) & ground_truth.get_flags(
             ground_truth.flags.indexed
         )
@@ -191,7 +197,7 @@ class Script(object):
             shutil.which("dials.index"),
             f"experiments_{serialno}.json",
             "strong.refl",
-            "detector.fix=distance",
+            "detector.fix=all",
             "output.experiments=ground_truth.expt",
             "output.reflections=ground_truth.refl",
         )
@@ -219,8 +225,12 @@ class Script(object):
             else:
                 nindexed.append(0)
                 offset_deg.append(None)
-        os.remove("ground_truth.refl")
-        os.remove("ground_truth.expt")
+                correct_hkl.append(0)
+        try:
+            os.remove("ground_truth.refl")
+            os.remove("ground_truth.expt")
+        except FileNotFoundError:
+            pass
 
         d["nindexed"] = nindexed
         d["offset_deg"] = offset_deg
@@ -236,35 +246,39 @@ class Script(object):
 
 
 if __name__ == "__main__":
+
     # Edit prefix, extension and spotfinding commands as needed
-    # script = Script(
-    #    prefix="TPB_25032024_07_",
-    #    extension="cbf",
-    #    unit_cell="7.5840,11.225,19.711,90.0,90.0,90.0",
-    #    space_group="P222",
-    #    import_cmds = ["panel.gain=1.7", "convert_sequences_to_stills=True"],
-    #    spotfind_cmds=[
-    #        "d_max=10",
-    #    ],
-    # )
-    # script = Script(
-    #    prefix="as_cbf_",
-    #    extension="cbf",
-    #    unit_cell="25.909,30.9595,33.3054,88.229,71.351,67.848",
-    #    space_group="P1",
-    #    import_cmds=["convert_sequences_to_stills=True"],
-    #    spotfind_cmds=[
-    #        "d_max=10",
-    #    ],
-    # )
-    script = Script(
-        prefix="noiseimage_",
-        extension="img",
-        unit_cell="78.840,78.840,38.290,90.000,90.000,90.000",
-        space_group="P43212",
-        import_cmds=[],
-        spotfind_cmds=[
-            "d_max=10",
-        ],
-    )
+    if sys.argv[1] == "TPB":
+        script = Script(
+            prefix="TPB_25032024_07_",
+            extension="cbf",
+            unit_cell="7.5840,11.225,19.711,90.0,90.0,90.0",
+            space_group="P222",
+            import_cmds=["panel.gain=1.7", "convert_sequences_to_stills=True"],
+            spotfind_cmds=[
+                "d_max=10",
+            ],
+        )
+    elif sys.argv[1] == "lyso":
+        script = Script(
+            prefix="as_cbf_",
+            extension="cbf",
+            unit_cell="25.909,30.9595,33.3054,88.229,71.351,67.848",
+            space_group="P1",
+            import_cmds=["convert_sequences_to_stills=True"],
+            spotfind_cmds=[
+                "d_max=10",
+            ],
+        )
+    elif sys.argv[1] == "simED":
+        script = Script(
+            prefix="noiseimage_",
+            extension="img",
+            unit_cell="78.840,78.840,38.290,90.000,90.000,90.000",
+            space_group="P43212",
+            import_cmds=[],
+            spotfind_cmds=[
+                "d_max=10",
+            ],
+        )
     script.run()
