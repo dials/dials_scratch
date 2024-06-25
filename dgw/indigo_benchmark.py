@@ -48,17 +48,17 @@ class Script(object):
                 "detector.fix=distance",
                 "indexing.method=real_space_grid_search",
             ),  # RSGS
-            (
-                shutil.which("dials.index"),
-                "imported.expt",
-                "strong.refl",
-                "stills.indexer=sequences",
-                f"unit_cell={unit_cell}",
-                f"space_group={space_group}",
-                "n_macro_cycles=2",
-                "detector.fix=distance",
-                "indexing.method=low_res_spot_match",
-            ),  # lrsm
+            # (
+            #    shutil.which("dials.index"),
+            #    "imported.expt",
+            #    "strong.refl",
+            #    "stills.indexer=sequences",
+            #    f"unit_cell={unit_cell}",
+            #    f"space_group={space_group}",
+            #    "n_macro_cycles=2",
+            #    "detector.fix=distance",
+            #    "indexing.method=low_res_spot_match",
+            # ),  # lrsm
             (
                 shutil.which("dials.index"),
                 "imported.expt",
@@ -159,6 +159,7 @@ class Script(object):
 
     def check_hkl(self, idx):
         ground_truth = flex.reflection_table.from_file("ground_truth.refl")
+        gt_nref = len(ground_truth)
 
         # Match reflections by position
         id1, id2, _ = ground_truth.match(idx)
@@ -171,6 +172,11 @@ class Script(object):
         )
         idx = idx.select(sel)
         ground_truth = ground_truth.select(sel)
+        joint_nref = len(ground_truth)
+
+        # Fail if we index less than 50% of the reflections
+        if joint_nref < 0.5 * gt_nref:
+            return 0.0
 
         # Compare hkl
         idx_hkl = idx["miller_index"].as_vec3_double()
