@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function
-
 import collections
 import concurrent.futures
+from gemmi import cif
 import gzip
-import iotbx.cif
 import itertools
 import json
 import os
@@ -11,11 +9,12 @@ import sys
 import time
 from tqdm import tqdm
 
-# Disable output buffering
-sys.stdout = os.fdopen(sys.stdout.fileno(), "w", 0)
-
 pdb = "/dls/science/groups/scisoft/PDB-mmcif"
 dbjson = "/dls/tmp/wra62962/PDB.json"
+if not os.path.exists(pdb):
+    pdb = "/home/markus/pdb/pdb"
+    dbjson = "/home/markus/pdb/state.json"
+
 try:
     with open(dbjson, "r") as fh:
         db = json.load(fh)
@@ -34,35 +33,39 @@ def parse_temperature(string):
         return float(string)
     except ValueError:
         sys.stderr.write("Can not parse temperature: " + string + "\n")
+        raise
         return False
 
 
-def get_year_temperature(filename):
-    with gzip.open(filename, "r") as fh:
-        cif = iotbx.cif.reader(file_object=fh)
-    model = cif.model()
-    assert len(model) == 1, list(model)
-    entry = model[list(model)[0]]
+def cif_get(block, item):
+    column = block.find_values(item)
+    if len(column) == 0:
+        return False
+    if len(column) == 1:
+        return column.str(0)
+    for value in column:
+        if value:
+            return value
+    return False
 
-    year = entry.get("_pdbx_database_status.recvd_initial_deposition_date")
-    if year and "-" in year:
-        year = int(year.split("-")[0])
-    else:
-        year = False
-    if entry.get("_exptl.method") != "X-RAY DIFFRACTION":
+
+def get_year_temperature(filename):
+    doc = cif.read(filename)
+    block = doc.sole_block()
+
+    year = cif_get(block, "_pdbx_database_status.recvd_initial_deposition_date")
+    if year:
+        if "-" in year:
+            year = int(year.split("-")[0])
+        else:
+            year = False
+    if cif_get(block, "_exptl.method") != "X-RAY DIFFRACTION":
         return year, False
-    temp = entry.get("_diffrn.ambient_temp")
+    temp = cif_get(block, "_diffrn.ambient_temp")
     if not temp:
         return year, None
 
-    if isinstance(temp, basestring):
-        return year, parse_temperature(temp)
-
-    # scitbx array
-    templist = filter(None, map(parse_temperature, temp))
-    if not templist:
-        return year, None
-    return year, templist[0]
+    return year, parse_temperature(temp)
 
 
 def print_temperature_summary(temperature_dict):
@@ -93,7 +96,7 @@ def print_temperature_summary(temperature_dict):
         def write_line(rangestr, filterfn):
             args = [rangestr]
             for year in years:
-                c = len(filter(filterfn, filtered[year]))
+                c = len([item for item in filtered[year] if filterfn(item)])
                 if tempgiven[year] > 0:
                     percentage = 100 * c / tempgiven[year]
                 else:
@@ -167,7 +170,7 @@ def find_all_files():
 files = find_all_files()
 num_files = len(files)
 
-with concurrent.futures.ProcessPoolExecutor(max_workers=5) as file_reader:
+with concurrent.futures.ProcessPoolExecutor(max_workers=8) as file_reader:
     resultcounter = 0
     temperatures = collections.defaultdict(list)
     start = time.time()
@@ -199,18 +202,18 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=5) as file_reader:
                     temperatures[year].append(temperature)
                     if time.time() > next_update:
                         print("\n")
-                        print_temperature_summary(temperatures)
-                        print("")
                         json_string = json.dumps(db)
                         with open(dbjson, "w") as fh:
                             fh.write(json_string)
                         json_string = None
+                        print_temperature_summary(temperatures)
+                        print("")
                         next_update = time.time() + 60
 
-        print("All results aggregated")
-        print_temperature_summary(temperatures)
         with open(dbjson, "w") as fh:
             json.dump(db, fh)
+        print("All results aggregated")
+        print_temperature_summary(temperatures)
     except KeyboardInterrupt:
         print("Cancelling processes...")
         for f in active_futures:
