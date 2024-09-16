@@ -1,18 +1,16 @@
 #!/bin/env dials.python
 """Find overlapped reflections from a scaled data set, where the first
-two lattices come from a single set of images and contain overlaps"""
+two lattices come from a single set of images and contain overlaps.
+All other lattices are single crystal data sets with no overlaps."""
 
 from dxtbx.model.experiment_list import ExperimentList
 import numpy as np
-
+from matplotlib import pyplot as plt
 from annlib_ext import AnnAdaptor
 from scitbx.array_family import flex
-
 from dials.array_family import flex
 from dials.algorithms.scaling.outlier_rejection import reject_outliers
 from dials.algorithms.scaling.Ih_table import IhTable
-
-from matplotlib import pyplot as plt
 
 
 def moving_average(x, w):
@@ -39,7 +37,7 @@ refl["Ih"] = ih["Ih_values"]
 # Remove reflections with weak merged intensities
 refl = refl.select(refl["Ih"] > 0.05)
 
-# Determine maximum z-score for which each reflection is still an outlier
+# Determine maximum z-score for which each reflection remains an outlier
 refl["z_score"] = flex.double(len(refl), 0)
 for z in np.arange(0.01, 7, 0.01):
     print(z)
@@ -51,12 +49,9 @@ for z in np.arange(0.01, 7, 0.01):
 r1 = refl.select(refl["id"] == 0)
 r2 = refl.select(refl["id"] == 1)
 
-# key = "xyzobs.px.value"
-key = "xyzcal.px"
-
 # Create the KD Tree and find the nearest neighbours
-ann = AnnAdaptor(r2[key].as_double(), dim=3, k=1)
-ann.query(r1[key].as_double())
+ann = AnnAdaptor(r2["xyzcal.px"].as_double(), dim=3, k=1)
+ann.query(r1["xyzcal.px"].as_double())
 
 # Select only close neighbours that might be overlaps. Average sigma_b
 # is about 0.0095°. Detector distance is 644.4 mm. So, sigma_b covers
@@ -75,6 +70,7 @@ plt.ylabel("Z-score")
 plt.title("Outlier rejection of overlaps")
 plt.savefig("z-score.pdf")
 
+# Plot ratio of overlap intensity to group merged intensity
 plt.clf()
 scaled_intensity = r1["intensity"] / r1["inverse_scale_factor"]
 ratio = scaled_intensity / r1["Ih"]
