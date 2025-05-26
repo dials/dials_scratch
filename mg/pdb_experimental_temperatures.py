@@ -14,6 +14,7 @@ dbjson = "/dls/tmp/wra62962/PDB.json"
 if not os.path.exists(pdb):
     pdb = "/home/markus/pdb/pdb"
     dbjson = "/home/markus/pdb/state.json"
+csv = dbjson[:-4] + "csv"
 
 try:
     with open(dbjson, "r") as fh:
@@ -125,6 +126,47 @@ def print_temperature_summary(temperature_dict):
         print(line.format(*args))
         print("-" * (17 + 15 * len(years)))
         years = all_years[0:8]
+    write_csv(temperature_dict)
+
+
+def write_csv(temperature_dict):
+    with open(csv, "w") as fh:
+        all_years = sorted(temperature_dict)
+        fh.write("Category," + ",".join([str(year) for year in all_years]) + "\n")
+
+        filtered = {
+            year: [t for t in temperature_dict[year] if t not in (False, None)]
+            for year in all_years
+        }
+
+        def write_line(rangestr, filterfn):
+            row = ["'" + rangestr + "'"]
+            for year in all_years:
+                c = len([item for item in filtered[year] if filterfn(item)])
+                row.append(c)
+            fh.write(",".join(str(c) for c in row) + "\n")
+
+        write_line("       T <=   0K", lambda t: t <= 0 and t is not False)
+        write_line("  0K < T <=  70K", lambda t: 0 < t <= 70)
+        write_line(" 70K < T <=  95K", lambda t: 70 < t <= 95)
+        write_line(" 95K < T <= 105K", lambda t: 95 < t <= 105)
+        write_line("105K < T <= 160K", lambda t: 105 < t <= 160)
+        write_line("160K < T <= 265K", lambda t: 160 < t <= 265)
+        write_line("265K < T <= 295K", lambda t: 265 < t <= 295)
+        write_line("295K < T        ", lambda t: 295 < t)
+
+        total = {year: len(temperature_dict[year]) for year in all_years}
+        noxray = {
+            year: len([t for t in temperature_dict[year] if t is False])
+            for year in all_years
+        }
+        tempgiven = {year: len(filtered[year]) for year in all_years}
+        notemp = {
+            year: total[year] - tempgiven[year] - noxray[year] for year in all_years
+        }
+        fh.write("'T not given'," + ",".join(str(notemp[y]) for y in all_years) + "\n")
+        fh.write("'not xray'," + ",".join(str(noxray[y]) for y in all_years) + "\n")
+        fh.write("total," + ",".join(str(total[y]) for y in all_years) + "\n")
 
 
 def read_directory(dirname):
