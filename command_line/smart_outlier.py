@@ -135,7 +135,7 @@ def smart_outlier(
             abs_z = abs((reflections[k]["intensity.scale.value"] - imerge)) / std
             if abs_z > 2.0:
                 outliers_indices.append(k)
-                reflections[k]["intensity.scale.value"] = imerge
+                reflections["intensity.scale.value"][k] = imerge
 
     outliers = reflections.select(flex.size_t(outliers_indices))
     logger.info("Total number of outliers identified: %d", len(outliers))
