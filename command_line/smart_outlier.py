@@ -147,12 +147,17 @@ def smart_outlier(
     image_numbers = flex.ceil(outliers["xyzcal.px"].parts()[2]).iround()
     for iexp, exp in enumerate(experiments):
         images_this_exp = image_numbers.select(outliers["id"] == iexp)
+        if not len(images_this_exp):
+            logger.info("No outliers found for experiment %d", iexp)
+            continue
         hist = np.histogram(
             images_this_exp,
             bins=list(range(min(images_this_exp), max(images_this_exp) + 1)),
         )
         header = ["Image", "Number of outliers"]
-        rows = zip([str(e) for e in hist[1][:-1]], [str(e) for e in hist[0]])
+        images = [str(i) for i, o in zip(hist[1][:-1], hist[0]) if o > 0]
+        noutliers = [str(o) for o in hist[0] if o > 0]
+        rows = zip(images, noutliers)
         table = dials.util.tabulate(rows, header)
         logger.info(f"Experiment {iexp}, outliers per image:\n{table}")
 
