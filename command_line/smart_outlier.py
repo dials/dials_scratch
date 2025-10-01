@@ -144,7 +144,7 @@ def smart_outlier(
     outliers = reflections.select(flex.size_t(outliers_indices))
     logger.info("Total number of outliers identified: %d", len(outliers))
 
-    image_numbers = outliers["xyzcal.px"].parts()[2].iround()
+    image_numbers = flex.ceil(outliers["xyzcal.px"].parts()[2]).iround()
     for iexp, exp in enumerate(experiments):
         images_this_exp = image_numbers.select(outliers["id"] == iexp)
         hist = np.histogram(
