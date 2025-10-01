@@ -40,6 +40,10 @@ phil_scope = libtbx.phil.parse(
         reflections = smart.refl
             .type = path
             .help = "Option to set filepath for output reflections."
+        outliers = None
+            .type = path
+            .help = "Option to set filepath for output outlier reflections."
+                    "This can be useful to view the outliers on the image."
         log = dials.smart_outlier.log
             .type = path
     }
@@ -72,7 +76,7 @@ def smart_outlier(
         params:       Program parameters, in the form of a scope_extract object,
                       which is the usable form of a parsed PHIL scope.
     Returns:
-        The modified reflection table.
+        A tuple containing the modified reflection table and the outliers table.
     """
 
     # Filter bad reflections using dials.util.filter methods
@@ -158,7 +162,7 @@ def smart_outlier(
         reflections = reflections.select(mask)
         logger.info("Rejected %d reflections", len(outliers))
 
-    return reflections
+    return reflections, outliers
 
 
 @dials.util.show_mail_on_error()
@@ -213,11 +217,17 @@ def run(args: list[str] = None, phil: libtbx.phil.scope = phil_scope) -> None:
     reflections = reflections[0]
 
     # Run the algorithm
-    reflections = smart_outlier(experiments, reflections, params)
+    reflections, outliers = smart_outlier(experiments, reflections, params)
 
     # File output
     logger.info("Writing the reflection table to %s", params.output.reflections)
     reflections.as_file(params.output.reflections)
+
+    if params.output.outliers is not None:
+        logger.info(
+            "Writing the outliers reflection table to %s", params.output.outliers
+        )
+        outliers.as_file(params.output.outliers)
 
 
 if __name__ == "__main__":
