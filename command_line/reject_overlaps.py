@@ -74,6 +74,13 @@ def reject_overlaps(
         A tuple containing the modified reflection table and the overlaps table.
     """
 
+    # Keep track of some columns that will be deleted by the filtering step
+    reflections["original_index"] = flex.size_t(range(len(reflections)))
+    intensity_sum_value = reflections["intensity.sum.value"].deep_copy()
+    intensity_sum_variance = reflections["intensity.sum.variance"].deep_copy()
+    intensity_prf_value = reflections["intensity.prf.value"].deep_copy()
+    intensity_prf_variance = reflections["intensity.prf.variance"].deep_copy()
+
     # Filter bad reflections using dials.util.filter methods
     reflections = filter_reflection_table(
         reflections,
@@ -83,6 +90,21 @@ def reject_overlaps(
         combine_partials=True,
         partiality_threshold=0.4,
     )
+
+    # Put back the intensity columns that were removed by filtering
+    reflections["intensity.sum.value"] = intensity_sum_value.select(
+        reflections["original_index"]
+    )
+    reflections["intensity.sum.variance"] = intensity_sum_variance.select(
+        reflections["original_index"]
+    )
+    reflections["intensity.prf.value"] = intensity_prf_value.select(
+        reflections["original_index"]
+    )
+    reflections["intensity.prf.variance"] = intensity_prf_variance.select(
+        reflections["original_index"]
+    )
+    del reflections["original_index"]
 
     # Scale factor has been applied, so now set to 1.0 so it does not get
     # set again. Create a new column to keep the recalculated scale factor
@@ -128,6 +150,17 @@ def reject_overlaps(
             reflections["recalc_scale_factor"][k] = (
                 reflections["intensity.scale.value"][k] / imerge
             )
+
+    # Alternate algorithm - gives essentially the same results once the filtering
+    # has been applied
+    # reflections["intensity"] = reflections["intensity.scale.value"]
+    # reflections["variance"] = reflections["intensity.scale.variance"]
+    # from dials.algorithms.scaling.Ih_table import IhTable
+    # space_group = experiments[0].crystal.get_space_group()
+    # ih = IhTable([reflections], space_group, nblocks=1)
+    # ih = ih.blocked_data_list[0].as_reflection_table()
+    # ih.sort("loc_indices")
+    # reflections["recalc_scale_factor2"] = reflections["intensity.scale.value"] / ih["Ih_values"]
 
     # Separate reflections for each lattice
     r1 = reflections.select(reflections["id"] == 0)
