@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime, timedelta
 import h5py
 import math
@@ -8,12 +9,45 @@ import sys
 from dxtbx.format.FormatHDF5EigerNearlyNexus import EigerNXmxFixer
 from dxtbx.util import ersatz_uuid4
 
-if len(sys.argv) != 3:
-    sys.stderr.write("Usage: dials.python sp8bl40xu-to-nxs.py input_master.h5 output.nxs\n")
-    exit(-1)
+parser = argparse.ArgumentParser(description="Convert EIGER master files from SPring-8 BL05XU into NXmx files.")
 
-fn_in = sys.argv[1]
-fn_out = sys.argv[2]
+parser.add_argument("input_file", help="EIGER master file name")
+parser.add_argument("output_file", help="Output NXmx file name")
+parser.add_argument("--frame_time", help="Frame time (sec/frame)", type=float, default=0.1, required=True)
+parser.add_argument("--omega_start", help="Starting OMEGA angle (deg)", type=float, default=0.0)
+parser.add_argument("--omega_step", help="OMEGA angle per frame (deg/frame)", type=float, default=0.5, required=True)
+parser.add_argument("--phi", help="PHI angle (deg)", type=float, default=0)
+parser.add_argument("--kappa", help="KAPPA angle (deg). Usually 45.", type=float, default=45)
+parser.add_argument("--two_theta", help="Detector TWO THETA angle (deg)", type=float, default=0)
+parser.add_argument("--distance", help="Detector distance (m)", type=float, default=0.06,required=True)
+parser.add_argument("--wavelength", help="Wavelenegth (angstrom", type=float, default=0.62, required=True)
+parser.add_argument("--beam_center_x", help="Beam center (fast axis) at TWO THETA = 0 (px)", type=float, default=384.91)
+parser.add_argument("--beam_center_y", help="Beam center (slow axis) at TWO THETA = 0 (px)", type=float, default=554.48)
+
+args = parser.parse_args()
+
+frame_time = args.frame_time
+omega_start = args.omega_start
+omega_step = args.omega_step
+phi = args.phi
+kappa = args.kappa
+two_theta = args.two_theta
+distance = args.distance
+wavelength = args.wavelength
+beam_center_x = args.beam_center_x
+beam_center_y = args.beam_center_y
+
+print("frame_time: %f sec" % frame_time)
+print("omega: %f deg, step %f deg/frame" % (omega_start, omega_step))
+print("phi: %f deg" % phi)
+print("kappa: %f deg" % kappa)
+print("two_theta: %f deg" % two_theta)
+print("wavelength: %f A" % wavelength)
+print("distance: %f m" % distance)
+print("beam center at two_theta=0: (%f, %f) px (fast, slow)" % (beam_center_x, beam_center_y))
+
+fn_in = args.input_file
+fn_out = args.output_file
 orig = h5py.File(fn_in, "r")
 
 basedir = Path(fn_in).parent.absolute()
@@ -48,13 +82,13 @@ if False:
 temp_file = "tmp_master_%s.nxs" % ersatz_uuid4()
 fixed = EigerNXmxFixer(fn_in, temp_file).handle
 
-# BL40XU layout
+# BL05XU layout
 
 # looking from the source to the crystal,
-#  the OMEGA axis and the TWO_THETA axis are vertical, downwards
-#   (i.e. clockwise when looked down from the ceiling)
-#  the PHI axis (at OMEGA 0) is towards source, lower (i.e. fixed at 45 degrees)
-#   (i.e. clockwise when looked down from the ceiling)
+#  the OMEGA axis and the TWO_THETA axis are horizontal.
+#     OMEGA is clockwise seen from the right.
+#     TWO_THETA is the opposite.
+#  the PHI axis (at OMEGA 0) is from bottom left to upper right (i.e. fixed at 45 degrees)
 #  the detector origin is at the top left
 #  the fast axis is horizontal and towards right
 #  the slow axis is vertical and downwards
@@ -64,8 +98,11 @@ fixed = EigerNXmxFixer(fn_in, temp_file).handle
 #  +X is horizontal, leftwards
 #  +Y completes the right hand system, so vertical, upwards
 #
-# Thus, OMEGA and TWO_THETA is (0, -1, 0)
-# PHI is (0, -cos45, -sin45)
+# Thus,
+# OMEGA is (1, 0, 0)
+# KAPPA is (0, 0, -1), fixed at 45 deg
+# PHI is (1, 0, 0) at KAPPA = 0
+# TWO_THETA is (-1, 0, 0)
 # fast and slow (at TWO_THETA=0) are (-1, 0, 0), (0, -1, 0)
 #
 # When importing, DIALS converts this into:
@@ -73,6 +110,8 @@ fixed = EigerNXmxFixer(fn_in, temp_file).handle
 #  +X is flipped (horizontal, rightwards)
 #  +Y as is (vertical, upwards)
 #  Note that this preserves the hand.
+
+number_of_frames = fixed["/entry/sample/goniometer/omega"].shape[0]
 
 # Sample depends on phi, not omega
 del fixed["/entry/sample/depends_on"]
@@ -83,9 +122,10 @@ fixed.copy(
     "/entry/instrument/detector/goniometer/two_theta",
     "/entry/instrument/detector/transformations/two_theta",
 )
+fixed["/entry/instrument/detector/transformations/two_theta"][()] = [two_theta] * number_of_frames
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = (
-    0.0,
     -1.0,
+    0.0,
     0.0,
 )
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
@@ -108,27 +148,39 @@ fixed["/entry/instrument/detector/transformations/translation"].attrs[
 
 # Set up phi
 fixed.copy("/entry/sample/goniometer/phi", "/entry/sample/transformations/phi")
-# sin45 = math.sin(math.pi * 45 / 180.0) # = cos45
-# fixed["/entry/sample/transformations/phi"].attrs["vector"] = (0, -sin45, -sin45)
-# Refined values based on XRDa-159
-fixed["/entry/sample/transformations/phi"].attrs["vector"] = (-0.0106, -0.7094, -0.7047)
+fixed["/entry/sample/transformations/phi"][()] = [phi] * number_of_frames
+fixed["/entry/sample/transformations/phi"].attrs["vector"] = (-1.0, 0.0, 0.0)
 fixed["/entry/sample/transformations/phi"].attrs["units"] = np.string_("degree")
 fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_(
     "rotation"
 )
 fixed["/entry/sample/transformations/phi"].attrs["offset"] = (0.0, 0.0, 0.0)
 fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_(
+    "/entry/sample/transformations/kappa"
+)
+
+# Set up kappa
+fixed.copy("/entry/sample/goniometer/kappa", "/entry/sample/transformations/kappa")
+fixed["/entry/sample/transformations/kappa"][()] = [kappa] * number_of_frames
+fixed["/entry/sample/transformations/kappa"].attrs["vector"] = (0.0, 0.0, -1.0)
+fixed["/entry/sample/transformations/kappa"].attrs["units"] = np.string_("degree")
+fixed["/entry/sample/transformations/kappa"].attrs["transformation_type"] = np.string_(
+    "rotation"
+)
+fixed["/entry/sample/transformations/kappa"].attrs["offset"] = (0.0, 0.0, 0.0)
+fixed["/entry/sample/transformations/kappa"].attrs["depends_on"] = np.string_(
     "/entry/sample/transformations/omega"
 )
 
 # Update omega
 # I don't know why but EigerNXmxFixer recalculates omega from /entry/sample/goniometer/omega_range_average,
 # not using per-frame values
-fixed["/entry/sample/transformations/omega"][()] = fixed[
-    "/entry/sample/goniometer/omega"
-][()]
-fixed["/entry/sample/transformations/omega"].attrs["vector"] = (0.0, -1.0, 0.0)
+fixed["/entry/sample/transformations/omega"][()] = [omega_start + i * omega_step for i in range(number_of_frames)]
+fixed["/entry/sample/transformations/omega"].attrs["vector"] = (1.0, 0.0, 0.0)
 fixed["/entry/sample/transformations/omega"].attrs["offset"] = (0.0, 0.0, 0.0)
+
+# Set the wavelength
+fixed["/entry/instrument/beam/incident_wavelength"][()] = wavelength
 
 # Delete redundant information
 
@@ -155,12 +207,26 @@ for key, newitem in update.items():
     del fixed["entry/data"][key]
     fixed["/entry/data"][key] = newitem
 
-# Fix data type
+# Set the detector distance
+print(fixed["/entry/instrument/detector/depends_on"][()])
+fixed["/entry/instrument/detector/transformations/translation"][()] = distance
+fixed["/entry/instrument/detector/transformations/translation"].attrs["vector"] = (
+    0.0,
+    0.0,
+    1.0, # along the beam
+)
+fixed["/entry/instrument/detector/distance"] = distance # recommended by NXmx, not used actually
+del fixed["/entry/instrument/detector/detector_distance"]
+
+# Set the beam center
 fixed["/entry/instrument/detector/transformations/translation"].attrs["offset"] = (
-    0.0,
-    0.0,
+    beam_center_x * fixed["/entry/instrument/detector/module/fast_pixel_direction"][()],
+    beam_center_y * fixed["/entry/instrument/detector/module/slow_pixel_direction"][()],
     0.0,
 )
+# these two are not used actually
+fixed["/entry/instrument/detector/beam_center_x"][()] = beam_center_x
+fixed["/entry/instrument/detector/beam_center_y"][()] = beam_center_y
 
 # suppress expected "NX_BOOLEAN, got H5T_STD_I32LE"
 for item in [
@@ -173,14 +239,15 @@ for item in [
     fixed[item].attrs["NX_CLASS"] = np.string_("NX_BOOLEAN")
 
 # Add mandatory NXmx entries
-fixed["/entry/instrument/name"] = np.string_("BL40XU")
+fixed["/entry/instrument/name"] = np.string_("BL05XU")
 
 fixed["/entry/start_time"] = fixed[
     "/entry/instrument/detector/detectorSpecific/data_collection_date"
 ][()]
 
 start_time = datetime.fromisoformat(fixed["/entry/start_time"][()].decode("ascii"))
-number_of_frames = fixed["/entry/sample/transformations/omega"].shape[0]
+
+fixed["/entry/instrument/detector/frame_time"][()] = frame_time
 collection_time = timedelta(
     seconds=fixed["/entry/instrument/detector/frame_time"][()] * number_of_frames
 )
