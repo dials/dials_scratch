@@ -149,7 +149,7 @@ fixed["/entry/instrument/detector/transformations/translation"].attrs[
 # Set up phi
 fixed.copy("/entry/sample/goniometer/phi", "/entry/sample/transformations/phi")
 fixed["/entry/sample/transformations/phi"][()] = [phi] * number_of_frames
-fixed["/entry/sample/transformations/phi"].attrs["vector"] = (-1.0, 0.0, 0.0)
+fixed["/entry/sample/transformations/phi"].attrs["vector"] = (1.0, 0.0, 0.0)
 fixed["/entry/sample/transformations/phi"].attrs["units"] = np.string_("degree")
 fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_(
     "rotation"
@@ -208,7 +208,6 @@ for key, newitem in update.items():
     fixed["/entry/data"][key] = newitem
 
 # Set the detector distance
-print(fixed["/entry/instrument/detector/depends_on"][()])
 fixed["/entry/instrument/detector/transformations/translation"][()] = distance
 fixed["/entry/instrument/detector/transformations/translation"].attrs["vector"] = (
     0.0,
