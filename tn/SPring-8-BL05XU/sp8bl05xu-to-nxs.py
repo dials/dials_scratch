@@ -115,7 +115,7 @@ number_of_frames = fixed["/entry/sample/goniometer/omega"].shape[0]
 
 # Sample depends on phi, not omega
 del fixed["/entry/sample/depends_on"]
-fixed["/entry/sample/depends_on"] = np.string_("/entry/sample/transformations/phi")
+fixed["/entry/sample/depends_on"] = np.bytes_("/entry/sample/transformations/phi")
 
 # Set up two theta
 fixed.copy(
@@ -130,10 +130,10 @@ fixed["/entry/instrument/detector/transformations/two_theta"].attrs["vector"] = 
 )
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
     "units"
-] = np.string_("degree")
+] = np.bytes_("degree")
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
     "transformation_type"
-] = np.string_("rotation")
+] = np.bytes_("rotation")
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = (
     0.0,
     0.0,
@@ -141,21 +141,21 @@ fixed["/entry/instrument/detector/transformations/two_theta"].attrs["offset"] = 
 )
 fixed["/entry/instrument/detector/transformations/two_theta"].attrs[
     "depends_on"
-] = np.string_(".")
+] = np.bytes_(".")
 fixed["/entry/instrument/detector/transformations/translation"].attrs[
     "depends_on"
-] = np.string_("/entry/instrument/detector/transformations/two_theta")
+] = np.bytes_("/entry/instrument/detector/transformations/two_theta")
 
 # Set up phi
 fixed.copy("/entry/sample/goniometer/phi", "/entry/sample/transformations/phi")
 fixed["/entry/sample/transformations/phi"][()] = [phi] * number_of_frames
 fixed["/entry/sample/transformations/phi"].attrs["vector"] = (1.0, 0.0, 0.0)
-fixed["/entry/sample/transformations/phi"].attrs["units"] = np.string_("degree")
-fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.string_(
+fixed["/entry/sample/transformations/phi"].attrs["units"] = np.bytes_("degree")
+fixed["/entry/sample/transformations/phi"].attrs["transformation_type"] = np.bytes_(
     "rotation"
 )
 fixed["/entry/sample/transformations/phi"].attrs["offset"] = (0.0, 0.0, 0.0)
-fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_(
+fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.bytes_(
     "/entry/sample/transformations/kappa"
 )
 
@@ -163,12 +163,12 @@ fixed["/entry/sample/transformations/phi"].attrs["depends_on"] = np.string_(
 fixed.copy("/entry/sample/goniometer/kappa", "/entry/sample/transformations/kappa")
 fixed["/entry/sample/transformations/kappa"][()] = [kappa] * number_of_frames
 fixed["/entry/sample/transformations/kappa"].attrs["vector"] = (0.0, 0.0, -1.0)
-fixed["/entry/sample/transformations/kappa"].attrs["units"] = np.string_("degree")
-fixed["/entry/sample/transformations/kappa"].attrs["transformation_type"] = np.string_(
+fixed["/entry/sample/transformations/kappa"].attrs["units"] = np.bytes_("degree")
+fixed["/entry/sample/transformations/kappa"].attrs["transformation_type"] = np.bytes_(
     "rotation"
 )
 fixed["/entry/sample/transformations/kappa"].attrs["offset"] = (0.0, 0.0, 0.0)
-fixed["/entry/sample/transformations/kappa"].attrs["depends_on"] = np.string_(
+fixed["/entry/sample/transformations/kappa"].attrs["depends_on"] = np.bytes_(
     "/entry/sample/transformations/omega"
 )
 
@@ -235,10 +235,10 @@ for item in [
     val = np.int8(fixed[item][()])
     del fixed[item]
     fixed[item] = val
-    fixed[item].attrs["NX_CLASS"] = np.string_("NX_BOOLEAN")
+    fixed[item].attrs["NX_CLASS"] = np.bytes_("NX_BOOLEAN")
 
 # Add mandatory NXmx entries
-fixed["/entry/instrument/name"] = np.string_("BL05XU")
+fixed["/entry/instrument/name"] = np.bytes_("BL05XU")
 
 fixed["/entry/start_time"] = fixed[
     "/entry/instrument/detector/detectorSpecific/data_collection_date"
@@ -248,14 +248,14 @@ start_time = datetime.fromisoformat(fixed["/entry/start_time"][()].decode("ascii
 
 fixed["/entry/instrument/detector/frame_time"][()] = frame_time
 collection_time = timedelta(
-    seconds=fixed["/entry/instrument/detector/frame_time"][()] * number_of_frames
+    seconds=float(fixed["/entry/instrument/detector/frame_time"][()]) * number_of_frames
 )
 end_time_estimated = start_time + collection_time
-fixed["/entry/end_time_estimated"] = np.string_(end_time_estimated.isoformat())
+fixed["/entry/end_time_estimated"] = np.bytes_(end_time_estimated.isoformat())
 
-fixed["/entry/sample/name"] = np.string_("Unknown sample")
-fixed["/entry/source/name"] = np.string_("SPring-8")
-fixed["/entry/source/"].attrs["NX_class"] = np.string_("NXsource")
+fixed["/entry/sample/name"] = np.bytes_("Unknown sample")
+fixed["/entry/source/name"] = np.bytes_("SPring-8")
+fixed["/entry/source/"].attrs["NX_class"] = np.bytes_("NXsource")
 
 # /entry/detector/countrate_correction_lookup_table
 #  FIXME: Is this really required!? Some detectors don't apply this correction.
